@@ -27,11 +27,13 @@ class PostPaginateCollection extends Resource
             'post_comment_num' => $this->post_comment_num,
             'post_rate' => $this->post_rate,
             //'translations' => PostTranslationCollection::collection($this->translations),
+            'post_like_state'=>$this->post_like_state,
             'topTwoComments'=> $this->when(!($request->has('keywords')||$request->has('take')||$request->has('type')||$request->get('categoryId' , 'group')==1) , function (){
                 return $this->topComment();
             }),
             'post_country'=> $this->country(),
             'post_created_at'=> optional($this->post_created_at)->toDateTimeString(),
+            'post_format_created_at'=> $this->post_format_created_at,
             'user_name'=>$this->owner->user_name,
             'user_avatar'=>$this->owner->user_avatar,
             'user_country'=>$this->owner->user_country

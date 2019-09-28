@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Services\TranslateService;
 use App\Models\User;
@@ -57,7 +58,7 @@ class PostCommentController extends BaseController
      * Store a newly created resource in storage.
      *
      * @param StorePostCommentRequest $request
-     * @return Response
+     * @return PostCommentCollection
      */
     public function store(StorePostCommentRequest $request)
     {
@@ -65,9 +66,11 @@ class PostCommentController extends BaseController
         $commentContent = $request->input('comment_content');
         $commentPId = $request->input('comment_comment_p_id' , 0);
         $post = app(PostRepository::class)->findByUuid($postUuid);
-        if(isset($input['comment_comment_p_id']))
+        if(isset($commentPId)&&$commentPId!=0)
         {
-            $this->postComment->find($commentPId);
+            $pComment = $this->postComment->find($commentPId);
+        }else{
+            $pComment = array();
         }
         //$contentLang = $this->translate->detectLanguage($commentContent);
         $contentLang = 'en';
@@ -91,11 +94,11 @@ class PostCommentController extends BaseController
         dynamicSetLocales(array($contentDefaultLang));
         $translation = $this->translate->customizeTrans($commentContent , $contentLang);
 
-//        $comment[$contentLang] = array('comment_content'=>$commentContent);
+        $comment[$contentLang] = array('comment_content'=>$commentContent);
         $comment = $comment+$translation;
         $postComment = $this->postComment->store($comment);
         event(new PostCommentCreated($postComment));
-        return $postComment;
+        return new PostCommentCollection($postComment);
     }
 
     /**
@@ -185,6 +188,16 @@ class PostCommentController extends BaseController
     public function destroy($id)
     {
         //
+    }
+
+    public function myself(Request $request)
+    {
+        return PostCommentCollection::collection($this->postComment->findByUserId($request , auth()->user()->user_id));
+    }
+
+    public function mylike()
+    {
+        return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->with('likable')->paginate(20));
     }
 
     public function test()

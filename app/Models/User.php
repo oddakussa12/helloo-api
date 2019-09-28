@@ -148,7 +148,17 @@ class User extends Authenticatable implements JWTSubject
         {
             return strtolower($country_code[$country]);
         }
-        return strtolower($country_code[208]);
+        return strtolower($country_code[236]);
+    }
+
+    public function setUserCountryIdAttribute($value)
+    {
+        $index = array_search(strtolower($value) , config('countries'));
+        if($index===false)
+        {
+            $index = 236;
+        }
+        return $index+1;
     }
 
 

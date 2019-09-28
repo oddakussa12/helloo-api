@@ -188,6 +188,25 @@ class NotificationController extends BaseController
         return $this->response->noContent();
     }
 
+    public function readAll($type)
+    {
+        if($type=='like')
+        {
+            $notices = auth()->user()->getNotificationRelation()->where(function($query){
+                $query->where('category_id' , 3)
+                    ->where('read' , 0);
+            })->get();
+            foreach ($notices as $notice)
+            {
+                if($notice->read==0)
+                {
+                    $notice->read();
+                }
+            }
+        }
+        return $this->response->noContent();
+    }
+
     public function detail($id)
     {
         $notification = auth()->user()->getNotificationRelation()->where(function($query) use ($id){

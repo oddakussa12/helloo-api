@@ -26,13 +26,12 @@ $V1Params = [
 ];
 
 $api->group($V1Params , function ($api){
-    $api->group(['middleware'=>'guestrefresh'] , function($api){
+    $api->group(['middleware'=>'guestRefresh'] , function($api){
         $api->resource('post' , 'PostController' , ['only' => ['index']]);
-
-
 
         $api->get('post/user/{user}' , 'PostController@showPostByUser');
         $api->get('post/top' , 'PostController@showTopList');
+        $api->get('post/hot' , 'PostController@hot');
 
         $api->get('login/google', 'AuthController@redirectToProvider');
         $api->get('login/google/callback', 'AuthController@handleProviderCallback');
@@ -40,11 +39,15 @@ $api->group($V1Params , function ($api){
         $api->resource('category' , 'CategoryController');
         $api->put('user/{uuid}/follow' , 'UserController@follow');
         $api->put('user/{uuid}/unfollow' , 'UserController@unfollow');
-        $api->post('user/signUp' , 'AuthController@signUp');
-        $api->post('user/signIn' , 'AuthController@signIn');
-        $api->get('user/signOut' , 'AuthController@signOut');
+
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid');
     });
+
+    $api->post('user/signUp' , 'AuthController@signUp');
+    $api->post('user/signIn' , 'AuthController@signIn');
+    $api->get('user/signOut' , 'AuthController@signOut');
+
+
     $api->group(['middleware'=>'refresh'] , function($api){
 
         $api->get('postComment/myself' , 'PostCommentController@myself');
@@ -52,7 +55,7 @@ $api->group($V1Params , function ($api){
 
         $api->get('user/profile' , 'AuthController@me');
         $api->get('post/myself' , 'PostController@myself');
-        $api->put('user/updateuserinfo' , 'AuthController@updateUserInfo');
+        $api->put('user/update/myself' , 'AuthController@update');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken');
 
         $api->put('post/{uuid}/favorite' , 'PostController@favorite');
@@ -77,7 +80,7 @@ $api->group($V1Params , function ($api){
         $api->put('notification/{id}' , 'NotificationController@read');
         $api->get('notification/{id}' , 'NotificationController@detail');
     });
-    $api->group(['middleware'=>'guestrefresh'] , function($api){
+    $api->group(['middleware'=>'guestRefresh'] , function($api){
         $api->get('post/{uuid}' , 'PostController@showByUuid');
         $api->get('notification' , 'NotificationController@index');
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);

@@ -144,7 +144,7 @@ return [
     */
 
     'attributes' => [
-        'name'                  => '名称',
+        'name'                  => '账号',
         'username'              => '用户名',
         'email'                 => '邮箱',
         'first_name'            => '名',

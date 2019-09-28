@@ -29,14 +29,14 @@ class LoginUserRequest extends FormRequest
             'password'=>'required|min:4|max:16',
         ];
     }
-
-    public function attributes()
-    {
-        return [
-            'name'=>'nama',
-            'password'=>'kata sandi',
-        ];
-    }
+//
+//    public function attributes()
+//    {
+//        return [
+//            'name'=>'nama',
+//            'password'=>'kata sandi',
+//        ];
+//    }
 
 //    public function messages(){
 //        return [

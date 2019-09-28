@@ -69,7 +69,7 @@ class TranslateService
         }else{
             foreach ($languages as $v)
             {
-                $translations[$v] = array('comment_content'=>$str);
+                $translations[$v] = array('comment_content'=>$str.$v);
             }
 //            $translations = $this->handle($str , $languages);
 //            $translations[$lang] = array('comment_content'=>$str);

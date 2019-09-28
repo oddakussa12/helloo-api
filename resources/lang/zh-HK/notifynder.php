@@ -2,29 +2,29 @@
 return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
-        'like' => '点赞了你',
-        'comment'=>'回复了你的评论',
-        'post_comment'=>'评论了你的帖子',
+        'like' => '點讚了你',
+        'comment'=>'回復了你的評論',
+        'post_comment'=>'評論了你的帖子',
     ],
     'global'=>[
         'first'=>'
 <p>
-    Hi 朋友，终于等到了您了，欢迎来到Yooul!
+    Hi 朋友，終於等到了您了，歡迎來到Yooul!
 </p >
 <p>
-    在这里您可以遇到来自世界各地的有趣灵魂和最新鲜的话题。您发布的所有内容均会被实时翻译成6种语言，Yooul助力您实现跨越语言的“一呼百应”！
-</p >
-<p>
-    <br/>
-</p >
-<p>
-    如您想联系我们，或有任何建议，请发邮件至 yooul.global@gmail.com
+    在這裡您可以遇到來自世界各地的有趣靈魂和最新鮮的話題。您發布的所有內容均會被實時翻譯成6種語言，Yooul助力您實現跨越語言的“一呼百應”！
 </p >
 <p>
     <br/>
 </p >
 <p>
-    或点击下方社交账号了解更多
+    如您想聯繫我們，或有任何建議，請發郵件至 yooul.global@gmail.com
+</p >
+<p>
+    <br/>
+</p >
+<p>
+    或點擊下方社交賬號了解更多
 </p >
 <p style="white-space: normal;">
     IG:&nbsp;<a href="https://www.instagram.com/yooul_id/" target="_self">www.instagram.com/yooul_id</a>
@@ -34,5 +34,5 @@ return [
 </p >
 ',
     ],
-    'title'=>'欢迎来到Yooul!'
+    'title'=>'歡迎來到Yooul!'
 ];

@@ -40,6 +40,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $posts->where('post_topping' , 1)->orderBy('post_topped_at', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(10)->get();
     }
 
+    public function hot($request)
+    {
+        $posts = $this->model;
+        if (method_exists($this->model, 'translations')) {
+            return $posts->with('translations')->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
+        }
+        return $posts->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
+    }
+
     public function paginate($perPage = 10, $columns = ['*'], $pageName = 'page', $page = null)
     {
         $pageName = isset($this->model->paginateParamName)?$this->model->paginateParamName:$pageName;

@@ -16,4 +16,14 @@ class PostTranslation extends Model
     protected $fillable = ['post_translation_id','post_locale' , 'post_title','post_content'];
 
     protected $table = 'posts_translations';
+
+    public function setPostContentAttribute($value)
+    {
+        $this->attributes['post_content'] = htmlspecialchars($value , ENT_QUOTES);
+    }
+    public function setPostTitleAttribute($value)
+    {
+        $this->attributes['post_title'] = htmlspecialchars($value , ENT_QUOTES);
+    }
+
 }

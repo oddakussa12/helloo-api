@@ -44,7 +44,7 @@ class PostHomeCollection extends Resource
             ->where('post_id' , $this->post_id)
             ->groupBy('posts_comments.comment_country_id')
             ->orderBy('country_num' , 'desc')
-            ->paginate(6);
+            ->simplePaginate(6);
     }
 
     public function topComment()

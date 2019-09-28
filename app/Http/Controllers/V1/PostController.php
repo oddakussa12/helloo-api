@@ -110,6 +110,7 @@ class PostController extends BaseController
     {
         $post_title = trim(strval($request->input('post_title')));
         $post_content = trim(strval($request->input('post_content' , '')));
+        $tag_slug = $request->input('tag_slug' , array());
         $post_category_id = 1;
         $post_type = 'text';
         $postTitleLang = $this->translate->detectLanguage($post_title);
@@ -141,6 +142,11 @@ class PostController extends BaseController
             $post_info[$post_title_default_locale] = array('post_title'=>$post_title,'post_content'=>$post_content);
         }
         $post = $this->post->store($post_info);
+        if(!empty($tag_slug))
+        {
+            $post->attachTags($tag_slug);
+        }
+
         //$this->dispatch(new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content));
         return new PostCollection($post);
     }
@@ -201,7 +207,17 @@ class PostController extends BaseController
 
     public function showTopList(Request $request)
     {
-        return PostPaginateCollection::collection($this->post->top($request));
+        return PostCollection::collection($this->post->top($request));
+    }
+
+    public function hot(Request $request)
+    {
+        return PostCollection::collection($this->post->hot($request));
+    }
+
+    public function myself(Request $request)
+    {
+        return PostCollection::collection($this->post->paginateByUser($request , auth()->user()->user_id));
     }
 
 

@@ -63,7 +63,7 @@ class Tag extends Model implements Sortable
             }
             return static::findOrCreateFromString($value, $type, $locale);
         });
-        
+
         return is_string($values) ? $tags->first() : $tags;
     }
 

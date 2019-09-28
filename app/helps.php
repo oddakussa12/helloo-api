@@ -139,7 +139,7 @@ if (!function_exists('rate_comment')) {
     function rate_comment($comments, $created)
     {
         $startTime = 1556728818; // strtotime('2016-09-12 16:07:19')
-        
+
         $created = strtotime($created);
         $timeDiff = $created - $startTime;
 

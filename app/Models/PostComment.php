@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\like\CanBeLiked;
@@ -116,6 +117,11 @@ class PostComment extends Model
     {
         $comment_content = optional($this->translate($this->comment_default_locale))->comment_content;
         return strip_tags(htmlspecialchars_decode($comment_content , ENT_QUOTES));
+    }
+
+    public function getCommentFormatCreatedAtAttribute()
+    {
+        return Carbon::parse($this->comment_created_at)->diffForHumans();
     }
 
 
