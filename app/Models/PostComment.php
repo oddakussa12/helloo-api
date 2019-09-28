@@ -93,5 +93,30 @@ class PostComment extends Model
         return false;
     }
 
+    public function getCommentDecodeContentAttribute()
+    {
+        if(empty($this->comment_content))
+        {
+            $comment_content = optional($this->translate(config('translatable.translate_default_lang')))->comment_content;
+            if(empty($comment_content))
+            {
+                $comment_content = optional($this->translate($this->comment_default_locale))->comment_content;
+                if(empty($comment_content))
+                {
+                    $comment_content = optional($this->translate('en'))->comment_content;
+                }
+            }
+        }else{
+            $comment_content = $this->comment_content;
+        }
+        return strip_tags(htmlspecialchars_decode($comment_content , ENT_QUOTES));
+    }
+
+    public function getCommentDefaultContentAttribute()
+    {
+        $comment_content = optional($this->translate($this->comment_default_locale))->comment_content;
+        return strip_tags(htmlspecialchars_decode($comment_content , ENT_QUOTES));
+    }
+
 
 }

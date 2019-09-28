@@ -69,7 +69,8 @@ class PostCommentController extends BaseController
         {
             $this->postComment->find($commentPId);
         }
-        $contentLang = $this->translate->detectLanguage($commentContent);
+        //$contentLang = $this->translate->detectLanguage($commentContent);
+        $contentLang = 'en';
         $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         $comment = array(
             'post_id'=>$post->post_id,

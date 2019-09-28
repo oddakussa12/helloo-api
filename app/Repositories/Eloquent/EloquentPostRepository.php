@@ -69,7 +69,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             // }else{
             //     $posts = $posts->where('post_category_id' , 0);
             // }
-            $posts = $posts->orderBy('post_topping', 'desc')->orderBy('post_topped_at', 'desc')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->orderBy('post_like_num', 'desc')->paginate($this->perPage , ['*'] , $this->pageName);
+            //->orderBy('post_topping', 'desc')->orderBy('post_topped_at', 'desc')
+            $posts = $posts->orderBy('post_rate', 'desc')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->orderBy('post_like_num', 'desc')->paginate($this->perPage , ['*'] , $this->pageName);
             return $posts->appends($appends);
         }
         if ($request->get('take')!== null){
@@ -133,6 +134,13 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
         return $posts->appends($appends);
+    }
+
+    public function getCountByUserId($request , $user_id)
+    {
+        return $this->model
+            ->where(['user_id'=>$user_id])
+            ->count();
     }
 
 }

@@ -145,6 +145,7 @@ class AuthController extends BaseController
      */
     public function redirectToProvider()
     {
+        dd(123);
         return Socialite::driver('google')->redirect();
     }
 
@@ -153,13 +154,45 @@ class AuthController extends BaseController
      *
      * @return Response
      */
-    public function handleProviderCallback()
+    public function handleProviderCallback(Request $request)
     {
-        $user_info  = $this->user -> findOrFail(2);
-        dd($user_info);
-        $user = Socialite::driver('google')->stateless()->user();
-
-        dd($user);
+        $oauthType = $request['oauthType'];
+        $user_fields['user_google'] = $request['user_google'];
+        $user_info  = $this->user -> findOauth($oauthType,$user_fields['user_google']);
+        //验证当前用户是否登录过
+        if($user_info){
+            $token = auth()->login($user_info);
+            return $this->respondWithToken($token);
+        }else{
+            $user_fields= array();
+            $user_fields['user_'.$request['oauthType']] = $request['user_authid'];
+            $user_fields['user_name'] = $request['name'];
+            $user_fields['user_email'] = $request['email'];
+            $user_fields[$this->user->getDefaultPasswordField()] =$request['user_authid'];
+            // $user_fields['user_first_name'] = $request['user_first_name'];
+            // $user_fields['user_last_name'] = $request['user_last_name'];
+            $user_fields['user_avatar'] = $request['user_avatar'];
+            $user_fields['user_language'] = $request['user_language'];
+            $user_fields['user_ip_address'] = getRequestIpAddress();
+            $user_fields['user_uuid'] = Uuid::uuid1();
+            $addresses = geoip($user_fields['user_ip_address']);
+            dd($user_fields);
+            $index = array_search($addresses->iso_code , config('countries'));
+            if($index===false)
+            {
+                $index = 208;
+            }
+            $user_fields['user_country_id'] = $index;
+            $user = $this->user->store($user_fields);
+            if ($user) {
+                event(new SignupEvent($user , $addresses));
+                $token = auth()->login($user);
+                return $this->respondWithToken($token);
+            }
+            throw new StoreResourceFailedException('sign up failure');
+        }
+            // $user = Socialite::driver('google')->stateless()->user();
+            // dd($user->user);
     }
 
 

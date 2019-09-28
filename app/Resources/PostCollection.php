@@ -21,6 +21,8 @@ class PostCollection extends Resource
             'post_default_locale' => $this->post_default_locale,
             'post_title' => $this->post_decode_title,
             'post_content' => $this->post_decode_content,
+            'post_default_title' => $this->post_default_title,
+            'post_default_content' => $this->post_default_content,
             'post_type' => $this->post_type,
             'post_like_num' => $this->post_like_num,
             'post_view_num'=>$this->viewCount->post_view_num+115,

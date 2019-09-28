@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Post;
 use App\Jobs\PostTranslation;
 use App\Services\TranslateService;
 use App\Models\User;
@@ -140,7 +141,7 @@ class PostController extends BaseController
             $post_info[$post_title_default_locale] = array('post_title'=>$post_title,'post_content'=>$post_content);
         }
         $post = $this->post->store($post_info);
-        $this->dispatch(new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content));
+        //$this->dispatch(new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content));
         return new PostCollection($post);
     }
 
@@ -201,6 +202,14 @@ class PostController extends BaseController
     public function showTopList(Request $request)
     {
         return PostPaginateCollection::collection($this->post->top($request));
+    }
+
+
+    public function test()
+    {
+        dd(Post::withAnyTags(['news', 'knowledge'])->paginate(1)->toArray());die;
+        $post = $this->post->find(896);
+        $post->attachTags(array('news' , 'knowledge' , 'dd'));
     }
 
 }

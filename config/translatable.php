@@ -18,6 +18,14 @@ return [
         'hi',
         'ko',
         'ja',
+        'es',
+        'zh-TW',
+        'zh-HK',
+        'vi',
+        'th',
+        'fr',
+        'de',
+        'ru',
 
 //        'es' => [
 //            'MX', // mexican spanish

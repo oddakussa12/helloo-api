@@ -30,7 +30,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $comments->orderBy($request->get('order_by' , 'comment_like_num'), $order);
         }else{
-            $comments->orderBy('comment_like_num', 'desc');
+            $comments->orderBy('comment_created_at', 'desc')->orderBy('comment_like_num', 'desc');
         }
         $comments = $comments->paginate($this->perPage , ['*'] , $this->pageName);
         if($request->get('children')==='true')
@@ -38,6 +38,21 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $comments->appends(array('children'=>'true'));
         }
         return $comments;
+    }
+
+    public function findByUserId($request , $user_id)
+    {
+        return $this->model
+            ->where(['user_id'=>$user_id])
+            ->orderByDesc('comment_like_num')
+            ->paginate($this->perPage , ['*'] , $this->pageName);
+    }
+
+    public function getCountByUserId($request , $user_id)
+    {
+        return $this->model
+            ->where(['user_id'=>$user_id])
+            ->count();
     }
 
     public function find($id)
