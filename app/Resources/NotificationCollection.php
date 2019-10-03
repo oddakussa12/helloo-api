@@ -46,6 +46,9 @@ class NotificationCollection extends Resource
                         if(empty($detail['comment'] )||empty($detail['post']))
                         {
                             $detail = false;
+                        }else{
+                            $detail['comment'] = new PostCommentCollection($detail['comment']);
+                            $detail['post'] = new PostCollection($detail['post']);
                         }
                     }catch (\Exception $e)
                     {
@@ -54,7 +57,18 @@ class NotificationCollection extends Resource
                     break;
                 case 'admin.comment_notice':
                 case 'admin.like_notice':
-                    $detail = array();
+                    try{
+                        $detail['comment'] = app(PostCommentRepository::class)->find($extra['comment_id']);
+                        if(empty($detail['comment'] ))
+                        {
+                            $detail = false;
+                        }else{
+                            $detail['comment'] = new PostCommentCollection($detail['comment']);
+                        }
+                    }catch (\Exception $e)
+                    {
+                        $detail = false;
+                    }
                     break;
                 case 'user.comment':
                     try{
@@ -64,6 +78,10 @@ class NotificationCollection extends Resource
                         if(empty($detail['comment'] )||empty($detail['p_comment']))
                         {
                             $detail = false;
+                        }else{
+                            $detail['post'] = new PostCollection($detail['post']);
+                            $detail['comment'] = new PostCommentCollection($detail['comment']);
+                            $detail['p_comment'] = new PostCommentCollection($detail['p_comment']);
                         }
                     }catch (\Exception $e){
                         $detail = false;

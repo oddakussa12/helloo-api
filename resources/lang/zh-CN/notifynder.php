@@ -4,7 +4,7 @@ return [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => '点赞了你',
         'comment'=>'回复了你的评论',
-        'post_comment'=>'回复了你的评论',
+        'post_comment'=>'评论了你的帖子',
     ],
     'global'=>[
         'first'=>'

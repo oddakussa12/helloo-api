@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use App\Traits\tag\HasTags;
 use App\Traits\like\CanBeLiked;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
 {
-    use Translatable,CanBeLiked,CanBeFavorited,SoftDeletes;
+    use Translatable,CanBeLiked,CanBeFavorited,SoftDeletes,HasTags;
 
     protected $table = "posts";
 
@@ -75,6 +76,8 @@ class Post extends Model
         return $this->belongsTo(User::class, 'user_id' , 'user_id')->withDefault();
     }
 
+
+
     public function ownedBy(User $user)
     {
         return $this->user_id == $user->user_id;
@@ -131,7 +134,7 @@ class Post extends Model
         }else{
             $post_title = $this->post_title;
         }
-        return htmlspecialchars_decode($post_title , ENT_QUOTES);
+        return $post_title;
     }
 
     public function getPostDecodeContentAttribute()
@@ -150,10 +153,35 @@ class Post extends Model
         }else{
             $post_content = $this->post_content;
         }
-        return htmlspecialchars_decode($post_content , ENT_QUOTES);
+        return $post_content;
     }
 
-//    public function getPostCreatedAtAttribute($date) {
-//        return Carbon::parse($date)->diffForHumans();
-//    }
+    public function getPostDefaultContentAttribute()
+    {
+        return optional($this->translate($this->post_content_default_locale))->post_content;
+    }
+    public function getPostDefaultTitleAttribute()
+    {
+        return optional($this->translate($this->post_default_locale))->post_title;
+    }
+
+    public function getPostRateAttribute($value)
+    {
+        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
+        return round(($value/$top_rate)*100);
+    }
+
+    public function getPostFormatCreatedAtAttribute()
+    {
+        $locale = locale();
+        if($locale=='zh-CN')
+        {
+            Carbon::setLocale('zh');
+        }elseif ($locale=='zh-TW'||$locale=='zh-HK')
+        {
+            Carbon::setLocale('zh_TW');
+        }
+        return Carbon::parse($this->post_created_at)->diffForHumans();
+    }
+
 }

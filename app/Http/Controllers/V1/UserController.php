@@ -122,8 +122,16 @@ class UserController extends Controller
 
     public function getQiniuUploadToken()
     {
+//        $disk = Storage::disk('idwebother');
+//        $token = $disk->getUploadToken();
+//        return array('qntoken'=>$token);
+        $policy = [
+            'saveKey'=>"$(etag)$(ext)",
+            'mimeLimit'=>'image/*',
+            'fsizeLimit'=>5242880
+        ];
         $disk = Storage::disk('idwebother');
-        $token = $disk->getUploadToken();
+        $token = $disk->getUploadToken(null , 3600 , $policy);
         return array('qntoken'=>$token);
     }
 }

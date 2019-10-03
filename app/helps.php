@@ -127,3 +127,39 @@ if (!function_exists('getRequestIpAddress')) {
     }
 }
 
+if (!function_exists('rate_comment')) {
+    /**
+     * Calculates the rate for sorting by hot.
+     *
+     * @param int       $likes
+     * @param timestamp $created
+     *
+     * @return float
+     */
+    function rate_comment($comments, $created)
+    {
+        $startTime = 1556728818; // strtotime('2016-09-12 16:07:19')
+
+        $created = strtotime($created);
+        $timeDiff = $created - $startTime;
+
+        $x = $comments;
+
+        if ($x > 0) {
+            $y = 1;
+        } elseif ($x == 0) {
+            $y = 0;
+        } else {
+            $y = -1;
+        }
+
+        if (abs($x) >= 1) {
+            $z = abs($x);
+        } else {
+            $z = 1;
+        }
+
+        return (log10($z) * $y) + ($timeDiff / 45000);
+    }
+}
+

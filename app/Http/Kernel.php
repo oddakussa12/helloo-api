@@ -59,8 +59,9 @@ class Kernel extends HttpKernel
         'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'throttle' => \App\Http\Middleware\ThrottleRequests::class,
         'refresh' => \App\Http\Middleware\RefreshToken::class,
+        'guestRefresh' => \App\Http\Middleware\GuestToken::class,
         'localization' => \App\Http\Middleware\LocalizationMiddleware::class,
         'cors' => \Barryvdh\Cors\HandleCors::class,
     ];

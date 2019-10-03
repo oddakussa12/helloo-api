@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\like\CanBeLiked;
@@ -71,7 +72,7 @@ class PostComment extends Model
 
     public function children()
     {
-        return $this->hasMany(self::class, 'comment_comment_p_id');
+        return $this->hasMany(self::class, 'comment_comment_p_id')->orderBy('comment_like_num' , 'desc');
     }
 
     public function parent()
@@ -91,6 +92,46 @@ class PostComment extends Model
             return $this->isLikedBy(auth()->user())->likable_state;
         }
         return false;
+    }
+
+    public function getCommentDecodeContentAttribute()
+    {
+        if(empty($this->comment_content))
+        {
+            $comment_content = optional($this->translate(config('translatable.translate_default_lang')))->comment_content;
+            if(empty($comment_content))
+            {
+                $comment_content = optional($this->translate($this->comment_default_locale))->comment_content;
+                if(empty($comment_content))
+                {
+                    $comment_content = optional($this->translate('en'))->comment_content;
+                }
+            }
+        }else{
+            $comment_content = $this->comment_content;
+        }
+//        return $comment_content;
+        return strip_tags(htmlspecialchars_decode($comment_content , ENT_QUOTES));
+    }
+
+    public function getCommentDefaultContentAttribute()
+    {
+        $comment_content = optional($this->translate($this->comment_default_locale))->comment_content;
+//        return $comment_content;
+        return strip_tags(htmlspecialchars_decode($comment_content , ENT_QUOTES));
+    }
+
+    public function getCommentFormatCreatedAtAttribute()
+    {
+        $locale = locale();
+        if($locale=='zh-CN')
+        {
+            Carbon::setLocale('zh');
+        }elseif ($locale=='zh-TW'||$locale=='zh-HK')
+        {
+            Carbon::setLocale('zh_TW');
+        }
+        return Carbon::parse($this->comment_created_at)->diffForHumans();
     }
 
 

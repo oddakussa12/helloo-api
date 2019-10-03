@@ -173,5 +173,8 @@ return [
         'time'                  => '時間',
         'available'             => '可用的',
         'size'                  => '大小',
+        'post_title'            => '貼子標題',
+        'post_content'          => '貼子內容',
+        'tag_slug'              => '貼子標籤',
     ],
 ];

@@ -2,19 +2,22 @@
 
 namespace App\Providers;
 
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\Post;
 use App\Models\Category;
 use App\Models\PostComment;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
-use App\Repositories\Contracts\CategoryRepository;
 use App\Repositories\Contracts\PostRepository;
+use App\Repositories\Contracts\CategoryRepository;
 use App\Repositories\Contracts\PostCommentRepository;
+use App\Repositories\Eloquent\EloquentTagRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
-use App\Repositories\Eloquent\EloquentCategoryRepository;
 use App\Repositories\Eloquent\EloquentPostRepository;
+use App\Repositories\Eloquent\EloquentCategoryRepository;
 use App\Repositories\Eloquent\EloquentPostCommentRepository;
 
 
@@ -54,6 +57,10 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->bind(PostCommentRepository::class, function () {
             $repository = new EloquentPostCommentRepository(new PostComment());
+            return $repository;
+        });
+        $this->app->bind(TagRepository::class, function () {
+            $repository = new EloquentTagRepository(new Tag());
             return $repository;
         });
     }

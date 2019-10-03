@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Services\TranslateService;
 use App\Models\User;
@@ -94,7 +95,7 @@ class PostCommentController extends BaseController
         $comment = $comment+$translation;
         $postComment = $this->postComment->store($comment);
         event(new PostCommentCreated($postComment));
-        return $postComment;
+        return new PostCommentCollection($postComment);
     }
 
     /**
@@ -175,6 +176,7 @@ class PostCommentController extends BaseController
         return $this->postcomment->update($postcomment,$result);
     }
 
+
     /**
      * Remove the specified resource from storage.
      *
@@ -184,6 +186,17 @@ class PostCommentController extends BaseController
     public function destroy($id)
     {
         //
+    }
+
+    public function myself(Request $request)
+    {
+        return PostCommentCollection::collection($this->postComment->findByUserId($request , auth()->user()->user_id));
+    }
+
+
+    public function mylike()
+    {
+        return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->orderby('created_at' , 'desc')->with('likable')->paginate(5));
     }
 
     public function test()

@@ -30,13 +30,13 @@ class LoginUserRequest extends FormRequest
         ];
     }
 
-    public function attributes()
-    {
-        return [
-            'name'=>'nama',
-            'password'=>'kata sandi',
-        ];
-    }
+//    public function attributes()
+//    {
+//        return [
+//            'name'=>'nama',
+//            'password'=>'kata sandi',
+//        ];
+//    }
 
 //    public function messages(){
 //        return [

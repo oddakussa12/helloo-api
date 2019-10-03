@@ -26,7 +26,7 @@ class NotificationController extends BaseController
     public function index(Request $request)
     {
         $type = $request->get('type' , 'global');
-        $message = array();
+        $appends['type'] = $type;
         if($type=='global')
         {
             $message = Notification::where('to_type'  , 'global')->where('expires_at' , '>=' , Carbon::now())->orderByDesc('expires_at')->get();
@@ -36,9 +36,16 @@ class NotificationController extends BaseController
                     ->whereIn('category_id', [4 , 7 , 8])
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
-                    ->get();
-                $message = $message->merge($message_ext);
+                    ->paginate(5 , ['*'] , 'notice_page');
+                $message_ext= $message_ext->appends($appends);
+//                $message = $message->merge($message_ext);
+                return array(
+                    'global'=>$message,
+                    'admin'=>NotificationCollection::collection($message_ext),
+                );
             }
+            return array(
+                'global'=>$message);
         }elseif ($type=='like'){
             if(auth()->check())
             {
@@ -46,7 +53,9 @@ class NotificationController extends BaseController
                     ->where('category_id', 3)
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
-                    ->get();
+                    ->paginate(10 , ['*'] , 'notice_page');
+                $message= $message->appends($appends);
+                return NotificationCollection::collection($message);
             }
 
         }elseif ($type=='comment'){
@@ -56,21 +65,14 @@ class NotificationController extends BaseController
                     ->whereIn('category_id', [5 , 6])
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
-                    ->get();
+                    ->paginate(10 , ['*'] , 'notice_page');
+                $message= $message->appends($appends);
+                return NotificationCollection::collection($message);
             }
         }else{
             return $this->response->errorNotFound();
         }
-//        $globle = Notification::where('to_type'  , 'global')->where('expires_at' , '>=' , Carbon::now())->orderByDesc('expires_at')->get();
-//        if(auth()->check())
-//        {
-//            $globle = $globle->merge(auth()->user()->getNotificationsNotRead());
-//        }
-        if(empty($message))
-        {
-            return $message;
-        }
-        return NotificationCollection::collection($message);
+        return array();
     }
 
 
@@ -183,6 +185,37 @@ class NotificationController extends BaseController
 //            return $this->response->errorNotFound();
         }
 
+        return $this->response->noContent();
+    }
+
+    public function readAll($type)
+    {
+        if($type=='like')
+        {
+            $notices = auth()->user()->getNotificationRelation()->where(function($query){
+                $query->where('category_id' , 3)
+                    ->where('read' , 0);
+            })->get();
+            foreach ($notices as $notice)
+            {
+                if($notice->read==0)
+                {
+                    $notice->read();
+                }
+            }
+        }elseif($type=='comment'){
+            $notices = auth()->user()->getNotificationRelation()->where(function($query){
+                $query->whereIn('category_id' , [5 , 6])
+                    ->where('read' , 0);
+            })->get();
+            foreach ($notices as $notice)
+            {
+                if($notice->read==0)
+                {
+                    $notice->read();
+                }
+            }
+        }
         return $this->response->noContent();
     }
 

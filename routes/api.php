@@ -26,67 +26,69 @@ $V1Params = [
 ];
 
 $api->group($V1Params , function ($api){
+    $api->group(['middleware'=>'guestRefresh'] , function($api){
+        $api->resource('post' , 'PostController' , ['only' => ['index']]);
 
-    $api->resource('post' , 'PostController' , ['only' => ['index']]);
+        $api->get('post/user/{user}' , 'PostController@showPostByUser');
+        $api->get('post/top' , 'PostController@showTopList');
+	    $api->get('post/hot' , 'PostController@hot');
+        //$api->get('login/google', 'AuthController@redirectToProvider');
+        $api->post('login/google/callback', 'AuthController@handleProviderCallback');
 
-    $api->get('post/user/{user}' , 'PostController@showPostByUser');
-    $api->get('post/top' , 'PostController@showTopList');
-    $api->get('post/{uuid}' , 'PostController@showByUuid');
-    $api->get('login/google', 'AuthController@redirectToProvider');
-    $api->get('login/google/callback', 'AuthController@handleProviderCallback');
-//    $api->post('test/auth' , '\Illuminate\Broadcasting\BroadcastController@authenticate');
-//    $api->post('test/auth' , function (){
-//        $manager = app(Illuminate\Broadcasting\BroadcastManager::class);
-//        $driver = $manager->connection();
-//        echo json_encode($driver->auth(request()));die;
-//    });
-//
+        $api->resource('category' , 'CategoryController');
+        $api->put('user/{uuid}/follow' , 'UserController@follow');
+        $api->put('user/{uuid}/unfollow' , 'UserController@unfollow');
 
+        $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid');
+    });
 
-
-    $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid');
-
-
-    $api->resource('category' , 'CategoryController');
-
-
-    $api->put('user/{uuid}/follow' , 'UserController@follow');
-    $api->put('user/{uuid}/unfollow' , 'UserController@unfollow');
     $api->post('user/signUp' , 'AuthController@signUp');
     $api->post('user/signIn' , 'AuthController@signIn');
     $api->get('user/signOut' , 'AuthController@signOut');
+
+
     $api->group(['middleware'=>'refresh'] , function($api){
+
+        $api->get('postComment/myself' , 'PostCommentController@myself');
+        $api->get('postComment/like' , 'PostCommentController@mylike');
+
         $api->get('user/profile' , 'AuthController@me');
-        $api->get('post/usercenter/userself' , 'PostController@showPostByUserSelf');
-        $api->put('user/updateuserinfo' , 'AuthController@updateUserInfo');
+        $api->get('post/myself' , 'PostController@myself');
+        $api->post('user/update/myself' , 'AuthController@update');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken');
 
-        $api->group(['middleware'=>'throttle:30,1'] , function ($api){
-            $api->put('post/{uuid}/favorite' , 'PostController@favorite');
-            $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite');
-            $api->put('post/{uuid}/like' , 'PostController@like');
+        $api->put('post/{uuid}/favorite' , 'PostController@favorite');
+        $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite');
+        $api->put('post/{uuid}/like' , 'PostController@like');
 //                $api->put('post/{uuid}/dislike' , 'PostController@dislike');
-            $api->put('post/{uuid}/revokeVote' , 'PostController@revokeVote');
-            $api->put('postComment/{comment_id}/like' , 'PostCommentController@like');
+        $api->put('post/{uuid}/revokeVote' , 'PostController@revokeVote');
+        $api->put('postComment/{comment_id}/like' , 'PostCommentController@like');
 //                $api->put('postComment/{comment_id}/dislike' , 'PostCommentController@dislike');
-            $api->put('postComment/{comment_id}/revokeVote' , 'PostCommentController@revokeVote');
-            $api->put('postComment/{comment_id}/favorite' , 'PostCommentController@favorite');
-            $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite');
+        $api->put('postComment/{comment_id}/revokeVote' , 'PostCommentController@revokeVote');
+        $api->put('postComment/{comment_id}/favorite' , 'PostCommentController@favorite');
+        $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite');
 
-        });
-        $api->group(['middleware'=>'api.throttle' , 'limit' => 2, 'expires' => 1] , function ($api){
-            $api->resource('postComment' , 'PostCommentController' , ['only' => ['store']]);
+        $api->group(['middleware'=>'throttle:2,1'] , function ($api){
             $api->resource('post' , 'PostController' , ['only' => ['store']]);
         });
+        $api->group(['middleware'=>'throttle:6,1'] , function ($api){
+            $api->resource('postComment' , 'PostCommentController' , ['only' => ['store']]);
+        });
         $api->get('notification/count' , 'NotificationController@count');
+        $api->put('notification/type/{type}' , 'NotificationController@readAll');
         $api->put('notification/{id}' , 'NotificationController@read');
         $api->get('notification/{id}' , 'NotificationController@detail');
     });
-    $api->get('notification' , 'NotificationController@index');
+    $api->group(['middleware'=>'guestRefresh'] , function($api){
+        $api->get('post/{uuid}' , 'PostController@showByUuid');
+        $api->get('notification' , 'NotificationController@index');
+        $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);
 //    $api->get('english' , 'NotificationController@test');
-//    $api->get('event' , 'EventController@index');
-    $api->resource('user' , 'UserController' , ['only' => ['show','update']]);
-//    $api->get('testt' , 'PostCommentController@test');
+        $api->get('event' , 'EventController@index');
+        $api->resource('user' , 'UserController' , ['only' => ['show']]);
+//    $api->get('/d/testt' , 'PostController@test');
+    });
+
 
 });
 

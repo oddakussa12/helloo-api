@@ -24,6 +24,7 @@
         "overtrue/laravel-like": "^1.0",
         "predis/predis": "^1.1",
         "qiniu/php-sdk": "^7.2",
+        "spatie/laravel-tags": "2.0.0",
         "torann/geoip": "^1.0",
         "tymon/jwt-auth": "1.0.0-rc.4.1",
         "weboap/visitor": "^2.0"

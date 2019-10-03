@@ -37,6 +37,12 @@ class PostCommentCreatedListener
         $object->refresh();
         $post = $object->post;
         $post->increment('post_comment_num');
+        $rate = rate_comment($post->post_comment_num , $post->post_created_at);
+        if($rate!=$post->post_rate)
+        {
+            $post->post_rate = $rate;
+            $post->save();
+        }
         if($object->comment_comment_p_id===0)
         {
             $owner = $post->owner;

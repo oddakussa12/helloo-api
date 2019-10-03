@@ -14,14 +14,18 @@ class PostCollection extends Resource
     public function toArray($request)
     {
         return [
-            'post_id' => $this->post_id,
+            //'post_id' => $this->post_id,
             'user_id' => $this->user_id,
             'post_uuid' => $this->post_uuid,
             'post_media' => $this->post_media,
             'post_default_locale' => $this->post_default_locale,
+            'post_content_default_locale' => $this->post_content_default_locale,
             'post_title' => $this->post_decode_title,
             'post_content' => $this->post_decode_content,
+            'post_default_title' => $this->post_default_title,
+            'post_default_content' => $this->post_default_content,
             'post_type' => $this->post_type,
+            'post_rate' => $this->post_rate,
             'post_like_num' => $this->post_like_num,
             'post_view_num'=>$this->viewCount->post_view_num+115,
             'post_comment_num' => $this->post_comment_num,
@@ -30,9 +34,13 @@ class PostCollection extends Resource
             'post_favorite_state'=>$this->post_favorite_state,
             'post_country'=> $this->country(),
             'post_created_at'=>optional($this->post_created_at)->toDateTimeString(),
+            'post_format_created_at'=> $this->post_format_created_at,
             'user_name'=>$this->owner->user_name,
             'user_avatar'=>$this->owner->user_avatar,
-            'user_country'=>$this->owner->user_country
+            'user_country'=>$this->owner->user_country,
+            'tags'=>$this->when($request->has('tag') , function (){
+                return TagCollection::collection($this->tags);
+            })
         ];
     }
 
@@ -44,7 +52,7 @@ class PostCollection extends Resource
             ->where('post_id' , $this->post_id)
             ->groupBy('posts_comments.comment_country_id')
             ->orderBy('country_num' , 'desc')
-            ->paginate(6);
+            ->paginate(5);
     }
 
 }
