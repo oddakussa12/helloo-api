@@ -134,7 +134,7 @@ class Post extends Model
         }else{
             $post_title = $this->post_title;
         }
-        return $post_title;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_title , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function getPostDecodeContentAttribute()
@@ -153,16 +153,18 @@ class Post extends Model
         }else{
             $post_content = $this->post_content;
         }
-        return $post_content;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function getPostDefaultContentAttribute()
     {
-        return optional($this->translate($this->post_content_default_locale))->post_content;
+        $post_content = optional($this->translate($this->post_content_default_locale))->post_content;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
     }
     public function getPostDefaultTitleAttribute()
     {
-        return optional($this->translate($this->post_default_locale))->post_title;
+        $post_title = optional($this->translate($this->post_default_locale))->post_title;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_title , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function getPostRateAttribute($value)
@@ -182,6 +184,12 @@ class Post extends Model
             Carbon::setLocale('zh_TW');
         }
         return Carbon::parse($this->post_created_at)->diffForHumans();
+    }
+
+    public function getCloseSignDayAttribute()
+    {
+        $day = Carbon::now()->diffInDays($this->close_time, false);
+        return $day > 0 ? $day : 0;
     }
 
 }

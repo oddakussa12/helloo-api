@@ -111,14 +111,14 @@ class PostComment extends Model
             $comment_content = $this->comment_content;
         }
 //        return $comment_content;
-        return strip_tags(htmlspecialchars_decode($comment_content , ENT_QUOTES));
+        return htmlspecialchars_decode(htmlspecialchars_decode($comment_content , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function getCommentDefaultContentAttribute()
     {
         $comment_content = optional($this->translate($this->comment_default_locale))->comment_content;
 //        return $comment_content;
-        return strip_tags(htmlspecialchars_decode($comment_content , ENT_QUOTES));
+        return htmlspecialchars_decode(htmlspecialchars_decode($comment_content , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function getCommentFormatCreatedAtAttribute()

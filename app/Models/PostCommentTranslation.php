@@ -17,6 +17,6 @@ class PostCommentTranslation extends Model
 
     public function setCommentContentAttribute($value)
     {
-        $this->attributes['comment_content'] = htmlspecialchars($value , ENT_NOQUOTES);
+        $this->attributes['comment_content'] = htmlspecialchars_decode($value , ENT_QUOTES);
     }
 }

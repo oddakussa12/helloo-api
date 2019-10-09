@@ -108,8 +108,8 @@ class PostController extends BaseController
      */
     public function store(StorePostRequest $request)
     {
-        $post_title = trim(strval($request->input('post_title')));
-        $post_content = trim(strval($request->input('post_content' , '')));
+        $post_title = clean($request->input('post_title'));
+        $post_content = clean($request->input('post_content' , ''));
 	    $tag_slug = $request->input('tag_slug' , array());
         $post_category_id = 1;
         $post_type = 'text';
@@ -144,7 +144,7 @@ class PostController extends BaseController
         {
             $post->attachTags($tag_slug); 
         }
-	    $this->dispatch(new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content));
+	    $this->dispatch((new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content))->onQueue('test'));
         return new PostCollection($post);
     }
 

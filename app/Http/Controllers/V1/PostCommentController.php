@@ -63,10 +63,10 @@ class PostCommentController extends BaseController
     public function store(StorePostCommentRequest $request)
     {
         $postUuid = $request->input('post_uuid');
-        $commentContent = $request->input('comment_content');
+        $commentContent = clean($request->input('comment_content' , ''));
         $commentPId = $request->input('comment_comment_p_id' , 0);
         $post = app(PostRepository::class)->findByUuid($postUuid);
-        if(isset($input['comment_comment_p_id']))
+        if(isset($commentPId)&&$commentPId!=0)
         {
             $this->postComment->find($commentPId);
         }

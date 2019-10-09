@@ -21,7 +21,7 @@ class PostPaginateCollection extends Resource
             'post_media' => $this->post_media,
             'post_default_locale' => $this->post_default_locale,
             'post_title' => $this->post_decode_title,
-            'post_content' => strip_tags($this->post_decode_content),
+            //'post_content' => strip_tags($this->post_decode_content),
             'post_type' => $this->post_type,
             'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
