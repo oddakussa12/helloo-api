@@ -33,7 +33,8 @@ $api->group($V1Params , function ($api){
         $api->get('post/top' , 'PostController@showTopList');
 	    $api->get('post/hot' , 'PostController@hot');
 
-        $api->get('login/googlewerfgfds', 'AuthController@redirectToProvider');
+        $api->get('login/google', 'AuthController@redirectToProvider');
+        $api->get('login/google123', 'AuthController@redirectToProvider');
 
         $api->post('login/google/callback', 'AuthController@handleProviderCallback');
 
