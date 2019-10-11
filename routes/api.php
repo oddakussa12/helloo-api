@@ -69,7 +69,7 @@ $api->group($V1Params , function ($api){
         $api->put('postComment/{comment_id}/favorite' , 'PostCommentController@favorite');
         $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite');
 
-        $api->group(['middleware'=>'throttle:2,1'] , function ($api){
+        $api->group(['middleware'=>'throttle:6,1'] , function ($api){
             $api->resource('post' , 'PostController' , ['only' => ['store']]);
         });
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
