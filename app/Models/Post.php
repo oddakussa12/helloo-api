@@ -31,7 +31,7 @@ class Post extends Model
         'post_uuid' ,
         'user_id' ,
         'post_category_id' ,
-        ' post_media',
+        'post_media',
         'post_category_id',
         'post_default_locale',
         'post_content_default_locale',
@@ -96,6 +96,12 @@ class Post extends Model
         }else if($this->post_type=='news'){
             $value[$this->post_type]['news_cover_image'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['news_cover_image'];
 
+        }else if($this->post_type=='image'){
+            $value[$this->post_type]['image_cover'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['image_cover'];
+            $value[$this->post_type]['image_url'] = \array_map(function($v){
+                return config('common.qnUploadDomain.thumbnail_domain').$v;
+            } , $value[$this->post_type]['image_url']);
+//            $value[$this->post_type]['image_count'] = $value[$this->post_type]['image_count'];
         }
         return $value;
     }
@@ -169,8 +175,9 @@ class Post extends Model
 
     public function getPostRateAttribute($value)
     {
-        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
-        return round(($value/$top_rate)*100);
+//        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
+//        return round(($value/$top_rate)*100);
+        return round($value , 3)*100;
     }
 
     public function getPostFormatCreatedAtAttribute()
@@ -186,10 +193,5 @@ class Post extends Model
         return Carbon::parse($this->post_created_at)->diffForHumans();
     }
 
-    public function getCloseSignDayAttribute()
-    {
-        $day = Carbon::now()->diffInDays($this->close_time, false);
-        return $day > 0 ? $day : 0;
-    }
 
 }

@@ -13,7 +13,15 @@ class PostView extends Model
 
     protected $primaryKey = 'post_view_id';
 
-    protected $fillable = ['post_view_id' , 'post_id' , 'user_id' , 'view__country' , 'view__state' , 'view_city' , 'post_view_ip'];
+    protected $fillable = [
+        'post_view_id' ,
+        'post_id' ,
+        'user_id' ,
+        'view_country' ,
+        'view_state' ,
+        'view_city' ,
+        'post_view_ip'
+    ];
 
     public $paginateParamName = 'view_page';
 

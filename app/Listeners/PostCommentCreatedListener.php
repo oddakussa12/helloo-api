@@ -37,7 +37,7 @@ class PostCommentCreatedListener
         $object->refresh();
         $post = $object->post;
         $post->increment('post_comment_num');
-        $rate = rate_comment($post->post_comment_num , $post->post_created_at);
+        $rate = rate_comment_v2($post->post_comment_num , $post->post_created_at);
         if($rate!=$post->post_rate)
         {
             $post->post_rate = $rate;
@@ -54,6 +54,7 @@ class PostCommentCreatedListener
                         'comment_id'=>$object->{$object->getKeyName()},
                         'post_id'=>$post->post_id,
                     ) ,
+                    'setField'=>array('contact_id' , $object->{$object->getKeyName()}),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$object->{$object->getKeyName()},
                 )
             );
@@ -68,6 +69,7 @@ class PostCommentCreatedListener
                         'post_id'=>$post->post_id,
                         'comment_comment_p_id'=>$object->comment_comment_p_id
                     ) ,
+                    'setField'=>array('contact_id' , $object->{$object->getKeyName()}),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$object->{$object->getKeyName()},
                 )
             );

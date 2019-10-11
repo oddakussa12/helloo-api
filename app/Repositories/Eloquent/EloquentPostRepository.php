@@ -84,8 +84,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $posts = $posts->withAnyTags([$tag]);
             }
             $posts = $posts
-                ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
                 ->orderBy('post_rate', 'DESC')
+                ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
                 ->orderBy('post_like_num', 'DESC')
                 ->paginate($this->perPage , ['*'] , $this->pageName);
             return $posts->appends($appends);

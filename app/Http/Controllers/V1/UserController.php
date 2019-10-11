@@ -120,17 +120,19 @@ class UserController extends Controller
         return $this->response->noContent();
     }
 
-    public function getQiniuUploadToken()
+    public function getQiniuUploadToken(Request $request)
     {
-//        $disk = Storage::disk('idwebother');
-//        $token = $disk->getUploadToken();
-//        return array('qntoken'=>$token);
         $policy = [
             'saveKey'=>"$(etag)$(ext)",
             'mimeLimit'=>'image/*',
             'fsizeLimit'=>5242880
         ];
-        $disk = Storage::disk('idwebother');
+        $driver = $request->input('driver' , 'qn_avatar');
+        if(!in_array($driver , array('qn_avatar' , 'qn_image')))
+        {
+            $driver = 'qn_avatar';
+        }
+        $disk = Storage::disk($driver);
         $token = $disk->getUploadToken(null , 3600 , $policy);
         return array('qntoken'=>$token);
     }

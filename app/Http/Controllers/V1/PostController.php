@@ -103,16 +103,24 @@ class PostController extends BaseController
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return PostCollection
+     * @throws \Exception
      */
     public function store(StorePostRequest $request)
     {
         $post_title = clean($request->input('post_title'));
         $post_content = clean($request->input('post_content' , ''));
 	    $tag_slug = $request->input('tag_slug' , array());
+	    $post_image = $request->input('post_image' , array());
         $post_category_id = 1;
         $post_type = 'text';
+	    if(!empty($post_image))
+        {
+            $post_category_id = 2;
+            $post_type = 'image';
+        }
+
         $postTitleLang = $this->translate->detectLanguage($post_title);
         $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
         if(empty($post_content))
@@ -131,6 +139,16 @@ class PostController extends BaseController
             'post_content_default_locale'=>$post_content_default_locale,
             'post_type' =>$post_type,
         );
+        if($post_category_id==2&&!empty($post_image))
+        {
+            $post_media_json = \json_encode(array('image'=>array(
+                'image_from'=>'upload',
+                'image_cover'=>$post_image[0],
+                'image_url'=>$post_image,
+                'image_count'=>count($post_image)
+                )));
+            $post_info['post_media'] = $post_media_json;
+        }
         dynamicSetLocales(array($post_title_default_locale , $post_content_default_locale));
         if($post_title_default_locale!=$post_content_default_locale)
         {
@@ -200,6 +218,7 @@ class PostController extends BaseController
     public function destroy($id)
     {
         //
+
     }
 
     public function showTopList(Request $request)

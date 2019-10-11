@@ -181,7 +181,8 @@ return [
         Torann\GeoIP\GeoIPServiceProvider::class,
         Fenos\Notifynder\NotifynderServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
-       Laravel\Socialite\SocialiteServiceProvider::class,
+        App\Providers\QiniuStorageServiceProvider::class,
+        Laravel\Socialite\SocialiteServiceProvider::class,
 
     ],
 

@@ -49,7 +49,12 @@ if(!function_exists('notify')){
         }
         foreach ($op as $k=>$v)
         {
-            $notifynder->{$k}($v);
+            if($k=='setField')
+            {
+                $notifynder->{$k}($v[0] , $v[1]);
+            }else{
+                $notifynder->{$k}($v);
+            }
         }
 
         $notifynder->send();
@@ -59,6 +64,24 @@ if(!function_exists('notify')){
 //            ->extra(['action' => 'invitation'], false) // extend additional data
 //            ->url('http://laravelacademy.org/notifications')
 //            ->send();
+    }
+}
+
+if(!function_exists('notify_remove')){
+    function notify_remove($category_id , $object)
+    {
+        $contact_id = $object->{$object->getKeyName()};
+        if(!is_array($category_id))
+        {
+            $category_id = array($category_id);
+        }
+        $object->owner->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
+            $query
+                ->where('from_id' , auth()->id())
+                ->where('contact_id' , $contact_id)
+                ->whereIn('category_id' , $category_id);
+
+        })->delete();
     }
 }
 
@@ -162,4 +185,21 @@ if (!function_exists('rate_comment')) {
         return (log10($z) * $y) + ($timeDiff / 45000);
     }
 }
+
+if (!function_exists('rate_comment_v2')) {
+    /**
+     * Calculates the rate for sorting by hot.
+     *
+     * @param int       $likes
+     * @param timestamp $created
+     *
+     * @return float
+     */
+    function rate_comment_v2($comments, $create_time, $likes=0 , $gravity = 1.5)
+    {
+        $ctime = strtotime($create_time);
+        return ($likes + $comments + 1) / pow(floor((time()-$ctime)/3600) + 2, $gravity);
+    }
+}
+
 

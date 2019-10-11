@@ -49,7 +49,7 @@ class PostPaginateCollection extends Resource
             ->where('post_id' , $this->post_id)
             ->groupBy('posts_comments.comment_country_id')
             ->orderBy('country_num' , 'desc')
-            ->paginate(5);
+            ->paginate(7);
     }
 
     public function topComment()

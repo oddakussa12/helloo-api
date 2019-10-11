@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
+use App\Events\PostCommentDeleted;
 use App\Services\TranslateService;
 use App\Models\User;
 use App\Repositories\Contracts\PostRepository;
@@ -183,9 +184,12 @@ class PostCommentController extends BaseController
      * @param  int  $id
      * @return Response
      */
-    public function destroy($id)
+    public function destroy(PostComment $postComment)
     {
         //
+        $this->postComment->destroy($postComment);
+        event(new PostCommentDeleted($postComment));
+        return $this->response->noContent();
     }
 
     public function myself(Request $request)
