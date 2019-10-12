@@ -70,13 +70,13 @@ $api->group($V1Params , function ($api){
         $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite');
 
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
-            $api->resource('post' , 'PostController' , ['only' => ['store']]);
+            $api->post('post' , 'PostController@store');
         });
         $api->delete('post/{uuid}' , 'PostController@destroy');
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
-            $api->resource('postComment' , 'PostCommentController' , ['only' => ['store']]);
+            $api->post('postComment' , 'PostCommentController@store');
         });
-        $api->delete('postComment' , 'PostCommentController@destroy');
+        $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
         $api->get('notification/count' , 'NotificationController@count');
         $api->put('notification/type/{type}' , 'NotificationController@readAll');
         $api->put('notification/{id}' , 'NotificationController@read');
