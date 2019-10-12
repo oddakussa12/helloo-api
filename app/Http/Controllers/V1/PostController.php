@@ -231,7 +231,7 @@ class PostController extends BaseController
         $post = $this->post->findByUuid($uuid);
         if($post->user_id!=auth()->id())
         {
-            abort(422);
+            abort(401);
         }
         $this->post->destroy($post);
         return $this->response->noContent();
