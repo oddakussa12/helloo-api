@@ -70,7 +70,7 @@ $api->group($V1Params , function ($api){
         $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite');
 
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
-            $api->resource('post' , 'PostController' , ['only' => ['store']]);
+            $api->resource('post' , 'PostController' , ['only' => ['store' , 'show']]);
         });
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
             $api->resource('postComment' , 'PostCommentController' , ['only' => ['store','destroy']]);
