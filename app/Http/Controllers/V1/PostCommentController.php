@@ -91,7 +91,6 @@ class PostCommentController extends BaseController
 //        }
         dynamicSetLocales(array($contentDefaultLang));
         $translation = $this->translate->customizeTrans($commentContent , $contentLang);
-
 //        $comment[$contentLang] = array('comment_content'=>$commentContent);
         $comment = $comment+$translation;
         $postComment = $this->postComment->store($comment);

@@ -39,6 +39,7 @@ if(!function_exists('dynamicSetLocales')){
 if(!function_exists('notify')){
     function notify($category = 'user.like' , $data = array() , $anonymous=false)
     {
+	//echo 1;die;
         $params = array('from'=>'' , 'to'=>'' , 'extra'=>array() , 'url'=>'' , 'expire'=>'' , 'setField'=>array());
         $op = array_intersect_key($data , $params);
         $notifynder = Notifynder::category($category);
