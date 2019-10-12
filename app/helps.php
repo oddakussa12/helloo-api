@@ -154,7 +154,7 @@ if (!function_exists('rate_comment')) {
     /**
      * Calculates the rate for sorting by hot.
      *
-     * @param int       $likes
+     * @param $comments
      * @param timestamp $created
      *
      * @return float
@@ -190,9 +190,10 @@ if (!function_exists('rate_comment_v2')) {
     /**
      * Calculates the rate for sorting by hot.
      *
-     * @param int       $likes
-     * @param timestamp $created
-     *
+     * @param $comments
+     * @param $create_time
+     * @param int $likes
+     * @param float $gravity
      * @return float
      */
     function rate_comment_v2($comments, $create_time, $likes=0 , $gravity = 1.5)
@@ -201,5 +202,21 @@ if (!function_exists('rate_comment_v2')) {
         return ($likes + $comments + 1) / pow(floor((time()-$ctime)/3600) + 2, $gravity);
     }
 }
+
+if (!function_exists('domain')) {
+    /**
+     * Calculates the rate for sorting by hot.
+     *
+     * @param string $item
+     * @return float
+     */
+    function domain($item='host')
+    {
+        $url = parse_url(url()->current());
+        $urlInfo = parse_url($url);
+        return $urlInfo[$item];
+    }
+}
+
 
 

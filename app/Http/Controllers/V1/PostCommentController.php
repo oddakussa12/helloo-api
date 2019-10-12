@@ -184,11 +184,12 @@ class PostCommentController extends BaseController
      * @param  int  $id
      * @return Response
      */
-    public function destroy(PostComment $postComment)
+    public function destroy($id)
     {
         //
-        $this->postComment->destroy($postComment);
+        $postComment = $this->postComment->find($id);
         event(new PostCommentDeleted($postComment));
+        $this->postComment->destroy($postComment);
         return $this->response->noContent();
     }
 

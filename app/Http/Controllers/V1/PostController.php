@@ -115,12 +115,15 @@ class PostController extends BaseController
 	    $post_image = $request->input('post_image' , array());
         $post_category_id = 1;
         $post_type = 'text';
+        $post_image = \array_filter($post_image , function($v , $k){
+            return !empty($v);
+        } , ARRAY_FILTER_USE_BOTH );
+        sort($post_image);
 	    if(!empty($post_image))
         {
             $post_category_id = 2;
             $post_type = 'image';
         }
-
         $postTitleLang = $this->translate->detectLanguage($post_title);
         $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
         if(empty($post_content))
@@ -139,6 +142,7 @@ class PostController extends BaseController
             'post_content_default_locale'=>$post_content_default_locale,
             'post_type' =>$post_type,
         );
+
         if($post_category_id==2&&!empty($post_image))
         {
             $post_media_json = \json_encode(array('image'=>array(
@@ -162,7 +166,13 @@ class PostController extends BaseController
         {
             $post->attachTags($tag_slug); 
         }
-	    $this->dispatch((new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content))->onQueue('test'));
+	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content);
+	    if(domain['host']!=config('app.url'))
+        {
+            $this->dispatch($job->onQueue('test'));
+        }else{
+            $this->dispatch($job);
+        }
         return new PostCollection($post);
     }
 
@@ -218,7 +228,9 @@ class PostController extends BaseController
     public function destroy($id)
     {
         //
-
+        $post = $this->post->find($id);
+        $this->post->destroy($post);
+        return $this->response->noContent();
     }
 
     public function showTopList(Request $request)

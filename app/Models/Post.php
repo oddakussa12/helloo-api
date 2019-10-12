@@ -101,7 +101,6 @@ class Post extends Model
             $value[$this->post_type]['image_url'] = \array_map(function($v){
                 return config('common.qnUploadDomain.thumbnail_domain').$v;
             } , $value[$this->post_type]['image_url']);
-//            $value[$this->post_type]['image_count'] = $value[$this->post_type]['image_count'];
         }
         return $value;
     }
@@ -177,7 +176,7 @@ class Post extends Model
     {
 //        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
 //        return round(($value/$top_rate)*100);
-        return round($value , 3)*100;
+        return round($value , 2)*100;
     }
 
     public function getPostFormatCreatedAtAttribute()
