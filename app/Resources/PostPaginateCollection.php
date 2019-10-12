@@ -36,7 +36,8 @@ class PostPaginateCollection extends Resource
             'post_format_created_at'=> $this->post_format_created_at,
             'user_name'=>$this->owner->user_name,
             'user_avatar'=>$this->owner->user_avatar,
-            'user_country'=>$this->owner->user_country
+            'user_country'=>$this->owner->user_country,
+            'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
         ];
     }
 
