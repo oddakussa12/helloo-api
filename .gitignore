@@ -1,7 +1,7 @@
 /node_modules
 /storage/*.key
 /storage/framework/views/*.php
-/storage/framework/logs/*.log
+/storage/logs/*.log
 /database/migrations/*.php
 /storage/app/purifier/HTML/
 /vendor
