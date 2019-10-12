@@ -53,7 +53,7 @@ class PostCommentCreatedListener
                         'comment_id'=>$object->{$object->getKeyName()},
                         'post_id'=>$post->post_id,
                     ) ,
-                    'setField'=>array('contact_id' , $object->{$object->getKeyName()}),
+                    'setField'=>array('contact_id' , $post->post_id),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$object->{$object->getKeyName()},
                 )
             );
