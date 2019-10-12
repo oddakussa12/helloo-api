@@ -1,13 +1,11 @@
 /node_modules
-/public/hot
-/public/storage
 /storage/*.key
 /storage/framework/cache/data/
 /storage/framework/sessions/
 /storage/framework/testing/
 /storage/framework/views/
-/storage/logs
-/storage/app/public
+/storage/logs/
+/storage/app/public/
 /storage/app/geoip.mmdb
 /tests
 /database/migrations
