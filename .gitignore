@@ -8,7 +8,7 @@
 /storage/app/geoip.mmdb
 /tests
 /database/migrations
-/bootstrap/cache
+/bootstrap/cache/*.php
 /vendor
 /.idea
 /.vagrant
