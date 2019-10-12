@@ -203,14 +203,14 @@ if (!function_exists('rate_comment_v2')) {
     }
 }
 
-if (!function_exists('domain')) {
+if (!function_exists('domains')) {
     /**
      * Calculates the rate for sorting by hot.
      *
      * @param string $item
      * @return float
      */
-    function domain($item='host')
+    function domains($item='host')
     {
         $url = parse_url(url()->current());
         $urlInfo = parse_url($url);
