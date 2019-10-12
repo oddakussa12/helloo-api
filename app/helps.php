@@ -210,13 +210,19 @@ if (!function_exists('domains')) {
      * @param string $item
      * @return float
      */
-    function domains($item='host')
+
+    function domain($domain=null,$item='host')
     {
-        $url = parse_url(url()->current());
-        $urlInfo = parse_url($url);
-        return $urlInfo[$item];
+        if($domain==null){
+            $url = parse_url(url()->current());
+        }else{
+            $url = parse_url($domain);
+        }
+        return $url[$item];
     }
 }
+
+
 
 
 
