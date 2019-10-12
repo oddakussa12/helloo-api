@@ -222,13 +222,13 @@ class PostController extends BaseController
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  int  $uuid
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($uuid)
     {
         //
-        $post = $this->post->find($id);
+        $post = $this->post->findByUuid($uuid);
         if($post->user_id!=auth()->id())
         {
             abort(422);
