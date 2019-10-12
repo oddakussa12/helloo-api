@@ -167,7 +167,7 @@ class PostController extends BaseController
             $post->attachTags($tag_slug); 
         }
 	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content);
-	    if(domain['host']!=config('app.url'))
+	    if(domain()!=domain(config('app.url')))
         {
             $this->dispatch($job->onQueue('test'));
         }else{
