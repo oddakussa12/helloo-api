@@ -2,6 +2,7 @@
 /storage/*.key
 /storage/framework/views/*.php
 /database/migrations/*.php
+/storage/app/purifier/HTML/
 /vendor
 /.idea
 /.vagrant
