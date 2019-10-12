@@ -78,7 +78,7 @@ if(!function_exists('notify_remove')){
         }
         $object->owner->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
             $query
-                ->where('from_ids' , auth()->id())
+                ->where('from_id' , auth()->id())
                 ->where('contact_id' , $contact_id)
                 ->whereIn('category_id' , $category_id);
 
