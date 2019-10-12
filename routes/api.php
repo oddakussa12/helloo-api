@@ -73,7 +73,7 @@ $api->group($V1Params , function ($api){
             $api->resource('post' , 'PostController' , ['only' => ['store']]);
         });
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
-            $api->resource('postComment' , 'PostCommentController' , ['only' => ['store']]);
+            $api->resource('postComment' , 'PostCommentController' , ['only' => ['store','destroy']]);
         });
         $api->get('notification/count' , 'NotificationController@count');
         $api->put('notification/type/{type}' , 'NotificationController@readAll');
