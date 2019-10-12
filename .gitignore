@@ -1,10 +1,7 @@
 /node_modules
 /storage/*.key
 /storage/framework/views/*.php
-/storage/app/geoip.mmdb
-/tests
-/database/migrations
-/bootstrap/cache/*.php
+/database/migrations/*.php
 /vendor
 /.idea
 /.vagrant
