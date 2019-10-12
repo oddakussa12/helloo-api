@@ -38,6 +38,7 @@ class PostCollection extends Resource
             'user_name'=>$this->owner->user_name,
             'user_avatar'=>$this->owner->user_avatar,
             'user_country'=>$this->owner->user_country,
+            'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
             'tags'=>$this->when($request->has('tag') , function (){
                 return TagCollection::collection($this->tags);
             })
