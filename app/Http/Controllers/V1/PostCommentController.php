@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\V1;
 
+
 use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Events\PostCommentDeleted;
 use App\Services\TranslateService;
-use App\Models\User;
+use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
 use Illuminate\Http\Request;
 use App\Models\PostComment;
