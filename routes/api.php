@@ -87,7 +87,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>'guestRefresh'] , function($api){
         $api->get('postComment/user/{user}' , 'PostCommentController@showPostCommentByUser');
         $api->get('postComment/like/{user}' , 'PostCommentController@showPostCommentLikeByUser');
-        $api->resource('feedback' , 'Feedback' , ['only' => ['store']]);
+        $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]);
         $api->get('post/{uuid}' , 'PostController@showByUuid');
         $api->get('notification' , 'NotificationController@index');
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);

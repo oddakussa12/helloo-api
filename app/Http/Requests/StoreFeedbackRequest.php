@@ -26,7 +26,7 @@ class StoreFeedbackRequest extends FormRequest
         return [
             'feedback_name' => 'bail|filled|string|max:100',
             'feedback_email' => 'bail|filled|string|email|max:100',
-            'post_content' => 'bail|required|string|between:1,2000',
+            'feedback_content' => 'bail|required|string|between:1,2000',
         ];
     }
 }
