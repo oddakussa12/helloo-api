@@ -138,10 +138,7 @@ class AuthController extends BaseController
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
         $user->likeCount = $likeCount;
-<<<<<<< HEAD
-=======
         $user->country = $user->user_country;
->>>>>>> dev
         return $this->response->array($user);
     }
 
