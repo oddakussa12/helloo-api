@@ -57,14 +57,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         return $this->model->orderByDesc('post_like_num')->paginate($perPage , $columns , $pageName , $page);
     }
-	public function hot($request)
-    {
-        $posts = $this->model;
-        if (method_exists($this->model, 'translations')) {
-            return $posts->with('translations')->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
-        }
-        return $posts->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
-    }
 
     public function paginateAll(Request $request)
     {
