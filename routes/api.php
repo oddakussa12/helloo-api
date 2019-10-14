@@ -30,6 +30,7 @@ $api->group($V1Params , function ($api){
         $api->resource('post' , 'PostController' , ['only' => ['index']]);
 
         $api->get('post/user/{user}' , 'PostController@showPostByUser');
+
         $api->get('post/top' , 'PostController@showTopList');
 	    $api->get('post/hot' , 'PostController@hot');
 
@@ -52,6 +53,8 @@ $api->group($V1Params , function ($api){
 
         $api->get('postComment/myself' , 'PostCommentController@myself');
         $api->get('postComment/like' , 'PostCommentController@mylike');
+        $api->get('postComment/user/{user}' , 'PostCommentController@showPostCommentByUser');
+        $api->get('postComment/like/{user}' , 'PostCommentController@showPostCommentLikeByUser');
 
         $api->get('user/profile' , 'AuthController@me');
         $api->get('post/myself' , 'PostController@myself');
