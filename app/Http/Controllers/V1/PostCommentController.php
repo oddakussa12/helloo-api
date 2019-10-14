@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Repositories\Contracts\UserRepository;
 use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Events\PostCommentDeleted;
@@ -208,9 +207,9 @@ class PostCommentController extends BaseController
         return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->orderby('created_at' , 'desc')->with('likable')->paginate(5));
     }
 
-    public function showPostCommentByUserSelf(Request $request , $userId)
+    public function showPostCommentByUser(Request $request , $userId)
     {
-        return PostCollection::collection($this->postComment->findByUserId($request , $userId));
+        return PostCommentCollection::collection($this->postComment->findByUserId($request , $userId));
     }
 
     public function showPostCommentLikeByUser(Request $request , $userId)
