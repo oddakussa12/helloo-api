@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1;
 
-
 use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Events\PostCommentDeleted;
@@ -14,9 +13,7 @@ use App\Models\PostComment;
 use App\Repositories\Contracts\PostCommentRepository;
 use App\Resources\PostCommentCollection;
 use Illuminate\Http\Response;
-use Ramsey\Uuid\Uuid;
 use App\Http\Requests\StorePostCommentRequest;
-use App\Jobs\PostCommentTranslation;
 
 class PostCommentController extends BaseController
 {
