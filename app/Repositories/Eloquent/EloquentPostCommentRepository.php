@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-08-09 22:49:55
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-09-11 15:32:41
+ * @Last Modified time: 2019-10-14 10:55:08
  */
 namespace App\Repositories\Eloquent;
 
@@ -30,7 +30,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $comments->orderBy($request->get('order_by' , 'comment_like_num'), $order);
         }else{
-            $comments->orderBy('comment_created_at', 'desc')->orderBy('comment_like_num', 'desc');
+            $comments->orderBy('comment_like_num', 'desc')->orderBy('comment_created_at', 'desc');
         }
         $comments = $comments->paginate($this->perPage , ['*'] , $this->pageName);
         if($request->get('children')==='true')
@@ -44,6 +44,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     {
         return $this->model
             ->where(['user_id'=>$user_id])
+            ->orderBy('comment_created_at', 'desc')
             ->orderByDesc('comment_like_num')
             ->paginate($this->perPage , ['*'] , $this->pageName);
     }

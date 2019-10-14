@@ -29,7 +29,7 @@ class LoginUserRequest extends FormRequest
             'password'=>'required|min:4|max:16',
         ];
     }
-//
+
 //    public function attributes()
 //    {
 //        return [

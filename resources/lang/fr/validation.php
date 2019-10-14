@@ -174,5 +174,8 @@ return [
         'time'                  => 'heure',
         'available'             => 'disponible',
         'size'                  => 'taille',
+        'post_title'            => 'Titre du post',
+        'post_content'          => 'Publier du contenu',
+        'tag_slug'              => 'Post tag',
     ],
 ];

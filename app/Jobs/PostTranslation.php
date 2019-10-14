@@ -45,21 +45,24 @@ class PostTranslation implements ShouldQueue
         $this->post_content = $post_content;
 
 
+        if(auth()->user()->user_last_name!='test!@#qaz')
+        {
+            notify('admin.post_notice' ,
+                array(
+                    'to'=>2 ,
+                    'extra'=>array(
+                        'post_id'=>$this->post->post_id,
+                        'from_id'=>auth()->id() ,
+                        'from_name'=>auth()->user()->user_name ,
+                        'to_id'=>$this->post->owner->user_id ,
+                        'to_name'=>$this->post->owner->user_name ,
+                    ) ,
+                    'url'=>'/notification/post/'.$this->post->post_id,
+                ),
+                true
+            );
+        }
 
-        notify('admin.post_notice' ,
-            array(
-                'to'=>2 ,
-                'extra'=>array(
-                    'post_id'=>$this->post->post_id,
-                    'from_id'=>auth()->id() ,
-                    'from_name'=>auth()->user()->user_name ,
-                    'to_id'=>$this->post->owner->user_id ,
-                    'to_name'=>$this->post->owner->user_name ,
-                ) ,
-                'url'=>'/notification/post/'.$this->post->post_id,
-            ),
-            true
-        );
 
     }
 
@@ -72,26 +75,36 @@ class PostTranslation implements ShouldQueue
     {
         dynamicSetLocales(array($this->postTitleLang , $this->postContentLang));
         $post = $this->post;
+        $postTitle = $this->post_title;
+        $postContent = $this->post_content;
         $translate = app(TranslateService::class);
         $lang = config('translatable.locales');
         foreach ($lang as $l)
         {
-            if($l==$this->postTitleLang)
+            if($l=='zh-HK')
             {
-                $title = $this->post_title;
+                $t = 'zh-TW';
             }else{
-                $title = $translate->translate($this->post_title , array('target'=>$l));
+                $t = $l;
             }
-            if(empty($this->post_content)||$l==$this->postContentLang)
+            if(empty($postTitle)||$l==$this->postTitleLang)
             {
-                $content = $this->post_content;
+                $title = $postTitle;
             }else{
-                $content = $translate->translate($this->post_content , array('target'=>$l , 'format'=>'html'));
+                $title = $translate->translate($postTitle , array('target'=>$t));
+            }
+            if(empty($postContent)||$l==$this->postContentLang)
+            {
+                $content = $postContent;
+            }else{
+                $content = $translate->translate($postContent , array('target'=>$t , 'format'=>'html'));
             }
             $post->fill([
                 "{$l}"  => ['post_title' => $title , 'post_content'=>$content],
             ]);
             $post->save();
         }
+
+
     }
 }

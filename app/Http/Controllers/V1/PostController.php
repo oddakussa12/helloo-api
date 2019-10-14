@@ -11,7 +11,7 @@ use App\Resources\PostPaginateCollection;
 use Illuminate\Http\Request;
 use App\Events\PostViewEvent;
 use App\Repositories\Contracts\PostRepository;
-use App\Repositories\Contracts\UserRepository;
+use App\Http\Requests\StorePostRequest;
 use Ramsey\Uuid\Uuid;
 
 class PostController extends BaseController
@@ -103,16 +103,27 @@ class PostController extends BaseController
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return PostCollection
+     * @throws \Exception
      */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        $post_title = trim(strval($request->input('post_title')));
-        $post_content = trim(strval($request->input('post_content' , '')));
-        $tag_slug = $request->input('tag_slug' , array());
+        $post_title = clean($request->input('post_title'));
+        $post_content = clean($request->input('post_content' , ''));
+	    $tag_slug = $request->input('tag_slug' , array());
+	    $post_image = $request->input('post_image' , array());
         $post_category_id = 1;
         $post_type = 'text';
+        $post_image = \array_filter($post_image , function($v , $k){
+            return !empty($v);
+        } , ARRAY_FILTER_USE_BOTH );
+        sort($post_image);
+	    if(!empty($post_image))
+        {
+            $post_category_id = 2;
+            $post_type = 'image';
+        }
         $postTitleLang = $this->translate->detectLanguage($post_title);
         $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
         if(empty($post_content))
@@ -130,9 +141,18 @@ class PostController extends BaseController
             'post_default_locale'=>$post_title_default_locale,
             'post_content_default_locale'=>$post_content_default_locale,
             'post_type' =>$post_type,
-            'post_topping' => 1,
-            'post_topped_at' => date('Y-m-d H:i:s'),
         );
+
+        if($post_category_id==2&&!empty($post_image))
+        {
+            $post_media_json = \json_encode(array('image'=>array(
+                'image_from'=>'upload',
+                'image_cover'=>$post_image[0],
+                'image_url'=>$post_image,
+                'image_count'=>count($post_image)
+                )));
+            $post_info['post_media'] = $post_media_json;
+        }
         dynamicSetLocales(array($post_title_default_locale , $post_content_default_locale));
         if($post_title_default_locale!=$post_content_default_locale)
         {
@@ -142,12 +162,17 @@ class PostController extends BaseController
             $post_info[$post_title_default_locale] = array('post_title'=>$post_title,'post_content'=>$post_content);
         }
         $post = $this->post->store($post_info);
-        if(!empty($tag_slug))
+	    if(!empty($tag_slug))
         {
-            $post->attachTags($tag_slug);
+            $post->attachTags($tag_slug); 
         }
-
-        //$this->dispatch(new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content));
+	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content);
+	    if(domain()!=domain(config('app.url')))
+        {
+            $this->dispatch($job->onQueue('test'));
+        }else{
+            $this->dispatch($job);
+        }
         return new PostCollection($post);
     }
 
@@ -197,19 +222,25 @@ class PostController extends BaseController
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  int  $uuid
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($uuid)
     {
         //
+        $post = $this->post->findByUuid($uuid);
+        if($post->user_id!=auth()->id())
+        {
+            abort(401);
+        }
+        $this->post->destroy($post);
+        return $this->response->noContent();
     }
 
     public function showTopList(Request $request)
     {
         return PostCollection::collection($this->post->top($request));
     }
-
     public function hot(Request $request)
     {
         return PostCollection::collection($this->post->hot($request));

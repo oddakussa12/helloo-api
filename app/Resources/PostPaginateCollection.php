@@ -21,7 +21,7 @@ class PostPaginateCollection extends Resource
             'post_media' => $this->post_media,
             'post_default_locale' => $this->post_default_locale,
             'post_title' => $this->post_decode_title,
-            'post_content' => strip_tags($this->post_decode_content),
+            //'post_content' => strip_tags($this->post_decode_content),
             'post_type' => $this->post_type,
             'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
@@ -36,7 +36,8 @@ class PostPaginateCollection extends Resource
             'post_format_created_at'=> $this->post_format_created_at,
             'user_name'=>$this->owner->user_name,
             'user_avatar'=>$this->owner->user_avatar,
-            'user_country'=>$this->owner->user_country
+            'user_country'=>$this->owner->user_country,
+            'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
         ];
     }
 
@@ -49,7 +50,7 @@ class PostPaginateCollection extends Resource
             ->where('post_id' , $this->post_id)
             ->groupBy('posts_comments.comment_country_id')
             ->orderBy('country_num' , 'desc')
-            ->paginate(6);
+            ->paginate(7);
     }
 
     public function topComment()

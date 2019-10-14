@@ -53,7 +53,7 @@ class NotificationController extends BaseController
                     ->where('category_id', 3)
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
-                    ->paginate(5 , ['*'] , 'notice_page');
+                    ->paginate(10 , ['*'] , 'notice_page');
                 $message= $message->appends($appends);
                 return NotificationCollection::collection($message);
             }
@@ -65,7 +65,7 @@ class NotificationController extends BaseController
                     ->whereIn('category_id', [5 , 6])
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
-                    ->paginate(5 , ['*'] , 'notice_page');
+                    ->paginate(10 , ['*'] , 'notice_page');
                 $message= $message->appends($appends);
                 return NotificationCollection::collection($message);
             }
@@ -194,6 +194,18 @@ class NotificationController extends BaseController
         {
             $notices = auth()->user()->getNotificationRelation()->where(function($query){
                 $query->where('category_id' , 3)
+                    ->where('read' , 0);
+            })->get();
+            foreach ($notices as $notice)
+            {
+                if($notice->read==0)
+                {
+                    $notice->read();
+                }
+            }
+        }elseif($type=='comment'){
+            $notices = auth()->user()->getNotificationRelation()->where(function($query){
+                $query->whereIn('category_id' , [5 , 6])
                     ->where('read' , 0);
             })->get();
             foreach ($notices as $notice)

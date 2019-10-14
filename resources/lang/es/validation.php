@@ -179,5 +179,8 @@ return [
         'subject'               => 'asunto',
         'message'               => 'mensaje',
         'price'                 => 'precio',
+        'post_title'            => 'Título de la publicación',
+        'post_content'          => 'Publicar contenido',
+        'tag_slug'              => 'Etiqueta de publicación',
     ],
 ];

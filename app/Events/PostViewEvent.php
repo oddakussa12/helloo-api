@@ -30,7 +30,7 @@ class PostViewEvent
 
     public function getIp()
     {
-        return request()->ip();
+        return getRequestIpAddress();
     }
 
 

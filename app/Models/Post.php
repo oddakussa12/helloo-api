@@ -31,7 +31,7 @@ class Post extends Model
         'post_uuid' ,
         'user_id' ,
         'post_category_id' ,
-        ' post_media',
+        'post_media',
         'post_category_id',
         'post_default_locale',
         'post_content_default_locale',
@@ -96,6 +96,11 @@ class Post extends Model
         }else if($this->post_type=='news'){
             $value[$this->post_type]['news_cover_image'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['news_cover_image'];
 
+        }else if($this->post_type=='image'){
+            $value[$this->post_type]['image_cover'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['image_cover'];
+            $value[$this->post_type]['image_url'] = \array_map(function($v){
+                return config('common.qnUploadDomain.thumbnail_domain').$v;
+            } , $value[$this->post_type]['image_url']);
         }
         return $value;
     }
@@ -134,7 +139,7 @@ class Post extends Model
         }else{
             $post_title = $this->post_title;
         }
-        return $post_title;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_title , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function getPostDecodeContentAttribute()
@@ -153,21 +158,39 @@ class Post extends Model
         }else{
             $post_content = $this->post_content;
         }
-        return $post_content;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function getPostDefaultContentAttribute()
     {
-        return optional($this->translate($this->post_content_default_locale))->post_content;
+        $post_content = optional($this->translate($this->post_content_default_locale))->post_content;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
     }
     public function getPostDefaultTitleAttribute()
     {
-        return optional($this->translate($this->post_default_locale))->post_title;
+        $post_title = optional($this->translate($this->post_default_locale))->post_title;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_title , ENT_QUOTES) , ENT_QUOTES);
+    }
+
+    public function getPostRateAttribute($value)
+    {
+//        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
+//        return round(($value/$top_rate)*100);
+        return round($value , 2)*100;
     }
 
     public function getPostFormatCreatedAtAttribute()
     {
+        $locale = locale();
+        if($locale=='zh-CN')
+        {
+            Carbon::setLocale('zh');
+        }elseif ($locale=='zh-TW'||$locale=='zh-HK')
+        {
+            Carbon::setLocale('zh_TW');
+        }
         return Carbon::parse($this->post_created_at)->diffForHumans();
     }
+
 
 }

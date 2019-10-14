@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
+use App\Events\PostCommentDeleted;
 use App\Services\TranslateService;
 use App\Models\User;
 use App\Repositories\Contracts\PostRepository;
@@ -63,17 +64,14 @@ class PostCommentController extends BaseController
     public function store(StorePostCommentRequest $request)
     {
         $postUuid = $request->input('post_uuid');
-        $commentContent = $request->input('comment_content');
+        $commentContent = clean($request->input('comment_content' , ''));
         $commentPId = $request->input('comment_comment_p_id' , 0);
         $post = app(PostRepository::class)->findByUuid($postUuid);
         if(isset($commentPId)&&$commentPId!=0)
         {
-            $pComment = $this->postComment->find($commentPId);
-        }else{
-            $pComment = array();
-        }
-        //$contentLang = $this->translate->detectLanguage($commentContent);
-        $contentLang = 'en';
+            $this->postComment->find($commentPId);
+	}
+        $contentLang = $this->translate->detectLanguage($commentContent);
         $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         $comment = array(
             'post_id'=>$post->post_id,
@@ -93,8 +91,7 @@ class PostCommentController extends BaseController
 //        }
         dynamicSetLocales(array($contentDefaultLang));
         $translation = $this->translate->customizeTrans($commentContent , $contentLang);
-
-        $comment[$contentLang] = array('comment_content'=>$commentContent);
+//        $comment[$contentLang] = array('comment_content'=>$commentContent);
         $comment = $comment+$translation;
         $postComment = $this->postComment->store($comment);
         event(new PostCommentCreated($postComment));
@@ -179,6 +176,7 @@ class PostCommentController extends BaseController
         return $this->postcomment->update($postcomment,$result);
     }
 
+
     /**
      * Remove the specified resource from storage.
      *
@@ -188,6 +186,25 @@ class PostCommentController extends BaseController
     public function destroy($id)
     {
         //
+        $postComment = $this->postComment->find($id);
+        if($postComment->user_id!=auth()->id())
+        {
+            abort(401);
+        }
+        event(new PostCommentDeleted($postComment));
+        $this->postComment->destroy($postComment);
+        return $this->response->noContent();
+    }
+
+    public function myself(Request $request)
+    {
+        return PostCommentCollection::collection($this->postComment->findByUserId($request , auth()->user()->user_id));
+    }
+
+
+    public function mylike()
+    {
+        return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->orderby('created_at' , 'desc')->with('likable')->paginate(5));
     }
 
     public function myself(Request $request)

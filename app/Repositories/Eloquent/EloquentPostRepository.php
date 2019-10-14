@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-08-09 21:23:30
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-09-18 14:38:11
+ * @Last Modified time: 2019-10-14 10:55:58
  */
 namespace App\Repositories\Eloquent;
 
@@ -57,7 +57,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         return $this->model->orderByDesc('post_like_num')->paginate($perPage , $columns , $pageName , $page);
     }
-
+	public function hot($request)
+    {
+        $posts = $this->model;
+        if (method_exists($this->model, 'translations')) {
+            return $posts->with('translations')->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
+        }
+        return $posts->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
+    }
 
     public function paginateAll(Request $request)
     {
@@ -79,41 +86,58 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             //     $posts = $posts->where('post_category_id' , 0);
             // }
             //->orderBy('post_topping', 'desc')->orderBy('post_topped_at', 'desc')
-            $posts = $posts->orderBy('post_rate', 'desc')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->orderBy('post_like_num', 'desc')->paginate($this->perPage , ['*'] , $this->pageName);
-            return $posts->appends($appends);
-        }
-        if ($request->get('take')!== null){
-            $take = intval($request->get('take'));
-            $take = $take>15||$take<1?10:$take;
-            return $posts->inRandomOrder()->take($take)->get();
-        }
-        if ($request->get('keywords') !== null) {
-            $keywords = $request->get('keywords');
-            $appends['keywords'] = $keywords;
-            $posts->whereHas('translations', function ($query) use ($keywords) {
-                $query->where('post_title', 'LIKE', "%{$keywords}%");
-            });
-        }
-        if ($request->get('categoryId') !== null) {
-            $categoryId = $request->get('categoryId');
-            if(in_array($categoryId , array(1 , 2 , 3)))
+            if($request->get('tag')!==null)
             {
-                $appends['categoryId'] = $categoryId;
-                $posts->where('post_category_id' , $categoryId);
-            }else if($categoryId=='group'){
-                $appends['categoryId'] = $categoryId;
-                $posts->whereNotIn('post_category_id' , ['1']);
+                $tag = $request->get('tag');
+                $appends['tag'] = $tag;
+                $posts = $posts->withAnyTags([$tag]);
             }
-        }
-        if ($request->get('order_by') !== null && $request->get('order') !== null) {
-            $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
-            $orderBy = $request->get('order_by' , 'post_like_num');
-            $appends['order'] = $order;
-            $appends['order_by'] = $orderBy;
-            $posts->orderBy($orderBy, $order);
-        }
-        $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+            $posts = $posts
+                ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
+                ->orderBy('post_rate', 'DESC')
+                ->orderBy('post_like_num', 'DESC')
+                ->paginate($this->perPage , ['*'] , $this->pageName);
+            return $posts->appends($appends);
+    }
+	if($request->get('tag')!==null)
+    {
+        $tag = $request->get('tag');
+        $appends['tag'] = $tag;
+        $posts = $this->model->withAnyTags([$tag])->orderBy('post_rate', 'desc')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate($this->perPage , ['*'] , $this->pageName);
         return $posts->appends($appends);
+    }
+    if ($request->get('take')!== null){
+        $take = intval($request->get('take'));
+        $take = $take>15||$take<1?10:$take;
+        return $posts->inRandomOrder()->take($take)->get();
+    }
+    if ($request->get('keywords') !== null) {
+        $keywords = $request->get('keywords');
+        $appends['keywords'] = $keywords;
+        $posts->whereHas('translations', function ($query) use ($keywords) {
+            $query->where('post_title', 'LIKE', "%{$keywords}%");
+        });
+    }
+    if ($request->get('categoryId') !== null) {
+        $categoryId = $request->get('categoryId');
+        if(in_array($categoryId , array(1 , 2 , 3)))
+        {
+            $appends['categoryId'] = $categoryId;
+            $posts->where('post_category_id' , $categoryId);
+        }else if($categoryId=='group'){
+            $appends['categoryId'] = $categoryId;
+            $posts->whereNotIn('post_category_id' , ['1']);
+        }
+    }
+    if ($request->get('order_by') !== null && $request->get('order') !== null) {
+        $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
+        $orderBy = $request->get('order_by' , 'post_like_num');
+        $appends['order'] = $order;
+        $appends['order_by'] = $orderBy;
+        $posts->orderBy($orderBy, $order);
+    }
+    $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+    return $posts->appends($appends);
     }
 
     public function findByUuid($uuid)
@@ -135,6 +159,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $appends['order'] = $order;
             $appends['order_by'] = $orderBy;
             $posts->orderBy($orderBy, $order);
+        }else{
+            $posts->orderBy('post_created_at' , 'desc');
         }
         if ($request->get('categoryId') !== null) {
             $categoryId = $request->get('categoryId');

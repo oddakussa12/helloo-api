@@ -28,6 +28,7 @@ class User extends Authenticatable implements JWTSubject
         'users_email' ,
         'user_ip_address' ,
     ];
+    protected $appends = ['user_country'];
 
     protected $fillable = [
         'user_name' ,
@@ -86,6 +87,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function getUserAvatarAttribute($value)
     {
+        $value = empty($value)?'userdefalutavatar.jpg':$value;
         return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/100/h/100/interlace/1';
     }
 
@@ -148,17 +150,19 @@ class User extends Authenticatable implements JWTSubject
         {
             return strtolower($country_code[$country]);
         }
-        return strtolower($country_code[236]);
+        return strtolower($country_code[235]);
     }
 
     public function setUserCountryIdAttribute($value)
     {
-        $index = array_search(strtolower($value) , config('countries'));
+        $index = array_search(strtoupper($value) , config('countries'));
         if($index===false)
         {
             $index = 236;
+        }else{
+            $index = $index+1;
         }
-        return $index+1;
+        $this->attributes['user_country_id'] = $index;
     }
 
 
