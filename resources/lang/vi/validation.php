@@ -178,6 +178,9 @@ return [
         'message'               => 'lời nhắn',
         'available'             => 'có sẵn',
         'size'                  => 'kích thước',
+        'post_title'            => 'Tiêu đề bài',
+        'post_content'          => 'Đăng nội dung',
+        'tag_slug'              => 'Thẻ bài',
     ],
 
 ];

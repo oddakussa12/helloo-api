@@ -19,11 +19,11 @@ class PostTranslation extends Model
 
     public function setPostContentAttribute($value)
     {
-        $this->attributes['post_content'] = htmlspecialchars($value , ENT_QUOTES);
+        $this->attributes['post_content'] = htmlspecialchars_decode($value , ENT_QUOTES);
     }
     public function setPostTitleAttribute($value)
     {
-        $this->attributes['post_title'] = htmlspecialchars($value , ENT_QUOTES);
+        $this->attributes['post_title'] = htmlspecialchars_decode($value , ENT_QUOTES);
     }
 
 }

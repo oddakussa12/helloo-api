@@ -173,5 +173,8 @@ return [
         'time' => 'time',
         'available' => 'tersedia',
         'size' => 'size',
+        'post_title'            => 'Judul posting',
+        'post_content'          => 'Posting konten',
+        'tag_slug'              => 'Tag pos',
     ],
 ];

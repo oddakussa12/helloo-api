@@ -146,6 +146,9 @@ return [
         'time'                  => 'time',
         'available'             => 'available',
         'size'                  => 'size',
+        'post_title'            => 'Post title',
+        'post_content'          => 'Post content',
+        'tag_slug'              => 'Post tag',
     ],
 
 ];

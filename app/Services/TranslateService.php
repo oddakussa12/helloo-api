@@ -116,6 +116,10 @@ class TranslateService
 
         $promise = $pool->promise();
         $promise->wait();
+	if(array_key_exists('zh-TW' , $this->translations))
+        {
+            $this->translations['zh-HK'] = $this->translations['zh-TW'];
+        }
         return $this->translations;
 
     }

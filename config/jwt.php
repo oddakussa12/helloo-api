@@ -101,7 +101,11 @@ return [
     |
     */
 
+<<<<<<< HEAD
     'ttl' => env('JWT_TTL', 1000),
+=======
+    'ttl' => env('JWT_TTL', 21600),
+>>>>>>> dev
 
     /*
     |--------------------------------------------------------------------------
@@ -120,7 +124,11 @@ return [
     |
     */
 
+<<<<<<< HEAD
     'refresh_ttl' => env('JWT_REFRESH_TTL', 2000),
+=======
+    'refresh_ttl' => env('JWT_REFRESH_TTL', 21600),
+>>>>>>> dev
 
     /*
     |--------------------------------------------------------------------------
@@ -235,7 +243,7 @@ return [
     |
     */
 
-    'blacklist_grace_period' => env('JWT_BLACKLIST_GRACE_PERIOD', 0),
+    'blacklist_grace_period' => env('JWT_BLACKLIST_GRACE_PERIOD', 10),
 
     /*
     |--------------------------------------------------------------------------

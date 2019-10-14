@@ -62,13 +62,27 @@ return [
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET'),
         ],
-        'idwebother' => [
-            'driver'     => 'qiniu',
+        'qn_default' => [
+            'driver'     => 'qn_default',
+            'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
+            'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
+            'bucket'     => env('QINIU_BUCKET', 'idwebother'),
+            'domain'     => env('QINIU_DOMAIN', 'pv4wf6zk2.bkt.clouddn.com/'), // or host: https://xxxx.clouddn.com
+        ],
+        'qn_avatar' => [
+            'driver'     => 'qn_avatar',
             'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
             'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
             'bucket'     => env('QINIU_BUCKET', 'idwebother'),
             'domain'     => env('QINIU_DOMAIN', 'http://qnidwebother.mmantou.cn'), // or host:
-        ]
+        ],
+        'qn_image' => [
+            'driver'     => 'qn_image',
+            'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
+            'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
+            'bucket'     => env('QINIU_BUCKET', 'pythonidimage'),
+            'domain'     => env('QINIU_DOMAIN', 'http://qnidimage.mmantou.cn'), // or host: https://xxxx.clouddn.com
+        ],
 
     ],
 

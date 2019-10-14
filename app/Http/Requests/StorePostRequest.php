@@ -24,9 +24,9 @@ class StorePostRequest extends FormRequest
     public function rules()
     {
         return [
-            'post_uuid' => 'bail|required|string|alpha_dash|size:36',
-            'comment_comment_p_id' => 'bail|integer|numeric',
-            'comment_content' => 'bail|required|string|between:1,200',
+            'post_title' => 'bail|required|string|between:1,200',
+            'tag_slug' => 'bail|required|array',
+            'post_content' => 'bail|present|between:0,3000',
         ];
     }
 }

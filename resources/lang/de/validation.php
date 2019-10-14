@@ -174,5 +174,8 @@ return [
         'time'                  => 'Uhrzeit',
         'available'             => 'verfügbar',
         'size'                  => 'Größe',
+        'post_title'            => 'Post-Titel',
+        'post_content'          => 'Inhalt posten',
+        'tag_slug'              => 'Post-Tag',
     ],
 ];

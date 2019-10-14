@@ -37,6 +37,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\PostCommentCreated' => [
             'App\Listeners\PostCommentCreatedListener',
         ],
+        'App\Events\PostCommentDeleted' => [
+            'App\Listeners\PostCommentDeletedListener',
+        ],
     ];
 
     /**

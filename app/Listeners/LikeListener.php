@@ -2,7 +2,6 @@
 
 namespace App\Listeners;
 
-use App\Notifications\CommentLiked;
 use App\Models\Post;
 use App\Models\PostComment;
 use App\Events\Liked;
@@ -51,6 +50,7 @@ class LikeListener
                         'comment_id'=>$object->{$object->getKeyName()},
                         'post_id'=>$object->post_id,
                     ) ,
+                    'setField'=>array('contact_id' , $object->{$object->getKeyName()}),
                     'url'=>'/notification/post/'.$object->post_id.'/postComment/'.$object->{$object->getKeyName()},
                 )
             );

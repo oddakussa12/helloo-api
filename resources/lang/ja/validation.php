@@ -174,5 +174,8 @@ return [
         'time' => '時間',
         'available' => '利用可能',
         'size' => '大きさ',
+        'post_title'            => '役職',
+        'post_content'          => '投稿内容',
+        'tag_slug'              => '投稿タグ',
     ],
 ];

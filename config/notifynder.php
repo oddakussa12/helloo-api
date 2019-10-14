@@ -66,10 +66,9 @@ return [
      */
     'additional_fields' => [
         'required' => [
-
         ],
         'fillable' => [
-
+            'contact_id'
         ],
     ],
 ];

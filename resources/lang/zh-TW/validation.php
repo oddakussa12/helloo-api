@@ -174,5 +174,8 @@ return [
         'title'                 => '標題',
         'username'              => '使用者名稱',
         'year'                  => '年',
+        'post_title'            => '貼子標題',
+        'post_content'          => '貼子內容',
+        'tag_slug'              => '貼子標籤',
     ],
 ];

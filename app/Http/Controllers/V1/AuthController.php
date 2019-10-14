@@ -43,7 +43,12 @@ class AuthController extends BaseController
         $user_fields['user_ip_address'] = getRequestIpAddress();
         $user_fields['user_uuid'] = Uuid::uuid1();
         $addresses = geoip($user_fields['user_ip_address']);
-        $user_fields['user_country_id'] = $addresses->iso_code;
+        if($request->has('country_code'))
+        {
+            $user_fields['user_country_id'] = $request->input('country_code');
+        }else{
+            $user_fields['user_country_id'] = $addresses->iso_code;
+        }
         $user = $this->user->store($user_fields);
         if ($user) {
             event(new SignupEvent($user , $addresses));
@@ -77,7 +82,20 @@ class AuthController extends BaseController
     public function update(Request $request)
     {
         $user = auth()->user();
-        $user = $this->user->update($user,$request->all());
+        $country_code = $request->input('country_code');
+        $user_avatar = $request->input('user_avatar');
+        if(!empty($country_code))
+        {
+            $fields['user_country_id'] = $country_code;
+        }
+        if(!empty($user_avatar))
+        {
+            $fields['user_avatar'] = $user_avatar;
+        }
+        if(!empty($fields))
+        {
+            $user = $this->user->update($user,$fields);
+        }
         return $user;
     }
     protected function respondWithToken($token)
@@ -120,6 +138,10 @@ class AuthController extends BaseController
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
         $user->likeCount = $likeCount;
+<<<<<<< HEAD
+=======
+        $user->country = $user->user_country;
+>>>>>>> dev
         return $this->response->array($user);
     }
 
@@ -153,18 +175,43 @@ class AuthController extends BaseController
         return Socialite::driver('google')->redirect();
     }
 
-    /**
-     * 从Google获取用户信息.
-     *
-     * @return Response
-     */
-    public function handleProviderCallback()
+    public function handleProviderCallback(Request $request)
     {
-        $user_info  = $this->user -> findOrFail(2);
-        dd($user_info);
-        $user = Socialite::driver('google')->stateless()->user();
-
-        dd($user);
+        $oauthType = $request->input('oauthType');
+        $user_authid = $request->input('user_authid');
+        $user_name = $request->input('name');
+        $user_email = $request->input('email');
+        $user_avatar = $request->input('user_avatar');
+        $user_language = $request->input('user_language');
+        $user_google = $request->input('user_google');
+        $user_info  = $this->user -> findOauth($oauthType,$user_google);
+        //验证当前用户是否登录过
+        if($user_info){
+            $token = auth()->login($user_info);
+            return $this->respondWithToken($token);
+        }else{
+            $user_fields= array();
+            $user_fields['user_google'] = $user_google;
+            $user_fields['user_'.$oauthType] = $user_authid;
+            $user_fields['user_name'] = $user_name;
+            $user_fields['user_email'] = $user_email;
+            $user_fields[$this->user->getDefaultPasswordField()] =$user_authid;
+            // $user_fields['user_first_name'] = $request['user_first_name'];
+            // $user_fields['user_last_name'] = $request['user_last_name'];
+            $user_fields['user_avatar'] = $user_avatar;
+            $user_fields['user_language'] = $user_language;
+            $user_fields['user_ip_address'] = getRequestIpAddress();
+            $user_fields['user_uuid'] = Uuid::uuid1();
+            $addresses = geoip($user_fields['user_ip_address']);
+            $user_fields['user_country_id'] = $addresses->iso_code;
+            $user = $this->user->store($user_fields);
+            if ($user) {
+                event(new SignupEvent($user , $addresses));
+                $token = auth()->login($user);
+                return $this->respondWithToken($token);
+            }
+            throw new StoreResourceFailedException('sign up failure');
+        }
     }
 
 

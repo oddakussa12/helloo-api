@@ -55,7 +55,7 @@ $api->group($V1Params , function ($api){
 
         $api->get('user/profile' , 'AuthController@me');
         $api->get('post/myself' , 'PostController@myself');
-        $api->put('user/update/myself' , 'AuthController@update');
+        $api->post('user/update/myself' , 'AuthController@update');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken');
 
         $api->put('post/{uuid}/favorite' , 'PostController@favorite');
@@ -69,12 +69,14 @@ $api->group($V1Params , function ($api){
         $api->put('postComment/{comment_id}/favorite' , 'PostCommentController@favorite');
         $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite');
 
-        $api->group(['middleware'=>'throttle:2,5'] , function ($api){
-            $api->resource('post' , 'PostController' , ['only' => ['store']]);
-        });
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
-            $api->resource('postComment' , 'PostCommentController' , ['only' => ['store']]);
+            $api->post('post' , 'PostController@store');
         });
+        $api->delete('post/{uuid}' , 'PostController@destroy');
+        $api->group(['middleware'=>'throttle:6,1'] , function ($api){
+            $api->post('postComment' , 'PostCommentController@store');
+        });
+        $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
         $api->get('notification/count' , 'NotificationController@count');
         $api->put('notification/type/{type}' , 'NotificationController@readAll');
         $api->put('notification/{id}' , 'NotificationController@read');
@@ -86,7 +88,7 @@ $api->group($V1Params , function ($api){
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);
 //    $api->get('english' , 'NotificationController@test');
         $api->get('event' , 'EventController@index');
-        $api->resource('user' , 'UserController' , ['only' => ['show','update']]);
+        $api->resource('user' , 'UserController' , ['only' => ['show']]);
 //    $api->get('/d/testt' , 'PostController@test');
     });
 

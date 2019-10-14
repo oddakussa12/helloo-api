@@ -173,5 +173,8 @@ return [
         'time'                  => '시간',
         'available'             => '가능',
         'size'                  => '사이즈',
+        'post_title'            => '게시물 제목',
+        'post_content'          => '컨텐츠 게시',
+        'tag_slug'              => '포스트 태그',
     ],
 ];
