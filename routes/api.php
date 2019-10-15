@@ -30,6 +30,7 @@ $api->group($V1Params , function ($api){
         $api->resource('post' , 'PostController' , ['only' => ['index']]);
 
         $api->get('post/user/{user}' , 'PostController@showPostByUser');
+
         $api->get('post/top' , 'PostController@showTopList');
         $api->get('post/hot' , 'PostController@hot');
 
@@ -52,6 +53,7 @@ $api->group($V1Params , function ($api){
 
         $api->get('postComment/myself' , 'PostCommentController@myself');
         $api->get('postComment/like' , 'PostCommentController@mylike');
+
 
         $api->get('user/profile' , 'AuthController@me');
         $api->get('post/myself' , 'PostController@myself');
@@ -83,6 +85,9 @@ $api->group($V1Params , function ($api){
         $api->get('notification/{id}' , 'NotificationController@detail');
     });
     $api->group(['middleware'=>'guestRefresh'] , function($api){
+        $api->get('postComment/user/{user}' , 'PostCommentController@showPostCommentByUser');
+        $api->get('postComment/like/{user}' , 'PostCommentController@showPostCommentLikeByUser');
+        $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]);
         $api->get('post/{uuid}' , 'PostController@showByUuid');
         $api->get('notification' , 'NotificationController@index');
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);

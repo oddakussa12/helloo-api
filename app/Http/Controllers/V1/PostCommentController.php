@@ -6,16 +6,14 @@ use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Events\PostCommentDeleted;
 use App\Services\TranslateService;
-use App\Models\User;
+use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
 use Illuminate\Http\Request;
 use App\Models\PostComment;
 use App\Repositories\Contracts\PostCommentRepository;
 use App\Resources\PostCommentCollection;
 use Illuminate\Http\Response;
-use Ramsey\Uuid\Uuid;
 use App\Http\Requests\StorePostCommentRequest;
-use App\Jobs\PostCommentTranslation;
 
 class PostCommentController extends BaseController
 {
@@ -207,6 +205,7 @@ class PostCommentController extends BaseController
         return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->orderby('created_at' , 'desc')->with('likable')->paginate(5));
     }
 
+
     public function myself(Request $request)
     {
         return PostCommentCollection::collection($this->postComment->findByUserId($request , auth()->user()->user_id));
@@ -214,11 +213,18 @@ class PostCommentController extends BaseController
 
     public function mylike()
     {
-        return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->with('likable')->paginate(20));
+        return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->with('likable')->paginate(10));
     }
 
-    public function test()
+    public function showPostCommentByUser(Request $request , $userId)
+
     {
-        $this->dispatch(new PostCommentTranslation(array('text'=>'我爱你' , 'id'=>1)));
+        return PostCommentCollection::collection($this->postComment->findByUserId($request , $userId));
+    }
+
+    public function showPostCommentLikeByUser(Request $request , $userId)
+    {
+        $user = app(UserRepository::class)->findOrFail($userId);
+        return LikeCollection::collection($user->likes()->where('likable_type' , PostComment::class)->orderby('created_at' , 'desc')->with('likable')->paginate(5));
     }
 }
