@@ -5,8 +5,10 @@ namespace App\Http\Middleware;
 use Auth;
 use Closure;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class RefreshToken extends BaseMiddleware
@@ -44,6 +46,10 @@ class RefreshToken extends BaseMiddleware
                 // 如果捕获到此异常，即代表 refresh 也过期了，用户无法刷新令牌，需要重新登录。
                 throw new UnauthorizedHttpException('jwt-auth', __('Page Expired'));
             }
+        }catch (TokenInvalidException $exception) {
+            throw new UnauthorizedHttpException('jwt-auth', __('Unauthorized'));
+        }catch (TokenBlacklistedException $exception) {
+            throw new UnauthorizedHttpException('jwt-auth', __('Page Expired'));
         }
         // 在响应头中返回新的 token
         return $this->setAuthenticationHeader($next($request), $token);
