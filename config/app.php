@@ -182,6 +182,7 @@ return [
         Fenos\Notifynder\NotifynderServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         App\Providers\QiniuStorageServiceProvider::class,
+        Overtrue\LaravelFollow\FollowServiceProvider::class
         //Laravel\Socialite\SocialiteServiceProvider::class,
 
     ],
