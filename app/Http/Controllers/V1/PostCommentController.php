@@ -174,7 +174,6 @@ class PostCommentController extends BaseController
         return $this->postcomment->update($postcomment,$result);
     }
 
-
     /**
      * Remove the specified resource from storage.
      *
