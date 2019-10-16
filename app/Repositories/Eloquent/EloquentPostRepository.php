@@ -98,7 +98,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $sorts = $this->getOrder($orderBy);
             foreach ($sorts as $sort)
             {
-                $posts = $posts->orderBy($sort, $order);
+                $posts->orderBy($sort, $order);
             }
             $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             return $posts->appends($appends);
