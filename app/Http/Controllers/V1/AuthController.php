@@ -180,15 +180,13 @@ class AuthController extends BaseController
         $user_email = $request->input('email');
         $user_avatar = $request->input('user_avatar');
         $user_language = $request->input('user_language');
-        $user_google = $request->input('user_google');
-        $user_info  = $this->user -> findOauth($oauthType,$user_google);
+        $user_info  = $this->user -> findOauth($oauthType,$user_authid);
         //验证当前用户是否登录过
         if($user_info){
             $token = auth()->login($user_info);
             return $this->respondWithToken($token);
         }else{
             $user_fields= array();
-            $user_fields['user_google'] = $user_google;
             $user_fields['user_'.$oauthType] = $user_authid;
             $user_fields['user_name'] = $user_name;
             $user_fields['user_email'] = $user_email;

@@ -35,9 +35,11 @@ $api->group($V1Params , function ($api){
 	    $api->get('post/hot' , 'PostController@hot');
 
         $api->get('login/google', 'AuthController@redirectToProvider');
-        $api->post('login/google/callback', 'AuthController@handleProviderCallback');
+        $api->post('login/oauth/callback', 'AuthController@handleProviderCallback');
 
         $api->resource('category' , 'CategoryController');
+        $api->get('user/myfollow' , 'UserController@myFollow');
+        $api->get('user/followme' , 'UserController@followMe');
         $api->put('user/{uuid}/follow' , 'UserController@follow');
         $api->put('user/{uuid}/unfollow' , 'UserController@unfollow');
 
