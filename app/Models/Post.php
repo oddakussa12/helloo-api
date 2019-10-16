@@ -192,5 +192,17 @@ class Post extends Model
         return Carbon::parse($this->post_created_at)->diffForHumans();
     }
 
+    public function getFormatRateAttribute()
+    {
+        $rate = $this->post_rate;
+        if($rate<10)
+        {
+            $rate = round($rate , 1);
+        }else{
+            $rate = round($rate);
+        }
+        return $rate;
+    }
+
 
 }
