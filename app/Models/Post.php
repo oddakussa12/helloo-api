@@ -172,11 +172,11 @@ class Post extends Model
         return htmlspecialchars_decode(htmlspecialchars_decode($post_title , ENT_QUOTES) , ENT_QUOTES);
     }
 
-    public function getPostRateAttribute($value)
+    public function getPostRealRateAttribute()
     {
 //        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
 //        return round(($value/$top_rate)*100);
-        return round($value , 2)*100;
+        return round($this->post_rate , 2)*100;
     }
 
     public function getPostFormatCreatedAtAttribute()
