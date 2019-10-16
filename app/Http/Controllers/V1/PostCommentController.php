@@ -204,17 +204,6 @@ class PostCommentController extends BaseController
         return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->orderby('created_at' , 'desc')->with('likable')->paginate(5));
     }
 
-
-    public function myself(Request $request)
-    {
-        return PostCommentCollection::collection($this->postComment->findByUserId($request , auth()->user()->user_id));
-    }
-
-    public function mylike()
-    {
-        return LikeCollection::collection(auth()->user()->likes()->where('likable_type' , PostComment::class)->with('likable')->paginate(10));
-    }
-
     public function showPostCommentByUser(Request $request , $userId)
 
     {
