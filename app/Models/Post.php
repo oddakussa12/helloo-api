@@ -37,6 +37,7 @@ class Post extends Model
         'post_content_default_locale',
         'post_country_id',
         'post_type',
+        'post_rate',
         'post_topped_at' ,
         'post_topping'
     ];
