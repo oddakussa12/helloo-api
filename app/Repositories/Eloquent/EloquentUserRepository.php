@@ -46,4 +46,14 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where(array('user_'.$oauth=>$id))->first();
     }
 
+    public function findByUuid($uuid)
+    {
+        return $this->model->where('user_uuid', $uuid)->firstOrFail();
+    }
+
+    public function findByWhere($where)
+    {
+        return $this->model->where($where)->firstOrFail();
+    }
+
 }

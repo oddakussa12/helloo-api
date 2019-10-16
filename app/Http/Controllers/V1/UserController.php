@@ -106,18 +106,26 @@ class UserController extends Controller
 
     public function follow($uuid)
     {
-//        $user = User::find('2');
-//        $post = $this->post->findByUuid($uuid);
-//        $user->follow($post);
+        $user = $this->user->findByUuid($uuid);
+        auth()->user()->follow($user);
         return $this->response->noContent();
     }
 
     public function unfollow($uuid)
     {
-//        $user = User::find('2');
-//        $post = $this->post->findByUuid($uuid);
-//        $user->unfollow($post);
+        $user = $this->user->findByUuid($uuid);
+        auth()->user()->unfollow($user);
         return $this->response->noContent();
+    }
+
+    public function myFollow()
+    {
+        return auth()->user()->followers()->get();
+    }
+
+    public function followMe()
+    {
+        return auth()->user()->followings()->get();
     }
 
     public function getQiniuUploadToken(Request $request)

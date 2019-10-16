@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Traits\CanFollow;
 use App\Traits\CanFavorite;
-use Overtrue\LaravelFollow\Traits\CanBeFollowed;
+use App\Traits\CanBeFollowed;
 
 class User extends Authenticatable implements JWTSubject
 {
