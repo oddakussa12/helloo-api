@@ -28,8 +28,7 @@
         "spatie/laravel-tags": "2.0.0",
         "torann/geoip": "^1.0",
         "tymon/jwt-auth": "1.0.0-rc.4.1",
-        "weboap/visitor": "^2.0",
-        "y-ui/laravel-running-time": "^1.1"
+        "weboap/visitor": "^2.0"
     },
     "require-dev": {
         "beyondcode/laravel-query-detector": "^1.0",
