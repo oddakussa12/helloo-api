@@ -84,11 +84,23 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $appends['tag'] = $tag;
                 $posts = $posts->withAnyTags([$tag]);
             }
-            $posts = $posts
-                ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
-                ->orderBy('post_rate', 'DESC')
-                ->orderBy('post_like_num', 'DESC')
-                ->paginate($this->perPage , ['*'] , $this->pageName);
+            if ($request->get('keywords') !== null) {
+                $keywords = $request->get('keywords');
+                $appends['keywords'] = $keywords;
+                $posts->whereHas('translations', function ($query) use ($keywords) {
+                    $query->where('post_title', 'LIKE', "%{$keywords}%");
+                });
+            }
+            $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+            $appends['order'] = $order;
+            $orderBy = $request->get('order_by');
+            $appends['order_by'] = $orderBy;
+            $sorts = $this->getOrder($orderBy);
+            foreach ($sorts as $sort)
+            {
+                $posts = $posts->orderBy($sort, $order);
+            }
+            $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             return $posts->appends($appends);
     }
 	if($request->get('tag')!==null)
@@ -168,6 +180,32 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $this->model
             ->where(['user_id'=>$user_id])
             ->count();
+    }
+    public function getOrder($orderBy)
+    {
+        $sorts = array(
+            'post_created_at' , 'post_rate' , 'post_like_num' , 'post_comment_num'
+        );
+        switch ($orderBy)
+        {
+            case 'rate':
+                $order_by = 'post_rate';
+                break;
+            case 'like':
+                $order_by = 'post_like_num';
+                break;
+            case 'comment':
+                $order_by = 'post_comment_num';
+                break;
+            case 'time':
+            default:
+                $order_by = 'post_created_at';
+                break;
+        }
+        $index = array_search($order_by , $sorts);
+        unset($sorts[$index]);
+        array_unshift($sorts , $order_by);
+        return $sorts;
     }
 
 }
