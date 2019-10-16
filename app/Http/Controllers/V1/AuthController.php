@@ -15,7 +15,7 @@ use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
-
+use Faker\Factory;
 
 
 class AuthController extends BaseController
@@ -174,18 +174,24 @@ class AuthController extends BaseController
 
     public function handleProviderCallback(Request $request)
     {
-        $oauthType = $request->input('oauthType');
+        $oauthType = $request->input('oauthtype');
         $user_authid = $request->input('user_authid');
-        $user_name = $request->input('name');
-        $user_email = $request->input('email');
-        $user_avatar = $request->input('user_avatar');
-        $user_language = $request->input('user_language');
         $user_info  = $this->user -> findOauth($oauthType,$user_authid);
         //验证当前用户是否登录过
         if($user_info){
             $token = auth()->login($user_info);
             return $this->respondWithToken($token);
         }else{
+            //验证用户名和邮箱
+            $user_name = $request->input('name');
+            $user_email = $request->input('email');
+            $user_avatar = $request->input('user_avatar');
+            $user_language = $request->input('user_language');
+            $user_nameauth = $this->user->findByWhere(['user_name'=>$user_name]);
+            $user_emailauth = $this->user->findByWhere(['user_email'=>$user_email]);
+            if($user_nameauth||$user_emailauth){
+                throw new StoreResourceFailedException('sign up failure');
+            }
             $user_fields= array();
             $user_fields['user_'.$oauthType] = $user_authid;
             $user_fields['user_name'] = $user_name;
