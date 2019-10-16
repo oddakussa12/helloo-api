@@ -141,6 +141,7 @@ class PostController extends BaseController
             'post_default_locale'=>$post_title_default_locale,
             'post_content_default_locale'=>$post_content_default_locale,
             'post_type' =>$post_type,
+            'post_rate'=>first_rate_comment_v2()
         );
 
         if($post_category_id==2&&!empty($post_image))

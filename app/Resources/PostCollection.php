@@ -26,6 +26,7 @@ class PostCollection extends Resource
             'post_default_content' => $this->post_default_content,
             'post_type' => $this->post_type,
             'post_rate' => $this->post_rate,
+            'post_format_rate' => $this->format_rate,
             'post_like_num' => $this->post_like_num,
             'post_view_num'=>$this->viewCount->post_view_num+115,
             'post_comment_num' => $this->post_comment_num,
