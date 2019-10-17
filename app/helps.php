@@ -72,17 +72,12 @@ if(!function_exists('notify_remove')){
     function notify_remove($category_id , $object)
     {
         $contact_id = $object->{$object->getKeyName()};
-        if(!is_array($category_id))
-        {
-            $category_id = array($category_id);
-        }
-        if($category_id[0] == 1){
+        if(!is_array($category_id)){
             $object->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
                 $query
                     ->where('from_id' , auth()->id())
                     ->where('contact_id' , $contact_id)
-                    ->whereIn('category_id' , $category_id);
-
+                    ->where('category_id' , $category_id);
             })->delete();
         }else{
             $object->owner->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){

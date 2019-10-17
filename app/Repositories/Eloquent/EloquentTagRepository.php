@@ -28,7 +28,7 @@ class EloquentTagRepository  extends EloquentBaseRepository implements TagReposi
         if (method_exists($this->model, 'translations')) {
             return $tags->with('translations')->orderBy('tag_sort', 'DESC')->limit(6)->get();
         }
-        return $tags->orderBy('tag_sort', 'DESC')->limit(6)->get();
+        return $tags->orderBy('tag_sort', 'DESC')->limit(7)->get();
     }
 
 }
