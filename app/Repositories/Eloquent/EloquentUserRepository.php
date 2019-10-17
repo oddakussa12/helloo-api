@@ -53,7 +53,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function findByWhere($where)
     {
-        return $this->model->where($where)->firstOrFail();
+        return $this->model->where($where)->first();
     }
 
 }
