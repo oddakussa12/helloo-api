@@ -135,8 +135,12 @@ class AuthController extends BaseController
         $likeCount = $user->likes()->where('likable_type' , PostComment::class)->with('likable')->count();
         $postCommentCount = app(PostCommentRepository::class)->getCountByUserId($request , $user->user_id);
         $postCount = app(PostRepository::class)->getCountByUserId($request , $user->user_id);
+        $user_followmecount = auth()->user()->followers()->count();
+        $user_myfollowcount = auth()->user()->followings()->count();
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
+        $user->user_followmecount = $user_followmecount;
+        $user->user_myfollowcount = $user_myfollowcount;
         $user->likeCount = $likeCount;
         $user->country = $user->user_country;
         return $this->response->array($user);

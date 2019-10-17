@@ -98,8 +98,12 @@ class NotificationController extends BaseController
                 ->where('read', 0)
                 ->whereIn('category_id', [5 , 6])
                 ->count();
+            $follow_count = auth()->user()->getNotificationRelation()
+                ->where('read', 0)
+                ->where('category_id', 1)
+                ->count();
         }
-        return $this->response->array(array('count'=>$like_count+$comment_count+$global , 'like_count'=>$like_count , 'comment_count'=>$comment_count , 'global'=>$global));
+        return $this->response->array(array('count'=>$like_count+$comment_count+$global , 'like_count'=>$like_count , 'comment_count'=>$comment_count ,'follow_count'=>$follow_count,'global'=>$global));
     }
 
     /**
@@ -206,6 +210,18 @@ class NotificationController extends BaseController
         }elseif($type=='comment'){
             $notices = auth()->user()->getNotificationRelation()->where(function($query){
                 $query->whereIn('category_id' , [5 , 6])
+                    ->where('read' , 0);
+            })->get();
+            foreach ($notices as $notice)
+            {
+                if($notice->read==0)
+                {
+                    $notice->read();
+                }
+            }
+        }elseif($type=='follow'){
+            $notices = auth()->user()->getNotificationRelation()->where(function($query){
+                $query->where('category_id' , 1)
                     ->where('read' , 0);
             })->get();
             foreach ($notices as $notice)

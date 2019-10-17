@@ -72,17 +72,22 @@ if(!function_exists('notify_remove')){
     function notify_remove($category_id , $object)
     {
         $contact_id = $object->{$object->getKeyName()};
-        if(!is_array($category_id))
-        {
-            $category_id = array($category_id);
-        }
-        $object->owner->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
-            $query
-                ->where('from_id' , auth()->id())
-                ->where('contact_id' , $contact_id)
-                ->whereIn('category_id' , $category_id);
+        if(!is_array($category_id)){
+            $object->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
+                $query
+                    ->where('from_id' , auth()->id())
+                    ->where('contact_id' , $contact_id)
+                    ->where('category_id' , $category_id);
+            })->delete();
+        }else{
+            $object->owner->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
+                $query
+                    ->where('from_id' , auth()->id())
+                    ->where('contact_id' , $contact_id)
+                    ->whereIn('category_id' , $category_id);
 
-        })->delete();
+            })->delete();
+        }
     }
 }
 
@@ -236,6 +241,23 @@ if (!function_exists('first_rate_comment_v2')) {
         return 1 / pow(2, $gravity);
     }
 }
+
+if (!function_exists('getMyFollow')) {
+
+    function getMyFollow()
+    {
+        return auth()->user()->followings()->get();
+    }
+}
+
+if (!function_exists('getFollowMe')) {
+
+    function getFollowMe()
+    {
+        return auth()->user()->followers()->get();
+    }
+}
+
 
 
 
