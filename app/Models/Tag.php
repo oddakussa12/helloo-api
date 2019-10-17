@@ -8,11 +8,12 @@ use Spatie\EloquentSortable\Sortable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\EloquentSortable\SortableTrait;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
 
 class Tag extends Model implements Sortable
 {
-    use SortableTrait, HasSlug , Translatable;
+    use SortableTrait, HasSlug , Translatable , SoftDeletes;
 
     public $primaryKey = 'tag_id';
 

@@ -120,12 +120,12 @@ class UserController extends Controller
 
     public function myFollow()
     {
-        return auth()->user()->followers()->get();
+        return auth()->user()->followings()->get();
     }
 
     public function followMe()
     {
-        return auth()->user()->followings()->get();
+        return auth()->user()->followers()->get();
     }
 
     public function getQiniuUploadToken(Request $request)
