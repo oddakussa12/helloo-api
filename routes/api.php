@@ -95,6 +95,7 @@ $api->group($V1Params , function ($api){
         $api->get('post/{uuid}' , 'PostController@showByUuid');
         $api->get('notification' , 'NotificationController@index');
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);
+        $api->get('tag/hot' , 'TagController@hot');
         $api->get('event' , 'EventController@index');
         $api->resource('user' , 'UserController' , ['only' => ['show']]);
     });
