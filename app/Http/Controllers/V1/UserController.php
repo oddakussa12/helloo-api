@@ -4,12 +4,14 @@ namespace App\Http\Controllers\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\V1\BaseController;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
+use App\Events\Follow;
+use App\Events\UnFollow;
 
-class UserController extends Controller
+class UserController extends BaseController
 {
 
     /**
@@ -108,6 +110,7 @@ class UserController extends Controller
     {
         $user = $this->user->findByUuid($uuid);
         auth()->user()->follow($user);
+        event(new Follow($user));
         return $this->response->noContent();
     }
 
@@ -115,6 +118,7 @@ class UserController extends Controller
     {
         $user = $this->user->findByUuid($uuid);
         auth()->user()->unfollow($user);
+        event(new UnFollow($user));
         return $this->response->noContent();
     }
 

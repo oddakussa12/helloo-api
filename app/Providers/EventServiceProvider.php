@@ -40,6 +40,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\PostCommentDeleted' => [
             'App\Listeners\PostCommentDeletedListener',
         ],
+        'App\Events\Follow' => [
+            'App\Listeners\FollowListener',
+        ],
+        'App\Events\UnFollow' => [
+            'App\Listeners\UnFollowListener',
+        ],
     ];
 
     /**
