@@ -38,8 +38,8 @@ $api->group($V1Params , function ($api){
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback');
 
         $api->resource('category' , 'CategoryController');
-       $api->get('user/myfollow' , 'UserController@myFollow');
-       $api->get('user/followme' , 'UserController@followMe');
+        $api->get('user/myfollow' , 'UserController@myFollow');
+        $api->get('user/followme' , 'UserController@followMe');
         $api->put('user/{uuid}/follow' , 'UserController@follow');
         $api->put('user/{uuid}/unfollow' , 'UserController@unfollow');
 

@@ -151,4 +151,9 @@ class TagController extends BaseController
             )
         ));
     }
+
+    public function hot()
+    {
+        return TagCollection::collection($this->tag->hot());
+    }
 }

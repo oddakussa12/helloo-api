@@ -25,8 +25,7 @@ class PostPaginateCollection extends Resource
             'post_type' => $this->post_type,
             'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
-            'post_rate' => $this->post_real_rate,
-            'post_format_rate' => $this->format_rate,
+            'post_rate' => $this->fire_rate,
             //'translations' => PostTranslationCollection::collection($this->translations),
             'post_like_state'=>$this->post_like_state,
             'topTwoComments'=> $this->when(!($request->has('keywords')||$request->has('take')||$request->has('type')||$request->get('categoryId' , 'group')==1) , function (){

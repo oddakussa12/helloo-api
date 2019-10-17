@@ -7,9 +7,9 @@ use App\Traits\like\CanLike;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use App\Traits\CanFollow;
+use App\Traits\follow\CanFollow;
 use App\Traits\CanFavorite;
-use App\Traits\CanBeFollowed;
+use App\Traits\follow\CanBeFollowed;
 
 class User extends Authenticatable implements JWTSubject
 {

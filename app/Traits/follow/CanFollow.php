@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE.
  */
 
-namespace App\Traits;
+namespace App\Traits\follow;
 
 use Illuminate\Support\Facades\DB;
 use Overtrue\LaravelFollow\Follow;

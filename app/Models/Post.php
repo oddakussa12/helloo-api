@@ -205,5 +205,15 @@ class Post extends Model
         return $rate;
     }
 
+    public function getFireRateAttribute()
+    {
+        $fire = $this->viewCount->post_view_num+$this->post_comment_num;
+        if($fire>999)
+        {
+            return '1K+';
+        }
+        return $fire;
+    }
+
 
 }

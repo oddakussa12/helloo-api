@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE.
  */
 
-namespace App\Traits;
+namespace App\Traits\follow;
 
 use Illuminate\Support\Facades\DB;
 use Overtrue\LaravelFollow\Follow;
@@ -44,7 +44,7 @@ trait CanBeFollowed
         $tablePrefixedForeignKey = app('db.connection')->getQueryGrammar()->wrap(\sprintf('pivot_followables.%s', $foreignKey));
         $eachOtherKey = app('db.connection')->getQueryGrammar()->wrap('pivot_each_other');
 
-        return $this->morphToMany(config('follow.user_model'), config('follow.morph_prefix'), config('follow.followable_table'),config('follow.followable_id') , config('followe.users_table_foreign_key'))
+        return $this->morphToMany(config('follow.user_model'), config('follow.morph_prefix'), config('follow.followable_table'),config('follow.followable_id') , config('follow.users_table_foreign_key'))
             ->wherePivot('relation', '=', Follow::RELATION_FOLLOW)
             ->withPivot('followable_type', 'relation', 'created_at')
             ->addSelect("{$userTable}.*", DB::raw("(CASE WHEN {$tablePrefixedForeignKey} IS NOT NULL THEN 1 ELSE 0 END) as {$eachOtherKey}"))
