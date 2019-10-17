@@ -24,8 +24,8 @@ class StoreUserRequest extends FormRequest
     public function rules()
     {
         return [
-            //
-            'name'=>'required|unique:users,user_name',
+            //UTF-8正则匹配汉字、字母、数字、横杠、下划线、空格，如下：(不要空格可以去掉\s)
+            'name'=>'required|regex:/^[\x{4e00}-\x{9fa5}0-9a-zA-Z-_]+$/u|min:4|max:32|unique:users,user_name',
             'email'=>'required|email|unique:users,user_email',
             'password'=>'required|min:4|max:16',
         ];
