@@ -3,7 +3,6 @@
 /storage/framework/views/*.php
 /storage/logs/*.log
 /database/migrations/*.php
-/storage/app/purifier/HTML
 /public/webhook.php
 /public/.user.ini
 /public/.user.local.ini
