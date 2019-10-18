@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-10-17 19:57:57
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-17 20:04:26
+ * @Last Modified time: 2019-10-18 10:12:40
  */
 namespace App\Listeners;
 
@@ -33,7 +33,7 @@ class UnFollowListener
     {
         $object = $event->getObject();
         $object->refresh();
-        notify_remove([1] , $object);
+        notify_remove(1 , $object);
     }
 
     /**
