@@ -40,9 +40,9 @@ class CalculatingRete extends Command
     public function handle()
     {
         //
-        $i = 1;
         Log::info('-----------定时积分计算开始-----------');
-        Post::chunk(10, function ($posts) use ($i){
+        Post::withCount('commnets')->chunk(10, function ($posts){
+            $i = 1;
             foreach ($posts as $post) {
                 Log::info("-----------第{$i}次任务开始-----------");
                 $post->calculatingRate();
