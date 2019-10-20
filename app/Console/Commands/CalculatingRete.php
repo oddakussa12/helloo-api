@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class CalculatingRete extends Command
 {
@@ -39,6 +40,16 @@ class CalculatingRete extends Command
     public function handle()
     {
         //
-        file_put_contents('1.txt' , 'd'.date('Y-m-d H:i:s').PHP_EOL , FILE_APPEND);
+        $i = 1;
+        Log::info('-----------定时积分计算开始-----------');
+        Post::chunk(10, function ($posts) use ($i){
+            foreach ($posts as $post) {
+                Log::info("-----------第{$i}次任务开始-----------");
+                $post->calculatingRate();
+                Log::info("-----------第{$i}次任务结束-----------");
+                $i++;
+            }
+        });
+        Log::info('-----------定时积分计算结束-----------');
     }
 }
