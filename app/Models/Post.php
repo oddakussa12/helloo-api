@@ -215,5 +215,15 @@ class Post extends Model
         return $fire;
     }
 
+    public function calculatingRate()
+    {
+        $rate = rate_comment_v2($this->post_comment_num , $this->post_created_at);
+        if($rate!=$this->post_rate)
+        {
+            $this->post_rate = $rate;
+            $this->save();
+        }
+    }
+
 
 }
