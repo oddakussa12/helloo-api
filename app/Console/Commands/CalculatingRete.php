@@ -39,10 +39,6 @@ class CalculatingRete extends Command
     public function handle()
     {
         //
-        Post::chunk(10, function ($posts) {
-            foreach ($posts as $post) {
-                $post->calculatingRate();
-            }
-        });
+        file_put_contents('1.txt' , 'd'.date('Y-m-d H:i:s').PHP_EOL , FILE_APPEND);
     }
 }
