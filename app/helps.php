@@ -202,7 +202,7 @@ if (!function_exists('rate_comment_v2')) {
      * @param float $gravity
      * @return float
      */
-    function rate_comment_v2($comments, $create_time, $likes=0 , $gravity = 0.4)
+    function rate_comment_v2($comments, $create_time, $likes=0 , $gravity = 1.5)
     {
         $ctime = strtotime($create_time);
         return ($likes + $comments + 1) / pow(floor((time()-$ctime)/3600) + 2, $gravity);
