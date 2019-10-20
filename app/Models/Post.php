@@ -217,9 +217,7 @@ class Post extends Model
 
     public function calculatingRate()
     {
-        $post_comment_num = $this->comments_count;
-        $this->post_comment_num = $post_comment_num;
-        $rate = rate_comment_v2($post_comment_num , $this->post_created_at);
+        $rate = rate_comment_v2($this->post_comment_num , $this->post_created_at);
         if($rate!=$this->post_rate)
         {
             $this->post_rate = $rate;
