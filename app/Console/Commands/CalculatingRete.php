@@ -41,7 +41,7 @@ class CalculatingRete extends Command
     {
         //
         Log::info('-----------定时积分计算开始-----------');
-        Post::withCount('comments')->chunk(10, function ($posts){
+        Post::chunk(10, function ($posts){
             $i = 1;
             foreach ($posts as $post) {
                 Log::info("-----------第{$i}次任务开始-----------");
