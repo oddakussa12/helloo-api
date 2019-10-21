@@ -110,6 +110,10 @@ class PostController extends BaseController
     public function store(StorePostRequest $request)
     {
         $post_title = clean($request->input('post_title'));
+        if(empty($post_title))
+        {
+            abort(421);
+        }
         $post_content = clean($request->input('post_content' , ''));
 	    $tag_slug = $request->input('tag_slug' , array());
 	    $post_image = $request->input('post_image' , array());

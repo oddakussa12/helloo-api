@@ -17,9 +17,12 @@ class EloquentTagRepository  extends EloquentBaseRepository implements TagReposi
     {
         $tags = $this->model;
         if (method_exists($this->model, 'translations')) {
-            return $tags->with('translations')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->get();
+            return $tags->with('translations')
+                ->orderBy('tag_sort', 'DESC')
+                ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
+                ->get();
         }
-        return $tags->orderBy($this->model->getCreatedAtColumn(), 'DESC')->get();
+        return $tags->orderBy('tag_sort', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->get();
     }
 
     public function hot()
