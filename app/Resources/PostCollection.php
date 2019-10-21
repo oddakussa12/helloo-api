@@ -41,7 +41,8 @@ class PostCollection extends Resource
             'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
             'tags'=>$this->when($request->has('tag') , function (){
                 return TagCollection::collection($this->tags);
-            })
+            }),
+            'user_follow_state' => auth()->check()?auth()->user()->isFollowing($this->user_id):false,
         ];
     }
 
