@@ -106,17 +106,17 @@ class UserController extends BaseController
         return new UserCollection($this->user->find($id));
     }
 
-    public function follow($uuid)
+    public function follow($user_id)
     {
-        $user = $this->user->findByUuid($uuid);
+        $user = $this->user->findByUuid($user_id);
         auth()->user()->follow($user);
         event(new Follow($user));
         return $this->response->noContent();
     }
 
-    public function unfollow($uuid)
+    public function unfollow($user_id)
     {
-        $user = $this->user->findByUuid($uuid);
+        $user = $this->user->findByUuid($user_id);
         auth()->user()->unfollow($user);
         event(new UnFollow($user));
         return $this->response->noContent();
