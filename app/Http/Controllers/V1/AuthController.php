@@ -181,9 +181,13 @@ class AuthController extends BaseController
         $oauthType = $request->input('oauthtype');
         $user_authid = $request->input('user_authid');
         $user_info  = $this->user -> findOauth($oauthType,$user_authid);
+        $user_emailauth = $this->user->findByWhere(['user_email'=>$request->input('email')]);
         //验证当前用户是否登录过
         if($user_info){
             $token = auth()->login($user_info);
+            return $this->respondWithToken($token);
+        }else if($user_emailauth){
+            $token = auth()->login($user_emailauth);
             return $this->respondWithToken($token);
         }else{
             //验证用户名和邮箱
@@ -192,8 +196,7 @@ class AuthController extends BaseController
             $user_avatar = $request->input('user_avatar');
             $user_language = $request->input('user_language');
             $user_nameauth = $this->user->findByWhere(['user_name'=>$user_name]);
-            $user_emailauth = $this->user->findByWhere(['user_email'=>$user_email]);
-            if($user_nameauth||$user_emailauth){
+            if($user_nameauth){
                 throw new StoreResourceFailedException('sign up failure');
             }
             $user_fields= array();
