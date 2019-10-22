@@ -3,25 +3,18 @@
 namespace App\Models;
 
 use App\Traits\tag\HasSlug;
-use Dimsav\Translatable\Translatable;
 use Spatie\EloquentSortable\Sortable;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\EloquentSortable\SortableTrait;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
 
-class Tag extends Model implements Sortable
+class TagTwo extends Model implements Sortable
 {
-    use SortableTrait, HasSlug , Translatable , SoftDeletes;
+    use SortableTrait, HasTranslations, HasSlug;
 
-    public $primaryKey = 'tag_id';
-
-    const CREATED_AT = 'tag_created_at';
-
-    const UPDATED_AT = 'tag_updated_at';
-
-    const DELETED_AT = 'tag_deleted_at';
+    public $translatable = ['name', 'slug'];
 
     public $sortable = [
         'order_column_name' => 'tag_sort',
@@ -31,14 +24,6 @@ class Tag extends Model implements Sortable
     public $guarded = [];
 
     public $table = 'tags';
-
-
-    public $translationModel = 'App\Models\TagTranslation';
-
-    protected $localeKey = 'tag_locale';
-
-    public $translatedAttributes = ['tag_locale' , 'tag_name'];
-
 
     public function scopeWithType(Builder $query, string $type = null): Builder
     {
@@ -59,7 +44,7 @@ class Tag extends Model implements Sortable
     public static function findOrCreate($values, string $type = null, string $locale = null)
     {
         $tags = collect($values)->map(function ($value) use ($type, $locale) {
-            if ($value instanceof Tag) {
+            if ($value instanceof TagTwo) {
                 return $value;
             }
             return static::findOrCreateFromString($value, $type, $locale);
@@ -90,7 +75,6 @@ class Tag extends Model implements Sortable
         $tag = static::findFromString($name, $type, $locale);
 
         if (! $tag) {
-            return new self();
             $tag = static::create([
                 'name' => [$locale => $name],
                 'type' => $type,
@@ -102,9 +86,9 @@ class Tag extends Model implements Sortable
 
     public function setAttribute($key, $value)
     {
-//        if ($key === 'name' && ! is_array($value)) {
-//            return $this->setTranslation($key, app()->getLocale(), $value);
-//        }
+        if ($key === 'name' && ! is_array($value)) {
+            return $this->setTranslation($key, app()->getLocale(), $value);
+        }
 
         return parent::setAttribute($key, $value);
     }

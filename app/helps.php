@@ -228,6 +228,7 @@ if (!function_exists('domains')) {
     }
 }
 
+
 if (!function_exists('first_rate_comment_v2')) {
     /**
      * Calculates the rate for sorting by hot.
@@ -256,6 +257,7 @@ if (!function_exists('getFollowMe')) {
         return auth()->user()->followers()->get();
     }
 }
+
 
 
 

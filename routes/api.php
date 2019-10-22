@@ -32,13 +32,13 @@ $api->group($V1Params , function ($api){
         $api->get('post/user/{user}' , 'PostController@showPostByUser');
 
         $api->get('post/top' , 'PostController@showTopList');
-	    $api->get('post/hot' , 'PostController@hot');
+        $api->get('post/hot' , 'PostController@hot');
 
         $api->get('login/google', 'AuthController@redirectToProvider');
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback');
 
         $api->resource('category' , 'CategoryController');
-        
+
 
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid');
     });
@@ -73,6 +73,9 @@ $api->group($V1Params , function ($api){
         $api->get('user/followme' , 'UserController@followMe');
         $api->put('user/{id}/follow' , 'UserController@follow');
         $api->put('user/{id}/unfollow' , 'UserController@unfollow');
+        //其他人的关注&粉丝列表
+        $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow');
+        $api->get('user/{id}/followme' , 'UserController@otherFollowMe');
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
             $api->post('post' , 'PostController@store');
         });
