@@ -4,11 +4,12 @@
  * @Author: Dell
  * @Date:   2019-08-19 16:47:05
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-22 16:25:24
+ * @Last Modified time: 2019-10-22 16:41:57
  */
 namespace App\Resources;
 
 use Illuminate\Http\Resources\Json\Resource;
+use App\Repositories\Contracts\PostRepository;
 
 class UserCollection extends Resource
 {
@@ -32,6 +33,7 @@ class UserCollection extends Resource
             'user_follow_state' => auth()->check()?auth()->user()->isFollowing($this->user_id):false,
             'user_followme_count' =>$this->followers()->count(),
             'user_myfollow_count' => $this->followings()->count(),
+            'user_post_count' => app(PostRepository::class)->getCountByUserId($request , $this->user_id),
         ];
     }
 }
