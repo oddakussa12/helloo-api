@@ -131,6 +131,17 @@ class UserController extends BaseController
     {
         return FollowCollection::collection(auth()->user()->followers()->orderByDesc('common_follows.created_at')->paginate(10));
     }
+    public function otherMyFollow($user_id)
+    {
+        $user = $this->user->findByUuid($user_id);
+        return FollowCollection::collection($user->followings()->orderByDesc('common_follows.created_at')->paginate(10));
+    }
+
+    public function otherFollowMe($user_id)
+    {
+        $user = $this->user->findByUuid($user_id);
+        return FollowCollection::collection($user->followers()->orderByDesc('common_follows.created_at')->paginate(10));
+    }
 
     public function getQiniuUploadToken(Request $request)
     {

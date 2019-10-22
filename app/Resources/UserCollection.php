@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-08-19 16:47:05
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-21 21:18:32
+ * @Last Modified time: 2019-10-22 16:25:24
  */
 namespace App\Resources;
 
@@ -30,6 +30,8 @@ class UserCollection extends Resource
             'user_cover'=>$this->user_cover,
             'user_country'=>$this->user_country,
             'user_follow_state' => auth()->check()?auth()->user()->isFollowing($this->user_id):false,
+            'user_followme_count' =>$this->followers()->count(),
+            'user_myfollow_count' => $this->followings()->count(),
         ];
     }
 }
