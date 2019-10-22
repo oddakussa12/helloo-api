@@ -189,6 +189,12 @@ class Post extends Model
         }elseif ($locale=='zh-TW'||$locale=='zh-HK')
         {
             Carbon::setLocale('zh_TW');
+        }elseif ($locale=='en'){
+            $translator = \Carbon\Translator::get($locale);
+            $translator->setMessages($locale , [
+                'minute' => ':count min|:count min',
+                'hour' => ':count hr|:count hr',
+            ]);
         }
         return Carbon::parse($this->post_created_at)->diffForHumans();
     }
