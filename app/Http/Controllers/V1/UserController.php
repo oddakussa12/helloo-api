@@ -10,7 +10,7 @@ use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
 use App\Events\Follow;
 use App\Events\UnFollow;
-
+use App\Resources\FollowCollection;
 class UserController extends BaseController
 {
 
@@ -106,17 +106,17 @@ class UserController extends BaseController
         return new UserCollection($this->user->find($id));
     }
 
-    public function follow($uuid)
+    public function follow($user_id)
     {
-        $user = $this->user->findByUuid($uuid);
+        $user = $this->user->findByUuid($user_id);
         auth()->user()->follow($user);
         event(new Follow($user));
         return $this->response->noContent();
     }
 
-    public function unfollow($uuid)
+    public function unfollow($user_id)
     {
-        $user = $this->user->findByUuid($uuid);
+        $user = $this->user->findByUuid($user_id);
         auth()->user()->unfollow($user);
         event(new UnFollow($user));
         return $this->response->noContent();
@@ -124,12 +124,12 @@ class UserController extends BaseController
 
     public function myFollow()
     {
-        return auth()->user()->followings()->get();
+        return FollowCollection::collection(auth()->user()->followings()->orderByDesc('common_follows.created_at')->paginate(10));
     }
 
     public function followMe()
     {
-        return auth()->user()->followers()->get();
+        return FollowCollection::collection(auth()->user()->followers()->orderByDesc('common_follows.created_at')->paginate(10));
     }
 
     public function getQiniuUploadToken(Request $request)

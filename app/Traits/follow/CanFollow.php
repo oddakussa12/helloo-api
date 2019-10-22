@@ -12,7 +12,7 @@
 namespace App\Traits\follow;
 
 use Illuminate\Support\Facades\DB;
-use Overtrue\LaravelFollow\Follow;
+use App\Traits\follow\Follow;
 
 /**
  * Trait CanFollow.

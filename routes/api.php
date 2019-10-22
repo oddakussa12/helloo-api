@@ -28,22 +28,17 @@ $V1Params = [
 $api->group($V1Params , function ($api){
     $api->group(['middleware'=>'guestRefresh'] , function($api){
         $api->resource('post' , 'PostController' , ['only' => ['index']]);
-
+        $api->get('test' , 'AuthController@test');
         $api->get('post/user/{user}' , 'PostController@showPostByUser');
 
         $api->get('post/top' , 'PostController@showTopList');
         $api->get('post/hot' , 'PostController@hot');
 
         $api->get('login/google', 'AuthController@redirectToProvider');
-
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback');
 
-
         $api->resource('category' , 'CategoryController');
-        $api->get('user/myfollow' , 'UserController@myFollow');
-        $api->get('user/followme' , 'UserController@followMe');
-        $api->put('user/{uuid}/follow' , 'UserController@follow');
-        $api->put('user/{uuid}/unfollow' , 'UserController@unfollow');
+
 
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid');
     });
@@ -74,7 +69,10 @@ $api->group($V1Params , function ($api){
         $api->put('postComment/{comment_id}/revokeVote' , 'PostCommentController@revokeVote');
         $api->put('postComment/{comment_id}/favorite' , 'PostCommentController@favorite');
         $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite');
-
+        $api->get('user/myfollow' , 'UserController@myFollow');
+        $api->get('user/followme' , 'UserController@followMe');
+        $api->put('user/{id}/follow' , 'UserController@follow');
+        $api->put('user/{id}/unfollow' , 'UserController@unfollow');
         $api->group(['middleware'=>'throttle:6,1'] , function ($api){
             $api->post('post' , 'PostController@store');
         });
