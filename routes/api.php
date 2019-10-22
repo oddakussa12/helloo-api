@@ -32,13 +32,13 @@ $api->group($V1Params , function ($api){
         $api->get('post/user/{user}' , 'PostController@showPostByUser');
 
         $api->get('post/top' , 'PostController@showTopList');
-	    $api->get('post/hot' , 'PostController@hot');
+        $api->get('post/hot' , 'PostController@hot');
 
         $api->get('login/google', 'AuthController@redirectToProvider');
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback');
 
         $api->resource('category' , 'CategoryController');
-        
+
 
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid');
     });

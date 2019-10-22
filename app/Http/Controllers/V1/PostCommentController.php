@@ -57,7 +57,7 @@ class PostCommentController extends BaseController
      * Store a newly created resource in storage.
      *
      * @param StorePostCommentRequest $request
-     * @return Response
+     * @return PostCommentCollection
      */
     public function store(StorePostCommentRequest $request)
     {
@@ -205,6 +205,7 @@ class PostCommentController extends BaseController
     }
 
     public function showPostCommentByUser(Request $request , $userId)
+
     {
         return PostCommentCollection::collection($this->postComment->findByUserId($request , $userId));
     }

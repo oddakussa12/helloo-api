@@ -67,8 +67,12 @@ class TranslateService
                 $translations[$v] = array('comment_content'=>$str);
             }
         }else{
-            $translations = $this->handle($str , $languages);
-            $translations[$lang] = array('comment_content'=>$str);
+            foreach ($languages as $v)
+            {
+                $translations[$v] = array('comment_content'=>$str.$v);
+            }
+//            $translations = $this->handle($str , $languages);
+//            $translations[$lang] = array('comment_content'=>$str);
         }
         return $translations;
     }

@@ -2,7 +2,7 @@
 
 /**
  * @Author: Dell
- * @Date:   2019-08-09 21:23:30
+ * @Date: 2019-08-09 21:23:30
  * @Last Modified by:   Dell
  * @Last Modified time: 2019-10-21 10:31:06
  */
@@ -40,6 +40,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $posts->where('post_topping' , 1)->orderBy('post_topped_at', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(10)->get();
     }
 
+    public function hot($request)
+    {
+        $posts = $this->model;
+        if (method_exists($this->model, 'translations')) {
+            return $posts->with('translations')->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
+        }
+        return $posts->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
+    }
+
     public function paginate($perPage = 10, $columns = ['*'], $pageName = 'page', $page = null)
     {
         $pageName = isset($this->model->paginateParamName)?$this->model->paginateParamName:$pageName;
@@ -47,14 +56,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             return $this->model->with('translations')->where('post_topping' , 0)->orderByDesc('post_like_num')->paginate($perPage , $columns , $pageName , $page);
         }
         return $this->model->orderByDesc('post_like_num')->paginate($perPage , $columns , $pageName , $page);
-    }
-	public function hot($request)
-    {
-        $posts = $this->model;
-        if (method_exists($this->model, 'translations')) {
-            return $posts->with('translations')->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
-        }
-        return $posts->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
     }
 
     public function paginateAll(Request $request)
