@@ -4,8 +4,7 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Pool;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Exception\ClientException;
+use Illuminate\Support\Facades\Log;
 use Google\Cloud\Translate\TranslateClient;
 
 class TranslateService
@@ -14,9 +13,11 @@ class TranslateService
     /**
      * @var TranslateClient
      */
+    private $text;
+
     private $translate;
 
-    protected $language;
+    protected $languages;
 
     protected $translations=array();
 
@@ -27,7 +28,6 @@ class TranslateService
 
     public function languages()
     {
-
         return $this->translate->languages();
     }
 
@@ -53,13 +53,7 @@ class TranslateService
     public function customizeTrans($str , $contentLang)
     {
         $translations = array();
-        $lang = $contentLang;
         $languages = config('translatable.locales');
-        $index = array_search($lang , $languages);
-        if($index!==false)
-        {
-            unset($languages[$index]);
-        }
         if($contentLang=='und')
         {
             foreach ($languages as $v)
@@ -67,12 +61,14 @@ class TranslateService
                 $translations[$v] = array('comment_content'=>$str);
             }
         }else{
-            foreach ($languages as $v)
+            $index = array_search($contentLang , $languages);
+            if($index!==false)
             {
-                $translations[$v] = array('comment_content'=>$str.$v);
+                unset($languages[$index]);
             }
-//            $translations = $this->handle($str , $languages);
-//            $translations[$lang] = array('comment_content'=>$str);
+            unset($languages[array_search('zh-HK' , $languages)]);
+            $translations = $this->handle($str , $languages);
+            $translations[$contentLang] = array('comment_content'=>$str);
         }
         return $translations;
     }
@@ -81,7 +77,8 @@ class TranslateService
     private function handle($text , $languages)
     {
         sort($languages);
-        $this->language = $languages;
+        $this->languages = $languages;
+        $this->text = $text;
         $client = new Client();
         $apiKey = array(
             'AIzaSyCTYJF0QNu3rnLSFMHVwWfBT3lhM283TDU',
@@ -98,25 +95,20 @@ class TranslateService
             }
         };
 
-        $pool = new Pool($client, $requests($this->language), [
-            'concurrency' => count($this->language),
+        $pool = new Pool($client, $requests($this->languages), [
+            'concurrency' => count($this->languages),
             'fulfilled'   => function ($response, $index){
                 $res = $response->getBody()->getContents();
                 $res = json_decode($res, true);
-                $this->translations[$this->language[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
-                $this->countedAndCheckEnded();
+                $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
             },
             'rejected' => function ($reason, $index){
-//                echo "请求第 $index 个请求，用户 ".PHP_EOL;
-//                $this->error("rejected" );
-//                $this->error("rejected reason: " . $reason );
-                $this->countedAndCheckEnded();
+                $this->countedAndCheckEnded($reason , $index);
             },
         ]);
-
         $promise = $pool->promise();
         $promise->wait();
-	if(array_key_exists('zh-TW' , $this->translations))
+	    if(array_key_exists('zh-TW' , $this->translations))
         {
             $this->translations['zh-HK'] = $this->translations['zh-TW'];
         }
@@ -125,23 +117,12 @@ class TranslateService
     }
 
 
-    public function countedAndCheckEnded()
+    public function countedAndCheckEnded($reason ,$index)
     {
-//        if ($this->counter < $this->totalPageCount){
-//            $this->counter++;
-//            return;
-//        }
-//        $this->info("请求结束！");
-    }
-
-    public function info($message)
-    {
-        file_put_contents('log.log' , $message.PHP_EOL , FILE_APPEND);
-    }
-
-    public function error($message)
-    {
-        file_put_contents('logerror.log' , $message.PHP_EOL , FILE_APPEND);
+        $text = $this->text;
+        $reason = \json_encode($reason);
+        $lang = $this->languages[$index];
+        Log::error("文本《{$text}》翻译{$lang}出错，原因:"."---------{$reason}--------");
     }
 
 
