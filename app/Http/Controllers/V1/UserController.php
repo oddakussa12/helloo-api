@@ -124,12 +124,12 @@ class UserController extends BaseController
 
     public function myFollow()
     {
-        return FollowCollection::collection(auth()->user()->followings()->get());
+        return FollowCollection::collection(auth()->user()->followings()->orderByDesc('common_follows.created_at')->paginate(10));
     }
 
     public function followMe()
     {
-        return FollowCollection::collection(auth()->user()->followers()->get());
+        return FollowCollection::collection(auth()->user()->followers()->orderByDesc('common_follows.created_at')->paginate(10));
     }
 
     public function getQiniuUploadToken(Request $request)
