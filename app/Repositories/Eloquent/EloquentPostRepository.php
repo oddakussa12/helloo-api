@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date: 2019-08-09 21:23:30
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-21 10:31:06
+ * @Last Modified time: 2019-10-22 21:41:27
  */
 namespace App\Repositories\Eloquent;
 
@@ -111,8 +111,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $userarray[] = $value->user_id;
                 }
              }
-             $userstring = implode(',',$userarray);
-             $posts = $posts->whereIN('user_id',[$userstring]);
+             $posts = $posts->whereIN('user_id',$userarray);
         }
     }
 	if($request->get('tag')!==null)
