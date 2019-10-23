@@ -208,8 +208,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         );
         switch ($orderBy)
         {
-            case 'rate':
-                $order_by = 'post_rate';
+            case 'time':
+                $order_by = 'post_created_at';
                 break;
             case 'like':
                 $order_by = 'post_like_num';
@@ -217,9 +217,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             case 'comment':
                 $order_by = 'post_comment_num';
                 break;
-            case 'time':
+            case 'rate':
             default:
-                $order_by = 'post_created_at';
+                $order_by = 'post_rate';
                 break;
         }
         $index = array_search($order_by , $sorts);
