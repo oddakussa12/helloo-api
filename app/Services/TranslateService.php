@@ -100,7 +100,12 @@ class TranslateService
             'fulfilled'   => function ($response, $index){
                 $res = $response->getBody()->getContents();
                 $res = json_decode($res, true);
-                $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
+                if(isset($res['error']))
+                {
+                    $this->countedAndCheckEnded($res , $index);
+                }else{
+                    $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
+                }
             },
             'rejected' => function ($reason, $index){
                 $this->countedAndCheckEnded($reason , $index);
