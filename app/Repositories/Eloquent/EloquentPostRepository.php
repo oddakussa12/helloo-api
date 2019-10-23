@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date: 2019-08-09 21:23:30
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-22 21:44:35
+ * @Last Modified time: 2019-10-23 22:20:39
  */
 namespace App\Repositories\Eloquent;
 
@@ -111,6 +111,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $userarray[] = $value->user_id;
                 }
              }
+            $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+            $appends['order'] = $order;
+            $orderBy = $request->get('order_by');
+            $appends['order_by'] = $orderBy;
+            $sorts = $this->getOrder($orderBy);
+            foreach ($sorts as $sort)
+            {
+                $posts->orderBy($sort, $order);
+            }
              $posts = $posts->whereIN('user_id',$userarray);
         }
     }

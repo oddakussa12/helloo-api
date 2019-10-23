@@ -76,7 +76,7 @@ $api->group($V1Params , function ($api){
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe');
-        $api->group(['middleware'=>'throttle:6,1'] , function ($api){
+        $api->group(['middleware'=>'throttle:3,1'] , function ($api){
             $api->post('post' , 'PostController@store');
         });
         $api->delete('post/{uuid}' , 'PostController@destroy');

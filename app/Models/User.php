@@ -88,6 +88,9 @@ class User extends Authenticatable implements JWTSubject
     public function getUserAvatarAttribute($value)
     {
         $value = empty($value)?'userdefalutavatar.jpg':$value;
+        if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
+            return $value;
+        }
         return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/100/h/100/interlace/1';
     }
 
