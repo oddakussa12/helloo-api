@@ -90,9 +90,15 @@ class TranslateService
 
         $requests = function ($language) use ($client , $text , $apiKey) {
             foreach ($language as $locale) {
+                $data = array(
+                    'q'=>$text,
+                    'target'=>$locale,
+                    'key'=>$apiKey[array_rand($apiKey)],
+                );
+                $url = 'https://translation.googleapis.com/language/translate/v2';
                 $uri = 'https://www.googleapis.com/language/translate/v2?key=' . $apiKey[array_rand($apiKey)] . '&q=' . rawurlencode($text) . '&target=' . $locale;
-                yield function() use ($client, $uri) {
-                    return $client->getAsync($uri);
+                yield function() use ($client, $url , $data) {
+                    return $client->request('POST' , $url , ['json'=>$data]);
                 };
             }
         };
