@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Pool;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Exception\RequestException;
 use Google\Cloud\Translate\TranslateClient;
 
 class TranslateService
@@ -97,7 +99,7 @@ class TranslateService
 
         $pool = new Pool($client, $requests($this->languages), [
             'concurrency' => count($this->languages),
-            'fulfilled'   => function ($response, $index){
+            'fulfilled'   => function (Response $response, $index){
                 $res = $response->getBody()->getContents();
                 $res = json_decode($res, true);
                 if(isset($res['error']))
@@ -107,13 +109,13 @@ class TranslateService
                     $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
                 }
             },
-            'rejected' => function ($reason, $index , $g){
+            'rejected' => function (RequestException $reason, $index , $g){
                 $this->countedAndCheckEnded($reason , $index , $g);
             },
         ]);
         $promise = $pool->promise();
         $promise->wait();
-	    if(array_key_exists('zh-TW' , $this->translations))
+        if(array_key_exists('zh-TW' , $this->translations))
         {
             $this->translations['zh-HK'] = $this->translations['zh-TW'];
         }
