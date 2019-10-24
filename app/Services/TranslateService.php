@@ -87,7 +87,7 @@ class TranslateService
             'AIzaSyDKvJLifK80YtNUmMcZwchhTKjF8RQTORw',
             'AIzaSyAGbnluKfnUf61fV5zL1FE3p8u8XDQiaUE',
         );
-
+        Log::error("文本《{$text}》翻译开始");
         $requests = function ($language) use ($client , $text , $apiKey) {
             foreach ($language as $locale) {
                 $data = array(
