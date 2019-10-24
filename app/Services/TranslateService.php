@@ -113,15 +113,10 @@ class TranslateService
             'fulfilled'   => function (Response $response, $index){
                 $res = $response->getBody()->getContents();
                 $res = json_decode($res, true);
-                if(isset($res['error']))
-                {
-                    $this->countedAndCheckEnded($res , $index);
-                }else{
-                    $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
-                }
+                $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
             },
-            'rejected' => function (RequestException $reason, $index , $g){
-                $this->countedAndCheckEnded($reason , $index , $g);
+            'rejected' => function (\Exception $reason, $index){
+                $this->countedAndCheckEnded($reason , $index);
             },
         ]);
         $promise = $pool->promise();
@@ -135,7 +130,7 @@ class TranslateService
     }
 
 
-    public function countedAndCheckEnded($reason ,$index , $g)
+    public function countedAndCheckEnded($reason ,$index , $g='')
     {
         $text = $this->text;
         $reason = \json_encode($reason);
