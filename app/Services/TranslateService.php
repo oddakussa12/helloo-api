@@ -111,9 +111,11 @@ class TranslateService
         $pool = new Pool($client, $requests($this->languages), [
             'concurrency' => count($this->languages),
             'fulfilled'   => function (Response $response, $index){
+                $lang = $this->languages[$index];
+                Log::error("文本《{$this->text}》翻译{$lang}完成");
                 $res = $response->getBody()->getContents();
                 $res = json_decode($res, true);
-                $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
+                $this->translations[$lang] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
             },
             'rejected' => function (\Exception $reason, $index){
                 $this->countedAndCheckEnded($reason , $index);
