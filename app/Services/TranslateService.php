@@ -98,7 +98,7 @@ class TranslateService
                 $url = 'https://translation.googleapis.com/language/translate/v2';
                 $uri = 'https://www.googleapis.com/language/translate/v2?key=' . $apiKey[array_rand($apiKey)] . '&q=' . rawurlencode($text) . '&target=' . $locale;
                 yield function() use ($client, $url , $data) {
-                    return $client->request('POST' , $url , ['json'=>$data]);
+                    return $client->request('POST' , $url , ['form_params'=>$data]);
                 };
             }
         };
