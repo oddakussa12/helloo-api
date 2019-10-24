@@ -244,7 +244,7 @@ class PostController extends BaseController
 
     public function showTopList(Request $request)
     {
-        return PostCollection::collection($this->post->top($request));
+        return PostPaginateCollection::collection($this->post->top($request));
     }
     public function hot(Request $request)
     {
