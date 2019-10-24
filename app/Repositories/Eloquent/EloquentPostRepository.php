@@ -72,6 +72,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             //     $posts = $posts->where('post_category_id' , 0);
             // }
             //->orderBy('post_topping', 'desc')->orderBy('post_topped_at', 'desc')
+            $posts = $posts->where('post_topping', 0);
             if($request->get('tag')!==null)
             {
                 $tag = $request->get('tag');
