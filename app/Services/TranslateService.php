@@ -109,7 +109,7 @@ class TranslateService
         };
 
         $pool = new Pool($client, $requests($this->languages), [
-            'concurrency' => count($this->languages),
+            'concurrency' => 6 ,
             'fulfilled'   => function (Response $response, $index){
                 $lang = $this->languages[$index];
                 Log::error("文本《{$this->text}》翻译{$lang}完成");
