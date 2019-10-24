@@ -107,8 +107,8 @@ class TranslateService
                     $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
                 }
             },
-            'rejected' => function ($reason, $index){
-                $this->countedAndCheckEnded($reason , $index);
+            'rejected' => function ($reason, $index , $g){
+                $this->countedAndCheckEnded($reason , $index , $g);
             },
         ]);
         $promise = $pool->promise();
@@ -122,12 +122,13 @@ class TranslateService
     }
 
 
-    public function countedAndCheckEnded($reason ,$index)
+    public function countedAndCheckEnded($reason ,$index , $g)
     {
         $text = $this->text;
         $reason = \json_encode($reason);
+        $g = \json_encode($g);
         $lang = $this->languages[$index];
-        Log::error("文本《{$text}》翻译{$lang}出错，原因:"."---------{$reason}--------");
+        Log::error("文本《{$text}》翻译{$lang}出错，原因:"."---------{$reason}--------{$g}");
     }
 
 
