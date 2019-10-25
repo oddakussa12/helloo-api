@@ -99,12 +99,13 @@ class Post extends Model
 
         }else if($this->post_type=='image'){
             $value[$this->post_type]['image_cover'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['image_cover'];
+            $image_url = $value[$this->post_type]['image_url'];
             $value[$this->post_type]['image_url'] = \array_map(function($v){
                 return config('common.qnUploadDomain.thumbnail_domain').$v;
-            } , $value[$this->post_type]['image_url']);
+            } , $image_url);
             $value[$this->post_type]['thumb_image_url'] = \array_map(function($v){
-                return $v.'?imageView2/5/w/192/h/192/interlace/1';
-            } , $value[$this->post_type]['image_url']);
+                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/192/h/192/interlace/1';
+            } , $image_url);
         }
         return $value;
     }
