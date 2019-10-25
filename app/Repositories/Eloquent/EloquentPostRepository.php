@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date: 2019-08-09 21:23:30
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-23 22:14:50
+ * @Last Modified time: 2019-10-24 11:41:31
  */
 namespace App\Repositories\Eloquent;
 
@@ -103,7 +103,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             return $posts->appends($appends);
     }else if($request->get('follow')!== null){
-        if(auth()->id()){
+        if(auth()->check()){
              $user_list = auth()->user()->followings()->get();
              $userarray = array();
              foreach($user_list as $key=>$value){
