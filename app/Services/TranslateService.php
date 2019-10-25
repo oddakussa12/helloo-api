@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
 use GuzzleHttp\Pool;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Exception\RequestException;
 use Google\Cloud\Translate\TranslateClient;
 
 class TranslateService
@@ -85,35 +87,43 @@ class TranslateService
             'AIzaSyDKvJLifK80YtNUmMcZwchhTKjF8RQTORw',
             'AIzaSyAGbnluKfnUf61fV5zL1FE3p8u8XDQiaUE',
         );
-
+        Log::error("文本《{$text}》翻译开始");
         $requests = function ($language) use ($client , $text , $apiKey) {
             foreach ($language as $locale) {
+                $data = array(
+                    'q'=>$text,
+                    'target'=>$locale,
+                    'key'=>$apiKey[array_rand($apiKey)],
+                );
+                $url = 'https://translation.googleapis.com/language/translate/v2';
                 $uri = 'https://www.googleapis.com/language/translate/v2?key=' . $apiKey[array_rand($apiKey)] . '&q=' . rawurlencode($text) . '&target=' . $locale;
-                yield function() use ($client, $uri) {
-                    return $client->getAsync($uri);
-                };
+                try {
+                    yield function() use ($client, $url , $data) {
+                        return $client->requestAsync('POST' , $url , ['form_params'=>$data]);
+                    };
+                }catch (\Exception $e)
+                {
+                    Log::error('获取异常:'.$e->getMessage());
+                }
             }
         };
 
         $pool = new Pool($client, $requests($this->languages), [
-            'concurrency' => count($this->languages),
-            'fulfilled'   => function ($response, $index){
+            'concurrency' => 6 ,
+            'fulfilled'   => function (Response $response, $index){
+                $lang = $this->languages[$index];
+                Log::error("文本《{$this->text}》翻译{$lang}完成");
                 $res = $response->getBody()->getContents();
                 $res = json_decode($res, true);
-                if(isset($res['error']))
-                {
-                    $this->countedAndCheckEnded($res , $index);
-                }else{
-                    $this->translations[$this->languages[$index]] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
-                }
+                $this->translations[$lang] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
             },
-            'rejected' => function ($reason, $index){
+            'rejected' => function (\Exception $reason, $index){
                 $this->countedAndCheckEnded($reason , $index);
             },
         ]);
         $promise = $pool->promise();
         $promise->wait();
-	    if(array_key_exists('zh-TW' , $this->translations))
+        if(array_key_exists('zh-TW' , $this->translations))
         {
             $this->translations['zh-HK'] = $this->translations['zh-TW'];
         }
@@ -122,12 +132,13 @@ class TranslateService
     }
 
 
-    public function countedAndCheckEnded($reason ,$index)
+    public function countedAndCheckEnded($reason ,$index , $g='')
     {
         $text = $this->text;
         $reason = \json_encode($reason);
+        $g = \json_encode($g);
         $lang = $this->languages[$index];
-        Log::error("文本《{$text}》翻译{$lang}出错，原因:"."---------{$reason}--------");
+        Log::error("文本《{$text}》翻译{$lang}出错，原因:"."---------{$reason}--------{$g}");
     }
 
 

@@ -21,13 +21,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function top($request)
     {
-        $type = $request->get('type' , 'world');
-        if($type=='world')
-        {
-            $posts = $this->model->where('post_category_id', '!=' , 0);
-        }else{
-            $posts = $this->model->where('post_category_id' , 1);
-        }
+        $posts = $this->model;
         if (method_exists($this->model, 'translations')) {
             return $posts->with('translations')->where('post_topping' , 1)->orderBy('post_topped_at', 'DESC')->orderBy('post_like_num', 'DESC')->limit(10)->get();
         }
@@ -72,6 +66,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             //     $posts = $posts->where('post_category_id' , 0);
             // }
             //->orderBy('post_topping', 'desc')->orderBy('post_topped_at', 'desc')
+            $posts = $posts->where('post_topping', 0);
             if($request->get('tag')!==null)
             {
                 $tag = $request->get('tag');
