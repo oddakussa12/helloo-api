@@ -38,8 +38,8 @@ $api->group($V1Params , function ($api){
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback');
 
         $api->resource('category' , 'CategoryController');
-
-
+        $api->resource('pychat', 'PyChatController');
+        $api->post('pychat/showmassage', 'PyChatController@showMassageByUserId');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid');
     });
 
