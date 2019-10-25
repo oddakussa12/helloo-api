@@ -102,6 +102,9 @@ class Post extends Model
             $value[$this->post_type]['image_url'] = \array_map(function($v){
                 return config('common.qnUploadDomain.thumbnail_domain').$v;
             } , $value[$this->post_type]['image_url']);
+            $value[$this->post_type]['thumb_image_url'] = \array_map(function($v){
+                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/400/h/300';
+            } , $value[$this->post_type]['image_url']);
         }
         return $value;
     }
