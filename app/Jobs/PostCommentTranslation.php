@@ -62,9 +62,9 @@ class PostCommentTranslation implements ShouldQueue
             }else{
                 $t = $l;
             }
-            $commentContent = $translate->translate($commentContent , array('target'=>$t));
+            $content = $translate->translate($commentContent , array('target'=>$t));
             $postComment->fill([
-                "{$l}"  => ['comment_content' => $commentContent],
+                "{$l}"  => ['comment_content' => $content],
             ]);
             $postComment->save();
         }
