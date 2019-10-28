@@ -2,6 +2,7 @@
 /storage/*.key
 /storage/framework/views/*.php
 /storage/logs/*.log
+/storage/app/events/*.txt
 /database/migrations/*.php
 /public/webhook.php
 /public/.user.ini
