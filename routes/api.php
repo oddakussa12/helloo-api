@@ -46,7 +46,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/signUp' , 'AuthController@signUp');
     $api->post('user/signIn' , 'AuthController@signIn');
     $api->get('user/signOut' , 'AuthController@signOut');
-
+    $api->get('user/userranking' , 'UserController@userRanking');
 
     $api->group(['middleware'=>'refresh'] , function($api){
 

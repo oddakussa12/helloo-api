@@ -143,6 +143,11 @@ class UserController extends BaseController
         return FollowCollection::collection($this->user->findMyFollow($user));
     }
 
+    public function userRanking(Request $request){
+        $user_id = \Storage::get('events/userranking.txt');
+        $user_id = explode(',',$user_id);
+        return UserCollection::collection($this->user->findUserRanking($user_id));
+    }
     public function getQiniuUploadToken(Request $request)
     {
         $policy = [
