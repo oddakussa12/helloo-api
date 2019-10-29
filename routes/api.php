@@ -58,6 +58,7 @@ $api->group($V1Params , function ($api){
         $api->get('post/myself' , 'PostController@myself');
         $api->post('user/update/myself' , 'AuthController@update');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken');
+        $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo');
 
         $api->put('post/{uuid}/favorite' , 'PostController@favorite');
         $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite');
