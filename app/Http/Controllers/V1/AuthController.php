@@ -137,12 +137,10 @@ class AuthController extends BaseController
         $postCount = app(PostRepository::class)->getCountByUserId($request , $user->user_id);
         $user_followmecount = auth()->user()->followers()->count();
         $user_myfollowcount = auth()->user()->followings()->count();
-        $user_myfollowrandtwo = auth()->user()->followings()->inRandomOrder()->take(2)->pluck('user_avatar');
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
         $user->user_followmecount = $user_followmecount;
         $user->user_myfollowcount = $user_myfollowcount;
-        $user->user_myfollowrandtwo = $user_myfollowrandtwo->toArray();
         $user->likeCount = $likeCount;
         $user->country = $user->user_country;
         return $this->response->array($user);
