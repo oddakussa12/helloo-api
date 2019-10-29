@@ -142,6 +142,12 @@ class UserController extends BaseController
         $user = $this->user->findByUuid($user_id);
         return FollowCollection::collection($this->user->findMyFollow($user));
     }
+    public function myFollowRandTwo()
+    {
+        $userfollowrandtwo['user_myfollowcount'] = auth()->user()->followings()->count();
+        $userfollowrandtwo['user_myfollowrandtwo'] = auth()->user()->followings()->inRandomOrder()->take(2)->pluck('user_avatar');
+        return $userfollowrandtwo;
+    }
 
     public function userRanking(Request $request){
         $user_id = \Storage::get('events/userranking.txt');
