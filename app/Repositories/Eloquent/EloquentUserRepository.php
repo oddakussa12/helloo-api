@@ -66,4 +66,8 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $object->followers()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
     }
 
+    public function findUserRanking($where){
+         return $this->model->whereIN('user_id',$where)->get();
+    }
+
 }
