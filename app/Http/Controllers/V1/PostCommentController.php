@@ -65,10 +65,18 @@ class PostCommentController extends BaseController
         $commentContent = clean($request->input('comment_content' , ''));
         $commentPId = $request->input('comment_comment_p_id' , 0);
         $post = app(PostRepository::class)->findByUuid($postUuid);
+        $comment_image= $request->input('comment_image',array());
+        $comment_image = \array_filter($comment_image , function($v , $k){
+            return !empty($v);
+        } , ARRAY_FILTER_USE_BOTH );
         if(isset($commentPId)&&$commentPId!=0)
         {
-            $this->postComment->find($commentPId);
-	    }
+            $comment_info = $this->postComment->find($commentPId);
+            $comment_to_id =$comment_info->user_id;
+	    }else{
+            $comment_to_id =$post->user_id;
+        }
+
         $contentLang = $this->translate->detectLanguage($commentContent);
         $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         $comment = array(
@@ -78,7 +86,9 @@ class PostCommentController extends BaseController
             'comment_comment_p_id'=>$commentPId,
             'comment_default_locale'=>$contentDefaultLang,
             'comment_verify'=>1,
-            'comment_verified_at'=>date('Y-m-d H:i:s')
+            'comment_verified_at'=>date('Y-m-d H:i:s'),
+            'comment_to_id'=>$comment_to_id,
+            'comment_image'=>\json_encode($comment_image),
         );
 //        foreach (supportedLocales() as $locale=>$properties)
 //        {
