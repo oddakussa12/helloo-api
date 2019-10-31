@@ -142,6 +142,30 @@ class UserController extends BaseController
         $user = $this->user->findByUuid($user_id);
         return FollowCollection::collection($this->user->findFollowMe($user));
     }
+    public function myFollowRandTwo()
+    {
+        $userfollowrandtwo['user_myfollowcount'] = auth()->user()->followings()->count();
+        $userfollowrandtwo['user_myfollowrandtwo'] = auth()->user()->followings()->inRandomOrder()->take(2)->pluck('user_avatar');
+        return $userfollowrandtwo;
+    }
+
+    public function userRanking(Request $request){
+        $user_id = \Storage::get('events/userranking.txt');
+        $user_id = explode(',',$user_id);
+        $user = array();
+        $userlist = UserCollection::collection($this->user->findUserRanking($user_id));
+        if(!empty($userlist)){
+            foreach ($user_id as $k => $v) {
+                foreach ($userlist as $key => $value) {
+                    if($value['user_id'] == $v){
+                        $user[] = $value;
+                    }
+                }
+            }
+        }
+        return $user;
+
+    }
 
     public function getQiniuUploadToken(Request $request)
     {

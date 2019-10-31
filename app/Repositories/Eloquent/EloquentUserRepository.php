@@ -81,4 +81,8 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $followers;
     }
 
+    public function findUserRanking($where){
+         return $this->model->whereIN('user_id',$where)->get();
+    }
+
 }

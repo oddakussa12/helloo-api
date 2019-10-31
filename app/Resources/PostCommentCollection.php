@@ -21,6 +21,7 @@ class PostCommentCollection extends Resource
             'comment_content' => $this->comment_decode_content,
             'comment_default_locale' => $this->comment_default_locale,
             'comment_default_content' => $this->comment_default_content,
+            'comment_image' => $this->comment_image,
             'comment_created_at' => optional($this->comment_created_at)->toDateTimeString(),
             'comment_format_created_at' => $this->comment_format_created_at,
             //'translations' => PostCommentTranslationCollection::collection($this->translations),

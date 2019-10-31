@@ -30,6 +30,7 @@ class PostComment extends Model
         'post_id' ,
         'user_id' ,
         'comment_verify',
+        'comment_image',
         'comment_comment_p_id',
         'comment_like_num',
         'comment_default_locale' ,
@@ -140,5 +141,18 @@ class PostComment extends Model
         return Carbon::parse($this->comment_created_at)->diffForHumans();
     }
 
+    public function getCommentImageAttribute($value)
+    {
+        if(empty($value))
+        {
+            return array();
+        }
+        $value = \json_decode($value,true);
+
+        $value = \array_map(function($v){
+                return config('common.qnUploadDomain.thumbnail_domain').$v;
+        },$value);
+        return $value;
+    }
 
 }

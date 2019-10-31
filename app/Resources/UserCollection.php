@@ -3,13 +3,14 @@
 /**
  * @Author: Dell
  * @Date:   2019-08-19 16:47:05
- * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-22 16:41:57
+ * @Last Modified by:   Gxc
+ * @Last Modified time: 2019-10-28 14:15:40
  */
 namespace App\Resources;
 
 use Illuminate\Http\Resources\Json\Resource;
 use App\Repositories\Contracts\PostRepository;
+use App\Repositories\Contracts\PostCommentRepository;
 
 class UserCollection extends Resource
 {
@@ -34,6 +35,7 @@ class UserCollection extends Resource
             'user_followme_count' =>$this->followers()->count(),
             'user_myfollow_count' => $this->followings()->count(),
             'user_post_count' => app(PostRepository::class)->getCountByUserId($request , $this->user_id),
+            'user_comment_count' => app(PostCommentRepository::class)->getCountByUserId($request , $this->user_id),
         ];
     }
 }
