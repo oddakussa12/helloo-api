@@ -13,6 +13,7 @@ use App\Models\PostComment;
 use App\Repositories\Contracts\PostCommentRepository;
 use App\Resources\PostCommentCollection;
 use Illuminate\Http\Response;
+use App\Jobs\PostCommentTranslation;
 use App\Http\Requests\StorePostCommentRequest;
 
 class PostCommentController extends BaseController
@@ -97,11 +98,18 @@ class PostCommentController extends BaseController
 //            }
 //        }
         dynamicSetLocales(array($contentDefaultLang));
-        $translation = $this->translate->customizeTrans($commentContent , $contentLang);
-//        $comment[$contentLang] = array('comment_content'=>$commentContent);
-        $comment = $comment+$translation;
+        //$translation = $this->translate->customizeTrans($commentContent , $contentLang);
+        $comment[$contentDefaultLang] = array('comment_content'=>$commentContent);
+        //$comment = $comment+$translation;
         $postComment = $this->postComment->store($comment);
         event(new PostCommentCreated($postComment));
+        $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
+        if(domain()!=domain(config('app.url')))
+        {
+            $this->dispatch($job->onQueue('test'));
+        }else{
+            $this->dispatch($job);
+        }
         return new PostCommentCollection($postComment);
     }
 

@@ -1,11 +1,5 @@
 <?php
 
-/**
- * @Author: Dell
- * @Date: 2019-08-09 21:23:30
- * @Last Modified by:   Dell
- * @Last Modified time: 2019-10-24 11:41:31
- */
 namespace App\Repositories\Eloquent;
 
 use App\Models\PostComment;
@@ -92,7 +86,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $appends['home'] = $request->get('home');
             $posts = $posts->where('post_topping' , 0);
             $posts = $posts->with('viewCount');
-
             if($request->get('tag')!==null)
             {
                 $tag = $request->get('tag');
@@ -221,8 +214,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         );
         switch ($orderBy)
         {
-            case 'rate':
-                $order_by = 'post_rate';
+            case 'time':
+                $order_by = 'post_created_at';
                 break;
             case 'like':
                 $order_by = 'post_like_num';
@@ -230,9 +223,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             case 'comment':
                 $order_by = 'post_comment_num';
                 break;
-            case 'time':
+            case 'rate':
             default:
-                $order_by = 'post_created_at';
+                $order_by = 'post_rate';
                 break;
         }
         $index = array_search($order_by , $sorts);

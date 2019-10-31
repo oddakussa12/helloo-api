@@ -150,10 +150,11 @@ class PostController extends BaseController
 
         if($post_category_id==2&&!empty($post_image))
         {
+            $post_image = array_slice($post_image,0 , 9);
             $post_media_json = \json_encode(array('image'=>array(
                 'image_from'=>'upload',
                 'image_cover'=>$post_image[0],
-                'image_url'=>array_slice($post_image,9),
+                'image_url'=>$post_image,
                 'image_count'=>count($post_image)
                 )));
             $post_info['post_media'] = $post_media_json;
