@@ -143,10 +143,13 @@ class PostComment extends Model
         }
         $value = \json_decode($value,true);
 
-        $value = \array_map(function($v){
+        $comment_reource['comment_image'] = \array_map(function($v){
                 return config('common.qnUploadDomain.thumbnail_domain').$v;
         },$value);
-        return $value;
+        $comment_reource['comment_thumb_image'] = \array_map(function($v){
+                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/192/h/192/interlace/1';
+        },$value);
+        return $value=$comment_reource;
     }
 
 }
