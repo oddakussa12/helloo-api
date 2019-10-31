@@ -8,7 +8,11 @@
  */
 namespace App\Repositories\Eloquent;
 
+use App\Models\PostComment;
+use App\Models\Country;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
@@ -27,26 +31,46 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function top($request)
     {
-        $type = $request->get('type' , 'world');
-        if($type=='world')
-        {
-            $posts = $this->model->where('post_category_id', '!=' , 0);
-        }else{
-            $posts = $this->model->where('post_category_id' , 1);
-        }
-        if (method_exists($this->model, 'translations')) {
-            return $posts->with('translations')->where('post_topping' , 1)->orderBy('post_topped_at', 'DESC')->orderBy('post_like_num', 'DESC')->limit(10)->get();
-        }
-        return $posts->where('post_topping' , 1)->orderBy('post_topped_at', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(10)->get();
+        $posts = $this->allWithBuilder();
+        $posts = $posts->with('owner');
+        $posts = $posts->with('viewCount');
+        $posts = $posts->where('post_topping' , 1)
+            ->orderBy('post_topped_at', 'DESC')
+            ->orderBy('post_like_num', 'DESC')
+            ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
+            ->limit(10)
+            ->get();
+
+        $postIds = $posts->pluck('post_id')->all();//获取post Id
+
+        $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接
+
+        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+
+        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+
+        $user = userFollow();//重新获取当前登录用户信息
+
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $user , $topTwoComments) {
+            $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
+            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+            $item->auth = $user;
+        });
+        return $posts;
     }
 
     public function hot($request)
     {
         $posts = $this->model;
-        if (method_exists($this->model, 'translations')) {
-            return $posts->with('translations')->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
-        }
-        return $posts->orderBy('post_rate', 'DESC')->orderBy('post_like_num', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->limit(6)->get();
+        $posts = $posts->whereHas('translations', function (Builder $q){
+            $q->where('post_locale', locale());
+        });
+        $posts = $posts->with('translations');
+        return $posts->orderBy('post_rate', 'DESC')
+            ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
+            ->limit(6)
+            ->get();
     }
 
     public function paginate($perPage = 10, $columns = ['*'], $pageName = 'page', $page = null)
@@ -62,28 +86,25 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $appends = array();
         $posts = $this->allWithBuilder();
+
+        $posts = $posts->with('owner');
         if ($request->get('home')!== null){
-//            $posts = $posts->where('post_topping' , 0);
             $appends['home'] = $request->get('home');
-//            $posts = $posts->inRandomOrder()->paginate($this->perPage , ['*'] , $this->pageName);
-            // $categoryId = $request->get('categoryId' , 1);
-            // if($categoryId == 1)
-            // {
-            //     $appends['categoryId'] = $categoryId;
-            //     $posts->where('post_category_id' , $categoryId);
-            // }else if($categoryId=='group'){
-            //     $appends['categoryId'] = $categoryId;
-            //     $posts = $posts->where('post_category_id', '!=' , 0);
-            // }else{
-            //     $posts = $posts->where('post_category_id' , 0);
-            // }
-            //->orderBy('post_topping', 'desc')->orderBy('post_topped_at', 'desc')
+            $posts = $posts->where('post_topping' , 0);
+            $posts = $posts->with('viewCount');
+
             if($request->get('tag')!==null)
             {
                 $tag = $request->get('tag');
                 $appends['tag'] = $tag;
                 $posts = $posts->withAnyTags([$tag]);
             }
+            if($request->get('follow')!== null&&auth()->check())
+            {
+                $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
+                $posts = $posts->whereIn('user_id',$userIds);
+            }
+
             if ($request->get('keywords') !== null) {
                 $keywords = $request->get('keywords');
                 $appends['keywords'] = $keywords;
@@ -101,82 +122,62 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $posts->orderBy($sort, $order);
             }
             $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+
+            $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
+
+            $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接开
+
+            $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+
+            $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+
+            $user = userFollow();//重新获取当前登录用户信息
+
+            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $user , $topTwoComments) {
+                $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
+                $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+                $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+                $item->auth = $user;
+            });
             return $posts->appends($appends);
-    }else if($request->get('follow')!== null){
-        if(auth()->check()){
-             $user_list = auth()->user()->followings()->get();
-             $userarray = array();
-             foreach($user_list as $key=>$value){
-                if(!empty($value->user_id)){
-                    $userarray[] = $value->user_id;
-                }
-             }
-            $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
-            $appends['order'] = $order;
-            $orderBy = $request->get('order_by');
-            $appends['order_by'] = $orderBy;
-            $sorts = $this->getOrder($orderBy);
-            foreach ($sorts as $sort)
-            {
-                $posts->orderBy($sort, $order);
-            }
-             $posts = $posts->whereIN('user_id',$userarray);
+        }elseif ($request->get('keywords') !== null) {
+            $keywords = $request->get('keywords');
+            $appends['keywords'] = $keywords;
+            $posts->whereHas('translations', function ($query) use ($keywords) {
+                $query->where('post_title', 'LIKE', "%{$keywords}%");
+            });
+        }else{
+            $posts = $posts->where('post_id' , 0);
         }
-    }
-	if($request->get('tag')!==null)
-    {
-        $tag = $request->get('tag');
-        $appends['tag'] = $tag;
-        $posts = $this->model->withAnyTags([$tag])->orderBy('post_rate', 'desc')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate($this->perPage , ['*'] , $this->pageName);
+        $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
         return $posts->appends($appends);
-    }
-    if ($request->get('take')!== null){
-        $take = intval($request->get('take'));
-        $take = $take>15||$take<1?10:$take;
-        return $posts->inRandomOrder()->take($take)->get();
-    }
-    if ($request->get('keywords') !== null) {
-        $keywords = $request->get('keywords');
-        $appends['keywords'] = $keywords;
-        $posts->whereHas('translations', function ($query) use ($keywords) {
-            $query->where('post_title', 'LIKE', "%{$keywords}%");
-        });
-    }
-    if ($request->get('categoryId') !== null) {
-        $categoryId = $request->get('categoryId');
-        if(in_array($categoryId , array(1 , 2 , 3)))
-        {
-            $appends['categoryId'] = $categoryId;
-            $posts->where('post_category_id' , $categoryId);
-        }else if($categoryId=='group'){
-            $appends['categoryId'] = $categoryId;
-            $posts->whereNotIn('post_category_id' , ['1']);
-        }
-    }
-    if ($request->get('order_by') !== null && $request->get('order') !== null) {
-        $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
-        $orderBy = $request->get('order_by' , 'post_like_num');
-        $appends['order'] = $order;
-        $appends['order_by'] = $orderBy;
-        $posts->orderBy($orderBy, $order);
-    }
-    $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
-    return $posts->appends($appends);
     }
 
     public function findByUuid($uuid)
     {
-        if (method_exists($this->model, 'translations')) {
-            return $this->model->with('translations')->where('post_uuid', $uuid)->firstOrFail();
-        }
-        return $this->model->where('post_uuid', $uuid)->firstOrFail();
+        $post = $this->allWithBuilder();
+        $post = $post->where('post_uuid', $uuid);
+        $post = $post->with('owner');
+        $post = $post->firstOrFail();
+        $topCountries = $this->topCountries([$post->post_id]);
+        $topCountryNum = $this->countryNum([$post->post_id]);
+        $post->countries = $topCountries->where('post_id',$post->post_id)->values()->all();
+        $post->countryNum = $topCountryNum->where('post_id',$post->post_id)->first();
+        return $post;
+    }
+
+    public function findOrFailByUuid($uuid)
+    {
+        $post = $this->model;
+        $post = $post->where('post_uuid', $uuid);
+        return $post->firstOrFail();
     }
 
     public function paginateByUser(Request $request , $userId)
     {
         $appends = array();
         $user = app(UserRepository::class)->findOrFail($userId);
-        $posts = $user->posts();
+        $posts = $user->posts()->with('translations')->with('owner');
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
             $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $orderBy = $request->get('order_by' , 'post_like_num');
@@ -192,6 +193,18 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $posts->where('post_category_id' , $categoryId);
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+
+        $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
+
+        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+
+        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum) {
+            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+        });
+
         return $posts->appends($appends);
     }
 
@@ -226,6 +239,83 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         unset($sorts[$index]);
         array_unshift($sorts , $order_by);
         return $sorts;
+    }
+
+    public function topTwoComments($postIds)
+    {
+        $topTwoCommentQuery = PostComment::whereIn('post_id',$postIds)
+            ->select(DB::raw('*,@post := NULL ,@rank := 0'))
+            ->orderBy('post_id')
+            ->orderBy('comment_like_num' , 'DESC')
+            ->orderBy('comment_created_at' , 'DESC');
+        $topTwoCommentQuery = DB::table(DB::raw("({$topTwoCommentQuery->toSql()}) as b"))
+            ->mergeBindings($topTwoCommentQuery->getQuery())
+            ->select(DB::raw('b.*,IF (
+                    @post = b.post_id ,@rank :=@rank + 1 ,@rank := 1
+                ) AS rank,
+                @post := b.post_id'));
+        $topTwoCommentIds = DB::table( DB::raw("({$topTwoCommentQuery->toSql()}) as f_c") )
+            ->mergeBindings($topTwoCommentQuery)
+            ->where('rank','<',3)->select('c.comment_id')->pluck('comment_id')->toArray();
+
+        return PostComment::whereIn('comment_id',$topTwoCommentIds)
+            ->with('translations')
+            ->with('owner')
+            ->with('likes')->get();
+    }
+
+    public function topCountries($postIds)
+    {
+        $topCountryQuery = PostComment::whereIn('post_id',$postIds)
+            ->select(DB::raw('f_posts_comments.post_id,f_posts_comments.comment_country_id,f_countries.country_code,f_countries.country_name,count(*) AS country_num,@post := NULL ,@rank := 0'))
+            ->leftJoin('countries', 'posts_comments.comment_country_id', '=', 'countries.country_id')
+            ->groupBy('posts_comments.post_id')
+            ->groupBy('posts_comments.comment_country_id')
+            ->orderBy('post_id' , 'DESC')
+            ->orderBy('country_num' , 'DESC')
+            ->orderBy('comment_created_at' , 'DESC');
+        $topCountryQuery = DB::table(DB::raw("({$topCountryQuery->toSql()}) as b"))
+            ->mergeBindings($topCountryQuery->getQuery())
+            ->select(DB::raw('b.*,IF (
+                    @post = b.post_id ,@rank :=@rank + 1 ,@rank := 1
+                ) AS rank,
+                @post := b.post_id'));
+        return DB::table(DB::raw("({$topCountryQuery->toSql()}) as f_c"))
+            ->mergeBindings($topCountryQuery)
+            ->where('rank','<',8)
+            ->select('post_id', 'country_name' , 'country_code' , 'country_num')
+            ->get();
+    }
+
+    public function countryNum($postIds)
+    {
+        $countryNumQuery = PostComment::whereIn('post_id',$postIds)
+            ->select(DB::raw('*,@post := NULL'))
+            ->orderBy('post_id')
+            ->groupBy('post_id')
+            ->groupBy('comment_country_id');
+
+        $countryNumQuery = DB::table(DB::raw("({$countryNumQuery->toSql()}) as b"))
+            ->mergeBindings($countryNumQuery->getQuery())
+            ->select(DB::raw('b.*,IF (
+                    @post = b.post_id ,@rank :=@rank + 1 ,@rank := 1
+                ) AS rank,
+                @post := b.post_id'));
+
+        return  DB::table(DB::raw("({$countryNumQuery->toSql()}) as f_b"))
+            ->mergeBindings($countryNumQuery)
+            ->select('b.post_id' , DB::raw('count(f_b.comment_country_id) as country_num'))
+            ->groupBy('b.post_id')->orderBy('b.post_id')->get();
+    }
+
+    public function find($id)
+    {
+        $post = $this->model;
+        if (method_exists($this->model, 'translations')) {
+            $post = $post->with('translations');
+        }
+        $post = $post->with('owner')->find($id);
+        return $post;
     }
 
 }

@@ -42,13 +42,13 @@ class NotificationCollection extends Resource
                 case 'user.post_comment':
                     try{
                         $detail['comment'] = app(PostCommentRepository::class)->find($extra['comment_id']);
-                        $detail['post'] = app(PostRepository::class)->find($extra['post_id']);
-                        if(empty($detail['comment'] )||empty($detail['post']))
+//                        $detail['post'] = app(PostRepository::class)->find($extra['post_id']);
+                        if(empty($detail['comment'] ))
                         {
                             $detail = false;
                         }else{
                             $detail['comment'] = new PostCommentCollection($detail['comment']);
-                            $detail['post'] = new PostCollection($detail['post']);
+//                            $detail['post'] = new PostCollection($detail['post']);
                         }
                     }catch (\Exception $e)
                     {
@@ -73,15 +73,15 @@ class NotificationCollection extends Resource
                 case 'user.comment':
                     try{
                         $detail['post'] = app(PostRepository::class)->find($extra['post_id']);
-                        $detail['comment'] = app(PostCommentRepository::class)->find($extra['comment_id']);
-                        $detail['p_comment'] = app(PostCommentRepository::class)->find($extra['comment_comment_p_id']);
-                        if(empty($detail['comment'] )||empty($detail['p_comment']))
+//                        $detail['comment'] = app(PostCommentRepository::class)->find($extra['comment_id']);
+//                        $detail['p_comment'] = app(PostCommentRepository::class)->find($extra['comment_comment_p_id']);
+                        if(empty($detail['comment'] ))
                         {
                             $detail = false;
                         }else{
                             $detail['post'] = new PostCollection($detail['post']);
                             $detail['comment'] = new PostCommentCollection($detail['comment']);
-                            $detail['p_comment'] = new PostCommentCollection($detail['p_comment']);
+//                            $detail['p_comment'] = new PostCommentCollection($detail['p_comment']);
                         }
                     }catch (\Exception $e){
                         $detail = false;

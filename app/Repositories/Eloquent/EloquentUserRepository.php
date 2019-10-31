@@ -56,14 +56,29 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where($where)->first();
     }
 
-    public function findFollowMe($object)
-    {
-        return $object->followings()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
-    }
-
     public function findMyFollow($object)
     {
-        return $object->followers()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
+        $followers = $object->followings()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
+
+        $user = userFollow();//重新获取当前登录用户信息
+
+        $followers->each(function ($item, $key) use ($user) {
+            $item->auth = $user;
+        });
+        return $followers;
+    }
+
+    public function findFollowMe($object)
+    {
+        $followers = $object->followers()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
+
+        $user = userFollow();//重新获取当前登录用户信息
+
+        $followers->each(function ($item, $key) use ($user) {
+            $item->auth = $user;
+        });
+        
+        return $followers;
     }
 
 }

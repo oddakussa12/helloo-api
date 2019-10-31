@@ -55,6 +55,11 @@ class Post extends Model
         return $this->hasMany(PostComment::class , 'post_id' , 'post_id');
     }
 
+    public function topComments()
+    {
+        return $this->comments->take(10);
+    }
+
     public function view()
     {
         return $this->hasMany(PostView::class , 'post_id' , 'post_id');

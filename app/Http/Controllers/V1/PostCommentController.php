@@ -67,7 +67,7 @@ class PostCommentController extends BaseController
         $post = app(PostRepository::class)->findByUuid($postUuid);
         if(isset($commentPId)&&$commentPId!=0)
         {
-            $this->postComment->find($commentPId);
+            $this->postComment->findOrFail($commentPId);
 	    }
         $contentLang = $this->translate->detectLanguage($commentContent);
         $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
@@ -104,7 +104,7 @@ class PostCommentController extends BaseController
      */
     public function show($id)
     {
-        $one = $this->postComment->find($id);
+        $one = $this->postComment->findOrFail($id);
         $edit = $this->edit($id);
 
         return $edit;
@@ -117,14 +117,14 @@ class PostCommentController extends BaseController
 
     public function favorite($id)
     {
-        $comment = $this->postComment->find($id);
+        $comment = $this->postComment->findOrFail($id);
         auth()->user()->favorite($comment);
         return $this->response->noContent();
     }
 
     public function unfavorite($id)
     {
-        $comment = $this->postComment->find($id);
+        $comment = $this->postComment->findOrFail($id);
         auth()->user()->unfavorite($comment);
         return $this->response->noContent();
     }
@@ -142,21 +142,21 @@ class PostCommentController extends BaseController
 
     public function like($id)
     {
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         auth()->user()->like($postComment);
         return $this->response->noContent();
     }
 
     public function dislike($id)
     {
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         auth()->user()->unlike($postComment);
         return $this->response->noContent();
     }
 
     public function revokeVote($id)
     {
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         auth()->user()->revoke($postComment);
         return $this->response->noContent();
     }
@@ -183,7 +183,7 @@ class PostCommentController extends BaseController
     public function destroy($id)
     {
         //
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         if($postComment->user_id!=auth()->id())
         {
             abort(401);

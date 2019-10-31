@@ -124,23 +124,23 @@ class UserController extends BaseController
 
     public function myFollow()
     {
-        return FollowCollection::collection($this->user->findFollowMe(auth()->user()));
+        return FollowCollection::collection($this->user->findMyFollow(auth()->user()));
     }
 
     public function followMe()
     {
-        return FollowCollection::collection($this->user->findMyFollow(auth()->user()));
+        return FollowCollection::collection($this->user->findFollowMe(auth()->user()));
     }
     public function otherMyFollow($user_id)
     {
         $user = $this->user->findByUuid($user_id);
-        return FollowCollection::collection($this->user->findFollowMe($user));
+        return FollowCollection::collection($this->user->findMyFollow($user));
     }
 
     public function otherFollowMe($user_id)
     {
         $user = $this->user->findByUuid($user_id);
-        return FollowCollection::collection($this->user->findMyFollow($user));
+        return FollowCollection::collection($this->user->findFollowMe($user));
     }
 
     public function getQiniuUploadToken(Request $request)

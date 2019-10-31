@@ -1,4 +1,6 @@
 <?php
+use App\Models\User;
+
 if (! function_exists('locale')) {
     function locale($locale = null)
     {
@@ -241,6 +243,21 @@ if (!function_exists('first_rate_comment_v2')) {
         return 1 / pow(2, $gravity);
     }
 }
+if (!function_exists('userFollow')) {
+
+    function userFollow()
+    {
+        if(auth()->check())
+        {
+            $userId = auth()->id();
+            $user = new User();
+            return $user->with('followings')->where('user_id' , $userId)->first();
+        }
+        return false;
+
+    }
+}
+
 
 if (!function_exists('getMyFollow')) {
 

@@ -43,17 +43,21 @@ class PostComment extends Model
 
     protected $localeKey = 'comment_locale';
 
-    protected $perPage = 10;
+    public $perPage = 5;
+
+    protected $with = [
+//        'children'
+    ];
 
 //    public function comment()
 //    {
 //        return $this->hasMany('App\Models\PostComment' , 'comment_comment_p_id');
 //    }
 //
-    public function user()
-    {
-        return $this->belongsTo('App\Models\User' , 'user_id' , 'user_id');
-    }
+//    public function user()
+//    {
+//        return $this->belongsTo('App\Models\User' , 'user_id' , 'user_id');
+//    }
 
     public function owner()
     {
@@ -72,8 +76,10 @@ class PostComment extends Model
 
     public function children()
     {
-        return $this->hasMany(self::class, 'comment_comment_p_id')->orderBy('comment_like_num' , 'desc');
+        return $this->hasMany(self::class, 'comment_comment_p_id')->with('children')
+            ->with('owner')->with('likes')->with('translations')->orderBy('comment_created_at' , 'desc')->orderBy('comment_like_num' , 'desc');
     }
+
 
     public function parent()
     {
