@@ -85,6 +85,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         if($request->get('tag')!==null)
         {
             $tag = $request->get('tag');
+            $appends['tag'] = $tag;
             $tag = Tag::findFromString($tag);
             $posts = $tag->posts();
             $posts = $posts->with('translations');
@@ -98,6 +99,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $posts = $posts->with('viewCount');
             if($request->get('follow')!== null&&auth()->check())
             {
+                $appends['follow'] = $request->get('follow');
                 $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
                 $posts = $posts->whereIn('user_id',$userIds);
             }
