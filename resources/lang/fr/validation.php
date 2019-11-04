@@ -177,5 +177,6 @@ return [
         'post_title'            => 'Titre du post',
         'post_content'          => 'Publier du contenu',
         'tag_slug'              => 'Post tag',
+        'comment_content'       => 'Le contenu ne peut pas être vide',
     ],
 ];

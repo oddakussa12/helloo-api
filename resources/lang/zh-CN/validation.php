@@ -176,5 +176,6 @@ return [
         'post_title'            => '贴子标题',
         'post_content'          => '贴子内容',
         'tag_slug'              => '贴子标签',
+        'comment_content'       => '内容不能为空',
     ],
 ];

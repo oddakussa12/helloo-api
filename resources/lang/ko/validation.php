@@ -176,5 +176,6 @@ return [
         'post_title'            => '게시물 제목',
         'post_content'          => '컨텐츠 게시',
         'tag_slug'              => '포스트 태그',
+        'comment_content'       => '내용은 비워 둘 수 없습니다',
     ],
 ];

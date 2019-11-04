@@ -177,5 +177,6 @@ return [
         'post_title'            => '貼子標題',
         'post_content'          => '貼子內容',
         'tag_slug'              => '貼子標籤',
+        'comment_content'       => '內容不能為空',
     ],
 ];

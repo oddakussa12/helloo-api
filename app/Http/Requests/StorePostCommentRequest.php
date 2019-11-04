@@ -26,7 +26,7 @@ class StorePostCommentRequest extends FormRequest
         return [
             'post_uuid' => 'bail|required|string|alpha_dash|size:36',
             'comment_comment_p_id' => 'bail|integer|numeric',
-            'comment_content' => 'bail|required|string|between:1,800',
+            'comment_content' => 'bail|present|string|between:0,800',
         ];
     }
 }

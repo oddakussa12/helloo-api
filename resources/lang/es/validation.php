@@ -182,5 +182,6 @@ return [
         'post_title'            => 'Título de la publicación',
         'post_content'          => 'Publicar contenido',
         'tag_slug'              => 'Etiqueta de publicación',
+        'comment_content'       => 'El contenido no puede estar vacío.',
     ],
 ];

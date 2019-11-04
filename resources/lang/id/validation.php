@@ -176,5 +176,6 @@ return [
         'post_title'            => 'Judul posting',
         'post_content'          => 'Posting konten',
         'tag_slug'              => 'Tag pos',
+        'comment_content'       => 'Konten tidak boleh kosong',
     ],
 ];

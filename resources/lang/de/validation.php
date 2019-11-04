@@ -177,5 +177,6 @@ return [
         'post_title'            => 'Post-Titel',
         'post_content'          => 'Inhalt posten',
         'tag_slug'              => 'Post-Tag',
+        'comment_content'       => 'Der Inhalt darf nicht leer sein',
     ],
 ];
