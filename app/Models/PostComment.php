@@ -78,7 +78,7 @@ class PostComment extends Model
 
     public function children()
     {
-        return $this->hasMany(self::class, 'comment_comment_p_id')->with('children')
+        return $this->hasMany(self::class, 'comment_comment_p_id')
             ->with('owner')->with('likes')->with('translations')->orderBy('comment_created_at' , 'desc')->orderBy('comment_like_num' , 'desc');
     }
 
