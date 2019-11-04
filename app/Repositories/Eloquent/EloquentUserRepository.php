@@ -60,10 +60,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         $followers = $object->followings()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
 
-        $user = userFollow();//重新获取当前登录用户信息
+        $userIds = $followers->pluck('user_id')->all(); //获取分页user id
 
-        $followers->each(function ($item, $key) use ($user) {
-            $item->auth = $user;
+        $followerIds = userFollow($userIds);//重新获取当前登录用户信息
+
+        $followers->each(function ($item, $key) use ($followerIds) {
+            $item->user_follow_state = in_array($item->user_id , $followerIds);
         });
         return $followers;
     }
@@ -72,10 +74,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         $followers = $object->followers()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
 
-        $user = userFollow();//重新获取当前登录用户信息
+        $userIds = $followers->pluck('user_id')->all(); //获取分页user id
 
-        $followers->each(function ($item, $key) use ($user) {
-            $item->auth = $user;
+        $followerIds = userFollow($userIds);//重新获取当前登录用户信息
+
+        $followers->each(function ($item, $key) use ($followerIds) {
+            $item->user_follow_state = in_array($item->user_id , $followerIds);
         });
         
         return $followers;

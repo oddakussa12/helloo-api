@@ -65,7 +65,7 @@ class PostCommentController extends BaseController
         $postUuid = $request->input('post_uuid');
         $commentContent = clean($request->input('comment_content' , ''));
         $commentPId = $request->input('comment_comment_p_id' , 0);
-        $post = app(PostRepository::class)->findByUuid($postUuid);
+        $post = app(PostRepository::class)->findOrFailByUuid($postUuid);
         $comment_image= $request->input('comment_image',array());
         $comment_image = \array_filter($comment_image , function($v , $k){
             return !empty($v);

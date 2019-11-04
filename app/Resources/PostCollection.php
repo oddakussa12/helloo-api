@@ -38,10 +38,7 @@ class PostCollection extends Resource
                     'post_default_content' => $this->post_default_content,
                     'post_content' => $this->post_decode_content,
                     'user_follow_state'=>auth()->check()&&auth()->id()!=$this->user_id?auth()->user()->isFollowing($this->user_id):false,
-                    'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
-                    'user_name'=>$this->owner->user_name,
-                    'user_avatar'=>$this->owner->user_avatar,
-                    'user_country'=>$this->owner->user_country,
+
                 ]);
             }),
             'post_country'=>$this->when(!($request->routeIs('post.hot')||$request->routeIs('notification.index')) , function (){
@@ -49,7 +46,11 @@ class PostCollection extends Resource
                     'total'=>collect($this->countryNum)->get('country_num' , 0),
                     'data'=>$this->countries
                 ]);
-            })
+            }),
+            'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
+            'user_name'=>$this->owner->user_name,
+            'user_avatar'=>$this->owner->user_avatar,
+            'user_country'=>$this->owner->user_country,
         ];
     }
 

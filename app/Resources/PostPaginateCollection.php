@@ -45,7 +45,7 @@ class PostPaginateCollection extends Resource
             'user_country'=>$this->owner->user_country,
 
             'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
-            'user_follow_state' => auth()->check()?$this->auth->isFollowing($this->user_id):false,
+            'user_follow_state' => $this->user_follow_state,
         ];
     }
 

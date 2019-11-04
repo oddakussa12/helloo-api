@@ -37,19 +37,21 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $postIds = $posts->pluck('post_id')->all();//获取post Id
 
+        $userIds = $posts->pluck('user_id')->all();//获取post Id
+
         $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接
 
         $topCountries = $this->topCountries($postIds);//评论国家sql拼接
 
         $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
-        $user = userFollow();//重新获取当前登录用户信息
+        $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $user , $topTwoComments) {
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments) {
             $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
             $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
             $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
-            $item->auth = $user;
+            $item->user_follow_state = in_array($item->user_id , $followers);
         });
         return $posts;
     }
@@ -118,19 +120,21 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
             $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
 
+            $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
+
             $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接开
 
             $topCountries = $this->topCountries($postIds);//评论国家sql拼接
 
             $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
-            $user = userFollow();//重新获取当前登录用户信息
+            $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $user , $topTwoComments) {
+            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments) {
                 $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
                 $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
                 $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
-                $item->auth = $user;
+                $item->user_follow_state = in_array($item->user_id , $followers);
             });
             return $posts->appends($appends);
         }elseif ($request->get('keywords') !== null) {

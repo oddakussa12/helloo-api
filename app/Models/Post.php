@@ -48,16 +48,11 @@ class Post extends Model
 
     protected $localeKey = 'post_locale';
 
-    protected $perPage = 8;
+    public $perPage = 10;
 
     public function comments()
     {
         return $this->hasMany(PostComment::class , 'post_id' , 'post_id');
-    }
-
-    public function topComments()
-    {
-        return $this->comments->take(10);
     }
 
     public function view()
@@ -81,8 +76,6 @@ class Post extends Model
     {
         return $this->belongsTo(User::class, 'user_id' , 'user_id')->withDefault();
     }
-
-
 
     public function ownedBy(User $user)
     {
