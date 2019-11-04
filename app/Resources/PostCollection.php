@@ -31,6 +31,7 @@ class PostCollection extends Resource
             'tags'=>$this->when($request->has('tag') , function (){
                 return TagCollection::collection($this->tags);
             }),
+            'post_media'=>$this->post_media,
             $this->mergeWhen($request->routeIs('post.show'), function (){
                 return collect([
                     'post_media'=>$this->post_media,
