@@ -13,6 +13,7 @@ use App\Models\PostComment;
 use App\Repositories\Contracts\PostCommentRepository;
 use App\Resources\PostCommentCollection;
 use Illuminate\Http\Response;
+use App\Jobs\PostCommentTranslation;
 use App\Http\Requests\StorePostCommentRequest;
 
 class PostCommentController extends BaseController
@@ -64,11 +65,18 @@ class PostCommentController extends BaseController
         $postUuid = $request->input('post_uuid');
         $commentContent = clean($request->input('comment_content' , ''));
         $commentPId = $request->input('comment_comment_p_id' , 0);
-        $post = app(PostRepository::class)->findByUuid($postUuid);
+        $post = app(PostRepository::class)->findOrFailByUuid($postUuid);
+        $comment_image= $request->input('comment_image',array());
+        $comment_image = \array_filter($comment_image , function($v , $k){
+            return !empty($v);
+        } , ARRAY_FILTER_USE_BOTH );
         if(isset($commentPId)&&$commentPId!=0)
         {
-            $this->postComment->find($commentPId);
-	    }
+            $comment_info = $this->postComment->find($commentPId);
+            $comment_to_id =$comment_info->user_id;
+	    }else{
+            $comment_to_id =$post->user_id;
+        }
         $contentLang = $this->translate->detectLanguage($commentContent);
         $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         $comment = array(
@@ -78,7 +86,9 @@ class PostCommentController extends BaseController
             'comment_comment_p_id'=>$commentPId,
             'comment_default_locale'=>$contentDefaultLang,
             'comment_verify'=>1,
-            'comment_verified_at'=>date('Y-m-d H:i:s')
+            'comment_verified_at'=>date('Y-m-d H:i:s'),
+            'comment_to_id'=>$comment_to_id,
+            'comment_image'=>\json_encode($comment_image),
         );
 //        foreach (supportedLocales() as $locale=>$properties)
 //        {
@@ -88,11 +98,18 @@ class PostCommentController extends BaseController
 //            }
 //        }
         dynamicSetLocales(array($contentDefaultLang));
-        $translation = $this->translate->customizeTrans($commentContent , $contentLang);
-//        $comment[$contentLang] = array('comment_content'=>$commentContent);
-        $comment = $comment+$translation;
+        //$translation = $this->translate->customizeTrans($commentContent , $contentLang);
+        $comment[$contentDefaultLang] = array('comment_content'=>$commentContent);
+        //$comment = $comment+$translation;
         $postComment = $this->postComment->store($comment);
         event(new PostCommentCreated($postComment));
+        $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
+        if(domain()!=domain(config('app.url')))
+        {
+            $this->dispatch($job->onQueue('test'));
+        }else{
+            $this->dispatch($job);
+        }
         return new PostCommentCollection($postComment);
     }
 
@@ -104,7 +121,7 @@ class PostCommentController extends BaseController
      */
     public function show($id)
     {
-        $one = $this->postComment->find($id);
+        $one = $this->postComment->findOrFail($id);
         $edit = $this->edit($id);
 
         return $edit;
@@ -117,14 +134,14 @@ class PostCommentController extends BaseController
 
     public function favorite($id)
     {
-        $comment = $this->postComment->find($id);
+        $comment = $this->postComment->findOrFail($id);
         auth()->user()->favorite($comment);
         return $this->response->noContent();
     }
 
     public function unfavorite($id)
     {
-        $comment = $this->postComment->find($id);
+        $comment = $this->postComment->findOrFail($id);
         auth()->user()->unfavorite($comment);
         return $this->response->noContent();
     }
@@ -142,21 +159,21 @@ class PostCommentController extends BaseController
 
     public function like($id)
     {
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         auth()->user()->like($postComment);
         return $this->response->noContent();
     }
 
     public function dislike($id)
     {
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         auth()->user()->unlike($postComment);
         return $this->response->noContent();
     }
 
     public function revokeVote($id)
     {
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         auth()->user()->revoke($postComment);
         return $this->response->noContent();
     }
@@ -183,7 +200,7 @@ class PostCommentController extends BaseController
     public function destroy($id)
     {
         //
-        $postComment = $this->postComment->find($id);
+        $postComment = $this->postComment->findOrFail($id);
         if($postComment->user_id!=auth()->id())
         {
             abort(401);

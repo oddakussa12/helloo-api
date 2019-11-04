@@ -23,8 +23,8 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     }
     public function findByPostUuid($request , $uuid)
     {
-        $post = app(PostRepository::class)->findByUuid($uuid);
-        $comments = $post->comments();
+        $post = app(PostRepository::class)->findOrFailByUuid($uuid);
+        $comments = $post->comments()->with('translations')->with('likes')->with('owner')->with('children');
         $comments->where('comment_comment_p_id', 0);
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
             $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
@@ -42,8 +42,10 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
     public function findByUserId($request , $user_id)
     {
-        return $this->model
-            ->where(['user_id'=>$user_id])
+        $comments = $this->allWithBuilder();
+        $comments = $comments->where('user_id' , $user_id);
+        $comments = $comments->with('likes')->with('owner')->without('children');
+        return $comments
             ->orderBy('comment_created_at', 'desc')
             ->orderByDesc('comment_like_num')
             ->paginate($this->perPage , ['*'] , $this->pageName);
@@ -56,9 +58,19 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             ->count();
     }
 
-    public function find($id)
+    public function findOrFail($id)
     {
         return $this->model->findOrFail($id);
+    }
+
+    public function find($id)
+    {
+        $comment = $this->model;
+        if (method_exists($this->model, 'translations')) {
+            $comment = $comment->with('translations');
+        }
+        $comment = $comment->with('owner')->with('likers')->find($id);
+        return $comment;
     }
 
 

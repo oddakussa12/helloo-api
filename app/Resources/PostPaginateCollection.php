@@ -25,20 +25,27 @@ class PostPaginateCollection extends Resource
             'post_type' => $this->post_type,
             'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
-            'post_rate' => $this->fire_rate,
-            //'translations' => PostTranslationCollection::collection($this->translations),
-            'post_like_state'=>$this->post_like_state,
-            'topTwoComments'=> $this->when(!($request->has('keywords')||$request->has('take')||$request->has('type')||$request->get('categoryId' , 'group')==1) , function (){
-                return $this->topComment();
+            'post_rate' => $this->when(!$request->has('keywords') , function(){
+                return $this->fire_rate;
             }),
-            'post_country'=> $this->country(),
+//            'translations' => PostTranslationCollection::collection($this->translations),
+//            'post_like_state'=>$this->post_like_state,
+            'topTwoComments'=> $this->when($request->get('home')==true||$request->routeIs('post.top') , function (){
+                return PostCommentCollection::collection($this->topTwoComments)->values()->all();
+            }),
+            'post_country'=> collect([
+                'total'=>collect($this->countryNum)->get('country_num' , 0),
+                'data'=>$this->countries
+            ]),
             'post_created_at'=> optional($this->post_created_at)->toDateTimeString(),
             'post_format_created_at'=> $this->post_format_created_at,
+
             'user_name'=>$this->owner->user_name,
             'user_avatar'=>$this->owner->user_avatar,
             'user_country'=>$this->owner->user_country,
+
             'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
-            'user_follow_state' => auth()->check()?auth()->user()->isFollowing($this->user_id):false,
+            'user_follow_state' => $this->user_follow_state,
         ];
     }
 
@@ -51,12 +58,7 @@ class PostPaginateCollection extends Resource
             ->where('post_id' , $this->post_id)
             ->groupBy('posts_comments.comment_country_id')
             ->orderBy('country_num' , 'desc')
+            ->orderBy('comment_created_at' , 'desc')
             ->paginate(7);
-    }
-
-    public function topComment()
-    {
-        $topTwoComments = app(PostCommentRepository::class)->topTwoComment($this->post_id);
-        return PostCommentCollection::collection($topTwoComments);
     }
 }

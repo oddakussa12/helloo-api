@@ -48,7 +48,7 @@ class Post extends Model
 
     protected $localeKey = 'post_locale';
 
-    protected $perPage = 8;
+    public $perPage = 10;
 
     public function comments()
     {
@@ -76,8 +76,6 @@ class Post extends Model
     {
         return $this->belongsTo(User::class, 'user_id' , 'user_id')->withDefault();
     }
-
-
 
     public function ownedBy(User $user)
     {

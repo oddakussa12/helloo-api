@@ -124,23 +124,23 @@ class UserController extends BaseController
 
     public function myFollow()
     {
-        return FollowCollection::collection($this->user->findFollowMe(auth()->user()));
+        return FollowCollection::collection($this->user->findMyFollow(auth()->user()));
     }
 
     public function followMe()
     {
-        return FollowCollection::collection($this->user->findMyFollow(auth()->user()));
+        return FollowCollection::collection($this->user->findFollowMe(auth()->user()));
     }
     public function otherMyFollow($user_id)
     {
         $user = $this->user->findByUuid($user_id);
-        return FollowCollection::collection($this->user->findFollowMe($user));
+        return FollowCollection::collection($this->user->findMyFollow($user));
     }
 
     public function otherFollowMe($user_id)
     {
         $user = $this->user->findByUuid($user_id);
-        return FollowCollection::collection($this->user->findMyFollow($user));
+        return FollowCollection::collection($this->user->findFollowMe($user));
     }
     public function myFollowRandTwo()
     {
@@ -150,15 +150,19 @@ class UserController extends BaseController
     }
 
     public function userRanking(Request $request){
-        $user_id = \Storage::get('events/userranking.txt');
-        $user_id = explode(',',$user_id);
         $user = array();
-        $userlist = UserCollection::collection($this->user->findUserRanking($user_id));
-        if(!empty($userlist)){
-            foreach ($user_id as $k => $v) {
-                foreach ($userlist as $key => $value) {
-                    if($value['user_id'] == $v){
-                        $user[] = $value;
+        $userFile = \Storage::exists('events/userranking.txt');
+        if($userFile)
+        {
+            $user_id = \Storage::get('events/userranking.txt');
+            $user_id = explode(',',$user_id);
+            $userlist = UserCollection::collection($this->user->findUserRanking($user_id));
+            if(!empty($userlist)){
+                foreach ($user_id as $k => $v) {
+                    foreach ($userlist as $key => $value) {
+                        if($value['user_id'] == $v){
+                            $user[] = $value;
+                        }
                     }
                 }
             }

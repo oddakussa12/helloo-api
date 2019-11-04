@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Post;
+use App\Services\TencentTranslateService;
 use Illuminate\Bus\Queueable;
 use App\Services\TranslateService;
 use Illuminate\Queue\SerializesModels;
@@ -22,6 +23,8 @@ class PostTranslation implements ShouldQueue
     private $post_content;
     private $postContentLang;
     private $postTitleLang;
+    private $postTitleDefaultLang;
+    private $postContentDefaultLang;
     /**
      * @var \Illuminate\Config\Repository
      */
@@ -33,16 +36,20 @@ class PostTranslation implements ShouldQueue
      * @param Post $post
      * @param $postTitleLang
      * @param $postContentLang
+     * @param $postTitleDefaultLang
+     * @param $postContentDefaultLang
      * @param $post_title
      * @param $post_content
      */
-    public function __construct(Post $post , $postTitleLang , $postContentLang , $post_title , $post_content)
+    public function __construct(Post $post , $postTitleLang , $postContentLang , $postTitleDefaultLang , $postContentDefaultLang , $post_title , $post_content)
     {
         $this->post = $post;
         $this->postTitleLang = $postTitleLang;
         $this->postContentLang = $postContentLang;
         $this->post_title = $post_title;
         $this->post_content = $post_content;
+        $this->postTitleDefaultLang = $postTitleDefaultLang;
+        $this->postContentDefaultLang = $postContentDefaultLang;
 
 
         if(auth()->user()->user_last_name!='test!@#qaz')
@@ -87,17 +94,38 @@ class PostTranslation implements ShouldQueue
             }else{
                 $t = $l;
             }
-            if(empty($postTitle)||$l==$this->postTitleLang)
+            if(empty($postTitle)||$l==$this->postTitleLang||$this->postTitleDefaultLang=='und')
             {
                 $title = $postTitle;
             }else{
-                $title = $translate->translate($postTitle , array('target'=>$t));
+                if(($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))
+                {
+                    $service = new TencentTranslateService();
+                    $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
+                    if($title===false)
+                    {
+                        $title = $translate->translate($postTitle , array('target'=>$t));
+                    }
+                }else{
+                    $title = $translate->translate($postTitle , array('target'=>$t));
+                }
             }
-            if(empty($postContent)||$l==$this->postContentLang)
+
+            if(empty($postContent)||$l==$this->postContentLang||$this->postContentDefaultLang=='und')
             {
                 $content = $postContent;
             }else{
-                $content = $translate->translate($postContent , array('target'=>$t , 'format'=>'html'));
+                if(($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))
+                {
+                    $service = new TencentTranslateService();
+                    $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
+                    if($content===false)
+                    {
+                        $content = $translate->translate($postContent , array('target'=>$t));
+                    }
+                }else {
+                    $content = $translate->translate($postContent, array('target' => $t, 'format' => 'html'));
+                }
             }
             $post->fill([
                 "{$l}"  => ['post_title' => $title , 'post_content'=>$content],

@@ -1,4 +1,6 @@
 <?php
+use App\Models\User;
+
 if (! function_exists('locale')) {
     function locale($locale = null)
     {
@@ -241,6 +243,20 @@ if (!function_exists('first_rate_comment_v2')) {
         return 1 / pow(2, $gravity);
     }
 }
+if (!function_exists('userFollow')) {
+
+    function userFollow($userIds)
+    {
+        if(auth()->check()&&!empty($userIds))
+        {
+            $followers = auth()->user()->followings()->whereIn('common_follows.followable_id' , $userIds)->pluck('user_id')->all();
+            return $followers;
+        }
+        return array();
+
+    }
+}
+
 
 if (!function_exists('getMyFollow')) {
 

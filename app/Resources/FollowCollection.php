@@ -24,7 +24,7 @@ class FollowCollection extends Resource
         	'user_country_id'=>$this->user_country_id,
         	'user_country'=>$this->user_country,
         	'user_follow_time'=>$this->pivot->created_at,
-        	'user_follow_state'=>auth()->check()?auth()->user()->isFollowing($this->user_id):false,
+        	'user_follow_state'=>$this->user_follow_state
         ];
 
     }

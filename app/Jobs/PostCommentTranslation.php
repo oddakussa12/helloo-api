@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use App\Services\TranslateService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Services\TencentTranslateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
@@ -17,19 +18,24 @@ class PostCommentTranslation implements ShouldQueue
 
     private $translate;
 
-    protected $datas;
+    protected $postComment;
+
+    protected $contentLang;
+
+    protected $commentContent;
 
     /**
      * Create a new job instance.
      *
-     * @return void
+     * @param PostComment $postComment
+     * @param $contentLang
+     * @param $commentContent
      */
-    public function __construct($data)
+    public function __construct(PostComment $postComment , $contentLang , $commentContent)
     {
-        //
-//        $this->translate = $translate;
-        $this->datas = $data;
-        file_put_contents('1.txt' , \json_encode($data));
+        $this->postComment = $postComment;
+        $this->contentLang = $contentLang;
+        $this->commentContent= $commentContent;
     }
 
     /**
@@ -39,13 +45,44 @@ class PostCommentTranslation implements ShouldQueue
      */
     public function handle()
     {
-        $data = $this->datas;
-
+        $language = $this->contentLang=='und'?'en':$this->contentLang;
+        $postComment = $this->postComment;
+        $commentContent = $this->commentContent;
         $translate = app(TranslateService::class);
-        foreach (supportedLocales() as $locale=>$properties)
+        $lang = config('translatable.locales');
+        $index = array_search($language , $lang);
+        if($index!==false)
         {
-            $comment[$locale] = array('comment_content'=>$translate->translate('我爱你' , array('target'=>$locale)));
+            unset($lang[$index]);
         }
-        file_put_contents('./notice1.txt', 'ID 为：'.$data['id'].PHP_EOL.'数据为：'.json_encode($comment).PHP_EOL, FILE_APPEND);
+        foreach ($lang as $l)
+        {
+            if($l=='zh-HK')
+            {
+                $t = 'zh-TW';
+            }else{
+                $t = $l;
+            }
+            if($this->contentLang=='und')
+            {
+                $content = $commentContent;
+            }else{
+                if(($language=='zh-CN'&&$t=='en')||($language=='en'&&$t=='zh-CN'))
+                {
+                    $service = new TencentTranslateService();
+                    $content = $service->translate($commentContent , array('source'=>$language , 'target'=>$t));
+                    if($content===false)
+                    {
+                        $content = $translate->translate($commentContent , array('target'=>$t));
+                    }
+                }else{
+                    $content = $translate->translate($commentContent , array('target'=>$t));
+                }
+            }
+            $postComment->fill([
+                "{$l}"  => ['comment_content' => $content],
+            ]);
+            $postComment->save();
+        }
     }
 }

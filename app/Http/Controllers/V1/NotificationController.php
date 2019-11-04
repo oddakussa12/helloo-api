@@ -61,7 +61,7 @@ class NotificationController extends BaseController
         }elseif ($type=='comment'){
             if(auth()->check())
             {
-                $message = auth()->user()->getNotificationRelation()
+                $message = auth()->user()->getNotificationRelation()->with('category')->with('from')->with('to')
                     ->whereIn('category_id', [5 , 6])
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')

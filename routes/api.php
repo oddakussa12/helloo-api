@@ -31,8 +31,8 @@ $api->group($V1Params , function ($api){
         $api->get('test' , 'AuthController@test');
         $api->get('post/user/{user}' , 'PostController@showPostByUser');
 
-        $api->get('post/top' , 'PostController@showTopList');
-        $api->get('post/hot' , 'PostController@hot');
+        $api->get('post/top' , 'PostController@top')->name('post.top');
+        $api->get('post/hot' , 'PostController@hot')->name('post.hot');
 
         $api->get('login/google', 'AuthController@redirectToProvider');
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback');
@@ -94,8 +94,8 @@ $api->group($V1Params , function ($api){
         $api->get('postComment/user/{user}' , 'PostCommentController@showPostCommentByUser');
         $api->get('postComment/like/{user}' , 'PostCommentController@showPostCommentLikeByUser');
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]);
-        $api->get('post/{uuid}' , 'PostController@showByUuid');
-        $api->get('notification' , 'NotificationController@index');
+        $api->get('post/{uuid}' , 'PostController@showByUuid')->name('post.show');
+        $api->get('notification' , 'NotificationController@index')->name('notification.index');
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);
         $api->get('tag/hot' , 'TagController@hot');
         $api->get('event' , 'EventController@index');

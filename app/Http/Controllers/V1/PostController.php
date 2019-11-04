@@ -132,7 +132,8 @@ class PostController extends BaseController
         $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
         if(empty($post_content))
         {
-            $post_content_default_locale = $postContentLang = 'en';
+            $postContentLang = 'und';
+            $post_content_default_locale = 'en';
         }else{
             $postContentLang = $this->translate->detectLanguage($post_content);
             $post_content_default_locale = $postContentLang=='und'?'en':$postContentLang;
@@ -172,7 +173,7 @@ class PostController extends BaseController
         {
             $post->attachTags($tag_slug); 
         }
-	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $post_title , $post_content);
+	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content);
 	    if(domain()!=domain(config('app.url')))
         {
             $this->dispatch($job->onQueue('test'));
@@ -243,9 +244,9 @@ class PostController extends BaseController
         return $this->response->noContent();
     }
 
-    public function showTopList(Request $request)
+    public function top(Request $request)
     {
-        return PostCollection::collection($this->post->top($request));
+        return PostPaginateCollection::collection($this->post->top($request));
     }
     public function hot(Request $request)
     {
