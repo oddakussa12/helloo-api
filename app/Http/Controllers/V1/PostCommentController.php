@@ -70,16 +70,25 @@ class PostCommentController extends BaseController
         $comment_image = \array_filter($comment_image , function($v , $k){
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
+        if(empty($commentContent)&&empty($comment_image))
+        {
+            abort(422 , trans('validation.comment_content'));
+        }
         if(isset($commentPId)&&$commentPId!=0)
         {
-            $comment_info = $this->postComment->find($commentPId);
+            $comment_info = $this->postComment->findOrFail($commentPId);
             $comment_to_id =$comment_info->user_id;
 	    }else{
             $comment_to_id =$post->user_id;
         }
+        if(empty($commentContent))
+        {
+            $contentDefaultLang = $contentLang = 'en';
+        }else{
+            $contentLang = $this->translate->detectLanguage($commentContent);
+            $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
+        }
 
-        $contentLang = $this->translate->detectLanguage($commentContent);
-        $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         $comment = array(
             'post_id'=>$post->post_id,
             'user_id'=>auth()->id(),
@@ -91,26 +100,26 @@ class PostCommentController extends BaseController
             'comment_to_id'=>$comment_to_id,
             'comment_image'=>\json_encode($comment_image),
         );
-//        foreach (supportedLocales() as $locale=>$properties)
-//        {
-//            if($contentLang!=$locale)
-//            {
-//                $comment[$locale] = array('comment_content'=>$this->translate->translate($commentContent , array('target'=>$locale)));
-//            }
-//        }
-        dynamicSetLocales(array($contentDefaultLang));
-        //$translation = $this->translate->customizeTrans($commentContent , $contentLang);
-        $comment[$contentDefaultLang] = array('comment_content'=>$commentContent);
-        //$comment = $comment+$translation;
-        $postComment = $this->postComment->store($comment);
-        event(new PostCommentCreated($postComment));
-        $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
-        if(domain()!=domain(config('app.url')))
+
+        if(empty($commentContent))
         {
-            $this->dispatch($job->onQueue('test'));
+            $postComment = $this->postComment->store($comment);
         }else{
-            $this->dispatch($job);
+            dynamicSetLocales(array($contentDefaultLang));
+
+            $comment[$contentDefaultLang] = array('comment_content'=>$commentContent);
+
+            $postComment = $this->postComment->store($comment);
+            event(new PostCommentCreated($postComment));
+            $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
+            if(domain()!=domain(config('app.url')))
+            {
+                $this->dispatch($job->onQueue('test'));
+            }else{
+                $this->dispatch($job);
+            }
         }
+
         return new PostCommentCollection($postComment);
     }
 

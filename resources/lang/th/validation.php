@@ -177,5 +177,6 @@ return [
         'post_title'            => 'โพสต์ชื่อ',
         'post_content'          => 'โพสต์เนื้อหา',
         'tag_slug'              => 'โพสต์แท็ก',
+        'comment_content'       => 'เนื้อหาต้องไม่ว่างเปล่า',
     ],
 ];

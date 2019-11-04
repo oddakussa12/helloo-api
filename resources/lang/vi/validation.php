@@ -181,6 +181,7 @@ return [
         'post_title'            => 'Tiêu đề bài',
         'post_content'          => 'Đăng nội dung',
         'tag_slug'              => 'Thẻ bài',
+        'comment_content'       => 'Nội dung không thể để trống',
     ],
 
 ];

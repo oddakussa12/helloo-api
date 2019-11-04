@@ -177,5 +177,6 @@ return [
         'post_title'            => '役職',
         'post_content'          => '投稿内容',
         'tag_slug'              => '投稿タグ',
+        'comment_content'       => 'コンテンツを空にすることはできません',
     ],
 ];
