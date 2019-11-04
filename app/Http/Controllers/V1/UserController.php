@@ -150,15 +150,19 @@ class UserController extends BaseController
     }
 
     public function userRanking(Request $request){
-        $user_id = \Storage::get('events/userranking.txt');
-        $user_id = explode(',',$user_id);
         $user = array();
-        $userlist = UserCollection::collection($this->user->findUserRanking($user_id));
-        if(!empty($userlist)){
-            foreach ($user_id as $k => $v) {
-                foreach ($userlist as $key => $value) {
-                    if($value['user_id'] == $v){
-                        $user[] = $value;
+        $userFile = \Storage::exists('events/userranking.txt');
+        if($userFile)
+        {
+            $user_id = \Storage::get('events/userranking.txt');
+            $user_id = explode(',',$user_id);
+            $userlist = UserCollection::collection($this->user->findUserRanking($user_id));
+            if(!empty($userlist)){
+                foreach ($user_id as $k => $v) {
+                    foreach ($userlist as $key => $value) {
+                        if($value['user_id'] == $v){
+                            $user[] = $value;
+                        }
                     }
                 }
             }
