@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\PostComment;
 use App\Models\Country;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
@@ -81,25 +82,25 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function paginateAll(Request $request)
     {
         $appends = array();
-        $posts = $this->allWithBuilder();
-
+        if($request->get('tag')!==null)
+        {
+            $tag = $request->get('tag');
+            $tag = Tag::findFromString($tag);
+            $posts = $tag->posts();
+            $posts = $posts->with('translations');
+        }else{
+            $posts = $this->allWithBuilder();
+        }
         $posts = $posts->with('owner');
         if ($request->get('home')!== null){
             $appends['home'] = $request->get('home');
             $posts = $posts->where('post_topping' , 0);
             $posts = $posts->with('viewCount');
-            if($request->get('tag')!==null)
-            {
-                $tag = $request->get('tag');
-                $appends['tag'] = $tag;
-                $posts = $posts->withAnyTags([$tag]);
-            }
             if($request->get('follow')!== null&&auth()->check())
             {
                 $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
                 $posts = $posts->whereIn('user_id',$userIds);
             }
-
             if ($request->get('keywords') !== null) {
                 $keywords = $request->get('keywords');
                 $appends['keywords'] = $keywords;

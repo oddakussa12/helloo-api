@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\EloquentSortable\SortableTrait;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\Collection as DbCollection;
 
 class Tag extends Model implements Sortable
@@ -107,5 +108,11 @@ class Tag extends Model implements Sortable
 //        }
 
         return parent::setAttribute($key, $value);
+    }
+
+    public function posts(): MorphToMany
+    {
+        return $this
+            ->morphedByMany(Post::class, 'taggable' , 'taggables' , 'tag_id' , 'taggable_id');
     }
 }
