@@ -72,7 +72,7 @@ class PostCommentController extends BaseController
         } , ARRAY_FILTER_USE_BOTH );
         if(empty($commentContent)&&empty($comment_image))
         {
-            abort(422 , trans('validation.comment_content'));
+            abort(422 , trans('validation.attributes.comment_content'));
         }
         if(isset($commentPId)&&$commentPId!=0)
         {
