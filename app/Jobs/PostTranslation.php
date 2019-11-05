@@ -98,7 +98,7 @@ class PostTranslation implements ShouldQueue
             {
                 $title = $postTitle;
             }else{
-                if(($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))
+                if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($this->postTitleLang))<=1024)
                 {
                     $service = new TencentTranslateService();
                     $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
@@ -115,7 +115,7 @@ class PostTranslation implements ShouldQueue
             {
                 $content = $postContent;
             }else{
-                if(($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))
+                if((($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))&&strlen(trim($this->postContentLang))<=1024)
                 {
                     $service = new TencentTranslateService();
                     $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
