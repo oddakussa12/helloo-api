@@ -29,8 +29,8 @@ trait CanBeLiked
                 return $this->likers->where($user->getKeyName(), $user->getKey())->first();
             }
 
-            return tap($this->relationLoaded('likes') ? $this->likes : $this->likes())
-                    ->where(\config('like.user_foreign_key'), $user->getKey())->first();
+            return tap($this->relationLoaded('likers') ? $this->likers : $this->likers())
+                    ->where($user->getTable().'.'.$user->getKeyName(), $user->getKey())->first();
         }
 
         return false;
@@ -52,6 +52,7 @@ trait CanBeLiked
     public function likers()
     {
         return $this->belongsToMany(config('auth.providers.users.model'), config('like.likes_table'), 'likable_id', config('like.user_foreign_key'))
+            ->withPivot(['likable_id', 'user_id', 'likable_state'])
             ->where('likable_type', static::class);
     }
 }

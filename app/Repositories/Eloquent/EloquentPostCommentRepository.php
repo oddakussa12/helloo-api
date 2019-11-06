@@ -24,7 +24,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     public function findByPostUuid($request , $uuid)
     {
         $post = app(PostRepository::class)->findOrFailByUuid($uuid);
-        $comments = $post->comments()->with('translations')->with('likes')->with('owner')->with('children');
+        $comments = $post->comments()->with('translations')->with('likers')->with('owner')->with('children');
         $comments->where('comment_comment_p_id', 0);
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
             $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
