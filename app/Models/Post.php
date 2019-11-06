@@ -213,6 +213,11 @@ class Post extends Model
         return $rate;
     }
 
+    public function getPostViewNumAttribute()
+    {
+        return $this->viewCount->post_view_num;
+    }
+
     public function getFireRateAttribute()
     {
         $fire = $this->viewCount->post_view_num+$this->post_comment_num;

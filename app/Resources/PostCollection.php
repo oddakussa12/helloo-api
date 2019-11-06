@@ -22,6 +22,7 @@ class PostCollection extends Resource
             'post_title' => $this->post_decode_title,
             'post_type' => $this->post_type,
 //            'post_rate' => $this->fire_rate,
+            'post_view_num' => $this->post_view_num,
             'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
             //'translations' => PostTranslationCollection::collection($this->translations),
