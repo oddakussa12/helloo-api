@@ -261,7 +261,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return PostComment::whereIn('comment_id',$topTwoCommentIds)
             ->with('translations')
             ->with('owner')
-            ->with('likes')->get();
+            ->with('likers')->get();
     }
 
     public function topCountries($postIds)

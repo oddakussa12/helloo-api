@@ -79,7 +79,7 @@ class PostComment extends Model
     public function children()
     {
         return $this->hasMany(self::class, 'comment_comment_p_id')
-            ->with('owner')->with('likes')->with('translations')->orderBy('comment_created_at' , 'desc')->orderBy('comment_like_num' , 'desc');
+            ->with('owner')->with('likers')->with('translations')->orderBy('comment_created_at' , 'desc')->orderBy('comment_like_num' , 'desc');
     }
 
 
@@ -95,9 +95,10 @@ class PostComment extends Model
 
     public function getCommentLikeStateAttribute()
     {
-        if(auth()->check()&&$this->isLikedBy(auth()->user()))
+        if(auth()->check())
         {
-            return $this->isLikedBy(auth()->user())->likable_state;
+            $likeBy = $this->isLikedBy(auth()->user());
+            return empty($likeBy)?false:$likeBy->pivot->likable_state;
         }
         return false;
     }
