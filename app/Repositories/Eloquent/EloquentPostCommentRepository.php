@@ -44,7 +44,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     {
         $comments = $this->allWithBuilder();
         $comments = $comments->where('user_id' , $user_id);
-        $comments = $comments->with('likes')->with('owner')->without('children')->with('post');
+        $comments = $comments->with('likes')->with('owner')->without('children')->whereHas('post');
         return $comments
             ->orderBy('comment_created_at', 'desc')
             ->orderByDesc('comment_like_num')
