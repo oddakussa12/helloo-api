@@ -42,7 +42,7 @@ class Like extends Model
 
     public function likable()
     {
-        return $this->morphTo()->with('owner')->with('translations')->with('likes');
+        return $this->morphTo()->with('owner')->with('translations')->with('likes')->with('post');;
     }
 
     /**

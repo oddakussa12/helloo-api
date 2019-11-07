@@ -22,7 +22,6 @@ class PostCollection extends Resource
             'post_title' => $this->post_decode_title,
             'post_type' => $this->post_type,
 //            'post_rate' => $this->fire_rate,
-            'post_view_num' => $this->post_view_num,
             'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
             //'translations' => PostTranslationCollection::collection($this->translations),
@@ -32,7 +31,6 @@ class PostCollection extends Resource
             'tags'=>$this->when($request->has('tag') , function (){
                 return TagCollection::collection($this->tags);
             }),
-            'post_media'=>$this->post_media,
             $this->mergeWhen($request->routeIs('post.show'), function (){
                 return collect([
                     'post_media'=>$this->post_media,
@@ -49,10 +47,20 @@ class PostCollection extends Resource
                     'data'=>$this->countries
                 ]);
             }),
-            'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
-            'user_name'=>$this->owner->user_name,
-            'user_avatar'=>$this->owner->user_avatar,
-            'user_country'=>$this->owner->user_country,
+            $this->mergeWhen($request->routeIs('post.show'), function (){
+                return collect([
+                    'post_media'=>$this->post_media,
+                    'post_view_num' => $this->post_view_num,
+                ]);
+            }),
+            $this->mergeWhen(!$request->routeIs('post.hot'), function (){
+                return collect([
+                    'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
+                    'user_name'=>$this->owner->user_name,
+                    'user_avatar'=>$this->owner->user_avatar,
+                    'user_country'=>$this->owner->user_country,
+                ]);
+            }),
         ];
     }
 
