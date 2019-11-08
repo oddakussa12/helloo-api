@@ -16,7 +16,7 @@ use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Faker\Factory;
-
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends BaseController
 {
@@ -127,7 +127,7 @@ class AuthController extends BaseController
         }
         return $credentials;
     }
-    
+
 
     public function me(Request $request)
     {
@@ -222,7 +222,43 @@ class AuthController extends BaseController
         }
     }
 
+    public function guestSignUp(Request $request)
+    {
+        $request_fields = $request->only(['country' , 'country_code']);
+        $user_name = $this->randUsername($request_fields['country']);
+        $request_fields['name'] = $user_name;
+        $user_fields[$this->user->getDefaultNameField()] = $request_fields['name'];
+        $user_fields[$this->user->getDefaultEmailField()] = $request_fields['name'].'@yooul.com';
+        $user_fields[$this->user->getDefaultPasswordField()] = $request_fields['name'].'mantou';
+        $user_fields['user_ip_address'] = getRequestIpAddress();
+        $user_fields['user_uuid'] = Uuid::uuid1();
+        $user_fields['user_is_guest'] = 1;
+        $addresses = geoip($user_fields['user_ip_address']);
+        if($request->has('country_code'))
+        {
+            $user_fields['user_country_id'] = $request->input('country_code');
+        }else{
+            $user_fields['user_country_id'] = $addresses->iso_code;
+        }
+        $user = $this->user->store($user_fields);
+        if ($user) {
+            // event(new SignupEvent($user , $addresses));
+            $token = auth()->login($user);
+            return $this->respondWithToken($token);
+        }
+        throw new StoreResourceFailedException('sign up failed');
+    }
 
+    public function randUsername($country){
+        $return_string = '';
+        $tmpstr = substr(md5(microtime(true)), 0, 6);
+        $num = mt_rand(2,9);
+
+        $randusername = $country.$num.$tmpstr;
+
+        return $randusername;
+
+    }
 
 
 }

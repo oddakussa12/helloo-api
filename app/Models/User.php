@@ -53,6 +53,7 @@ class User extends Authenticatable implements JWTSubject
         'user_active' ,
         'user_admin' ,
         'user_verified' ,
+        'user_is_guest' ,
         'user_is_pro' ,
         'user_age_changed' ,
         'user_ip_address' ,
@@ -167,7 +168,6 @@ class User extends Authenticatable implements JWTSubject
         }
         $this->attributes['user_country_id'] = $index;
     }
-
 
 
 
