@@ -44,6 +44,8 @@ $api->group($V1Params , function ($api){
     });
 
     $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
+    //游客模式生成用户
+    $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');
     $api->post('user/signIn' , 'AuthController@signIn')->name('sign.in');
     $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
 
