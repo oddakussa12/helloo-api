@@ -20,10 +20,11 @@ class OperationLog extends BaseMiddleware
     {
         if(auth()->check())
         {
+            $chinaNow = strtotime(Carbon::now('Asia/Shanghai'));
             $user_id = (int) auth()->id();
             $operation = Operation::where('user_id' , $user_id)
-                                    ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00'))
-                                    ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59'))
+                                    ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , $chinaNow))
+                                    ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , $chinaNow))
                                     ->exists();
             if(!$operation)
             {

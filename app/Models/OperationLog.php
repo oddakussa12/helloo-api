@@ -21,5 +21,11 @@ class OperationLog extends Model
     public function setUpdatedAt($value)
     {
     }
+    public function setCreatedAt($value)
+    {
+        $this->{static::CREATED_AT} = Carbon::now('Asia/Shanghai');
+
+        return $this;
+    }
 
 }
