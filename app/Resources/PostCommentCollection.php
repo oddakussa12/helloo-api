@@ -36,7 +36,7 @@ class PostCommentCollection extends Resource
             'children' => $this->when($request->children==true , function(){
                 return self::collection($this->children);
             }),
-            'post_uuid'=>$this->when(!$request->routeIs('post.index')&&!empty($this->post), function (){
+            'post_uuid'=>$this->when(!($request->routeIs('post.index')||$request->routeIs('post.top'))&&!empty($this->post), function (){
                 return $this->post->post_uuid;
             })
         ];
