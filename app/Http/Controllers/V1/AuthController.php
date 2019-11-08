@@ -225,19 +225,19 @@ class AuthController extends BaseController
     public function guestSignUp(Request $request)
     {
         $request_fields = $request->only(['country']);
+        $user_fields['user_ip_address'] = getRequestIpAddress();
         $addresses = geoip($user_fields['user_ip_address']);
-        if($request->has($request_fields['country']))
+        if(!empty($request_fields['country']))
         {
             $user_fields['country'] = $request_fields['country'];
         }else{
             $user_fields['country'] = $addresses->iso_code;
         }
-        $user_name = $this->randUsername($request_fields['country']);
+        $user_name = $this->randUsername(strtoupper($request_fields['country']));
         $request_fields['name'] = $user_name;
         $user_fields[$this->user->getDefaultNameField()] = $request_fields['name'];
         $user_fields[$this->user->getDefaultEmailField()] = $request_fields['name'].'@yooul.com';
         $user_fields[$this->user->getDefaultPasswordField()] = $request_fields['name'].'mantou';
-        $user_fields['user_ip_address'] = getRequestIpAddress();
         $user_fields['user_uuid'] = Uuid::uuid1();
         $user_fields['user_is_guest'] = 1;
         $user = $this->user->store($user_fields);
