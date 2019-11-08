@@ -233,7 +233,7 @@ class AuthController extends BaseController
         }else{
             $user_fields['country'] = $addresses->iso_code;
         }
-        $user_name = $this->randUsername(strtoupper($request_fields['country']));
+        $user_name = $this->randUsername(strtoupper($user_fields['country']));
         $request_fields['name'] = $user_name;
         $user_fields[$this->user->getDefaultNameField()] = $request_fields['name'];
         $user_fields[$this->user->getDefaultEmailField()] = $request_fields['name'].'@yooul.com';
