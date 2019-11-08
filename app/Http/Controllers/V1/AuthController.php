@@ -229,11 +229,11 @@ class AuthController extends BaseController
         $addresses = geoip($user_fields['user_ip_address']);
         if(!empty($request_fields['country']))
         {
-            $user_fields['country'] = $request_fields['country'];
+            $user_fields['user_country_id'] = $request_fields['country'];
         }else{
-            $user_fields['country'] = $addresses->iso_code;
+            $user_fields['user_country_id'] = $addresses->iso_code;
         }
-        $user_name = $this->randUsername(strtoupper($user_fields['country']));
+        $user_name = $this->randUsername(strtoupper($user_fields['user_country_id']));
         $request_fields['name'] = $user_name;
         $user_fields[$this->user->getDefaultNameField()] = $request_fields['name'];
         $user_fields[$this->user->getDefaultEmailField()] = $request_fields['name'].'@yooul.com';
