@@ -224,7 +224,14 @@ class AuthController extends BaseController
 
     public function guestSignUp(Request $request)
     {
-        $request_fields = $request->only(['country' , 'country_code']);
+        $request_fields = $request->only(['country']);
+        $addresses = geoip($user_fields['user_ip_address']);
+        if($request->has($request_fields['country']))
+        {
+            $user_fields['country'] = $request_fields['country'];
+        }else{
+            $user_fields['country'] = $addresses->iso_code;
+        }
         $user_name = $this->randUsername($request_fields['country']);
         $request_fields['name'] = $user_name;
         $user_fields[$this->user->getDefaultNameField()] = $request_fields['name'];
@@ -233,16 +240,9 @@ class AuthController extends BaseController
         $user_fields['user_ip_address'] = getRequestIpAddress();
         $user_fields['user_uuid'] = Uuid::uuid1();
         $user_fields['user_is_guest'] = 1;
-        $addresses = geoip($user_fields['user_ip_address']);
-        if($request->has('country_code'))
-        {
-            $user_fields['user_country_id'] = $request->input('country_code');
-        }else{
-            $user_fields['user_country_id'] = $addresses->iso_code;
-        }
         $user = $this->user->store($user_fields);
         if ($user) {
-            // event(new SignupEvent($user , $addresses));
+            event(new SignupEvent($user , $addresses));
             $token = auth()->login($user);
             return $this->respondWithToken($token);
         }
@@ -251,10 +251,13 @@ class AuthController extends BaseController
 
     public function randUsername($country){
         $return_string = '';
+        if(empty($country)){$country = 'unk';}
         $tmpstr = substr(md5(microtime(true)), 0, 6);
+        $rang = array('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3','4','5','6','7','8','9');
+        $rang = $rang[mt_rand(0,61)];
         $num = mt_rand(2,9);
 
-        $randusername = $country.$num.$tmpstr;
+        $randusername = $country.$num.$rang.$tmpstr;
 
         return $randusername;
 
