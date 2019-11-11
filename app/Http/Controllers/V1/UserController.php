@@ -104,7 +104,7 @@ class UserController extends BaseController
 
     public function follow($user_id)
     {
-        $user = $this->user->findByWhere(['user_id'=>$user_id]);
+        $user = $this->user->findOrFail($user_id);
         auth()->user()->follow($user);
         event(new Follow($user));
         return $this->response->noContent();
@@ -112,7 +112,7 @@ class UserController extends BaseController
 
     public function unfollow($user_id)
     {
-        $user = $this->user->findByWhere(['user_id'=>$user_id]);
+        $user = $this->user->findOrFail($user_id);
         auth()->user()->unfollow($user);
         event(new UnFollow($user));
         return $this->response->noContent();
@@ -129,13 +129,13 @@ class UserController extends BaseController
     }
     public function otherMyFollow($user_id)
     {
-        $user = $this->user->findByUuid($user_id);
+        $user = $this->user->findOrFail($user_id);
         return FollowCollection::collection($this->user->findMyFollow($user));
     }
 
     public function otherFollowMe($user_id)
     {
-        $user = $this->user->findByUuid($user_id);
+        $user = $this->user->findOrFail($user_id);
         return FollowCollection::collection($this->user->findFollowMe($user));
     }
     public function myFollowRandTwo()

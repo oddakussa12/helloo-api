@@ -49,16 +49,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where(array('user_'.$oauth=>$id))->first();
     }
 
-    public function findByUuid($user_id)
-    {
-        return $this->model->where('user_id', $user_id)->firstOrFail();
-    }
-
-    public function findByWhere($where)
-    {
-        return $this->model->where($where)->first();
-    }
-
     public function findMyFollow($object)
     {
         $followers = $object->followings()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
@@ -71,6 +61,11 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $item->user_follow_state = in_array($item->user_id , $followerIds);
         });
         return $followers;
+    }
+
+    public function findByWhere($where)
+    {
+        return $this->model->where($where)->first();
     }
 
     public function findFollowMe($object)

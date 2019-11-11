@@ -31,6 +31,7 @@ class UserCollection extends Resource
             'user_avatar'=>$this->user_avatar,
 //            'user_cover'=>$this->user_cover,
             'user_country'=>$this->user_country,
+            'user_is_guest'=>$this->user_is_guest,
             'user_follow_state' => $this->when(true , function () use ($request){
                 if($request->routeIs('user.rank'))
                 {
