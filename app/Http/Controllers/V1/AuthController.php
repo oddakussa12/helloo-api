@@ -111,6 +111,7 @@ class AuthController extends BaseController
                 'user_avatar'=>$user->user_avatar,
                 'user_email'=>$user->user_email,
                 'user_country'=>$user->user_country,
+                'user_is_guest'=>$user->user_is_guest,
             )
         ]);
     }
