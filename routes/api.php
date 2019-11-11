@@ -92,7 +92,7 @@ $api->group($V1Params , function ($api){
         $api->get('notification/{id}' , 'NotificationController@detail')->name('notice.detail');
     });
     $api->group(['middleware'=>['guestRefresh' , 'operationLog']] , function($api){
-        $api->get('user/userranking' , 'UserController@userRanking')->name('user.rank');
+        $api->get('user/userranking' , 'UserController@rank')->name('user.rank');
 
         $api->get('postComment/user/{user}' , 'PostCommentController@showPostCommentByUser')->name('show.comment.by.user');
 

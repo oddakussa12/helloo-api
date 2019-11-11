@@ -31,11 +31,26 @@ class UserCollection extends Resource
             'user_avatar'=>$this->user_avatar,
             'user_cover'=>$this->user_cover,
             'user_country'=>$this->user_country,
-            'user_follow_state' => auth()->check()?auth()->user()->isFollowing($this->user_id):false,
-            'user_followme_count' =>$this->followers()->count(),
-            'user_myfollow_count' => $this->followings()->count(),
-            'user_post_count' => app(PostRepository::class)->getCountByUserId($request , $this->user_id),
-            'user_comment_count' => app(PostCommentRepository::class)->getCountByUserId($request , $this->user_id),
+            'user_follow_state' => $this->when(true , function () use ($request){
+                if($request->routeIs('user.rank'))
+                {
+                    return $this->user_follow_state;
+                }else{
+                    return auth()->check()?auth()->user()->isFollowing($this->user_id):false;
+                }
+            }),
+            'user_followme_count' =>$this->when($request->routeIs('user.show') , function (){
+                return $this->followers()->count();
+            }),
+            'user_myfollow_count' =>$this->when($request->routeIs('user.show') , function (){
+                return $this->followings()->count();
+            }),
+            'user_post_count' => $this->when($request->routeIs('user.show') , function ($request){
+                return app(PostRepository::class)->getCountByUserId($request , $this->user_id);
+            }),
+            'user_comment_count' => $this->when($request->routeIs('user.show') , function ($request){
+                return app(PostCommentRepository::class)->getCountByUserId($request , $this->user_id);
+            }),
         ];
     }
 }

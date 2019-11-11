@@ -101,10 +101,6 @@ class UserController extends BaseController
         //
     }
 
-    public function showPrivateUser($id)
-    {
-        return new UserCollection($this->user->find($id));
-    }
 
     public function follow($user_id)
     {
@@ -149,26 +145,9 @@ class UserController extends BaseController
         return $userfollowrandtwo;
     }
 
-    public function userRanking(Request $request){
-        $user = array();
-        $userFile = \Storage::exists('events/userranking.txt');
-        if($userFile)
-        {
-            $user_id = \Storage::get('events/userranking.txt');
-            $user_id = explode(',',$user_id);
-            $userlist = UserCollection::collection($this->user->findUserRanking($user_id));
-            if(!empty($userlist)){
-                foreach ($user_id as $k => $v) {
-                    foreach ($userlist as $key => $value) {
-                        if($value['user_id'] == $v){
-                            $user[] = $value;
-                        }
-                    }
-                }
-            }
-        }
-        return $user;
-
+    public function rank(Request $request)
+    {
+        return UserCollection::collection($this->user->getUserRank());
     }
 
     public function getQiniuUploadToken(Request $request)
