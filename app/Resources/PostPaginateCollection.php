@@ -46,6 +46,7 @@ class PostPaginateCollection extends Resource
 
             'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
             'user_follow_state' => $this->user_follow_state,
+            'user_is_guest' => $this->user_is_guest,
         ];
     }
 

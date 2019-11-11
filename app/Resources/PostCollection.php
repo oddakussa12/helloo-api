@@ -59,6 +59,7 @@ class PostCollection extends Resource
                     'user_name'=>$this->owner->user_name,
                     'user_avatar'=>$this->owner->user_avatar,
                     'user_country'=>$this->owner->user_country,
+                    'user_is_guest' => $this->user_is_guest,
                 ]);
             }),
         ];
