@@ -171,7 +171,7 @@ class PostController extends BaseController
         $post = $this->post->store($post_info);
 	    if(!empty($tag_slug))
         {
-            $post->attachTags($tag_slug); 
+            $post->attachTags($tag_slug);
         }
 	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content);
 	    if(domain()!=domain(config('app.url')))

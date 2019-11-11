@@ -43,10 +43,10 @@ class PostPaginateCollection extends Resource
             'user_name'=>$this->owner->user_name,
             'user_avatar'=>$this->owner->user_avatar,
             'user_country'=>$this->owner->user_country,
+            'user_is_guest' => $this->owner->user_is_guest,
 
             'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
             'user_follow_state' => $this->user_follow_state,
-            'user_is_guest' => $this->user_is_guest,
         ];
     }
 

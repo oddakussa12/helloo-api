@@ -31,6 +31,7 @@ class PostCommentCollection extends Resource
             'user_id'=>$this->owner->user_id,
             'user_avatar'=>$this->owner->user_avatar,
             'user_country'=>$this->owner->user_country,
+            'user_is_guest' => $this->owner->user_is_guest,
 
             'comment_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
             'children' => $this->when($request->children==true , function(){
