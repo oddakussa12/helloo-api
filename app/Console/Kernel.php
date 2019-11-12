@@ -14,7 +14,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         //
-        \App\Console\Commands\CalculatingRete::class,
+//        \App\Console\Commands\CalculatingRete::class,
+        \App\Console\Commands\GenerateUserRank::class,
     ];
 
     /**
@@ -27,8 +28,10 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')
         //          ->hourly();
-        $schedule->command('calculating:rate')
-            ->everyFifteenMinutes();
+//        $schedule->command('calculating:rate')
+//            ->everyFifteenMinutes();
+        $schedule->command('generate:user_rank')
+            ->daily();
     }
 
     /**

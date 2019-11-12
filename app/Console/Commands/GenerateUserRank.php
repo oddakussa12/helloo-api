@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\Contracts\UserRepository;
 
@@ -39,6 +40,7 @@ class GenerateUserRank extends Command
      */
     public function handle()
     {
+        Log::info('-----------清空排行榜-----------');
         Cache::forget('user_rank');
         app(UserRepository::class)->getActiveUserId();
     }
