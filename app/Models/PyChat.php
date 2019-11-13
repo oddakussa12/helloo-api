@@ -21,7 +21,7 @@ class PyChat extends Model
 
     protected $primaryKey = 'chat_id';
 
-    public $translatedAttributes = ['chat_locale' , 'chat_massage' ];
+    public $translatedAttributes = ['chat_locale' , 'chat_message' ];
 
     protected $fillable = [
         'chat_id' ,
@@ -40,10 +40,10 @@ class PyChat extends Model
 
     public $perPage = 15;
 
-    public function getChatDefaultMassageAttribute()
+    public function getChatDefaultMessageAttribute()
     {
-        $chat_default_massage = optional($this->translate($this->chat_default_locale))->chat_massage;
-        return htmlspecialchars_decode(htmlspecialchars_decode($chat_default_massage , ENT_QUOTES) , ENT_QUOTES);
+        $chat_default_message = optional($this->translate($this->chat_default_locale))->chat_message;
+        return htmlspecialchars_decode(htmlspecialchars_decode($chat_default_message , ENT_QUOTES) , ENT_QUOTES);
     }
 
     public function user()
@@ -51,7 +51,7 @@ class PyChat extends Model
         return $this->belongsTo(User::class , 'from_id' , 'user_id');
     }
 
-    public function getChatMassageFormatCreatedAtAttribute()
+    public function getChatMessageFormatCreatedAtAttribute()
     {
         $locale = locale();
         if($locale=='zh-CN')

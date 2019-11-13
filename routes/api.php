@@ -42,9 +42,9 @@ $api->group($V1Params , function ($api){
         $api->resource('pychattranslation', 'PyChatTranslationController', ['only' => ['store']]);
         //聊天房间添加
         $api->resource('pychatroom', 'PyChatRoomController',['only' => ['store']]);
-        $api->post('pychat/showmassage/user', 'PyChatController@showMassageByUserId')->name('show.massage.by.userid');
+        $api->post('pychat/showmessage/user', 'PyChatController@showMessageByUserId')->name('show.message.by.userid');
         //获取房间内聊天记录
-        $api->post('pychat/showmassage/room', 'PyChatController@showMassageByRoomUuid')->name('show.massage.by.room.uuid');
+        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
     });
 

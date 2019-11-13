@@ -10,7 +10,7 @@ class PyChatTranslation extends Model
 
     protected $table = 'pychats_translations';
 
-    protected $fillable = ['chat_id','chat_translation_id','chat_locale' , 'chat_massage'];
+    protected $fillable = ['chat_id','chat_translation_id','chat_locale' , 'chat_message'];
 
     protected $primaryKey = 'chat_translation_id';
 }

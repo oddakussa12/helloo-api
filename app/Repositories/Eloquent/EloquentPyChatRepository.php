@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-10-24 14:57:52
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-11-13 14:15:08
+ * @Last Modified time: 2019-11-13 16:30:54
  */
 namespace App\Repositories\Eloquent;
 
@@ -15,7 +15,7 @@ use App\Repositories\Contracts\PyChatRepository;
 class EloquentPyChatRepository  extends EloquentBaseRepository implements PyChatRepository
 {
 
-    public function showMassageByUserId($user_id)
+    public function showMessageByUserId($user_id)
     {
             return $this->model
                         ->where(['from_id'=>auth()->id()])
@@ -28,7 +28,7 @@ class EloquentPyChatRepository  extends EloquentBaseRepository implements PyChat
                         ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
                         ->paginate($this->perPage , ['*'] , $this->pageName);
         }
-    public function showMassageByRoomUuid($room_uuid)
+    public function showMessageByRoomUuid($room_uuid)
     {
         return $this->model
                     ->where(['chat_type'=>'room'])

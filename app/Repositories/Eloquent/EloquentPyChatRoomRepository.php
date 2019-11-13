@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-11-13 10:34:13
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-11-13 10:34:40
+ * @Last Modified time: 2019-11-13 16:30:57
  */
 namespace App\Repositories\Eloquent;
 
@@ -15,7 +15,7 @@ use App\Repositories\Contracts\PyChatRoomRepository;
 class EloquentPyChatRoomRepository  extends EloquentBaseRepository implements PyChatRoomRepository
 {
 
-    public function showMassage($user_id)
+    public function showMessage($user_id)
     {
             return $this->model
                         ->where(['from_id'=>auth()->id()])

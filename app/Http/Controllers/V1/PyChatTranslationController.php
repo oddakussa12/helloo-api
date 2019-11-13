@@ -57,7 +57,7 @@ class PyChatTranslationController extends BaseController
             $pychattranslation_array = array(
                 'chat_id'=> $request->chat_id,
                 'chat_locale'=>$request->chat_locale,
-                'chat_massage'=>$request->chat_massage,
+                'chat_message'=>$request->chat_message,
             );
             return $this->pychattranslation->store($pychattranslation_array);
         }

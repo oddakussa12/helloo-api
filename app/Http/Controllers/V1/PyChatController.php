@@ -55,8 +55,8 @@ class PyChatController extends BaseController
     public function store(Request $request)
     {
         $lang=array(
-            'zh-CN'=>['chat_massage'=>'你好'],
-            'en'=>['chat_massage'=>'hello'],
+            'zh-CN'=>['chat_message'=>'你好'],
+            'en'=>['chat_message'=>'hello'],
         );
         $pychat_array = array(
             'from_id' => auth()->id(),
@@ -115,13 +115,13 @@ class PyChatController extends BaseController
         $this->pychat->find($id)->delete();
     }
 
-    public function showMassageByUserId(Request $request)
+    public function showMessageByUserId(Request $request)
     {
-        return $this->pychat->showMassageByUserId('28464');
+        return $this->pychat->showMessageByUserId('28464');
     }
 
-    public function showMassageByRoomUuid(Request $request)
+    public function showMessageByRoomUuid(Request $request)
     {
-        return PyChatCollection::Collection($this->pychat->showMassageByRoomUuid($request->room_uuid));
+        return PyChatCollection::Collection($this->pychat->showMessageByRoomUuid($request->room_uuid));
     }
 }
