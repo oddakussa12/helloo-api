@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1;
 
-use Socialite;
 use Ramsey\Uuid\Uuid;
 use App\Models\PostComment;
 use App\Events\SignupEvent;
@@ -11,15 +10,20 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use Fenos\Notifynder\Facades\Notifynder;
+use Illuminate\Support\Facades\Password;
+use App\Http\Requests\ForgetPasswordRequest;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
+use App\Foundation\Auth\Passwords\ResetsPasswords;
 use App\Repositories\Contracts\PostCommentRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
-use Faker\Factory;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 
 class AuthController extends BaseController
 {
+    use ResetsPasswords, SendsPasswordResetEmails {
+        ResetsPasswords::broker insteadof SendsPasswordResetEmails;
+    }
 
     protected $user;
 
@@ -31,8 +35,9 @@ class AuthController extends BaseController
     /**
      * Store a newly created resource in storage.
      *
-     * @param  StoreUserRequest  $request
+     * @param StoreUserRequest $request
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     public function signUp(StoreUserRequest $request)
     {
@@ -167,15 +172,6 @@ class AuthController extends BaseController
         $userNotified = $this->user->find(2);
         dd($userNotified->getNotificationsNotRead()->toArray());
     }
-    /**
-     * 将用户重定向到Google认证页面
-     *
-     * @return Response
-     */
-    public function redirectToProvider()
-    {
-        return Socialite::driver('google')->redirect();
-    }
 
     public function handleProviderCallback(Request $request)
     {
@@ -262,6 +258,51 @@ class AuthController extends BaseController
 
         return $randusername;
 
+    }
+
+    public function forgetPwd(ForgetPasswordRequest $request)
+    {
+        $credentials = array('user_email'=>$request->input('email'));
+        $referer = $request->input('referer' , '');
+        $referer = empty($referer)?$request->server('HTTP_REFERER'):$referer;
+        $referer = domain($referer);
+        if(!in_array($referer , array_values(config('common.front_domain'))))
+        {
+            $referer = config('common.front_domain.h5');
+        }
+        $credentials['referer'] = $referer;
+
+        $response = $this->broker()->sendResetLink($credentials);
+        if($response==Password::RESET_LINK_SENT)
+        {
+            return $this->response->noContent();
+        }
+        return $this->response->errorNotFound(trans('passwords.user'));
+    }
+
+    public function resetPwd(Request $request)
+    {
+        $response = $this->reset($request);
+        if($response!==true)
+        {
+            switch ($response)
+            {
+                case Password::INVALID_USER :
+                    return $this->response->errorNotFound(trans('passwords.user'));
+                    break;
+                case Password::INVALID_PASSWORD :
+                    return $this->response->errorNotFound(trans('passwords.password'));
+                    break;
+                case Password::INVALID_TOKEN :
+                    return $this->response->errorNotFound(trans('passwords.token'));
+                    break;
+                default :
+                    return $this->response->errorNotFound(__('Service Unavailable'));
+                    break;
+                    ;
+            }
+        }
+        return $this->response->noContent();
     }
 
 

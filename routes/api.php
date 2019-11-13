@@ -48,6 +48,10 @@ $api->group($V1Params , function ($api){
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
     });
 
+    $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');
+
+    $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
+
     $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
     //游客模式生成用户
     $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');

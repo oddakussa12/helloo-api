@@ -226,7 +226,12 @@ if (!function_exists('domains')) {
         }else{
             $url = parse_url($domain);
         }
-        return $url[$item];
+        if(isset($url[$item]))
+        {
+            return $url[$item];
+        }
+        return '';
+
     }
 }
 
