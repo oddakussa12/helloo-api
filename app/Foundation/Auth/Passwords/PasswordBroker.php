@@ -73,7 +73,8 @@ class PasswordBroker implements PasswordBrokerContract
 //            $this->tokens->create($user)
 //        );
         $token = $this->tokens->create($user);
-        Mail::to($user->getEmailForPasswordReset())->queue((new ResetPassword($user,$token))
+
+        Mail::to($user->getEmailForPasswordReset())->queue((new ResetPassword($user,$token , $credentials['referer']))
             ->onQueue('reset_password_emails'));
         return static::RESET_LINK_SENT;
     }
