@@ -4,36 +4,35 @@ namespace App\Http\Controllers\V1;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\V1\BaseController;
-use App\Models\PyChat;
+use App\Models\PyChatTranslation;
 use App\Services\TranslateService;
-use App\Repositories\Contracts\PyChatRepository;
-use App\Resources\PyChatCollection;
+use App\Repositories\Contracts\PyChatTranslationRepository;
+use App\Models\PyChat;
 
-class PyChatController extends BaseController
+class PyChatTranslationController extends BaseController
 {
     /**
-     * @var PyChatRepository
+     * @var PyChatTranslationRepository
      */
-    private $pychat;
-    /**
-     * @var TranslateService
-     */
-    private $translate;
+    private $pychattranslation;
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
 
-    public function __construct(PyChatRepository $pychat,TranslateService $translate)
+    public function __construct(PyChatTranslationRepository $pychattranslation)
     {
-        $this->pychat = $pychat;
-        $this->translate = $translate;
+        $this->pychattranslation = $pychattranslation;
     }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
         //
-        dd('index');
     }
 
     /**
@@ -54,20 +53,14 @@ class PyChatController extends BaseController
      */
     public function store(Request $request)
     {
-        $lang=array(
-            'zh-CN'=>['chat_massage'=>'你好'],
-            'en'=>['chat_massage'=>'hello'],
-        );
-        $pychat_array = array(
-            'from_id' => auth()->id(),
-            'to_id' => $request->to_id,
-            'chat_type' => $request->chat_type,
-            'chat_default_locale' => $request->chat_default_locale,
-            'chat_ip' => getRequestIpAddress(),
-        );
-        $pychat_array = array_merge($lang,$pychat_array);
-        // dd($pychat_array);
-        return new PyChatCollection($this->pychat->store($pychat_array));
+        if(!PyChat::find($request->chat_id)->hasTranslation($request->chat_locale)){
+            $pychattranslation_array = array(
+                'chat_id'=> $request->chat_id,
+                'chat_locale'=>$request->chat_locale,
+                'chat_massage'=>$request->chat_massage,
+            );
+            return $this->pychattranslation->store($pychattranslation_array);
+        }
     }
 
     /**
@@ -112,16 +105,6 @@ class PyChatController extends BaseController
      */
     public function destroy($id)
     {
-        $this->pychat->find($id)->delete();
-    }
-
-    public function showMassageByUserId(Request $request)
-    {
-        return $this->pychat->showMassageByUserId('28464');
-    }
-
-    public function showMassageByRoomUuid(Request $request)
-    {
-        return PyChatCollection::Collection($this->pychat->showMassageByRoomUuid($request->room_uuid));
+        //
     }
 }

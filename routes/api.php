@@ -38,8 +38,13 @@ $api->group($V1Params , function ($api){
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
 
 //        $api->resource('category' , 'CategoryController');
-//        $api->resource('pychat', 'PyChatController');
-//        $api->post('pychat/showmassage', 'PyChatController@showMassageByUserId');
+        //聊天翻译单条写入
+        $api->resource('pychattranslation', 'PyChatTranslationController', ['only' => ['store']]);
+        //聊天房间添加
+        $api->resource('pychatroom', 'PyChatRoomController',['only' => ['store']]);
+        $api->post('pychat/showmassage/user', 'PyChatController@showMassageByUserId')->name('show.massage.by.userid');
+        //获取房间内聊天记录
+        $api->post('pychat/showmassage/room', 'PyChatController@showMassageByRoomUuid')->name('show.massage.by.room.uuid');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
     });
 
@@ -52,6 +57,8 @@ $api->group($V1Params , function ($api){
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
 
+        //聊天信息写入删除
+        $api->resource('pychat', 'PyChatController',['only' => ['store','destroy']]);
         $api->get('postComment/myself' , 'PostCommentController@myself')->name('comment.myself');
         $api->get('postComment/like' , 'PostCommentController@mylike')->name('comment.mylike');
 

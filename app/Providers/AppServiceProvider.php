@@ -8,6 +8,8 @@ use App\Models\Post;
 use App\Models\Category;
 use App\Models\PostComment;
 use App\Models\PyChat;
+use App\Models\PyChatRoom;
+use App\Models\PyChatTranslation;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\TagRepository;
@@ -16,12 +18,16 @@ use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\CategoryRepository;
 use App\Repositories\Contracts\PostCommentRepository;
 use App\Repositories\Contracts\PyChatRepository;
+use App\Repositories\Contracts\PyChatRoomRepository;
+use App\Repositories\Contracts\PyChatTranslationRepository;
 use App\Repositories\Eloquent\EloquentTagRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentPostRepository;
 use App\Repositories\Eloquent\EloquentCategoryRepository;
 use App\Repositories\Eloquent\EloquentPostCommentRepository;
 use App\Repositories\Eloquent\EloquentPyChatRepository;
+use App\Repositories\Eloquent\EloquentPyChatRoomRepository;
+use App\Repositories\Eloquent\EloquentPyChatTranslationRepository;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -86,6 +92,14 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->bind(PyChatRepository::class, function () {
             $repository = new EloquentPyChatRepository(new PyChat());
+            return $repository;
+        });
+        $this->app->bind(PyChatRoomRepository::class, function () {
+            $repository = new EloquentPyChatRoomRepository(new PyChatRoom());
+            return $repository;
+        });
+        $this->app->bind(PyChatTranslationRepository::class, function () {
+            $repository = new EloquentPyChatTranslationRepository(new PyChatTranslation());
             return $repository;
         });
     }
