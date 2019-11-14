@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\PyChat;
 use Illuminate\Http\Request;
-use App\Http\Controllers\V1\BaseController;
-use App\Models\PyChatTranslation;
 use App\Services\TranslateService;
 use App\Repositories\Contracts\PyChatTranslationRepository;
-use App\Models\PyChat;
 
 class PyChatTranslationController extends BaseController
 {
@@ -15,15 +13,19 @@ class PyChatTranslationController extends BaseController
      * @var PyChatTranslationRepository
      */
     private $pychattranslation;
+    private $translate;
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @param PyChatTranslationRepository $pychattranslation
+     * @param TranslateService $translate
      */
 
-    public function __construct(PyChatTranslationRepository $pychattranslation)
+    public function __construct(PyChatTranslationRepository $pychattranslation , TranslateService $translate)
     {
         $this->pychattranslation = $pychattranslation;
+        $this->translate = $translate;
     }
     /**
      * Display a listing of the resource.
@@ -106,5 +108,13 @@ class PyChatTranslationController extends BaseController
     public function destroy($id)
     {
         //
+    }
+
+    public function translate(Request $request)
+    {
+        $content = $request->input('content' , '');
+        $target = $request->input('target' , 'en');
+        $translation = $this->translate->translate($content , array('target'=>$target , 'format'=>"text"));
+        return $this->response->array(array('translation'=>$translation));
     }
 }
