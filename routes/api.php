@@ -20,7 +20,7 @@ $api = app('Dingo\Api\Routing\Router');
 
 $V1Params = [
     'version' => 'v1',
-    'prefix' => LaravelLocalization::setLocale().'/api',
+    'prefix' => LaravelLocalization::setLocale().config('api.suffix'),
     'middleware'=>['cors'],
     'namespace' => 'App\\Http\\Controllers\V1',
 ];
