@@ -48,8 +48,9 @@ $api->group($V1Params , function ($api){
         $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
     });
-
-    $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');
+    $api->group(['middleware'=>'throttle:1,1'] , function ($api){
+        $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');
+    });
 
     $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
 
