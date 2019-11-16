@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Models\PyChat;
 use Illuminate\Http\Request;
 use App\Services\TranslateService;
+use App\Services\TencentTranslateService;
 use App\Repositories\Contracts\PyChatTranslationRepository;
 
 class PyChatTranslationController extends BaseController
@@ -121,8 +122,17 @@ class PyChatTranslationController extends BaseController
             $contentLang = $this->translate->detectLanguage($content);
             $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         }
-
-        $translation = $this->translate->translate($content , array('target'=>$target , 'format'=>"text"));
+        if(($contentDefaultLang=='zh-CN'&&$target=='en')||($contentDefaultLang=='en'&&$target=='zh-CN'))
+        {
+            $service = new TencentTranslateService();
+            $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
+            if($translation===false)
+            {
+                $translation = $this->$translate->pyChatTranslate($content , array('target'=>$target));
+            }
+        }else{
+            $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
+        }
         return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
     }
 }
