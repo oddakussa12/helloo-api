@@ -175,7 +175,7 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-         App\Providers\BroadcastServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Jenssegers\Agent\AgentServiceProvider::class,
@@ -183,8 +183,8 @@ return [
         Fenos\Notifynder\NotifynderServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         App\Providers\QiniuStorageServiceProvider::class,
-        Overtrue\LaravelFollow\FollowServiceProvider::class
-        //Laravel\Socialite\SocialiteServiceProvider::class,
+        Overtrue\LaravelFollow\FollowServiceProvider::class,
+        App\Providers\LaravelLocalizationServiceProvider::class,
 
     ],
 
@@ -237,7 +237,6 @@ return [
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
         'GeoIP' => Torann\GeoIP\GeoIPFacade::class,
         'Notifynder' => Fenos\Notifynder\Facades\Notifynder::class,
-       'Socialite' => Laravel\Socialite\Facades\Socialite::class,
 
     ],
 

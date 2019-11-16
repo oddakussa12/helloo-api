@@ -39,7 +39,7 @@ class PostController extends BaseController
 
     public function index(Request $request)
     {
-       return PostPaginateCollection::collection($this->post->paginateAll($request));
+        return PostPaginateCollection::collection($this->post->paginateAll($request));
     }
 
     public function like($uuid)
