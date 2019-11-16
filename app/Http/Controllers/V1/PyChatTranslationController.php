@@ -127,22 +127,11 @@ class PyChatTranslationController extends BaseController
             $service = new TencentTranslateService();
             $zhlang = ['卧槽','简单来说'];
             $enlang = ['Fuck','tldr'];
-            if($contentDefaultLang == 'zh-CN'&&$target=='en'){
-                foreach ($zhlang as $zhkey => $zhvalue) {
-                    if($content == $zhvalue){
-                        $translation = $enlang[$zhkey];
-                    }else{
-                        $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
-                        if($translation===false)
-                        {
-                            $translation = $this->$translate->pyChatTranslate($content , array('target'=>$target));
-                        }
-                    }
-                }
-            }else if($contentDefaultLang == 'en'&&$target=='zh-CN'){
+            if($contentDefaultLang == 'en'&&$target=='zh-CN'){
                 foreach ($enlang as $enkey => $envalue) {
                     if(strcasecmp($content,$envalue)==0){
                         $translation = $zhlang[$enkey];
+                        return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
                     }else{
                         $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
                         if($translation===false)
