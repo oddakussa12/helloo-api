@@ -114,7 +114,15 @@ class PyChatTranslationController extends BaseController
     {
         $content = $request->input('content' , '');
         $target = $request->input('target' , 'en');
+        if(empty($content))
+        {
+            $contentDefaultLang = $contentLang = 'en';
+        }else{
+            $contentLang = $this->translate->detectLanguage($content);
+            $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
+        }
+
         $translation = $this->translate->translate($content , array('target'=>$target , 'format'=>"text"));
-        return $this->response->array(array('translation'=>$translation));
+        return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
     }
 }
