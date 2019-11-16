@@ -136,7 +136,7 @@ class PyChatTranslationController extends BaseController
                         $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
                         if($translation===false)
                         {
-                            $translation = $this->$translate->pyChatTranslate($content , array('target'=>$target));
+                            $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
                         }
                     }
                 }
@@ -144,7 +144,7 @@ class PyChatTranslationController extends BaseController
                 $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
                 if($translation===false)
                 {
-                    $translation = $this->$translate->pyChatTranslate($content , array('target'=>$target));
+                    $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
                 }
             }
         }else{
