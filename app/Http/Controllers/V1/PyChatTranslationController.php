@@ -154,7 +154,7 @@ class PyChatTranslationController extends BaseController
             }
             DB::beginTransaction();
             //查询翻译信息
-            $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->sharedLock()->first();
+            $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->first();
             //判断是否有翻译信息
             if(empty($isInTran))
             {
@@ -176,7 +176,7 @@ class PyChatTranslationController extends BaseController
             return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat['chat_id'] , 'created_at'=>Carbon::parse($chat['chat_created_at'])->diffForHumans()));
         }else{
 //            $chat_uuid = array_keys($content);
-//            $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->sharedLock()->pluck('chat_message','chat_uuid');
+//            $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
 //            $isInTranKeys = $isInTran->keys()->toArray();
 //            $chat_uuid = array_diff($chat_uuid,$isInTranKeys);
 //            //翻译存在时处理
@@ -207,7 +207,7 @@ class PyChatTranslationController extends BaseController
     public function chatinsert($chat_uuid,$pychat_array)
     {
         DB::beginTransaction();
-        $chat = DB::table('pychats')->where('chat_uuid',$chat_uuid)->sharedLock()->first();
+        $chat = DB::table('pychats')->where('chat_uuid',$chat_uuid)->lockForUpdate()->first();
         if(empty($chat)){
             $chat_id = DB::table('pychats')->insertGetId($pychat_array);
             $chat_time = $pychat_array['chat_created_at'];
@@ -223,9 +223,10 @@ class PyChatTranslationController extends BaseController
         $content = $request->input('content' , '');
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
+        dd($request->all());
         $chat_uuid = array_keys($content);
         DB::beginTransaction();
-        $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->sharedLock()->pluck('chat_message','chat_uuid');
+        $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
         $isInTranKeys = $isInTran->keys()->toArray();
         $chat_uuid = array_diff($chat_uuid,$isInTranKeys);
         //翻译存在时处理
