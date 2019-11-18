@@ -72,4 +72,15 @@ class PyChat extends Model
         }
         return Carbon::parse($this->chat_created_at)->diffForHumans();
     }
+    public function getChatImageAttribute($value)
+        {
+            if(empty($value))
+            {
+                return array();
+            }
+
+            $chat_reource['chat_image'] = config('common.qnUploadDomain.thumbnail_domain').$value;
+            $chat_reource['chat_thumb_image'] = config('common.qnUploadDomain.thumbnail_domain').$value.'?imageView2/5/w/192/h/192/interlace/1';
+            return $value=$chat_reource;
+        }
 }
