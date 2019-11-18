@@ -121,7 +121,7 @@ class PyChatTranslationController extends BaseController
         $content = $request->input('content' , '');
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
-        识别源语言
+        // 识别源语言
         if(empty($content))
         {
             $contentDefaultLang = $contentLang = 'en';
