@@ -153,7 +153,7 @@ class PyChatTranslationController extends BaseController
             //判断是否有翻译信息
             if(!empty($isInTran)){//是,直接返回内容
                 $translation = $isInTran->chat_message;
-                return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
+                return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation,'chat_id'=>$isInTran->chat_id));
             }else{//否
                 //准备存储翻译内容
                 $translationArray = [
@@ -166,7 +166,7 @@ class PyChatTranslationController extends BaseController
                 $translationArray['chat_message'] =$translation;
                 //存储翻译内容
                 $this->pychattranslation->store($translationArray);
-                return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
+                return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation,'chat_id'=>$data->chat_id));
 
             }
         }else{
