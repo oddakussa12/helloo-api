@@ -42,6 +42,7 @@ $api->group($V1Params , function ($api){
         $api->resource('pychattranslation', 'PyChatTranslationController', ['only' => ['store']]);
         $api->post('pychat/translation', 'PyChatTranslationController@translate');
         $api->post('pychat/listtranslation', 'PyChatTranslationController@messageListTranslate');
+        $api->post('pychat/chatimageinsert', 'PyChatTranslationController@chatImageInsert');
         //聊天房间添加
         $api->resource('pychatroom', 'PyChatRoomController',['only' => ['store']]);
         $api->post('pychat/showmessage/user', 'PyChatController@showMessageByUserId')->name('show.message.by.userid');

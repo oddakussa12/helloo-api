@@ -188,6 +188,30 @@ class PyChatTranslationController extends BaseController
 
         // return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
     }
+    public function chatImageInsert(Request $request)
+    {
+        $chat_uuid = $request->input('chat_uuid' , '');
+        $pychat_array = array(
+            'from_id' => $request->input('from_id' , ''),
+            'to_id' => $request->input('to_id' , ''),
+            'chat_type' => $request->input('chat_type' , ''),
+            'chat_uuid' => $request->input('chat_uuid' , ''),
+            'chat_image' => $request->input('chat_image' , ''),
+            'chat_message_type' => $request->input('chat_message_type' , ''),
+            'chat_default_locale' => 'en',
+            'chat_ip' => getRequestIpAddress(),
+            'chat_created_at'=>date('Y-m-d H:i:s',time()),
+            'chat_updated_at'=>date('Y-m-d H:i:s',time()),
+        );
+
+        // 执行主表存储
+        $chat = $this->chatinsert($chat_uuid,$pychat_array);
+        if($request->input('chat_message_type' , '')=='image'){
+             $chat['created_at']=Carbon::parse($chat['chat_created_at'])->diffForHumans();
+             return $chat;
+        }
+        return $chat;
+    }
     public function chatinsert($chat_uuid,$pychat_array)
     {
         DB::beginTransaction();
