@@ -149,7 +149,7 @@ class PyChatTranslationController extends BaseController
         //判断content是否为数组翻译
         if(!is_array($content)){
             //查询翻译信息
-            $isInTran = DB::table('pychats_translations')->where('chat_uuid','19484dsadsa1sa5d881641655648')->where('chat_locale',$target)->lockForUpdate()->first();
+            $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->first();
             //判断是否有翻译信息
             if(!empty($isInTran)){//是,直接返回内容
                 $translation = $isInTran->chat_message;
