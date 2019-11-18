@@ -185,7 +185,7 @@ class PyChatTranslationController extends BaseController
                     'chat_uuid'=> $uuidvalue,
                     'chat_locale'=>$target,
                 ];
-               $translation= $this->executionTranslation($content[$uuidvalue]['defaultlang'],$target,$content[$uuidvalue]['content'],$translationArray);
+               $translation= $this->executionTranslation($content[$uuidvalue]['chat_default_locale'],$target,$content[$uuidvalue]['chat_default_message'],$translationArray);
                $content[$uuidvalue]['translation'] = $translation;
                 //准备存储翻译后内容
                 $translationArray['chat_message'] =$translation;
