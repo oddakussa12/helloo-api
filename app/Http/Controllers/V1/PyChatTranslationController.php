@@ -122,13 +122,14 @@ class PyChatTranslationController extends BaseController
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
         //识别源语言
-        if(empty($content))
-        {
-            $contentDefaultLang = $contentLang = 'en';
-        }else{
-            $contentLang = $this->translate->detectLanguage($content);
-            $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
-        }
+        // if(empty($content))
+        // {
+        //     $contentDefaultLang = $contentLang = 'en';
+        // }else{
+        //     $contentLang = $this->translate->detectLanguage($content);
+        //     $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
+        // }
+        $contentDefaultLang = 'en';
         $pychat_array = array(
                 'from_id' => auth()->id(),
                 'to_id' => $request->input('to_id' , ''),
@@ -140,25 +141,24 @@ class PyChatTranslationController extends BaseController
                 'chat_ip' => getRequestIpAddress(),
         );
         //执行主表存储
-        $data = $this->chatinsert($chat_uuid,$pychat_array);
-        if($request->input('chat_message_type' , '')=='image'){
-            return $data;
-        }
+        // $data = $this->chatinsert($chat_uuid,$pychat_array);
+        // if($request->input('chat_message_type' , '')=='image'){
+        //     return $data;
+        // }
         //开启事务
         DB::beginTransaction();
         //判断content是否为数组翻译
         if(!is_array($content)){
             //查询翻译信息
-            $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->first();
-            $pychat= $this->pychat->showMessageByWhere(['chat_uuid'=>$chat_uuid]);
+            $isInTran = DB::table('pychats_translations')->where('chat_uuid','19484dsadsa1sa5d881641655648')->where('chat_locale',$target)->lockForUpdate()->first();
             //判断是否有翻译信息
-            if($pychat->hasTranslation($target)){//是,直接返回内容
-                $translation = $pychat->getTranslation($target)->chat_message;
+            if(!empty($isInTran)){//是,直接返回内容
+                $translation = $isInTran->chat_message;
                 return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
             }else{//否
                 //准备存储翻译内容
                 $translationArray = [
-                    'chat_id'=> $pychat->chat_id,
+                    'chat_id'=> $data->chat_id,
                     'chat_uuid'=> $chat_uuid,
                     'chat_locale'=>$target,
                 ];
