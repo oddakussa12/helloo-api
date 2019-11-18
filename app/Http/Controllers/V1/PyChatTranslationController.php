@@ -129,25 +129,25 @@ class PyChatTranslationController extends BaseController
             $contentLang = $this->translate->detectLanguage($content);
             $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         }
-        $pychat_array = array(
-                'from_id' => $request->input('from_id' , ''),
-                'to_id' => $request->input('to_id' , ''),
-                'chat_type' => $request->input('chat_type' , ''),
-                'chat_uuid' => $request->input('chat_uuid' , ''),
-                'chat_image' => $request->input('chat_image' , ''),
-                'chat_message_type' => $request->input('chat_message_type' , ''),
-                'chat_default_locale' => $contentDefaultLang,
-                'chat_ip' => getRequestIpAddress(),
-        );
-        // 执行主表存储
-        $data = $this->chatinsert($chat_uuid,$pychat_array);
-        if($request->input('chat_message_type' , '')=='image'){
-            return $data;
-        }
         //开启事务
         DB::beginTransaction();
         //判断content是否为数组翻译
         if(!is_array($content)){
+            $pychat_array = array(
+                    'from_id' => $request->input('from_id' , ''),
+                    'to_id' => $request->input('to_id' , ''),
+                    'chat_type' => $request->input('chat_type' , ''),
+                    'chat_uuid' => $request->input('chat_uuid' , ''),
+                    'chat_image' => $request->input('chat_image' , ''),
+                    'chat_message_type' => $request->input('chat_message_type' , ''),
+                    'chat_default_locale' => $contentDefaultLang,
+                    'chat_ip' => getRequestIpAddress(),
+            );
+            // 执行主表存储
+            $data = $this->chatinsert($chat_uuid,$pychat_array);
+            if($request->input('chat_message_type' , '')=='image'){
+                return $data;
+            }
             //查询翻译信息
             $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->first();
             //判断是否有翻译信息
