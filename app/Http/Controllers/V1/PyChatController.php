@@ -8,6 +8,7 @@ use App\Models\PyChat;
 use App\Services\TranslateService;
 use App\Repositories\Contracts\PyChatRepository;
 use App\Resources\PyChatCollection;
+use Illuminate\Support\Facades\DB;
 
 class PyChatController extends BaseController
 {
@@ -54,20 +55,26 @@ class PyChatController extends BaseController
      */
     public function store(Request $request)
     {
-        $lang=array(
-            'zh-CN'=>['chat_message'=>'你好'],
-            'en'=>['chat_message'=>'hello'],
-        );
-        $pychat_array = array(
-            'from_id' => auth()->id(),
-            'to_id' => $request->to_id,
-            'chat_type' => $request->chat_type,
-            'chat_default_locale' => $request->chat_default_locale,
-            'chat_ip' => getRequestIpAddress(),
-        );
-        $pychat_array = array_merge($lang,$pychat_array);
-        // dd($pychat_array);
-        return new PyChatCollection($this->pychat->store($pychat_array));
+        DB::beginTransaction();
+        $isInTran = DB::table('pychats')->where('chat_uuid',$request->input('chat_uuid' , ''))->lockForUpdate()->first();
+        if(empty($isInTran)){
+            $pychat_array = array(
+                'from_id' => auth()->id(),
+                'to_id' => $request->input('to_id' , ''),
+                'chat_type' => $request->input('chat_type' , ''),
+                'chat_uuid' => $request->input('chat_uuid' , ''),
+                'chat_image' => $request->input('chat_image' , ''),
+                'chat_message_type' => $request->input('chat_message_type' , ''),
+                'chat_default_locale' => $request->input('chat_default_locale' , 'en'),
+                'chat_ip' => getRequestIpAddress(),
+            );
+            // dd($pychat_array);
+            $pychatdata = $this->pychat->store($pychat_array);
+        }
+        //执行事务
+        DB::commit();
+        return $this->response->noContent();
+
     }
 
     /**
@@ -122,6 +129,6 @@ class PyChatController extends BaseController
 
     public function showMessageByRoomUuid(Request $request)
     {
-        return PyChatCollection::Collection($this->pychat->showMessageByRoomUuid($request->room_uuid));
+        return PyChatCollection::Collection($this->pychat->limitMessage($request->input('chat_id' , ''),$request->input('room_uuid' , '')));
     }
 }

@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-10-24 14:57:52
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-11-13 16:30:54
+ * @Last Modified time: 2019-11-17 19:48:32
  */
 namespace App\Repositories\Eloquent;
 
@@ -35,5 +35,15 @@ class EloquentPyChatRepository  extends EloquentBaseRepository implements PyChat
                     ->where(['to_id'=>$room_uuid])
                     ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
                     ->paginate($this->perPage , ['*'] , $this->pageName);
+    }
+    public function limitMessage($chat_id,$room_uuid)
+    {
+        return $this->model
+                    ->where(['chat_type'=>'room'])
+                    ->where(['to_id'=>$room_uuid])
+                    ->orderBy('chat_id', 'DESC')
+                    ->where('chat_id','<',$chat_id)
+                    ->limit(5)
+                    ->get();
     }
 }
