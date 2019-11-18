@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-11-13 11:42:21
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-11-18 16:52:08
+ * @Last Modified time: 2019-11-19 01:37:05
  */
 namespace App\Resources;
 
@@ -26,6 +26,7 @@ class PyChatCollection extends Resource
             'chat_image' => $this->chat_image,
             'chat_default_locale' => $this->chat_default_locale,
             'chat_default_message' => $this->chat_default_message,
+            'chat_created_at' => $this->chat_created_at,
             'chat_locale' => $this->hasTranslation(locale())?$this->chat_locale:'',
             'chat_message' => $this->hasTranslation(locale())?$this->chat_message:'',
             'chat_message_format_created_at' => $this->chat_message_format_created_at,
