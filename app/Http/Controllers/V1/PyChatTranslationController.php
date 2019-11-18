@@ -130,7 +130,7 @@ class PyChatTranslationController extends BaseController
             $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         }
         $pychat_array = array(
-                'from_id' => auth()->id(),
+                'from_id' => $request->input('from_id' , ''),
                 'to_id' => $request->input('to_id' , ''),
                 'chat_type' => $request->input('chat_type' , ''),
                 'chat_uuid' => $request->input('chat_uuid' , ''),
