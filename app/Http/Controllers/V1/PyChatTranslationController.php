@@ -124,13 +124,14 @@ class PyChatTranslationController extends BaseController
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
         // 识别源语言
-        if(empty($content))
-        {
-            $contentDefaultLang = $contentLang = 'en';
-        }else{
-            $contentLang = $this->translate->detectLanguage($content);
-            $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
-        }
+        // if(empty($content))
+        // {
+        //     $contentDefaultLang = $contentLang = 'en';
+        // }else{
+        //     $contentLang = $this->translate->detectLanguage($content);
+        //     $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
+        // }
+        $contentDefaultLang = 'en';
         $pychat_array = array(
             'from_id' => $request->input('from_id' , ''),
             'to_id' => $request->input('to_id' , ''),
@@ -144,13 +145,24 @@ class PyChatTranslationController extends BaseController
             'chat_updated_at'=>date('Y-m-d H:i:s',time()),
         );
 
-        //判断content是否为数组翻译
-        if(!is_array($content)){
-
             // 执行主表存储
             $chat = $this->chatinsert($chat_uuid,$pychat_array);
             if($request->input('chat_message_type' , '')=='image'){
                 return $chat;
+            }
+            //此处为默语言查询存储
+            $isInDeft = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$contentDefaultLang)->lockForUpdate()->first();
+            if(empty($isInDeft))
+            {
+                //准备存储翻译后内容
+                $translationArray = [
+                    'chat_id'=> $chat['chat_id'],
+                    'chat_uuid'=> $chat_uuid,
+                    'chat_locale'=>$contentDefaultLang,
+                    'chat_message'=>$content,
+                ];
+                //存储翻译内容
+                $isInDeft = DB::table('pychats_translations')->insert($translationArray);
             }
 //            DB::beginTransaction();
             //查询翻译信息
@@ -174,33 +186,6 @@ class PyChatTranslationController extends BaseController
             }
 //            DB::commit();
             return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat['chat_id'] , 'created_at'=>Carbon::parse($chat['chat_created_at'])->diffForHumans()));
-        }else{
-//            $chat_uuid = array_keys($content);
-//            $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
-//            $isInTranKeys = $isInTran->keys()->toArray();
-//            $chat_uuid = array_diff($chat_uuid,$isInTranKeys);
-//            //翻译存在时处理
-//            foreach ($isInTranKeys as $key => $value) {
-//                $content[$value]['translation'] =$isInTran[$value];
-//            }
-//            //翻译不存在时处理
-//            foreach ($chat_uuid as $uuidkey => $uuidvalue) {
-//                $translationArray = [
-//                    'chat_id'=> $content[$uuidvalue]['chat_id'],
-//                    'chat_uuid'=> $uuidvalue,
-//                    'chat_locale'=>$target,
-//                ];
-//               $translation= $this->executionTranslation($content[$uuidvalue]['chat_default_locale'],$target,$content[$uuidvalue]['chat_default_message'],$translationArray);
-//               $content[$uuidvalue]['translation'] = $translation;
-//                //准备存储翻译后内容
-//                $translationArray['chat_message'] =$translation;
-//                //存储翻译内容
-//                $this->pychattranslation->store($translationArray);
-//            }
-//            //执行事务
-//            DB::commit();
-//            return $content;
-        }
 
         // return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
     }
