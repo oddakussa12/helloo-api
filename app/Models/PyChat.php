@@ -25,8 +25,11 @@ class PyChat extends Model
 
     protected $fillable = [
         'chat_id' ,
+        'chat_uuid' ,
         'from_id' ,
         'chat_type',
+        'chat_image',
+        'chat_message_type',
         'to_id' ,
         'chat_default_locale' ,
         'chat_ip',
