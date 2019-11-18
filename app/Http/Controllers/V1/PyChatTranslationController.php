@@ -160,7 +160,7 @@ class PyChatTranslationController extends BaseController
             {
                 //准备存储翻译内容
                 $translationArray = [
-                    'chat_id'=> $chat->chat_id,
+                    'chat_id'=> $chat['chat_id'],
                     'chat_uuid'=> $chat_uuid,
                     'chat_locale'=>$target,
                 ];
@@ -173,7 +173,7 @@ class PyChatTranslationController extends BaseController
                 $translation = $isInTran->chat_message;
             }
             DB::commit();
-            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat->chat_id , 'created_at'=>Carbon::parse($chat->chat_created_at)->diffForHumans()));
+            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat['chat_id'] , 'created_at'=>Carbon::parse($chat['chat_created_at'])->diffForHumans()));
         }else{
 //            $chat_uuid = array_keys($content);
 //            $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
@@ -209,11 +209,14 @@ class PyChatTranslationController extends BaseController
         DB::beginTransaction();
         $chat = DB::table('pychats')->where('chat_uuid',$chat_uuid)->lockForUpdate()->first();
         if(empty($chat)){
-            $chat = DB::table('pychats')->insertGetId($pychat_array);
-            $chat = ['chat_id'=>$chat,'chat_created_at'=>$pychat_array['chat_created_at'],'chat_uuid'=>$pychat_array['chat_uuid']];
+            $chat_id = DB::table('pychats')->insertGetId($pychat_array);
+            $chat_time = $pychat_array['chat_created_at'];
+        }else{
+            $chat_id = $chat->chat_id;
+            $chat_time = $chat->chat_created_at;
         }
         DB::commit();
-        return $chat;
+        return array('chat_id'=>$chat_id , 'chat_created_at'=>$chat_time);
     }
     public function executionTranslation($contentDefaultLang,$target,$content,$translationArray)
     {
