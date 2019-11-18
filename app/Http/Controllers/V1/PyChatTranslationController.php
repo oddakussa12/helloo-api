@@ -152,9 +152,9 @@ class PyChatTranslationController extends BaseController
             if($request->input('chat_message_type' , '')=='image'){
                 return $chat;
             }
-            DB::beginTransaction();
+//            DB::beginTransaction();
             //查询翻译信息
-            $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->first();
+            $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->first();
             //判断是否有翻译信息
             if(empty($isInTran))
             {
@@ -172,7 +172,7 @@ class PyChatTranslationController extends BaseController
             }else{
                 $translation = $isInTran->chat_message;
             }
-            DB::commit();
+//            DB::commit();
             return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat['chat_id'] , 'created_at'=>Carbon::parse($chat['chat_created_at'])->diffForHumans()));
         }else{
 //            $chat_uuid = array_keys($content);
@@ -223,7 +223,7 @@ class PyChatTranslationController extends BaseController
         $content = $request->input('content' , '');
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
-        dd($request->all());
+        return $request->all();
         $chat_uuid = array_keys($content);
         DB::beginTransaction();
         $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
