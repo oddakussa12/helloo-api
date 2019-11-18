@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-10-24 14:57:52
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-11-18 15:30:57
+ * @Last Modified time: 2019-11-19 00:59:52
  */
 namespace App\Repositories\Eloquent;
 
@@ -40,11 +40,11 @@ class EloquentPyChatRepository  extends EloquentBaseRepository implements PyChat
     {
          $result = $this->model
                     ->where(['chat_type'=>'room'])
-                    ->where(['to_id'=>$room_uuid])
-                    ->orderBy('chat_id', 'DESC')->limit(5)->get();
+                    ->where(['to_id'=>$room_uuid]);
                     if(!empty($chat_id)){
-                        $result = $result->where('chat_id','<',$chat_id);
+                         $result = $result->where('chat_id','<',$chat_id);
                     }
+                    $result = $result->orderBy('chat_id', 'DESC')->limit(5)->get();
                     return $result;
     }
 }

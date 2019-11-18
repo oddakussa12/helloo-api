@@ -223,7 +223,6 @@ class PyChatTranslationController extends BaseController
         $content = $request->input('content' , '');
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
-        return $request->all();
         $chat_uuid = array_keys($content);
         DB::beginTransaction();
         $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
