@@ -164,10 +164,12 @@ class PyChatTranslationController extends BaseController
                 //准备存储翻译后内容
                 $translationArray['chat_message'] =$translation;
                 //存储翻译内容
-                $isInTran = DB::tables('pychats_translations')->insert($translationArray);
+                $isInTran = DB::table('pychats_translations')->insert($translationArray);
+            }else{
+                $translation = $isInTran->chat_message;
             }
             DB::commit();
-            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat->char_id));
+            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat->chat_id));
         }else{
 //            $chat_uuid = array_keys($content);
 //            $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
@@ -201,7 +203,7 @@ class PyChatTranslationController extends BaseController
     public function chatinsert($chat_uuid,$pychat_array)
     {
         DB::beginTransaction();
-        $chat = DB::table('pychats')->where('chat_uuid',$chat_uuid)->lockForUpdate()->count();
+        $chat = DB::table('pychats')->where('chat_uuid',$chat_uuid)->lockForUpdate()->first();
         if(empty($chat)){
             DB::table('pychats')->insert($pychat_array);
         }
