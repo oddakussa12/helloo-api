@@ -121,15 +121,14 @@ class PyChatTranslationController extends BaseController
         $content = $request->input('content' , '');
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
-        //识别源语言
-        // if(empty($content))
-        // {
-        //     $contentDefaultLang = $contentLang = 'en';
-        // }else{
-        //     $contentLang = $this->translate->detectLanguage($content);
-        //     $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
-        // }
-        $contentDefaultLang = 'en';
+        识别源语言
+        if(empty($content))
+        {
+            $contentDefaultLang = $contentLang = 'en';
+        }else{
+            $contentLang = $this->translate->detectLanguage($content);
+            $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
+        }
         $pychat_array = array(
                 'from_id' => auth()->id(),
                 'to_id' => $request->input('to_id' , ''),
@@ -140,11 +139,11 @@ class PyChatTranslationController extends BaseController
                 'chat_default_locale' => $contentDefaultLang,
                 'chat_ip' => getRequestIpAddress(),
         );
-        //执行主表存储
-        // $data = $this->chatinsert($chat_uuid,$pychat_array);
-        // if($request->input('chat_message_type' , '')=='image'){
-        //     return $data;
-        // }
+        // 执行主表存储
+        $data = $this->chatinsert($chat_uuid,$pychat_array);
+        if($request->input('chat_message_type' , '')=='image'){
+            return $data;
+        }
         //开启事务
         DB::beginTransaction();
         //判断content是否为数组翻译
