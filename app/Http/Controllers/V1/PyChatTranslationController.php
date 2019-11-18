@@ -10,6 +10,8 @@ use App\Services\TencentTranslateService;
 use App\Repositories\Contracts\PyChatTranslationRepository;
 use App\Repositories\Contracts\PyChatRepository;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
 
 class PyChatTranslationController extends BaseController
 {
@@ -138,6 +140,8 @@ class PyChatTranslationController extends BaseController
             'chat_message_type' => $request->input('chat_message_type' , ''),
             'chat_default_locale' => $contentDefaultLang,
             'chat_ip' => getRequestIpAddress(),
+            'chat_created_at'=>date('Y-m-d H:i:s',time()),
+            'chat_updated_at'=>date('Y-m-d H:i:s',time()),
         );
 
         //判断content是否为数组翻译
@@ -169,7 +173,7 @@ class PyChatTranslationController extends BaseController
                 $translation = $isInTran->chat_message;
             }
             DB::commit();
-            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat->chat_id));
+            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat->chat_id , 'created_at'=>Carbon::parse($chat->chat_created_at)->diffForHumans()));
         }else{
 //            $chat_uuid = array_keys($content);
 //            $isInTran = DB::table('pychats_translations')->whereIn('chat_uuid',$chat_uuid)->where('chat_locale',$target)->lockForUpdate()->pluck('chat_message','chat_uuid');
@@ -205,7 +209,8 @@ class PyChatTranslationController extends BaseController
         DB::beginTransaction();
         $chat = DB::table('pychats')->where('chat_uuid',$chat_uuid)->lockForUpdate()->first();
         if(empty($chat)){
-            DB::table('pychats')->insert($pychat_array);
+            $chat = DB::table('pychats')->insertGetId($pychat_array);
+            $chat = ['chat_id'=>$chat,'chat_created_at'=>$pychat_array['chat_created_at'],'chat_uuid'=>$pychat_array['chat_uuid']];
         }
         DB::commit();
         return $chat;
