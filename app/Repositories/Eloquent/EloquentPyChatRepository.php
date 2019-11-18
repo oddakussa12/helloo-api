@@ -4,7 +4,7 @@
  * @Author: Dell
  * @Date:   2019-10-24 14:57:52
  * @Last Modified by:   Dell
- * @Last Modified time: 2019-11-17 19:48:32
+ * @Last Modified time: 2019-11-18 15:30:57
  */
 namespace App\Repositories\Eloquent;
 
@@ -38,12 +38,13 @@ class EloquentPyChatRepository  extends EloquentBaseRepository implements PyChat
     }
     public function limitMessage($chat_id,$room_uuid)
     {
-        return $this->model
+         $result = $this->model
                     ->where(['chat_type'=>'room'])
                     ->where(['to_id'=>$room_uuid])
-                    ->orderBy('chat_id', 'DESC')
-                    ->where('chat_id','<',$chat_id)
-                    ->limit(5)
-                    ->get();
+                    ->orderBy('chat_id', 'DESC')->limit(5)->get();
+                    if(!empty($chat_id)){
+                        $result = $result->where('chat_id','<',$chat_id);
+                    }
+                    return $result;
     }
 }
