@@ -206,10 +206,7 @@ class PyChatTranslationController extends BaseController
 
         // 执行主表存储
         $chat = $this->chatinsert($chat_uuid,$pychat_array);
-        if($request->input('chat_message_type' , '')=='image'){
-             $chat['created_at']=Carbon::parse($chat['chat_created_at'])->diffForHumans();
-             return $chat;
-        }
+        $chat['created_at']=Carbon::parse($chat['chat_created_at'])->diffForHumans();
         return $chat;
     }
     public function chatinsert($chat_uuid,$pychat_array)
