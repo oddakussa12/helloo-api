@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 interface PostRepository extends BaseRepository
 {
 
-    public function findByUuid($uuid);
+    public function showByUuid($uuid);
 
     public function paginateAll(Request $request);
 }

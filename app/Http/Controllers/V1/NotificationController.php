@@ -25,6 +25,8 @@ class NotificationController extends BaseController
 
     public function index(Request $request)
     {
+        $postIds = array();
+        $commentIds = array();
         $type = $request->get('type' , 'global');
         $appends['type'] = $type;
         if($type=='global')
@@ -38,7 +40,6 @@ class NotificationController extends BaseController
                     ->orderBy('read', 'asc')
                     ->paginate(5 , ['*'] , 'notice_page');
                 $message_ext= $message_ext->appends($appends);
-//                $message = $message->merge($message_ext);
                 return array(
                     'global'=>$message,
                     'admin'=>NotificationCollection::collection($message_ext),
@@ -50,11 +51,22 @@ class NotificationController extends BaseController
             if(auth()->check())
             {
                 $message = auth()->user()->getNotificationRelation()
+                    ->with('category')
                     ->where('category_id', 3)
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
                     ->paginate(10 , ['*'] , 'notice_page');
                 $message= $message->appends($appends);
+                $message->each(function($item , $key) use (&$postIds , &$commentIds){
+                    $extra = $item->extra;
+                    array_push($postIds , $extra['post_id']);
+                    array_push($commentIds , $extra['comment_id']);
+                });
+                $comments = PostCommentCollection::collection(app(PostCommentRepository::class)->findByCommentIds($commentIds));
+                $message->each(function($item , $key) use ($comments){
+                    $extra = $item->extra;
+                    $item->detail = $comments->where('comment_id' , $extra['comment_id'])->values()->first();
+                });
                 return NotificationCollection::collection($message);
             }
 
@@ -67,6 +79,16 @@ class NotificationController extends BaseController
                     ->orderBy('read', 'asc')
                     ->paginate(10 , ['*'] , 'notice_page');
                 $message= $message->appends($appends);
+                $message->each(function($item , $key) use (&$postIds , &$commentIds){
+                    $extra = $item->extra;
+                    array_push($postIds , $extra['post_id']);
+                    array_push($commentIds , $extra['comment_id']);
+                });
+                $comments = PostCommentCollection::collection(app(PostCommentRepository::class)->findByCommentIds($commentIds));
+                $message->each(function($item , $key) use ($comments){
+                    $extra = $item->extra;
+                    $item->detail = $comments->where('comment_id' , $extra['comment_id'])->values()->first();
+                });
                 return NotificationCollection::collection($message);
             }
         }else{

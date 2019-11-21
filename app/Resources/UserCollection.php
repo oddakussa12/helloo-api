@@ -24,16 +24,13 @@ class UserCollection extends Resource
     {
         return [
             'user_id'=>$this->user_id,
-//            'user_about'=>$this->user_about,
             'user_name'=>$this->user_name,
-//            'user_gender'=>$this->user_gender,
             'user_language'=>$this->user_language,
             'user_avatar'=>$this->user_avatar,
-//            'user_cover'=>$this->user_cover,
             'user_country'=>$this->user_country,
             'user_is_guest'=>$this->user_is_guest,
-            'user_follow_state' => $this->when(true , function () use ($request){
-                if($request->routeIs('user.rank'))
+            'user_follow_state' => $this->when(!$request->routeIs('show.post.by.user') , function () use ($request){
+                if($request->routeIs('user.rank')||$request->routeIs('post.index')||$request->routeIs('post.top'))
                 {
                     return $this->user_follow_state;
                 }else{
@@ -47,11 +44,14 @@ class UserCollection extends Resource
                 return $this->followings()->count();
             }),
             'user_post_count' => $this->when($request->routeIs('user.show') , function () use($request){
-                return app(PostRepository::class)->getCountByUserId($request , $this->user_id);
+                return app(PostRepository::class)->getCountByUserId($this->user_id);
             }),
             'user_comment_count' => $this->when($request->routeIs('user.show') , function () use($request){
-                return app(PostCommentRepository::class)->getCountByUserId($request , $this->user_id);
+                return app(PostCommentRepository::class)->getCountByUserId($this->user_id);
             }),
+            'user_medal' => $this->when($request->routeIs('post.index')||$request->routeIs('post.top') , function () use ($request){
+                return $this->user_medal;
+            })
         ];
     }
 }

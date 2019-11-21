@@ -2,16 +2,13 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Models\PostComment;
-use App\Models\Country;
 use App\Models\Tag;
+use App\Models\PostComment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Builder;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
-
 
 class EloquentPostRepository  extends EloquentBaseRepository implements PostRepository
 {
@@ -48,11 +45,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments) {
+        $activeUsers = app(UserRepository::class)->getActiveUser(); //获取活跃用户
+
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments , $activeUsers){
             $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
             $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
             $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
-            $item->user_follow_state = in_array($item->user_id , $followers);
+            $item->owner->user_follow_state = in_array($item->user_id , $followers);
+            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('score')->first();
         });
         return $posts;
     }
@@ -60,9 +60,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function hot($request)
     {
         $posts = $this->model;
-        $posts = $posts->whereHas('translations', function (Builder $q){
-            $q->where('post_locale', locale());
-        });
         $posts = $posts->with('translations');
         return $posts->orderBy('post_rate', 'DESC')
             ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
@@ -138,11 +135,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
             $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments) {
+            $activeUsers = app(UserRepository::class)->getActiveUser();
+
+            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments , $activeUsers) {
                 $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
                 $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
                 $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
-                $item->user_follow_state = in_array($item->user_id , $followers);
+                $item->owner->user_follow_state = in_array($item->user_id , $followers);
+                $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('score')->first();
             });
             return $posts->appends($appends);
         }elseif ($request->get('keywords') !== null) {
@@ -158,11 +158,13 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $posts->appends($appends);
     }
 
-    public function findByUuid($uuid)
+    public function showByUuid($uuid)
     {
-        $post = $this->allWithBuilder();
+        $post = $this->model;
         $post = $post->where('post_uuid', $uuid);
-        $post = $post->with('owner');
+        $post = $post->with(['tags' => function($query){
+            $query->with('translations');
+        }]);
         $post = $post->firstOrFail();
         $topCountries = $this->topCountries([$post->post_id]);
         $topCountryNum = $this->countryNum([$post->post_id]);
@@ -213,11 +215,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $posts->appends($appends);
     }
 
-    public function getCountByUserId($request , $user_id)
+    public function getCountByUserId($user_id)
     {
-        return $this->model
-            ->where(['user_id'=>$user_id])
-            ->count();
+        return $this->model->where('user_id',$user_id)->count();
     }
     public function getOrder($orderBy)
     {
@@ -266,6 +266,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return PostComment::whereIn('comment_id',$topTwoCommentIds)
             ->with('translations')
             ->with('owner')
+            ->with('to')
             ->with('likers')->get();
     }
 
@@ -315,10 +316,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function find($id)
     {
-        $post = $this->model;
-        if (method_exists($this->model, 'translations')) {
-            $post = $post->with('translations');
-        }
+        $post = $this->allWithBuilder();
         $post = $post->with('owner')->find($id);
         return $post;
     }

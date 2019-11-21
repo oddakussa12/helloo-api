@@ -8,31 +8,32 @@
  */
 namespace App\Repositories\Eloquent;
 
-use App\Http\Requests\Request;
-use App\Models\Post;
-use App\Repositories\Contracts\PostRepository;
+use App\Models\PostComment;
 use App\Repositories\EloquentBaseRepository;
+use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
-
 
 class EloquentPostCommentRepository  extends EloquentBaseRepository implements PostCommentRepository
 {
-    public function topTwoComment($post_id)
-    {
-        return $this->model->where(['post_id'=>$post_id , 'comment_comment_p_id'=>0])->orderByDesc('comment_like_num')->limit(2)->get();
-    }
     public function findByPostUuid($request , $uuid)
     {
         $post = app(PostRepository::class)->findOrFailByUuid($uuid);
-        $comments = $post->comments()->with('translations')->with('likers')->with('owner')->with('children');
-        $comments->where('comment_comment_p_id', 0);
-        if ($request->get('order_by') !== null && $request->get('order') !== null) {
-            $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
-            $comments->orderBy($request->get('order_by' , 'comment_like_num'), $order);
-        }else{
-            $comments->orderBy('comment_like_num', 'desc')->orderBy('comment_created_at', 'desc');
+        $comments = $post->comments()
+                        ->with('translations')
+                        ->with('children')
+                        ->where('comment_comment_p_id' , 0);
+        if(auth()->check())
+        {
+            $comments = $comments->with(['likers'=>function($query){
+                $query->where('users.user_id' , auth()->id());
+            }]);
         }
-        $comments = $comments->paginate($this->perPage , ['*'] , $this->pageName);
+        $comments = $comments->with('owner')
+                        ->orderBy('comment_like_num', 'DESC')
+                        ->paginate($this->perPage , ['*'] , $this->pageName);
+        $comments->each(function ($item, $key) use ($uuid) {
+            $item->post_uuid = $uuid;
+        });
         if($request->get('children')==='true')
         {
             $comments->appends(array('children'=>'true'));
@@ -44,18 +45,19 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     {
         $comments = $this->allWithBuilder();
         $comments = $comments->where('user_id' , $user_id);
-        $comments = $comments->with('likes')->with('owner')->without('children')->whereHas('post');
+        $comments = $comments->with('likes')
+            ->with('owner')
+            ->with('post')
+            ->whereHas('post');
         return $comments
-            ->orderBy('comment_created_at', 'desc')
+            ->orderBy($this->model->getCreatedAtColumn(), 'desc')
             ->orderByDesc('comment_like_num')
             ->paginate($this->perPage , ['*'] , $this->pageName);
     }
 
-    public function getCountByUserId($request , $user_id)
+    public function getCountByUserId($user_id)
     {
-        return $this->model
-            ->where(['user_id'=>$user_id])
-            ->count();
+        return $this->model->where('user_id' , $user_id)->count();
     }
 
     public function findOrFail($id)
@@ -65,13 +67,42 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
     public function find($id)
     {
-        $comment = $this->model;
-        if (method_exists($this->model, 'translations')) {
-            $comment = $comment->with('translations');
-        }
-        $comment = $comment->with('owner')->with('likers')->find($id);
+        $comment = $this->allWithBuilder();
+        $comment = $comment->with('owner')->with('post')->with('to')->with('likers')->find($id);
         return $comment;
     }
 
+    public function myLike()
+    {
+        return auth()->user()
+            ->likes()
+            ->with(['likable'=>function($query){
+                $query->with('owner')
+                    ->with('translations')
+                    ->with('likes')
+                    ->with(['post'=>function($q){
+                        $q->with('translations');
+                    }]);
+            }])
+            ->join('posts_comments' , function($join){
+                $join->on('common_likes.likable_id' , 'posts_comments.comment_id');
+            })
+            ->whereNull('posts_comments.comment_deleted_at')
+            ->withType(PostComment::class)
+            ->orderby('created_at' , 'desc')
+            ->paginate(5);
+    }
 
+    public function findByCommentIds(array $comment_ids)
+    {
+        $comments = $this->allWithBuilder();
+        return $comments->whereIn('comment_id' , $comment_ids)
+            ->with('to')
+            ->with('owner')
+            ->with('likes')
+            ->with(['post'=>function($q){
+                $q->withTrashed();
+            }])
+            ->get();
+    }
 }

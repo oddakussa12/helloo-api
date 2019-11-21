@@ -85,19 +85,22 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function getUserRank()
     {
-        $userIds = $this->getActiveUserId();
+        $activeUser = $this->getActiveUser();
+
+        $userIds = $activeUser->pluck('user_id')->all();
 
         $followers = userFollow($userIds);
 
         $users = $this->getUserRankByUserId($userIds);
 
-        $users->each(function($item , $key)use ($followers){
+        $users->each(function($item , $key)use ($followers , $activeUser){
             $item->user_follow_state = in_array($item->user_id , $followers);
+            $item->user_score = $activeUser->where('user_id' , $item->user_id)->pluck('score')->first();
         });
         return $users;
     }
 
-    public function getActiveUserId()
+    public function getActiveUser()
     {
         return Cache::rememberForever('user_rank', function() {
             $userId = collect();
@@ -151,8 +154,14 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 }
                 $userInfo->put($item, collect(array('user_id'=>$item , 'score'=>$scoring)));
             });
-            return $userInfo->sortByDesc('score')->values()->take(10)->pluck('user_id');
+            return $userInfo->sortByDesc('score')->values()->take(10);
         });
+    }
+
+    public function getActiveUserId()
+    {
+        $activeUser = $this->getActiveUser();
+        return $activeUser->pluck('score' , 'user_id')->all();
     }
 
 

@@ -65,6 +65,10 @@ class PostComment extends Model
     {
         return $this->belongsTo('App\Models\User', 'user_id' , 'user_id')->withDefault();
     }
+    public function to()
+    {
+        return $this->belongsTo('App\Models\User', 'comment_to_id' , 'user_id')->withDefault();
+    }
 
     public function ownedBy(User $user)
     {
@@ -78,8 +82,17 @@ class PostComment extends Model
 
     public function children()
     {
-        return $this->hasMany(self::class, 'comment_comment_p_id')
-            ->with('owner')->with('likers')->with('translations')->orderBy('comment_created_at' , 'desc')->orderBy('comment_like_num' , 'desc');
+        $children =  $this->hasMany(self::class, 'comment_comment_p_id')
+            ->with('owner');
+        if(auth()->check())
+        {
+            $children = $children->with(['likers'=>function($query){
+                        $query->where('users.user_id' , auth()->id());
+                        }]);
+        }
+        return $children->with('translations')
+            ->orderBy('comment_like_num' , 'desc')
+            ->orderBy($this->getCreatedAtColumn() , 'desc');
     }
 
 

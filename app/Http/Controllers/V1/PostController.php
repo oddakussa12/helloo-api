@@ -44,7 +44,7 @@ class PostController extends BaseController
 
     public function like($uuid)
     {
-        $post = $this->post->findByUuid($uuid);
+        $post = $this->post->findOrFailByUuid($uuid);
         auth()->user()->like($post);
         return $this->response->noContent();
     }
@@ -52,14 +52,14 @@ class PostController extends BaseController
 
     public function favorite($uuid)
     {
-        $post = $this->post->findByUuid($uuid);
+        $post = $this->post->findOrFailByUuid($uuid);
         auth()->user()->favorite($post);
         return $this->response->noContent();
     }
 
     public function unfavorite($uuid)
     {
-        $post = $this->post->findByUuid($uuid);
+        $post = $this->post->findOrFailByUuid($uuid);
         auth()->user()->unfavorite($post);
         return $this->response->noContent();
     }
@@ -68,26 +68,26 @@ class PostController extends BaseController
     public function dislike($uuid)
     {
         $user = User::find(auth()->id());
-        $post = $this->post->findByUuid($uuid);
+        $post = $this->post->findOrFailByUuid($uuid);
         $user->unlike($post);
         return $this->response->noContent();
     }
 
     public function revokeVote($uuid)
     {
-        $post = $this->post->findByUuid($uuid);
+        $post = $this->post->findOrFailByUuid($uuid);
         auth()->user()->revoke($post);
         return $this->response->noContent();
     }
 
     public function showPostByUser(Request $request , $userId)
     {
-        return PostCollection::collection($this->post->paginateByUser($request , $userId));
+        return PostPaginateCollection::collection($this->post->paginateByUser($request , $userId));
     }
 
     public function showPostByUserSelf(Request $request)
     {
-        return PostCollection::collection($this->post->paginateByUser($request , auth()->id()));
+        return PostPaginateCollection::collection($this->post->paginateByUser($request , auth()->id()));
     }
 
     /**
@@ -191,14 +191,12 @@ class PostController extends BaseController
      */
     public function show($uuid)
     {
-//        $post = $this->post->findByUuid($uuid);
-//        event(new PostViewEvent($post));
-//        return $post;
+
     }
 
     public function showByUuid($uuid)
     {
-        $post = $this->post->findByUuid($uuid);
+        $post = $this->post->showByUuid($uuid);
         event(new PostViewEvent($post));
         return new PostCollection($post);
     }
@@ -234,8 +232,7 @@ class PostController extends BaseController
      */
     public function destroy($uuid)
     {
-        //
-        $post = $this->post->findByUuid($uuid);
+        $post = $this->post->findOrFailByUuid($uuid);
         if($post->user_id!=auth()->id())
         {
             abort(401);

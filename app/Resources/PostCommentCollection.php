@@ -14,7 +14,6 @@ class PostCommentCollection extends Resource
     public function toArray($request)
     {
         return [
-//            'post_id' => $this->post_id,
             'comment_id' => $this->comment_id,
             'comment_comment_p_id' => $this->comment_comment_p_id,
             'comment_like_num' => $this->comment_like_num,
@@ -24,21 +23,43 @@ class PostCommentCollection extends Resource
             'comment_image' => $this->comment_image,
             'comment_created_at' => optional($this->comment_created_at)->toDateTimeString(),
             'comment_format_created_at' => $this->comment_format_created_at,
-            //'translations' => PostCommentTranslationCollection::collection($this->translations),
             'comment_like_state'=>$this->comment_like_state,
-
-            'user_name'=>$this->owner->user_name,
-            'user_id'=>$this->owner->user_id,
-            'user_avatar'=>$this->owner->user_avatar,
-            'user_country'=>$this->owner->user_country,
-            'user_is_guest' => $this->owner->user_is_guest,
-
-            'comment_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
-            'children' => $this->when($request->children==true , function(){
-                return self::collection($this->children);
+            'owner'=>collect(array(
+                'user_id'=>$this->owner->user_id,
+                'user_name'=>$this->owner->user_name,
+                'user_avatar'=>$this->owner->user_avatar,
+                'user_country'=>$this->owner->user_country,
+                'user_is_guest'=>$this->owner->user_is_guest,
+            )),
+            $this->mergeWhen($request->routeIs('notification.index'), function (){
+                return collect([
+                    'to'=>collect(array(
+                        'user_id'=>$this->to->user_id,
+                        'user_name'=>$this->to->user_name,
+                        'user_avatar'=>$this->to->user_avatar,
+                        'user_country'=>$this->to->user_country,
+                        'user_is_guest'=>$this->to->user_is_guest,
+                    )),
+                ]);
             }),
-            'post_uuid'=>$this->when(!($request->routeIs('post.index')||$request->routeIs('post.top'))&&!empty($this->post), function (){
-                return $this->post->post_uuid;
+            'children' => $this->when($request->routeIs('show.comment.by.post') , function (){
+                $this->children->each(function($item , $key){
+                    $item->post_uuid = $this->post_uuid;
+                });
+                return $this->collection($this->children);
+            }),
+            'comment_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
+            'post_uuid'=>$this->when(!($request->routeIs('post.index')||$request->routeIs('post.top')), function (){
+                if(isset($this->post_uuid))
+                {
+                    return $this->post_uuid;
+                }
+                $post = $this->post;
+                if(!empty($post))
+                {
+                    return $post->post_uuid;
+                }
+                return '';
             })
         ];
     }

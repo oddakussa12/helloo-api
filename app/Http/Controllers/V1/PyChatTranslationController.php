@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\V1;
 
+use Carbon\Carbon;
 use App\Models\PyChat;
-use App\Models\PyChatTranslation;
 use Illuminate\Http\Request;
 use App\Services\TranslateService;
-use App\Services\TencentTranslateService;
-use App\Repositories\Contracts\PyChatTranslationRepository;
-use App\Repositories\Contracts\PyChatRepository;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Redis;
+use App\Services\TencentTranslateService;
+use App\Repositories\Contracts\PyChatRepository;
+use App\Repositories\Contracts\PyChatTranslationRepository;
 
 class PyChatTranslationController extends BaseController
 {
@@ -120,6 +119,7 @@ class PyChatTranslationController extends BaseController
 
     public function translate(Request $request)
     {
+        $flag = 1;
         $content = $request->input('content' , '');
         $target = $request->input('target' , 'en');
         $chat_uuid = $request->input('chat_uuid' , '');
@@ -143,47 +143,52 @@ class PyChatTranslationController extends BaseController
             'chat_created_at'=>date('Y-m-d H:i:s',time()),
             'chat_updated_at'=>date('Y-m-d H:i:s',time()),
         );
-
+            $lock_key = $chat_uuid.'_'.$target;
             // 执行主表存储
             $chat = $this->chatinsert($chat_uuid,$pychat_array);
             if($request->input('chat_message_type' , '')=='image'){
                 return $chat;
             }
-            //此处为默语言查询存储
-            $isInDeft = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$contentDefaultLang)->lockForUpdate()->first();
-            if(empty($isInDeft))
-            {
-                //准备存储翻译后内容
-                $translationArray = [
-                    'chat_id'=> $chat['chat_id'],
-                    'chat_uuid'=> $chat_uuid,
-                    'chat_locale'=>$contentDefaultLang,
-                    'chat_message'=>$content,
-                ];
-                //存储翻译内容
-                $isInDeft = DB::table('pychats_translations')->insert($translationArray);
-            }
-//            DB::beginTransaction();
-            //查询翻译信息
             $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->first();
-            //判断是否有翻译信息
             if(empty($isInTran))
             {
-                //准备存储翻译内容
-                $translationArray = [
-                    'chat_id'=> $chat['chat_id'],
-                    'chat_uuid'=> $chat_uuid,
-                    'chat_locale'=>$target,
-                ];
-                $translation = $this->executionTranslation($contentDefaultLang,$target,$content,$translationArray);
-                //准备存储翻译后内容
-                $translationArray['chat_message'] =$translation;
-                //存储翻译内容
-                $isInTran = DB::table('pychats_translations')->insert($translationArray);
+                if(Redis::set($lock_key, $flag, "nx", "ex", 100))
+                {
+                    $translationArray = [
+                        'chat_id'=> $chat['chat_id'],
+                        'chat_uuid'=> $chat_uuid,
+                        'chat_locale'=>$target,
+                    ];
+                    $translation = $this->executionTranslation($contentDefaultLang,$target,$content,$translationArray);
+
+                    //准备存储翻译后内容
+                    $translationArray['chat_message'] =$translation.$target;
+                    //存储翻译内容
+
+                    DB::table('pychats_translations')->insert($translationArray);
+                    Redis::set($lock_key.'_c', $flag, "nx", "ex", 100);
+                }else{
+                    $waitTime = time();
+                    while(true)
+                    {
+                        $goTime = time();
+                        if(Redis::get($lock_key.'_c')===$flag||$goTime-$waitTime>30)
+                        {
+                            $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->first();
+                            if(empty($isInTran))
+                            {
+                                $translation = $content;
+                            }else{
+                                $translation = $isInTran->chat_message;
+                            }
+                            break;
+                        }
+                    }
+
+                }
             }else{
                 $translation = $isInTran->chat_message;
             }
-//            DB::commit();
             return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat['chat_id'] , 'created_at'=>Carbon::parse($chat['chat_created_at'])->diffForHumans()));
 
         // return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
@@ -257,6 +262,7 @@ class PyChatTranslationController extends BaseController
     }
     public function executionTranslation($contentDefaultLang,$target,$content,$translationArray)
     {
+        return date('Y-m-d H:i:s').time().$content;
         if((($contentDefaultLang=='zh-CN'&&$target=='en')||($contentDefaultLang=='en'&&$target=='zh-CN'))&&strlen(trim($content))<=1024)
             {//腾讯翻译
                 $service = new TencentTranslateService();

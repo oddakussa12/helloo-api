@@ -99,11 +99,6 @@ class TencentTranslateService
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
             $response = curl_exec($curl);
-            if ($response === false)
-            {
-                $response = false;
-                break;
-            }
             $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             if ($code != 200)
             {
