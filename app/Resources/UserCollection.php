@@ -50,8 +50,11 @@ class UserCollection extends Resource
             'user_comment_count' => $this->when($request->routeIs('user.show') , function () use($request){
                 return app(PostCommentRepository::class)->getCountByUserId($this->user_id);
             }),
-            'user_medal' => $this->when($request->routeIs('post.index')||$request->routeIs('post.top') , function () use ($request){
+            'user_medal' => $this->when($request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('user.show') , function () use ($request){
                 return $this->user_medal;
+            }),
+            'user_rank_score' => $this->when($request->routeIs('user.rank') , function () use ($request){
+                return $this->user_rank_score;
             })
         ];
     }

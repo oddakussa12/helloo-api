@@ -48,7 +48,7 @@ class DisLikeListener
         if($relation->created_at>config('common.score_date'))
         {
             $user = auth()->user();
-            $user->decrement('user_score' , 2);
+            $user->decrement('user_score' , 1);
         }
 
     }
