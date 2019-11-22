@@ -16,12 +16,14 @@ class DisLiked
     private $user;
     private $object;
     private $type;
+    private $relation;
 
-    public function __construct($user , $object , $type=1)
+    public function __construct($user , $object , $relation , $type=1)
     {
         $this->user = $user;
         $this->object = $object;
         $this->type = $type;
+        $this->relation = $relation;
     }
 
     public function getUser()
@@ -37,6 +39,11 @@ class DisLiked
     public function getType()
     {
         return $this->type;
+    }
+
+    public function getRelation()
+    {
+        return $this->relation;
     }
 
     public function broadcastOn()

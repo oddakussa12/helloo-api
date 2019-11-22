@@ -238,6 +238,11 @@ class PostController extends BaseController
             abort(401);
         }
         $this->post->destroy($post);
+        if($post->post_created_at>config('common.score_date'))
+        {
+            $user = auth()->user();
+            $user->decrement('user_score' , 2);
+        }
         return $this->response->noContent();
     }
 

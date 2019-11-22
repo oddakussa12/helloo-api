@@ -49,10 +49,11 @@ trait CanLike
     public function unlike(Model $object)
     {
         $relation = $object->likes()
-            ->where('likable_id', $object->getKey())
-            ->where('likable_type', $object->getMorphClass())
-            ->where(config('like.user_foreign_key'), $this->getKey())
-            ->first();
+        ->where('likable_id', $object->getKey())
+        ->where('likable_type', $object->getMorphClass())
+        ->where(config('like.user_foreign_key'), $this->getKey())
+        ->first();
+
         if ($relation) {
             if($relation->{config('like.likes_likable_state')}===1)
             {
@@ -80,10 +81,10 @@ trait CanLike
             $relation->delete();
             if($relation->{config('like.likes_likable_state')}===1)
             {
-                Event::dispatch(new DisLiked($this, $object));
+                Event::dispatch(new DisLiked($this, $object , $relation));
             }else if($relation->{config('like.likes_likable_state')}===-1)
             {
-                Event::dispatch(new Liked($this, $object));
+                Event::dispatch(new Liked($this, $object , $relation));
             }
         }
     }

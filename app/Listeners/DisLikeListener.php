@@ -44,6 +44,13 @@ class DisLikeListener
             $object->decrement('comment_like_num' , $event->getType());
             notify_remove([3] , $object);
         }
+        $relation = $event->getRelation();
+        if($relation->created_at>config('common.score_date'))
+        {
+            $user = auth()->user();
+            $user->decrement('user_score' , 2);
+        }
+
     }
 
 }

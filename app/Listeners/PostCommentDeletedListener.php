@@ -48,5 +48,10 @@ class PostCommentDeletedListener
             $post->decrement('post_comment_num');
             notify_remove([6] , $object->parent);
         }
+        if($object->comment_created_at>config('common.score_date'))
+        {
+            $user = auth()->user();
+            $user->decrement('user_score' , 3);
+        }
     }
 }

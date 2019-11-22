@@ -69,8 +69,8 @@ class PostTranslation implements ShouldQueue
                 true
             );
         }
-
-
+        $user = auth()->user();
+        $user->increment('user_score' , 2);
     }
 
     /**

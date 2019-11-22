@@ -72,16 +72,8 @@ class LikeListener
                     true
                 );
             }
-
-//            if(!$object->ownedBy(auth()->user()))
-//            {
-//                if(isset($object->parent))
-//                {
-//                    $object->parent->owner->notify(new CommentLiked($event));
-//                } else{
-//                    $object->owner->notify(new CommentLiked($event));
-//                }
-//            }
         }
+        $user = auth()->user();
+        $user->increment('user_score' , 2);
     }
 }

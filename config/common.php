@@ -11,4 +11,5 @@ return [
         'h5'=>'www.yooul.com',
         'web'=>'web.yooul.com',
     ],
+    'score_date'=>env('SCORE_DATE', '2019-11-22 00:00:00')
 ];

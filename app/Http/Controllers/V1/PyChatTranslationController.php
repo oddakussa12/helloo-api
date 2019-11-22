@@ -162,7 +162,7 @@ class PyChatTranslationController extends BaseController
                     $translation = $this->executionTranslation($contentDefaultLang,$target,$content,$translationArray);
 
                     //准备存储翻译后内容
-                    $translationArray['chat_message'] =$translation.$target;
+                    $translationArray['chat_message'] =$translation;
                     //存储翻译内容
 
                     DB::table('pychats_translations')->insert($translationArray);
@@ -262,38 +262,38 @@ class PyChatTranslationController extends BaseController
     }
     public function executionTranslation($contentDefaultLang,$target,$content,$translationArray)
     {
-        return date('Y-m-d H:i:s').time().$content;
         if((($contentDefaultLang=='zh-CN'&&$target=='en')||($contentDefaultLang=='en'&&$target=='zh-CN'))&&strlen(trim($content))<=1024)
-            {//腾讯翻译
-                $service = new TencentTranslateService();
-                $zhlang = ['卧槽','简单来说'];
-                $enlang = ['Fuck','tldr'];
-                if($contentDefaultLang == 'en'&&$target=='zh-CN'){//判断是否有默认词条
-                    foreach ($enlang as $enkey => $envalue) {
-                        if(strcasecmp($content,$envalue)==0){
-                            $translation = $zhlang[$enkey];
-                            return $translation;
-                        }else{//没有
-                            $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
-                            if($translation===false)
-                            {
-                                $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
-                            }
-                            //返回客户端信息
-                            return $translation;
-                        }
-                    }
-                }else{
-                    $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
+        {
+            //腾讯翻译
+            $service = new TencentTranslateService();
+            $zhlang = ['卧槽','简单来说'];
+            $enlang = ['Fuck','tldr'];
+            if($contentDefaultLang == 'en'&&$target=='zh-CN'){//判断是否有默认词条
+                foreach ($enlang as $enkey => $envalue) {
+                    if(strcasecmp($content,$envalue)==0){
+                        $translation = $zhlang[$enkey];
+                        return $translation;
+                    }else{//没有
+                        $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
                         if($translation===false)
                         {
                             $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
                         }
+                        //返回客户端信息
                         return $translation;
                     }
-            }else{//google翻译
-                $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
-                return $translation;
+                }
+            }else{
+                    $translation = $service->translate($content , array('source'=>$contentDefaultLang , 'target'=>$target));
+                    if($translation===false)
+                    {
+                        $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
+                    }
+                    return $translation;
             }
+        }else{//google翻译
+            $translation = $this->translate->pyChatTranslate($content , array('target'=>$target));
+            return $translation;
+        }
     }
 }
