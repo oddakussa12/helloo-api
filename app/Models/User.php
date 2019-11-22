@@ -51,6 +51,7 @@ class User extends Authenticatable implements JWTSubject
         'user_facebook' ,
         'user_twitter' ,
         'user_instagram' ,
+        'user_score',
         'user_active' ,
         'user_admin' ,
         'user_verified' ,
