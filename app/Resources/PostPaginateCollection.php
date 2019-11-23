@@ -37,23 +37,15 @@ class PostPaginateCollection extends Resource
             'post_created_at'=> optional($this->post_created_at)->toDateTimeString(),
             'post_format_created_at'=> $this->post_format_created_at,
 
-            'owner'=>new UserCollection($this->owner),
+            'owner'=>$this->when(!$request->has('keywords') , function (){
+                return new UserCollection($this->owner);
+            }),
 
-            'post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
+            'post_owner' =>$this->when(!$request->has('keywords') , function (){
+                return auth()->check()?$this->ownedBy(auth()->user()):false;
+            }),
 
         ];
     }
 
-
-    private function country()
-    {
-        return DB::table('posts_comments')
-            ->select(DB::raw('count(*) as country_num') , 'countries.country_code as country_code' , 'countries.country_id as country_id')
-            ->leftJoin('countries', 'posts_comments.comment_country_id', '=', 'countries.country_id')
-            ->where('post_id' , $this->post_id)
-            ->groupBy('posts_comments.comment_country_id')
-            ->orderBy('country_num' , 'desc')
-            ->orderBy('comment_created_at' , 'desc')
-            ->paginate(7);
-    }
 }

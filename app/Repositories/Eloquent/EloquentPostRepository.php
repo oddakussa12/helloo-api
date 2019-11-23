@@ -155,6 +155,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $posts = $posts->where('post_id' , 0);
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+
+        $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
+
+        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+
+        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum) {
+            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+        });
         return $posts->appends($appends);
     }
 
