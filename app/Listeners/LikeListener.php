@@ -21,9 +21,9 @@ class LikeListener
      *
      * @return void
      */
-    public function __construct(Request $request)
+    public function __construct()
     {
-        $this->request = $request;
+
     }
 
     /**
@@ -43,7 +43,7 @@ class LikeListener
         }else if($object instanceof PostComment)
         {
             $object->increment('comment_like_num' , $event->getType());
-            $object->increment('comment_like_temp_num' , $this->request->input('comment_like_temp_num' , 0));
+            $object->increment('comment_like_temp_num' , request()->input('comment_like_temp_num' , 0));
             notify('user.like' ,
                 array(
                     'from'=>auth()->id() ,
