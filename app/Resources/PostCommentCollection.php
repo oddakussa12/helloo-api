@@ -17,6 +17,7 @@ class PostCommentCollection extends Resource
             'comment_id' => $this->comment_id,
             'comment_comment_p_id' => $this->comment_comment_p_id,
             'comment_like_num' => $this->comment_like_num,
+            'comment_like_temp_num' => $this->comment_like_temp_num,
             'comment_content' => $this->comment_decode_content,
             'comment_default_locale' => $this->comment_default_locale,
             'comment_default_content' => $this->comment_default_content,

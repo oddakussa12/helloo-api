@@ -24,7 +24,7 @@ trait CanLike
     /**
      * @param \Illuminate\Database\Eloquent\Model $object
      */
-    public function like(Model $object)
+    public function like(Model $object , $tyep=1 , $temp = 1)
     {
         $relation = $this->hasLiked($object);
         if (!$relation) {
@@ -32,13 +32,13 @@ trait CanLike
             $like->{config('like.user_foreign_key')} = $this->getKey();
             $like->{config('like.likes_likable_state')}=1;
             $object->likes()->save($like);
-            Event::dispatch(new Liked($this, $object));
+            Event::dispatch(new Liked($this, $object , $tyep , $temp));
         }else{
             if($relation->{config('like.likes_likable_state')}===-1)
             {
                 $relation->{config('like.likes_likable_state')}=1;
                 $relation->save();
-                Event::dispatch(new Liked($this, $object , 2));
+                Event::dispatch(new Liked($this, $object , $tyep , $temp));
             }
         }
     }

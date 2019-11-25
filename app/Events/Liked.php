@@ -31,11 +31,14 @@ class Liked
      */
     private $type;
 
-    public function __construct($user , $object , $type=1)
+    private $temp;
+
+    public function __construct($user , $object , $type=1 , $temp =1)
     {
         $this->user = $user;
         $this->object = $object;
         $this->type = $type;
+        $this->temp = $temp;
 //        $this->dontBroadcastToCurrentUser();
     }
 
@@ -52,6 +55,11 @@ class Liked
     public function getType()
     {
         return $this->type;
+    }
+
+    public function getTemp()
+    {
+        return $this->temp;
     }
 
 

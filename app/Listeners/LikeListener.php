@@ -42,6 +42,7 @@ class LikeListener
         }else if($object instanceof PostComment)
         {
             $object->increment('comment_like_num' , $event->getType());
+            $object->increment('comment_like_temp_num' , $event->getTemp());
             notify('user.like' ,
                 array(
                     'from'=>auth()->id() ,
