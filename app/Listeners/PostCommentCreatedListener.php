@@ -93,5 +93,9 @@ class PostCommentCreatedListener
             );
         }
 
+        $user = auth()->user();
+        $user->increment('user_score' , 3);
+
+
     }
 }
