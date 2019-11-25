@@ -7,6 +7,7 @@ use App\Models\PostComment;
 use App\Events\Liked;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Http\Request;
 
 class LikeListener
 {
@@ -20,9 +21,9 @@ class LikeListener
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Request $request)
     {
-        //
+        $this->request = $request;
     }
 
     /**
@@ -42,7 +43,7 @@ class LikeListener
         }else if($object instanceof PostComment)
         {
             $object->increment('comment_like_num' , $event->getType());
-            $object->increment('comment_like_temp_num' , $event->getTemp());
+            $object->increment('comment_like_temp_num' , $this->request->input('comment_like_temp_num' , 0));
             notify('user.like' ,
                 array(
                     'from'=>auth()->id() ,

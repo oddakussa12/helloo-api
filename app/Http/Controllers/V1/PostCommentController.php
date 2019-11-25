@@ -166,10 +166,10 @@ class PostCommentController extends BaseController
         return 'edit';
     }
 
-    public function like($id,Request $request)
+    public function like($id)
     {
         $postComment = $this->postComment->findOrFail($id);
-        auth()->user()->like($postComment,1,$request->input('comment_like_temp_num' , 0));
+        auth()->user()->like($postComment);
         return $this->response->noContent();
     }
 
