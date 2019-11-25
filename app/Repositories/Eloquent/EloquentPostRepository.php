@@ -212,15 +212,20 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 
+        $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
+
         $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
 
         $topCountries = $this->topCountries($postIds);//评论国家sql拼接
 
         $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum) {
+        $followers = userFollow($userIds);//重新获取当前登录用户信息
+
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers) {
             $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
             $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+            $item->owner->user_follow_state = in_array($item->user_id , $followers);
         });
 
         return $posts->appends($appends);
@@ -274,11 +279,16 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             ->mergeBindings($topTwoCommentQuery)
             ->where('rank','<',3)->select('c.comment_id')->pluck('comment_id')->toArray();
 
-        return PostComment::whereIn('comment_id',$topTwoCommentIds)
+        $postComments = PostComment::whereIn('comment_id',$topTwoCommentIds)
             ->with('translations')
-            ->with('owner')
-            ->with('to')
-            ->with('likers')->get();
+            ->with('owner');
+        if(auth()->check())
+        {
+            $postComments = $postComments->with(['likers'=>function($query){
+                $query->where('users.user_id' , auth()->id());
+            }]);
+        }
+        return $postComments->get();
     }
 
     public function topCountries($postIds)

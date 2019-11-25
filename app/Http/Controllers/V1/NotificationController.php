@@ -51,6 +51,7 @@ class NotificationController extends BaseController
             if(auth()->check())
             {
                 $message = auth()->user()->getNotificationRelation()
+                    ->with('from')
                     ->with('category')
                     ->where('category_id', 3)
                     ->orderBy('created_at', 'desc')

@@ -30,8 +30,8 @@ class UserCollection extends Resource
             'user_country'=>$this->user_country,
             'user_language'=>$this->user_language,
             'user_is_guest'=>$this->user_is_guest,
-            'user_follow_state' => $this->when(!$request->routeIs('show.post.by.user') , function () use ($request){
-                if($request->routeIs('user.rank')||$request->routeIs('post.index')||$request->routeIs('post.top'))
+            'user_follow_state' => $this->when(!($request->routeIs('show.post.by.user')||$request->routeIs('notification.index')) , function () use ($request){
+                if($request->routeIs('user.rank')||$request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('post.myself')||$request->routeIs('show.post.by.user'))
                 {
                     return $this->user_follow_state;
                 }else{

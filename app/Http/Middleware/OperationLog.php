@@ -6,6 +6,7 @@ use Auth;
 use Closure;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 
 class OperationLog extends BaseMiddleware
@@ -22,13 +23,14 @@ class OperationLog extends BaseMiddleware
         if(auth()->check())
         {
             $chinaNow = Carbon::now('Asia/Shanghai');
+            $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
             $user_id = (int) auth()->id();
-            DB::beginTransaction();
-            try {
+            if(!Redis::setbit($key , $user_id , 1))
+            {
                 $count = DB::table('views_logs')->where('user_id' , $user_id)
                     ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
                     ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
-                    ->lockForUpdate()->count();
+                    ->count();
                 if ($count <= 0) {
                     DB::table('views_logs')->insert(array(
                         'user_id'=>$user_id,
@@ -37,12 +39,8 @@ class OperationLog extends BaseMiddleware
                         'created_at'=>$chinaNow,
                     ));
                 }
-                // 提交事务
-                DB::commit();
-            } catch (\Exception $e) {
-                // 回滚事务
-                DB::rollBack();
             }
+
         }
         return $next($request);
     }

@@ -97,11 +97,10 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     {
         $comments = $this->allWithBuilder();
         return $comments->whereIn('comment_id' , $comment_ids)
-            ->with('to')
             ->with('owner')
             ->with('likes')
             ->with(['post'=>function($q){
-                $q->withTrashed();
+                $q->with('translations')->withTrashed();
             }])
             ->get();
     }
