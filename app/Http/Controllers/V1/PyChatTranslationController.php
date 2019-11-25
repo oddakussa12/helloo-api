@@ -189,7 +189,7 @@ class PyChatTranslationController extends BaseController
             }else{
                 $translation = $isInTran->chat_message;
             }
-            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation , 'chat_id'=>$chat['chat_id'] , 'created_at'=>Carbon::parse($chat['chat_created_at'])->diffForHumans()));
+            return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>htmlspecialchars_decode(htmlspecialchars_decode($translation , ENT_QUOTES) , ENT_QUOTES) , 'chat_id'=>$chat['chat_id'] , 'created_at'=>Carbon::parse($chat['chat_created_at'])->diffForHumans()));
 
         // return $this->response->array(array('defaultlang'=>$contentDefaultLang,'translation'=>$translation));
     }
@@ -240,7 +240,7 @@ class PyChatTranslationController extends BaseController
         $chat_uuid = array_diff($chat_uuid,$isInTranKeys);
         //翻译存在时处理
         foreach ($isInTranKeys as $key => $value) {
-           $content[$value]['translation'] =$isInTran[$value];
+           $content[$value]['translation'] =htmlspecialchars_decode(htmlspecialchars_decode($isInTran[$value] , ENT_QUOTES) , ENT_QUOTES);
         }
         //翻译不存在时处理
         foreach ($chat_uuid as $uuidkey => $uuidvalue) {
@@ -250,7 +250,7 @@ class PyChatTranslationController extends BaseController
                'chat_locale'=>$target,
            ];
           $translation= $this->executionTranslation($content[$uuidvalue]['chat_default_locale'],$target,$content[$uuidvalue]['chat_default_message'],$translationArray);
-          $content[$uuidvalue]['translation'] = $translation;
+          $content[$uuidvalue]['translation'] = htmlspecialchars_decode(htmlspecialchars_decode($translation , ENT_QUOTES) , ENT_QUOTES);
            //准备存储翻译后内容
            $translationArray['chat_message'] =$translation;
            //存储翻译内容
