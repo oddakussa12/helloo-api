@@ -24,6 +24,9 @@ class NotificationCollection extends Resource
             'type' => $this->category->name,
             'extra' => $this->extra,
             'detail'=>$this->detail,
+            'from' =>$this->when($request->input('type')=='like' , function(){
+                return new UserCollection($this->from);
+            }),
             'created_at'=>optional($this->created_at)->toDateTimeString(),
         ];
     }

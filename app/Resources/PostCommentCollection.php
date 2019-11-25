@@ -32,17 +32,6 @@ class PostCommentCollection extends Resource
                 'user_country'=>$this->owner->user_country,
                 'user_is_guest'=>$this->owner->user_is_guest,
             )),
-            $this->mergeWhen($request->routeIs('notification.index'), function (){
-                return collect([
-                    'to'=>collect(array(
-                        'user_id'=>$this->to->user_id,
-                        'user_name'=>$this->to->user_name,
-                        'user_avatar'=>$this->to->user_avatar,
-                        'user_country'=>$this->to->user_country,
-                        'user_is_guest'=>$this->to->user_is_guest,
-                    )),
-                ]);
-            }),
             'children' => $this->when($request->routeIs('show.comment.by.post') , function (){
                 $this->children->each(function($item , $key){
                     $item->post_uuid = $this->post_uuid;
@@ -61,6 +50,9 @@ class PostCommentCollection extends Resource
                     return $post->post_uuid;
                 }
                 return '';
+            }),
+            'post'=>$this->when($request->routeIs('notification.index')&&$request->input('type')=='comment', function (){
+                return new PostCollection($this->post);
             })
         ];
     }
