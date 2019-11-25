@@ -106,6 +106,8 @@ class AuthController extends BaseController
     protected function respondWithToken($token)
     {
         $user = auth()->user();
+        $score = app(UserRepository::class)->getYesterdayScoreByUserId($user->user_id);
+        $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
         return $this->response->array([
             'access_token' => $token,
             'token_type' => 'bearer',
@@ -117,6 +119,8 @@ class AuthController extends BaseController
                 'user_email'=>$user->user_email,
                 'user_country'=>$user->user_country,
                 'user_is_guest'=>$user->user_is_guest,
+                'yesterdayScore' => $score,
+                'userRank' => $rank
             )
         ]);
     }
