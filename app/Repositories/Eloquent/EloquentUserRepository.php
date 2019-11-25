@@ -91,7 +91,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
         $followers = userFollow($userIds);
 
-        $users = $this->getUserRankByUserId($userIds);
+        $users = $this->getRankUserByUserId($userIds);
 
         $users->each(function($item , $key)use ($followers , $activeUser){
             $item->user_follow_state = in_array($item->user_id , $followers);
@@ -158,6 +158,38 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         });
     }
 
+    public function getYesterdayScoreByUserId($userId)
+    {
+        $chinaNow = Carbon::now()->subDay(1);
+        $postCount = DB::table('posts')
+            ->where('user_id' , $userId)
+            ->whereDate('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+            ->whereDate('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+            ->whereNull('post_deleted_at')
+            ->count();
+        $commentCount = DB::table('posts_comments')
+            ->where('user_id' , $userId)
+            ->whereDate('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+            ->whereDate('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+            ->whereNull('comment_deleted_at')
+            ->count();
+        $likeCount = DB::table('common_likes')
+            ->where('user_id' , $userId)
+            ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+            ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
+            ->count();
+        $score = $commentCount*3+$postCount*2+$likeCount;
+        return $score;
+    }
+
+    public function getUserRankByUserId($userId)
+    {
+        return collect(DB::select("SELECT b.rank FROM (SELECT t.*, @rank := @rank + 1 AS rank FROM (SELECT @rank := 0) r,(SELECT * FROM f_users ORDER BY user_score DESC) AS t) AS b WHERE b.user_id = ?;", [$userId]))->pluck('rank')->first();
+    }
+
+
+
+
     public function getActiveUserId()
     {
         $activeUser = $this->getActiveUser();
@@ -165,7 +197,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     }
 
 
-    public function getUserRankByUserId($userIds){
+    public function getRankUserByUserId($userIds){
         return $this->model->whereIn('user_id',$userIds)->get();
     }
 }
