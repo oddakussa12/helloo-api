@@ -76,6 +76,6 @@ class LikeListener
             }
         }
         $user = auth()->user();
-        $user->increment('user_score' , 2);
+        $user->increment('user_score' , 1);
     }
 }
