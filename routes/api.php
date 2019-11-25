@@ -118,6 +118,7 @@ $api->group($V1Params , function ($api){
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);
         $api->get('tag/hot' , 'TagController@hot')->name('tag.hot');
         $api->get('event' , 'EventController@index')->name('event.index');
+        $api->get('roomtopic' , 'EventController@roomTopic')->name('event.roomtopic');
         $api->resource('user' , 'UserController' , ['only' => ['show']]);
     });
 
