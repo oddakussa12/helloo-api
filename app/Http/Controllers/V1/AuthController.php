@@ -154,7 +154,7 @@ class AuthController extends BaseController
         $user->likeCount = $likeCount;
         $user->country = $user->user_country;
         $user->yesterdayScore = $score;
-        $user->rank = $rank;
+        $user->userRank = $rank;
         return $this->response->array($user);
     }
 
