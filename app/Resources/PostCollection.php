@@ -50,7 +50,7 @@ class PostCollection extends Resource
                 ]);
             }),
             $this->mergeWhen(!$request->routeIs('post.hot') , ['post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false]),
-            $this->mergeWhen(!$request->routeIs('post.hot'), function (){
+            $this->mergeWhen(!($request->routeIs('post.hot')||$request->routeIs('notification.index')), function (){
                 return collect(array(
                     'owner'=>new UserCollection($this->owner),
                 ));

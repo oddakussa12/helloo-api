@@ -31,6 +31,7 @@ class Liked
      */
     private $type;
 
+
     public function __construct($user , $object , $type=1)
     {
         $this->user = $user;

@@ -34,6 +34,7 @@ class PostComment extends Model
         'comment_image',
         'comment_comment_p_id',
         'comment_like_num',
+        'comment_like_temp_num',
         'comment_default_locale' ,
         'comment_verified_at',
         'comment_country_id'
