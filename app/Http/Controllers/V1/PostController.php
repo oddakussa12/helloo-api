@@ -122,7 +122,7 @@ class PostController extends BaseController
         $post_image = \array_filter($post_image , function($v , $k){
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
-        sort($post_image);
+        ksort($post_image);
 	    if(!empty($post_image))
         {
             $post_category_id = 2;

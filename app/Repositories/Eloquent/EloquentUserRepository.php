@@ -134,6 +134,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $likeUserId =  $like->pluck('user_id');
             $userId = $userId->merge($likeUserId)->unique()->values();
             $userId->each(function ($item, $key) use(&$userInfo , $post , $comment , $like){
+                $scoring = 0;
                 $postCollect = $post->where('user_id' , $item)->first();
                 $commentCollect = $comment->where('user_id' , $item)->first();
                 $likeCollect = $like->where('user_id' , $item)->first();
