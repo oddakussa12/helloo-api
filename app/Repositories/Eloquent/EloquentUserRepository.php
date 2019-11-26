@@ -189,7 +189,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function getUserRankByUserId($userId)
     {
-        return Cache::remember('user_'.$userId.'_rank', 300, function () use ($userId){
+        return Cache::remember('user_'.$userId.'_rank', 5, function () use ($userId){
             return collect(DB::select("SELECT b.rank FROM (SELECT t.*, @rank := @rank + 1 AS rank FROM (SELECT @rank := 0) r,(SELECT * FROM f_users ORDER BY user_score DESC) AS t) AS b WHERE b.user_id = ?;", [$userId]))->pluck('rank')->first();
         });
     }
