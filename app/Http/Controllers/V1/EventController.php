@@ -20,7 +20,7 @@ class EventController extends BaseController
         $lang = locale();
         $topictitle = \Storage::get('events/'.'topictitle'.'.json');
         $topictitle = \json_decode($topictitle);
-        if(\Storage::exists('events/'.'topiccontentas'.date('Ymd',time()).'.json')){
+        if(\Storage::exists('events/'.'topiccontent'.date('Ymd',time()).'.json')){
             $topiccontent = \Storage::get('events/'.'topiccontent'.date('Ymd',time()).'.json');
         }else{
             $topiccontent = \Storage::get('events/'.'topiccontentdefault.json');
