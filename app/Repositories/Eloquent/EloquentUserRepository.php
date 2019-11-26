@@ -141,21 +141,21 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 if(!empty($postCollect))
                 {
                     $postNum = $postCollect->post_num;
-                    $scoring =+ $postNum*2;
+                    $scoring += $postNum*2;
                 }
                 if(!empty($commentCollect))
                 {
                     $commentNum = $commentCollect->comment_num;
-                    $scoring =+ $commentNum*3;
+                    $scoring += $commentNum*3;
                 }
                 if(!empty($likeCollect))
                 {
                     $likeNum = $likeCollect->like_num;
-                    $scoring =+ $likeNum*1;
+                    $scoring += $likeNum*1;
                 }
                 $userInfo->put($item, collect(array('user_id'=>$item , 'score'=>$scoring)));
             });
-            return $userInfo->sortByDesc('score')->values()->take(10);
+            return $userInfo->sortByDesc('score')->take(10)->values();
         });
     }
 
