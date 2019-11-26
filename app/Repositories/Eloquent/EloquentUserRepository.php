@@ -161,27 +161,29 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function getYesterdayScoreByUserId($userId)
     {
-        $chinaNow = Carbon::now()->subDay(1);
-        $postCount = DB::table('posts')
-            ->where('user_id' , $userId)
-            ->whereDate('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-            ->whereDate('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
-            ->whereNull('post_deleted_at')
-            ->count();
-        $commentCount = DB::table('posts_comments')
-            ->where('user_id' , $userId)
-            ->whereDate('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-            ->whereDate('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
-            ->whereNull('comment_deleted_at')
-            ->count();
-        $likeCount = DB::table('common_likes')
-            ->where('user_id' , $userId)
-            ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-            ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
-            ->count();
-        $score = $commentCount*3+$postCount*2+$likeCount;
-        return $score;
-    }
+        return Cache::remember('user_'.$userId.'_score', 300, function () use ($userId){
+            $chinaNow = Carbon::now()->subDay(1);
+            $postCount = DB::table('posts')
+                ->where('user_id' , $userId)
+                ->whereDate('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+                ->whereDate('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+                ->whereNull('post_deleted_at')
+                ->count();
+            $commentCount = DB::table('posts_comments')
+                ->where('user_id' , $userId)
+                ->whereDate('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+                ->whereDate('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+                ->whereNull('comment_deleted_at')
+                ->count();
+            $likeCount = DB::table('common_likes')
+                ->where('user_id' , $userId)
+                ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+                ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
+                ->count();
+            $score = $commentCount*3+$postCount*2+$likeCount;
+            return $score;
+        });
+}
 
     public function getUserRankByUserId($userId)
     {
