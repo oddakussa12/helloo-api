@@ -107,6 +107,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $userInfo = collect();
             $chinaNow = Carbon::now()->subDay(1);
             $post = DB::table('posts')
+                ->whereNull('post_deleted_at')
                 ->whereDate('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
                 ->whereDate('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
                 ->select(DB::raw('count(*) as post_num') , 'user_id')
@@ -116,6 +117,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $postUserId =  $post->pluck('user_id');
             $userId = $userId->merge($postUserId);
             $comment = DB::table('posts_comments')
+                ->whereNull('comment_deleted_at')
                 ->whereDate('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
                 ->whereDate('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
                 ->select(DB::raw('count(*) as comment_num') , 'user_id')
