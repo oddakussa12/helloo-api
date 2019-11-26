@@ -97,7 +97,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $item->user_follow_state = in_array($item->user_id , $followers);
             $item->user_rank_score = $activeUser->where('user_id' , $item->user_id)->pluck('score')->first();
         });
-        return $users;
+        return $users->sortByDesc('user_rank_score')->values();
     }
 
     public function getActiveUser()
