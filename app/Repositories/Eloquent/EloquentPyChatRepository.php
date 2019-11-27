@@ -44,7 +44,8 @@ class EloquentPyChatRepository  extends EloquentBaseRepository implements PyChat
                     if(!empty($chat_id)){
                          $result = $result->where('chat_id','<',$chat_id);
                     }
-                    $result = $result->orderBy('chat_id', 'DESC')->limit(5)->get();
+
+                    $result = $result->with('user')->with('translations')->orderBy('chat_id', 'DESC')->limit(5)->get();
                     return $result;
     }
 }

@@ -36,19 +36,22 @@ $api->group($V1Params , function ($api){
 
 //        $api->get('login/google', 'AuthController@redirectToProvider');
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
+        $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
 
 //        $api->resource('category' , 'CategoryController');
-        //聊天翻译单条写入
-        $api->resource('pychattranslation', 'PyChatTranslationController', ['only' => ['store']]);
-        $api->post('pychat/translation', 'PyChatTranslationController@translate');
-        $api->post('pychat/listtranslation', 'PyChatTranslationController@messageListTranslate');
-        $api->post('pychat/chatimageinsert', 'PyChatTranslationController@chatImageInsert');
+
+//        $api->resource('pychat', 'PyChatController', ['only' => ['store']]);
+        $api->post('pychat/translation', 'PyChatController@store');
+
+        $api->post('pychat/listtranslation', 'PyChatTranslationController@store');
+        $api->post('pychat/chatimageinsert', 'PyChatController@chatImageStore');
         //聊天房间添加
-        $api->resource('pychatroom', 'PyChatRoomController',['only' => ['store']]);
-        $api->post('pychat/showmessage/user', 'PyChatController@showMessageByUserId')->name('show.message.by.userid');
+//        $api->resource('pychatroom', 'PyChatRoomController',['only' => ['store']]);
+//
+//        $api->post('pychat/showmessage/user', 'PyChatController@showMessageByUserId')->name('show.message.by.userid');
         //获取房间内聊天记录
         $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
-        $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
+
     });
     $api->group(['middleware'=>'throttle:1,1'] , function ($api){
         $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');

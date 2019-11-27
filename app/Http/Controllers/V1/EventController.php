@@ -18,17 +18,17 @@ class EventController extends BaseController
     public function roomTopic(Request $request)
     {
         $lang = locale();
-        $topictitle = \Storage::get('events/'.'topictitle'.'.json');
-        $topictitle = \json_decode($topictitle);
-        if(\Storage::exists('events/'.'topiccontent'.date('Ymd',time()).'.json')){
-            $topiccontent = \Storage::get('events/'.'topiccontent'.date('Ymd',time()).'.json');
-        }else{
-            $topiccontent = \Storage::get('events/'.'topiccontentdefault.json');
+        $topicTitleFile = 'events/topicTitle.json';
+        $topicContentFile = 'events/topicContent'.date('Ymd',time()).'.json';
+        $topic = '......';
+        if(\Storage::exists($topicContentFile)&&\Storage::exists($topicTitleFile))
+        {
+            $topicTitle = \Storage::get($topicTitleFile);
+            $topicTitle = \json_decode($topicTitle);
+            $topicContent = \Storage::get($topicContentFile);
+            $topic = $topicTitle->$lang.$topicContent->$lang;
+            return response()->json($topic);
         }
-
-        $topiccontent = \json_decode($topiccontent);
-
-        $topic = $topictitle->$lang.$topiccontent->$lang;
         return response()->json($topic);
     }
     
