@@ -172,7 +172,7 @@ class PyChatTranslationController extends BaseController
                     while(true)
                     {
                         $goTime = time();
-                        if(Redis::get($lock_key.'_c')===$flag||$goTime-$waitTime>30)
+                        if(Redis::get($lock_key.'_c')==$flag||$goTime-$waitTime>30)
                         {
                             $isInTran = DB::table('pychats_translations')->where('chat_uuid',$chat_uuid)->where('chat_locale',$target)->first();
                             if(empty($isInTran))
