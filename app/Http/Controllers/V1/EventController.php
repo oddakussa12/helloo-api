@@ -27,12 +27,14 @@ class EventController extends BaseController
             $topicTitle = \Storage::get($topicTitleFile);
             $topicTitle = \json_decode($topicTitle);
             $topicContent = \Storage::get($topicContentFile);
+            $topicTitle = \json_decode($topicContent);
             $topic = $topicTitle->$lang.$topicContent->$lang;
             return response()->json($topic);
         }else if(\Storage::exists($topicContentDefault)&&\Storage::exists($topicTitleFile)){
             $topicTitle = \Storage::get($topicTitleFile);
             $topicTitle = \json_decode($topicTitle);
             $topicContentDefault = \Storage::get($topicContentDefault);
+            $topicTitle = \json_decode($topicContentDefault);
             $topic = $topicTitle->$lang.$topicContentDefault->$lang;
             return response()->json($topic);
         }
