@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Models\Post;
-use App\Jobs\PostTranslation;
-use App\Services\TranslateService;
 use App\Models\User;
-use App\Resources\PostCollection;
-use App\Resources\PostPaginateCollection;
+use App\Models\Post;
+use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Events\PostViewEvent;
-use App\Repositories\Contracts\PostRepository;
+use App\Jobs\PostTranslation;
+use App\Resources\PostCollection;
+use App\Services\TranslateService;
 use App\Http\Requests\StorePostRequest;
-use Ramsey\Uuid\Uuid;
+use App\Resources\PostPaginateCollection;
+use App\Repositories\Contracts\PostRepository;
 
 class PostController extends BaseController
 {

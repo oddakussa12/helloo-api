@@ -309,7 +309,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 @post := b.post_id'));
         return DB::table(DB::raw("({$topCountryQuery->toSql()}) as f_c"))
             ->mergeBindings($topCountryQuery)
-            ->where('rank','<',8)
+            ->where('rank','<',11)
             ->select('post_id', 'country_name' , 'country_code' , 'country_num')
             ->get();
     }

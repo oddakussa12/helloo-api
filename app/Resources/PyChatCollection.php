@@ -26,7 +26,7 @@ class PyChatCollection extends Resource
             'chat_image' => $this->chat_image,
             'chat_default_locale' => $this->chat_default_locale,
             'chat_default_message' => $this->chat_default_message,
-            'chat_created_at' => $this->chat_created_at,
+            'chat_created_at' => optional($this->chat_created_at)->toDateTimeString(),
             'chat_locale' => $this->hasTranslation(locale())?$this->chat_locale:'',
             'chat_message' => $this->hasTranslation(locale())?$this->chat_message:'',
             'chat_message_format_created_at' => $this->chat_message_format_created_at,
