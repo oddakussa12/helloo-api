@@ -78,7 +78,12 @@ class PostCommentController extends BaseController
         {
             $comment_info = $this->postComment->findOrFail($commentPId);
             $comment_to_id =$comment_info->user_id;
-            $comment_top_id =$comment_info->comment_top_id;
+            if($comment_info->comment_comment_p_id==0)
+            {
+                $comment_top_id =$commentPId;
+            }else{
+                $comment_top_id =$comment_info->comment_top_id;
+            }
         }else{
             $comment_to_id =$post->user_id;
             $comment_top_id =0;
