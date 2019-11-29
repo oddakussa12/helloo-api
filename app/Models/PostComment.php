@@ -98,8 +98,8 @@ class PostComment extends Model
         if(auth()->check())
         {
             $children = $children->with(['likers'=>function($query){
-                        $query->where('users.user_id' , auth()->id());
-                        }]);
+                $query->where('users.user_id' , auth()->id());
+            }]);
         }
         return $children->with('translations')
             ->orderBy('comment_like_num' , 'desc')
@@ -176,10 +176,10 @@ class PostComment extends Model
         $value = \json_decode($value,true);
 
         $comment_reource['comment_image'] = \array_map(function($v){
-                return config('common.qnUploadDomain.thumbnail_domain').$v;
+            return config('common.qnUploadDomain.thumbnail_domain').$v;
         },$value);
         $comment_reource['comment_thumb_image'] = \array_map(function($v){
-                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/192/h/192/interlace/1';
+            return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/192/h/192/interlace/1';
         },$value);
         return $value=$comment_reource;
     }

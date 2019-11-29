@@ -85,7 +85,7 @@ class PostCommentController extends BaseController
             }else{
                 $comment_top_id =$comment_info->comment_top_id;
             }
-	    }else{
+        }else{
             $comment_to_id =$post->user_id;
             $comment_top_id =0;
         }

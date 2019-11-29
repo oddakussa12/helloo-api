@@ -9,6 +9,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\PostComment;
+use Illuminate\Support\Facades\DB;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
@@ -19,9 +20,8 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     {
         $post = app(PostRepository::class)->findOrFailByUuid($uuid);
         $comments = $post->comments()
-                        ->with('translations')
-                        ->with('children')
-                        ->where('comment_comment_p_id' , 0);
+            ->with('translations')
+            ->where('comment_comment_p_id' , 0);
         if(auth()->check())
         {
             $comments = $comments->with(['likers'=>function($query){
@@ -29,10 +29,21 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             }]);
         }
         $comments = $comments->with('owner')
-                        ->orderBy('comment_like_num', 'DESC')
-                        ->paginate($this->perPage , ['*'] , $this->pageName);
-        $comments->each(function ($item, $key) use ($uuid) {
+            ->orderBy('comment_like_num', 'DESC')
+            ->paginate($this->perPage , ['*'] , $this->pageName);
+        $commentIds = $comments->pluck('comment_id')->all();//获取comment Id
+
+        $subCommentsCount = $this->getChildCountByCommentIds($commentIds);//获取每天评论的子评论数目
+
+        $topTwoComments = $this->topTwoComments($commentIds);
+
+        $topTwoComments->each(function($item , $key) use ($uuid){
             $item->post_uuid = $uuid;
+        });
+        $comments->each(function ($item, $key) use ($uuid , $topTwoComments , $subCommentsCount) {
+            $item->post_uuid = $uuid;
+            $item->topTwoComments = $topTwoComments->where('comment_top_id',$item->comment_id);
+            $item->subCommentsCount = collect($subCommentsCount->where('comment_top_id',$item->comment_id)->first())->get('num' , 0);
         });
         if($request->get('children')==='true')
         {
@@ -40,6 +51,27 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         }
         return $comments;
     }
+
+    public function findByCommentTopId($postUuid , $commentTopId , $commentLastId)
+    {
+        $lastComment = $this->findOrFail($commentLastId);
+        if(empty($postUuid))
+        {
+            $post = app(PostRepository::class)->findOrFailById($lastComment->post_id);
+            $postUuid = $post->post_uuid;
+        }
+        $comments = $this->allWithBuilder();
+        $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '<' , $lastComment->comment_id);
+        $comments = $comments->with('likes')->with('owner')->with('to');
+        $comments = $comments->orderBy($this->model->getCreatedAtColumn(), 'DESC')
+            ->orderByDesc('comment_like_temp_num')
+            ->limit($this->perPage)->get();
+        $comments->each(function($item , $key) use ($postUuid){
+            $item->post_uuid  = $postUuid;
+        });
+        return $comments;
+    }
+
 
     public function findByUserId($request , $user_id)
     {
@@ -102,6 +134,46 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             ->with(['post'=>function($q){
                 $q->with('translations')->withTrashed();
             }])
+            ->get();
+    }
+
+
+    public function topTwoComments($commentIds)
+    {
+        $topTwoCommentQuery = PostComment::whereIn('comment_top_id',$commentIds)
+            ->where('comment_comment_p_id' , '>' , 0)
+            ->orderBy('comment_top_id')
+            ->select(DB::raw('*,@comment := NULL ,@rank := 0'))
+            ->orderBy('comment_id' , 'DESC')
+            ->orderBy('comment_like_temp_num' , 'DESC');
+        $topTwoCommentQuery = DB::table(DB::raw("({$topTwoCommentQuery->toSql()}) as b"))
+            ->mergeBindings($topTwoCommentQuery->getQuery())
+            ->select(DB::raw('b.*,IF (
+                    @comment = b.comment_top_id ,@rank :=@rank + 1 ,@rank := 1
+                ) AS rank,
+                @comment := b.comment_top_id'));
+        $topTwoCommentIds = DB::table( DB::raw("({$topTwoCommentQuery->toSql()}) as f_c") )
+            ->mergeBindings($topTwoCommentQuery)
+            ->where('rank','<',3)->select('c.comment_id')->pluck('comment_id')->toArray();
+
+        $postComments = PostComment::whereIn('comment_id',$topTwoCommentIds)
+            ->with('translations')
+            ->with('to')
+            ->with('owner');
+        if(auth()->check())
+        {
+            $postComments = $postComments->with(['likers'=>function($query){
+                $query->where('users.user_id' , auth()->id());
+            }]);
+        }
+        return $postComments->get();
+    }
+
+    public function getChildCountByCommentIds($commentIds)
+    {
+        return PostComment::select('comment_top_id', DB::raw('COUNT(comment_id) as num'))
+            ->whereIn('comment_top_id' , $commentIds)
+            ->groupBy('comment_top_id')
             ->get();
     }
 }

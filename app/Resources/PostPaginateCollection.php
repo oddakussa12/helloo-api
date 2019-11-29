@@ -22,7 +22,7 @@ class PostPaginateCollection extends Resource
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
             'post_view_num' => $this->when($this->relationLoaded('viewCount') , function(){
-               return $this->post_view_num;
+                return $this->post_view_num;
             }),
             'topTwoComments'=> $this->when($request->get('home')==true||$request->routeIs('post.top') , function (){
                 return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_like_temp_num')->values()->all();
