@@ -30,6 +30,7 @@ class PostComment extends Model
         'post_id' ,
         'user_id' ,
         'comment_to_id' ,
+        'comment_top_id' ,
         'comment_verify',
         'comment_image',
         'comment_comment_p_id',

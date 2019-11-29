@@ -74,12 +74,14 @@ class PostCommentController extends BaseController
         {
             abort(422 , trans('validation.attributes.comment_content'));
         }
-        if(isset($commentPId)&&$commentPId!=0)
+        if($commentPId!=0)
         {
             $comment_info = $this->postComment->findOrFail($commentPId);
             $comment_to_id =$comment_info->user_id;
-	    }else{
+            $comment_top_id =$comment_info->comment_top_id;
+        }else{
             $comment_to_id =$post->user_id;
+            $comment_top_id =0;
         }
         if(empty($commentContent))
         {
@@ -93,6 +95,7 @@ class PostCommentController extends BaseController
             'user_id'=>auth()->id(),
             'comment_country_id'=>auth()->user()->user_country_id,
             'comment_comment_p_id'=>$commentPId,
+            'comment_top_id'=>$comment_top_id,
             'comment_default_locale'=>$contentDefaultLang,
             'comment_verify'=>1,
             'comment_verified_at'=>date('Y-m-d H:i:s'),
