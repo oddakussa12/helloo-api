@@ -43,9 +43,6 @@ class PostCommentCollection extends Resource
                 }
                 return '';
             }),
-            'subCommentsCount'=>$this->when(isset($this->subCommentsCount), function (){
-                return $this->subCommentsCount;
-            }),
             'post'=>$this->when($this->relationLoaded('post'), function (){
                 return new PostCollection($this->post);
             }),

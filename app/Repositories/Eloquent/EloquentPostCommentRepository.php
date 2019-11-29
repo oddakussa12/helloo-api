@@ -33,17 +33,14 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             ->paginate($this->perPage , ['*'] , $this->pageName);
         $commentIds = $comments->pluck('comment_id')->all();//获取comment Id
 
-        $subCommentsCount = $this->getChildCountByCommentIds($commentIds);//获取每天评论的子评论数目
-
         $topTwoComments = $this->topTwoComments($commentIds);
 
         $topTwoComments->each(function($item , $key) use ($uuid){
             $item->post_uuid = $uuid;
         });
-        $comments->each(function ($item, $key) use ($uuid , $topTwoComments , $subCommentsCount) {
+        $comments->each(function ($item, $key) use ($uuid , $topTwoComments) {
             $item->post_uuid = $uuid;
             $item->topTwoComments = $topTwoComments->where('comment_top_id',$item->comment_id);
-            $item->subCommentsCount = collect($subCommentsCount->where('comment_top_id',$item->comment_id)->first())->get('num' , 0);
         });
         if($request->get('children')==='true')
         {
@@ -63,7 +60,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         $comments = $this->allWithBuilder();
         $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '<' , $lastComment->comment_id);
         $comments = $comments->with('likes')->with('owner')->with('to');
-        $comments = $comments->orderBy($this->model->getCreatedAtColumn(), 'DESC')
+        $comments = $comments->orderBy('comment_id' , 'DESC')
             ->orderByDesc('comment_like_temp_num')
             ->limit($this->perPage)->get();
         $comments->each(function($item , $key) use ($postUuid){

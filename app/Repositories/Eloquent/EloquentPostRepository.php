@@ -267,7 +267,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $topTwoCommentQuery = PostComment::whereIn('post_id',$postIds)
             ->select(DB::raw('*,@post := NULL ,@rank := 0'))
             ->orderBy('post_id')
-            ->orderBy('app(PostRepository::class)->find' , 'DESC')
+            ->orderBy('comment_like_num' , 'DESC')
             ->orderBy('comment_created_at' , 'DESC');
         $topTwoCommentQuery = DB::table(DB::raw("({$topTwoCommentQuery->toSql()}) as b"))
             ->mergeBindings($topTwoCommentQuery->getQuery())
