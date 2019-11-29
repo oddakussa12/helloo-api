@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\CommentCollection;
 use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Events\PostCommentDeleted;
@@ -84,7 +85,7 @@ class PostCommentController extends BaseController
             }else{
                 $comment_top_id =$comment_info->comment_top_id;
             }
-        }else{
+	    }else{
             $comment_to_id =$post->user_id;
             $comment_top_id =0;
         }
@@ -128,6 +129,15 @@ class PostCommentController extends BaseController
         }
 
         return new PostCommentCollection($postComment);
+    }
+
+
+    public function moreComment(Request $request , $commentTopId)
+    {
+        $postUuid = $request->input('post_uuid' , '');
+        $commentLastId = $request->input('comment_last_id' , 0);
+        $comments = $this->postComment->findByCommentTopId($postUuid , $commentTopId , $commentLastId);
+        return PostCommentCollection::collection($comments);
     }
 
     /**

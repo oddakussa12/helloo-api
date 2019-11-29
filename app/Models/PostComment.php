@@ -76,6 +76,15 @@ class PostComment extends Model
     {
         return $this->user_id == $user->user_id;
     }
+    public function getCommentOwnerAttribute()
+    {
+        if(auth()->check())
+        {
+            return $this->ownedBy(auth()->user());
+        }
+        return false;
+    }
+
 
     public function newCollection(array $models = [])
     {

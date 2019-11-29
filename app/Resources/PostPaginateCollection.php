@@ -20,14 +20,12 @@ class PostPaginateCollection extends Resource
             'post_default_locale' => $this->post_default_locale,
             'post_title' => $this->post_decode_title,
             'post_type' => $this->post_type,
-//            'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
-//            'post_rate' => $this->when(!$request->has('keywords') , function(){
-//                return $this->fire_rate;
-//            }),
-
+            'post_view_num' => $this->when($this->relationLoaded('viewCount') , function(){
+               return $this->post_view_num;
+            }),
             'topTwoComments'=> $this->when($request->get('home')==true||$request->routeIs('post.top') , function (){
-                return PostCommentCollection::collection($this->topTwoComments)->values()->all();
+                return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_like_temp_num')->values()->all();
             }),
             'post_country'=> collect([
                 'total'=>collect($this->countryNum)->get('country_num' , 0),
@@ -40,9 +38,8 @@ class PostPaginateCollection extends Resource
             'owner'=>$this->when(!$request->has('keywords') , function (){
                 return new UserCollection($this->owner);
             }),
-
             'post_owner' =>$this->when(!$request->has('keywords') , function (){
-                return auth()->check()?$this->ownedBy(auth()->user()):false;
+                return $this->post_owner;
             }),
 
         ];

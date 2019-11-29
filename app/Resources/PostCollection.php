@@ -20,10 +20,10 @@ class PostCollection extends Resource
             'post_title' => $this->post_decode_title,
             'post_media'=>$this->post_media,
             'post_type' => $this->post_type,
-
-            'post_like_num' => $this->post_like_num,
             'post_comment_num' => $this->post_comment_num,
-
+            'post_view_num' => $this->when($this->relationLoaded('viewCount') , function(){
+                return $this->post_view_num;
+            }),
             'post_created_at'=>optional($this->post_created_at)->toDateTimeString(),
             'post_format_created_at'=> $this->post_format_created_at,
             'tags'=>$this->when($request->has('tag') , function (){
@@ -34,7 +34,6 @@ class PostCollection extends Resource
                     'post_default_title' => $this->post_default_title,
                     'post_default_content' => $this->post_default_content,
                     'post_content' => $this->post_decode_content,
-
                 ]);
             }),
             'post_country'=>$this->when(!($request->routeIs('post.hot')||$request->routeIs('notification.index')) , function (){
@@ -49,7 +48,9 @@ class PostCollection extends Resource
                     'post_view_num' => $this->post_view_num,
                 ]);
             }),
-            $this->mergeWhen(!$request->routeIs('post.hot') , ['post_owner' => auth()->check()?$this->ownedBy(auth()->user()):false]),
+            'post_owner' =>$this->when(!$request->routeIs('post.hot') , function (){
+                return $this->post_owner;
+            }),
             $this->mergeWhen(!($request->routeIs('post.hot')||$request->routeIs('notification.index')), function (){
                 return collect(array(
                     'owner'=>new UserCollection($this->owner),

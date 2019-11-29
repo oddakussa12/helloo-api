@@ -16,6 +16,7 @@ class PostCommentCollection extends Resource
         return [
             'comment_id' => $this->comment_id,
             'comment_comment_p_id' => $this->comment_comment_p_id,
+            'comment_top_id' => $this->comment_top_id,
             'comment_like_num' => $this->comment_like_num,
             'comment_like_temp_num' => $this->comment_like_temp_num,
             'comment_content' => $this->comment_decode_content,
@@ -25,20 +26,11 @@ class PostCommentCollection extends Resource
             'comment_created_at' => optional($this->comment_created_at)->toDateTimeString(),
             'comment_format_created_at' => $this->comment_format_created_at,
             'comment_like_state'=>$this->comment_like_state,
-            'owner'=>collect(array(
-                'user_id'=>$this->owner->user_id,
-                'user_name'=>$this->owner->user_name,
-                'user_avatar'=>$this->owner->user_avatar,
-                'user_country'=>$this->owner->user_country,
-                'user_is_guest'=>$this->owner->user_is_guest,
-            )),
-            'children' => $this->when($request->routeIs('show.comment.by.post') , function (){
-                $this->children->each(function($item , $key){
-                    $item->post_uuid = $this->post_uuid;
-                });
-                return $this->collection($this->children);
+            'owner'=>new UserCollection($this->owner),
+            'children' => $this->when($request->routeIs('show.comment.by.post')&&isset($this->topTwoComments) , function (){
+                return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_created_at')->values()->all();
             }),
-            'comment_owner' => auth()->check()?$this->ownedBy(auth()->user()):false,
+            'comment_owner' => $this->comment_owner,
             'post_uuid'=>$this->when(!($request->routeIs('post.index')||$request->routeIs('post.top')), function (){
                 if(isset($this->post_uuid))
                 {
@@ -51,9 +43,17 @@ class PostCommentCollection extends Resource
                 }
                 return '';
             }),
-            'post'=>$this->when($request->routeIs('notification.index')&&$request->input('type')=='comment', function (){
+//            'subCommentsCount'=>$this->when(isset($this->subCommentsCount), function (){
+//                return $this->subCommentsCount;
+//            }),
+            'post'=>$this->when($this->relationLoaded('post'), function (){
                 return new PostCollection($this->post);
-            })
+            }),
+            $this->mergeWhen($this->relationLoaded('to'), function (){
+                return collect(array(
+                    'to'=>new UserCollection($this->to),
+                ));
+            }),
         ];
     }
 }

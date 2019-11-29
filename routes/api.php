@@ -36,6 +36,7 @@ $api->group($V1Params , function ($api){
 
 //        $api->get('login/google', 'AuthController@redirectToProvider');
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
+        $api->get('postComment/more/{commentTopId}' , 'PostCommentController@moreComment')->name('show.more.comment');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
 
 //        $api->resource('category' , 'CategoryController');
