@@ -58,10 +58,9 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $postUuid = $post->post_uuid;
         }
         $comments = $this->allWithBuilder();
-        $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '<' , $lastComment->comment_id);
+        $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '>' , $lastComment->comment_id);
         $comments = $comments->with('likes')->with('owner')->with('to');
-        $comments = $comments->orderBy('comment_id' , 'DESC')
-            ->orderByDesc('comment_like_temp_num')
+        $comments = $comments->orderBy('comment_id')
             ->limit($this->perPage)->get();
         $comments->each(function($item , $key) use ($postUuid){
             $item->post_uuid  = $postUuid;
@@ -141,8 +140,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             ->where('comment_comment_p_id' , '>' , 0)
             ->orderBy('comment_top_id')
             ->select(DB::raw('*,@comment := NULL ,@rank := 0'))
-            ->orderBy('comment_id' , 'DESC')
-            ->orderBy('comment_like_temp_num' , 'DESC');
+            ->orderBy('comment_id');
         $topTwoCommentQuery = DB::table(DB::raw("({$topTwoCommentQuery->toSql()}) as b"))
             ->mergeBindings($topTwoCommentQuery->getQuery())
             ->select(DB::raw('b.*,IF (
