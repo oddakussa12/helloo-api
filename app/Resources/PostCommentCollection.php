@@ -28,7 +28,7 @@ class PostCommentCollection extends Resource
             'comment_like_state'=>$this->comment_like_state,
             'owner'=>new UserCollection($this->owner),
             'children' => $this->when($request->routeIs('show.comment.by.post')&&isset($this->topTwoComments) , function (){
-                return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_created_at')->values()->all();
+                return PostCommentCollection::collection($this->topTwoComments)->sortBy('comment_id')->values()->all();
             }),
             'comment_owner' => $this->comment_owner,
             'post_uuid'=>$this->when(!($request->routeIs('post.index')||$request->routeIs('post.top')), function (){
