@@ -135,6 +135,11 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 ->get();
             $likeUserId =  $like->pluck('user_id');
             $userId = $userId->merge($likeUserId)->unique()->values();
+            $userId = DB::table('users')
+                ->whereIn('user_id' , $userId)
+                ->where('user_is_guest' , 0)
+                ->select('user_id')
+                ->pluck('user_id');
             $userId->each(function ($item, $key) use(&$userInfo , $post , $comment , $like){
                 $scoring = 0;
                 $postCollect = $post->where('user_id' , $item)->first();
@@ -163,7 +168,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function getYesterdayScoreByUserId($userId)
     {
-        return Cache::remember('user_'.$userId.'_score', 300, function () use ($userId){
+        return Cache::remember('user_'.$userId.'_score', 10, function () use ($userId){
             $chinaNow = Carbon::now()->subDay(1);
             $postCount = DB::table('posts')
                 ->where('user_id' , $userId)
