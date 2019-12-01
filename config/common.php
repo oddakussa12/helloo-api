@@ -11,5 +11,6 @@ return [
         'h5'=>'www.yooul.com',
         'web'=>'web.yooul.com',
     ],
-    'score_date'=>env('SCORE_DATE', '2019-11-25 00:00:00')
+    'score_date'=>env('SCORE_DATE', '2019-11-25 00:00:00'),
+    'rate_coefficient'=>env('RATE_COEFFICIENT', 0.7),
 ];
