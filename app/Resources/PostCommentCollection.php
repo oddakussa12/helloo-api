@@ -51,6 +51,9 @@ class PostCommentCollection extends Resource
                     'to'=>new UserCollection($this->to),
                 ));
             }),
+            'subCommentsCount'=>$this->when(isset($this->subCommentsCount) , function (){
+                return $this->subCommentsCount;
+            })
         ];
     }
 }

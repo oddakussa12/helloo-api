@@ -35,12 +35,15 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
         $topTwoComments = $this->topTwoComments($commentIds);
 
+        $subCommentsCount = $this->getChildCountByCommentIds($commentIds);
+
         $topTwoComments->each(function($item , $key) use ($uuid){
             $item->post_uuid = $uuid;
         });
-        $comments->each(function ($item, $key) use ($uuid , $topTwoComments) {
+        $comments->each(function ($item, $key) use ($uuid , $topTwoComments , $subCommentsCount) {
             $item->post_uuid = $uuid;
             $item->topTwoComments = $topTwoComments->where('comment_top_id',$item->comment_id);
+            $item->subCommentsCount = collect($subCommentsCount->where('comment_top_id',$item->comment_id)->first())->get('num' , 0);
         });
         if($request->get('children')==='true')
         {
