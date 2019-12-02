@@ -82,6 +82,15 @@ class Post extends Model
         return $this->user_id == $user->user_id;
     }
 
+    public function getPostOwnerAttribute()
+    {
+        if(auth()->check())
+        {
+            return $this->ownedBy(auth()->user());
+        }
+        return false;
+    }
+
     public function getPostMediaAttribute($value)
     {
         $value = \json_decode($value , true);
