@@ -40,8 +40,6 @@ class GenerateUserRank extends Command
      */
     public function handle()
     {
-        Log::info('-----------清空排行榜-----------');
-        Cache::forget('user_rank');
-        app(UserRepository::class)->getActiveUserId();
+        app(UserRepository::class)->generateYesterdayUserRank();
     }
 }

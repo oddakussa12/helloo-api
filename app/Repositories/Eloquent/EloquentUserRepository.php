@@ -8,7 +8,12 @@
 namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
+use App\Models\Post;
+use App\Models\Like;
+use App\Models\PostComment;
+use App\Models\YesterdayScore;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -85,19 +90,16 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function getUserRank()
     {
-        $activeUser = $this->getActiveUser();
+        $rankTopTenUser = $this->getYesterdayUserRank();
 
-        $userIds = $activeUser->pluck('user_id')->all();
+        $userIds = $rankTopTenUser->pluck('user_id')->all();
 
         $followers = userFollow($userIds);
 
-        $users = $this->getRankUserByUserId($userIds);
-
-        $users->each(function($item , $key)use ($followers , $activeUser){
+        $rankTopTenUser->each(function($item , $key)use ($followers){
             $item->user_follow_state = in_array($item->user_id , $followers);
-            $item->user_rank_score = $activeUser->where('user_id' , $item->user_id)->pluck('score')->first();
         });
-        return $users->sortByDesc('user_rank_score')->values();
+        return $rankTopTenUser->sortByDesc('user_rank_score')->values();
     }
 
     public function getActiveUser()
@@ -166,31 +168,38 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         });
     }
 
-    public function getYesterdayScoreByUserId($userId)
+
+    public function getUserYesterdayRankByUserId($userId)
     {
-        return Cache::remember('user_'.$userId.'_score', 10, function () use ($userId){
+        return Cache::remember('user_yesterday_rank_'.$userId, 5, function () use ($userId){
             $chinaNow = Carbon::now()->subDay(1);
-            $postCount = DB::table('posts')
-                ->where('user_id' , $userId)
-                ->whereDate('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-                ->whereDate('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
-                ->whereNull('post_deleted_at')
-                ->count();
-            $commentCount = DB::table('posts_comments')
-                ->where('user_id' , $userId)
-                ->whereDate('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-                ->whereDate('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
-                ->whereNull('comment_deleted_at')
-                ->count();
-            $likeCount = DB::table('common_likes')
-                ->where('user_id' , $userId)
-                ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-                ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
-                ->count();
-            $score = $commentCount*3+$postCount*2+$likeCount;
-            return $score;
+            $sql = <<<DOC
+SELECT
+	b.user_rank_score , b.rank
+FROM
+	(
+		SELECT
+			t.*, @rank := @rank + 1 AS rank
+		FROM
+			(SELECT @rank := 0) r,
+			(
+				SELECT
+					f_users.*,f_yesterday_scores.user_score as user_rank_score
+				FROM
+					f_yesterday_scores
+				INNER JOIN f_users on f_yesterday_scores.user_id=f_users.user_id
+				where f_users.user_is_guest=0
+				and f_yesterday_scores.rank_date=?
+				ORDER BY
+					f_yesterday_scores.user_score DESC,f_yesterday_scores.user_id DESC
+			) AS t
+	) AS b
+WHERE
+	b.user_id = ?
+DOC;
+            return collect(DB::select($sql, [date('Y-m-d' ,strtotime($chinaNow)),$userId]))->first();
         });
-}
+    }
 
     public function getUserRankByUserId($userId)
     {
@@ -205,12 +214,117 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function getActiveUserId()
     {
-        $activeUser = $this->getActiveUser();
-        return $activeUser->pluck('score' , 'user_id')->all();
+        $activeUser = $this->getYesterdayUserRank();
+        return $activeUser->pluck('user_rank_score' , 'user_id')->all();
     }
 
 
-    public function getRankUserByUserId($userIds){
-        return $this->model->whereIn('user_id',$userIds)->get();
+    public function getYesterdayUserRank()
+    {
+        return Cache::rememberForever('user_rank', function() {
+            $chinaNow = Carbon::now()->subDay(1);
+            $yesterdayTopTenRankUser =  YesterdayScore::whereHas('user' , function ($query){
+                $query->where('user_is_guest' , 0);
+            })->with('user')->where('yesterday_scores.rank_date' , date('Y-m-d' , strtotime($chinaNow)))
+                ->orderBy('user_score' , 'DESC')
+                ->orderBy('user_id' , 'DESC')
+                ->limit(10)->get();
+            $userRank = collect();
+            $yesterdayTopTenRankUser->each(function($item , $key) use (&$userRank){
+                $user = $item->user;
+                $user->user_rank_score = $item->user_score;
+                $userRank->push($user);
+            });
+            return $userRank;
+        });
+    }
+    public function generateYesterdayUserRank()
+    {
+        $yesterdayRankKey = 'user_yesterday_rank';
+        $chinaNow = Carbon::now()->subDay(1);
+
+        //清除当前缓存防止多次生成
+        Redis::del($yesterdayRankKey);
+        DB::table('yesterday_scores')->where('rank_date' , date('Y-m-d' , strtotime($chinaNow)))->delete();
+
+
+        $post = Post::where('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+            ->where('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+            ->groupBy('user_id')
+            ->select(DB::raw('count(*) as post_num') , 'user_id')
+            ->orderBy('post_num' , 'desc')
+            ->orderBy('user_id' , 'desc');
+        $post->chunk(10, function ($posts) use ($yesterdayRankKey) {
+            foreach ($posts as $post) {
+                $postNum = $post->post_num;
+                $score = $postNum*2;
+                if(Redis::zrank($yesterdayRankKey , $post->user_id)==null)
+                {
+                    Redis::zadd($yesterdayRankKey , $score , $post->user_id);
+                }else{
+                    Redis::zincrby($yesterdayRankKey , $score , $post->user_id);
+                }
+            }
+        });
+        $comment = PostComment::where('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+            ->where('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+            ->groupBy('user_id')
+            ->select(DB::raw('count(*) as comment_num') , 'user_id')
+            ->orderBy('comment_num' , 'desc')
+            ->orderBy('user_id' , 'desc');
+
+        $comment->chunk(10, function ($comments) use ($yesterdayRankKey) {
+            foreach ($comments as $comment) {
+                $commentNum = $comment->comment_num;
+                $score = $commentNum*3;
+                if(Redis::zrank($yesterdayRankKey , $comment->user_id)==null)
+                {
+                    Redis::zadd($yesterdayRankKey , $score , $comment->user_id);
+                }else{
+                    Redis::zincrby($yesterdayRankKey , $score , $comment->user_id);
+                }
+            }
+        });
+
+        $like = Like::where('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
+            ->where('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+            ->groupBy('user_id')
+            ->select(DB::raw('count(*) as like_num') , 'user_id')
+            ->orderBy('like_num' , 'desc')
+            ->orderBy('user_id');
+        $like->chunk(10, function ($likes) use ($yesterdayRankKey) {
+            foreach ($likes as $like) {
+                $likeNum = $like->like_num;
+                $score = $likeNum;
+                if(Redis::zrank($yesterdayRankKey , $like->user_id)==null)
+                {
+                    Redis::zadd($yesterdayRankKey , $score , $like->user_id);
+                }else{
+                    Redis::zincrby($yesterdayRankKey , $score , $like->user_id);
+                }
+            }
+        });
+        $i = 0;
+        $rankCount = Redis::zcard($yesterdayRankKey)-1;
+        do{
+            $turn = $i+9;
+            if($i>=$rankCount)
+            {
+                break;
+            }
+            $rankData = array();
+            $userScores = Redis::zrevrange($yesterdayRankKey , $i , $turn , 'WITHSCORES');
+            foreach ($userScores as $user_id=>$user_score)
+            {
+                array_push($rankData, array('user_id'=>$user_id , 'user_score'=>$user_score , 'rank_date'=>date('Y-m-d' , strtotime($chinaNow))));
+            }
+            if(!empty($rankData))
+            {
+                DB::table('yesterday_scores')->insert($rankData);
+            }
+            $i = $turn+1;
+        }while(true);
+        Cache::forget('user_rank');
+        $this->getYesterdayUserRank();
     }
 }

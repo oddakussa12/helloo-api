@@ -151,7 +151,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function SignupInfo()
     {
-        return $this->hasOne('App\Models\SignupInfo' , 'user_id' , 'user_id');
+        return $this->hasOne(SignupInfo::class , 'user_id' , 'user_id');
+    }
+
+    public function yesterdayScore()
+    {
+        return $this->hasOne(YesterdayScore::class , 'user_id' , 'user_id');
     }
 
     public function likePost()

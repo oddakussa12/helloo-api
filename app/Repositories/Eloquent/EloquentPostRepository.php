@@ -45,14 +45,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-        $activeUsers = app(UserRepository::class)->getActiveUser(); //获取活跃用户
+        $activeUsers = app(UserRepository::class)->getYesterdayUserRank(); //获取活跃用户
 
         $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments , $activeUsers){
             $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
             $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
             $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
             $item->owner->user_follow_state = in_array($item->user_id , $followers);
-            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('score')->first();
+            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
         });
         return $posts;
     }
@@ -113,8 +113,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $appends['order_by'] = $orderBy;
             if($orderBy=='rate'||$orderBy==null)
             {
-                $rate_coefficient = config('common.rate_coefficient');
-                $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
+                $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,1)) AS `rate`"));
                 $posts->orderBy('rate' , 'DESC');
             }
             $sorts = $this->getOrder($orderBy);
@@ -136,14 +135,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
             $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-            $activeUsers = app(UserRepository::class)->getActiveUser();
+            $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
 
             $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments , $activeUsers) {
                 $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
                 $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
                 $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
                 $item->owner->user_follow_state = in_array($item->user_id , $followers);
-                $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('score')->first();
+                $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
             });
             return $posts->appends($appends);
         }elseif ($request->get('keywords') !== null) {

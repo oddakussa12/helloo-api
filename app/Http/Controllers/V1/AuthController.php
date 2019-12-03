@@ -106,7 +106,7 @@ class AuthController extends BaseController
     protected function respondWithToken($token)
     {
         $user = auth()->user();
-        $score = app(UserRepository::class)->getYesterdayScoreByUserId($user->user_id);
+        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
         $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
         return $this->response->array([
             'access_token' => $token,
@@ -119,7 +119,8 @@ class AuthController extends BaseController
                 'user_email'=>$user->user_email,
                 'user_country'=>$user->user_country,
                 'user_is_guest'=>$user->user_is_guest,
-                'yesterdayScore' => $score,
+                'yesterdayScore' => optional($yesterday_score_rank)->user_rank_score,
+                'yesterdayRank' => optional($yesterday_score_rank)->rank,
                 'userRank' => $rank
             )
         ]);
@@ -146,7 +147,7 @@ class AuthController extends BaseController
             $join->on('common_likes.likable_id' , 'posts_comments.comment_id');
         })->whereNull('posts_comments.comment_deleted_at')->count();
         $postCommentCount = app(PostCommentRepository::class)->getCountByUserId($user->user_id);
-        $score = app(UserRepository::class)->getYesterdayScoreByUserId($user->user_id);
+        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
         $postCount = app(PostRepository::class)->getCountByUserId($user->user_id);
         $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
         $userFollowMe = auth()->user()->followers()->count();
@@ -157,7 +158,8 @@ class AuthController extends BaseController
         $user->userMyFollow = $userMyFollow;
         $user->likeCount = $likeCount;
         $user->country = $user->user_country;
-        $user->yesterdayScore = $score;
+        $user->yesterdayScore = optional($yesterday_score_rank)->user_rank_score;
+        $user->yesterdayRank = optional($yesterday_score_rank)->rank;
         $user->userRank = $rank;
         return $this->response->array($user);
     }
