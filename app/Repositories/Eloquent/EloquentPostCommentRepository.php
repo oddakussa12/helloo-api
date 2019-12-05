@@ -52,6 +52,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $item->topTwoComments = $topTwoComments->where('comment_top_id',$item->comment_id);
             $item->subCommentsCount = collect($subCommentsCount->where('comment_top_id',$item->comment_id)->first())->get('num' , 0);
         });
+        $comments->appends(array('query_time'=>$queryTime));
         if($request->get('children')==='true')
         {
             $comments->appends(array('children'=>'true'));
@@ -200,8 +201,6 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         {
             $postComment = $postComment->where('comment_created_at' , '<=' , $queryTime);
         }
-        return $postComment->where('comment_top_id' , $commentIds)
-            ->groupBy('comment_top_id')
-            ->get();
+        return $postComment->groupBy('comment_top_id')->get();
     }
 }
