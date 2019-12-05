@@ -18,10 +18,16 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 {
     public function findByPostUuid($request , $uuid)
     {
+        $queryTime = $request->get('query_time' , '');
+        $queryTime = empty($queryTime)?$queryTime:date('Y-m-d H:i:s' , strtotime($queryTime));
         $post = app(PostRepository::class)->findOrFailByUuid($uuid);
         $comments = $post->comments()
             ->with('translations')
             ->where('comment_comment_p_id' , 0);
+        if(!empty($queryTime))
+        {
+            $comments = $comments->where('comment_created_at' , '<=' , $queryTime);
+        }
         if(auth()->check())
         {
             $comments = $comments->with(['likers'=>function($query){
@@ -30,12 +36,13 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         }
         $comments = $comments->with('owner')
             ->orderBy('comment_like_num', 'DESC')
+            ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
             ->paginate($this->perPage , ['*'] , $this->pageName);
         $commentIds = $comments->pluck('comment_id')->all();//»ñÈ¡comment Id
 
-        $topTwoComments = $this->topTwoComments($commentIds);
+        $topTwoComments = $this->topTwoComments($commentIds , $queryTime);
 
-        $subCommentsCount = $this->getChildCountByCommentIds($commentIds);
+        $subCommentsCount = $this->getChildCountByCommentIds($commentIds , $queryTime);
 
         $topTwoComments->each(function($item , $key) use ($uuid){
             $item->post_uuid = $uuid;
@@ -52,7 +59,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         return $comments;
     }
 
-    public function findByCommentTopId($postUuid , $commentTopId , $commentLastId)
+    public function findByCommentTopId($postUuid , $commentTopId , $commentLastId , $queryTime=null)
     {
         $lastComment = $this->findOrFail($commentLastId);
         if(empty($postUuid))
@@ -62,6 +69,10 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         }
         $comments = $this->allWithBuilder();
         $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '>' , $lastComment->comment_id);
+        if(!empty($queryTime))
+        {
+            $comments = $comments->where('comment_created_at' , '<=' , $queryTime);
+        }
         $comments = $comments->with('likes')->with('owner')->with('to');
         $comments = $comments->orderBy('comment_id')
             ->limit($this->perPage)->get();
@@ -124,24 +135,38 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             ->paginate(5);
     }
 
-    public function findByCommentIds(array $comment_ids)
+    public function findByCommentIds(array $comment_ids , $type='comment')
     {
         $comments = $this->allWithBuilder();
+        if(auth()->check())
+        {
+            $comments = $comments->with(['likers'=>function($query){
+                $query->where('users.user_id' , auth()->id());
+            }]);
+        }
+        if($type=='comment')
+        {
+            $comments = $comments->with(['parent'=>function($q){
+                $q->with('translations')->with('owner');
+            }]);
+        }
         return $comments->whereIn('comment_id' , $comment_ids)
             ->with('owner')
-            ->with('likes')
             ->with(['post'=>function($q){
                 $q->with('translations')->withTrashed();
-            }])
-            ->get();
+            }])->get();
     }
 
 
-    public function topTwoComments($commentIds)
+    public function topTwoComments($commentIds , $queryTime=null)
     {
         $topTwoCommentQuery = PostComment::whereIn('comment_top_id',$commentIds)
-            ->where('comment_comment_p_id' , '>' , 0)
-            ->orderBy('comment_top_id')
+            ->where('comment_comment_p_id' , '>' , 0);
+        if(!empty($queryTime))
+        {
+            $topTwoCommentQuery = $topTwoCommentQuery->where('comment_created_at' , '<=' , $queryTime);
+        }
+        $topTwoCommentQuery = $topTwoCommentQuery->orderBy('comment_top_id')
             ->select(DB::raw('*,@comment := NULL ,@rank := 0'))
             ->orderBy('comment_id');
         $topTwoCommentQuery = DB::table(DB::raw("({$topTwoCommentQuery->toSql()}) as b"))
@@ -167,10 +192,15 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         return $postComments->get();
     }
 
-    public function getChildCountByCommentIds($commentIds)
+    public function getChildCountByCommentIds($commentIds , $queryTime=null)
     {
-        return PostComment::select('comment_top_id', DB::raw('COUNT(comment_id) as num'))
-            ->whereIn('comment_top_id' , $commentIds)
+        $postComment = PostComment::select('comment_top_id', DB::raw('COUNT(comment_id) as num'))
+            ->whereIn('comment_top_id' , $commentIds);
+        if(!empty($queryTime))
+        {
+            $postComment = $postComment->where('comment_created_at' , '<=' , $queryTime);
+        }
+        return $postComment->where('comment_top_id' , $commentIds)
             ->groupBy('comment_top_id')
             ->get();
     }

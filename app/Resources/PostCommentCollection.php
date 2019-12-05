@@ -46,6 +46,11 @@ class PostCommentCollection extends Resource
             'post'=>$this->when($this->relationLoaded('post'), function (){
                 return new PostCollection($this->post);
             }),
+            $this->mergeWhen($this->relationLoaded('parent'), function (){
+                return collect(array(
+                    'parent'=>new PostCommentSubCollection($this->parent),
+                ));
+            }),
             $this->mergeWhen($this->relationLoaded('to'), function (){
                 return collect(array(
                     'to'=>new UserCollection($this->to),

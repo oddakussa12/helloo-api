@@ -63,7 +63,7 @@ class NotificationController extends BaseController
                     array_push($postIds , $extra['post_id']);
                     array_push($commentIds , $extra['comment_id']);
                 });
-                $comments = PostCommentCollection::collection(app(PostCommentRepository::class)->findByCommentIds($commentIds));
+                $comments = PostCommentCollection::collection(app(PostCommentRepository::class)->findByCommentIds($commentIds , $type));
                 $message->each(function($item , $key) use ($comments){
                     $extra = $item->extra;
                     $item->detail = $comments->where('comment_id' , $extra['comment_id'])->values()->first();

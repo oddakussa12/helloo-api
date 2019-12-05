@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\PostComment;
 use Illuminate\Http\Request;
@@ -181,6 +182,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $topCountryNum = $this->countryNum([$post->post_id]);
         $post->countries = $topCountries->where('post_id',$post->post_id)->values()->all();
         $post->countryNum = $topCountryNum->where('post_id',$post->post_id)->first();
+        $post->countryNum = $topCountryNum->where('post_id',$post->post_id)->first();
+        $post->queryTime = Carbon::now();
         return $post;
     }
 

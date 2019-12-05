@@ -65,11 +65,11 @@ class PostComment extends Model
 
     public function owner()
     {
-        return $this->belongsTo('App\Models\User', 'user_id' , 'user_id')->withDefault();
+        return $this->belongsTo(User::class, 'user_id' , 'user_id')->withDefault();
     }
     public function to()
     {
-        return $this->belongsTo('App\Models\User', 'comment_to_id' , 'user_id')->withDefault();
+        return $this->belongsTo(User::class, 'comment_to_id' , 'user_id')->withDefault();
     }
 
     public function ownedBy(User $user)

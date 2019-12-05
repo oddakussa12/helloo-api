@@ -3,7 +3,6 @@
 
 namespace App\Resources;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Resources\Json\Resource;
 
 class PostCollection extends Resource
@@ -56,6 +55,9 @@ class PostCollection extends Resource
                     'owner'=>new UserCollection($this->owner),
                 ));
             }),
+            'queryTime'=>$this->when(isset($this->queryTime) , function (){
+                return optional($this->queryTime)->toDateTimeString();
+            })
         ];
     }
 
