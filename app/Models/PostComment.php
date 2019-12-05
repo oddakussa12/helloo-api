@@ -86,10 +86,6 @@ class PostComment extends Model
     }
 
 
-    public function newCollection(array $models = [])
-    {
-        return new CommentCollection($models);
-    }
 
     public function children()
     {
