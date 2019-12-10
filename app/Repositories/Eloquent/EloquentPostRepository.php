@@ -115,7 +115,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             if($orderBy=='rate'||$orderBy==null)
             {
                 $rate_coefficient = config('common.rate_coefficient');
-                $posts = $posts->where('post_comment_num' , '>' , 1);
+                $more_than_post_comment_num = config('common.more_than_post_comment_num');
+                $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
                 $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
                 $posts->orderBy('rate' , 'DESC');
             }
