@@ -16,7 +16,13 @@ class PostCollection extends Resource
             'post_uuid' => $this->post_uuid,
             'post_default_locale' => $this->post_default_locale,
             'post_content_default_locale' => $this->post_content_default_locale,
-            'post_title' => $this->post_decode_title,
+            'post_title' => $this->when(true , function() use ($request){
+                if($request->routeIs('notification.index'))
+                {
+                    return $this->post_index_title;
+                }
+                return $this->post_decode_title;
+            }),
             'post_media'=>$this->post_media,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
