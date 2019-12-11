@@ -189,7 +189,7 @@ class Post extends Model
         $title = $this->post_decode_title;
         if(empty($title))
         {
-            return str_limit(strip_tags($this->post_decode_content) , 60 , '...');
+            return str_limit(strip_tags($this->post_decode_content) , 120 , '...');
         }
         return $title;
     }
