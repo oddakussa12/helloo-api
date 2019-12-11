@@ -15,7 +15,7 @@ class Blacklist extends BaseMiddleware
             $list = $blacklist->list;
             if(in_array(auth()->user()->user_name , $list))
             {
-                abort(422 , __('Sorry, you are forbidden from accessing this page.'));
+                abort(403 , __('Sorry, you are forbidden from accessing this page.'));
             }
         }
         return $next($request);
