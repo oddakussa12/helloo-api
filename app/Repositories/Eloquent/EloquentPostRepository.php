@@ -38,7 +38,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $userIds = $posts->pluck('user_id')->all();//获取post Id
 
-        $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接
+//        $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接
 
         $topCountries = $this->topCountries($postIds);//评论国家sql拼接
 
@@ -48,8 +48,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $activeUsers = app(UserRepository::class)->getYesterdayUserRank(); //获取活跃用户
 
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments , $activeUsers){
-            $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $activeUsers){
+//            $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
             $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
             $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
             $item->owner->user_follow_state = in_array($item->user_id , $followers);
@@ -131,7 +131,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
             $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
 
-            $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接开
+//            $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接开
 
             $topCountries = $this->topCountries($postIds);//评论国家sql拼接
 
@@ -141,8 +141,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
             $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
 
-            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $topTwoComments , $activeUsers) {
-                $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
+            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers , $activeUsers) {
+//                $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
                 $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
                 $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
                 $item->owner->user_follow_state = in_array($item->user_id , $followers);
@@ -177,15 +177,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $post = $this->model;
         $post = $post->where('post_uuid', $uuid);
-        $post = $post->with(['tags' => function($query){
-            $query->with('translations');
-        }]);
+//        $post = $post->with(['tags' => function($query){
+//            $query->with('translations');
+//        }]);
         $post = $post->firstOrFail();
-        $topCountries = $this->topCountries([$post->post_id]);
-        $topCountryNum = $this->countryNum([$post->post_id]);
-        $post->countries = $topCountries->where('post_id',$post->post_id)->values()->all();
-        $post->countryNum = $topCountryNum->where('post_id',$post->post_id)->first();
-        $post->countryNum = $topCountryNum->where('post_id',$post->post_id)->first();
+//        $topCountries = $this->topCountries([$post->post_id]);
+//        $topCountryNum = $this->countryNum([$post->post_id]);
+//        $post->countries = $topCountries->where('post_id',$post->post_id)->values()->all();
+//        $post->countryNum = $topCountryNum->where('post_id',$post->post_id)->first();
         $post->queryTime = Carbon::now();
         return $post;
     }

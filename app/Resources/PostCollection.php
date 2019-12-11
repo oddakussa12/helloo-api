@@ -25,7 +25,7 @@ class PostCollection extends Resource
             }),
             'post_created_at'=>optional($this->post_created_at)->toDateTimeString(),
             'post_format_created_at'=> $this->post_format_created_at,
-            'tags'=>$this->when($request->has('tag') , function (){
+            'tags'=>$this->when($this->relationLoaded('tag') , function (){
                 return TagCollection::collection($this->tags);
             }),
             $this->mergeWhen($request->routeIs('post.show'), function (){
@@ -35,7 +35,7 @@ class PostCollection extends Resource
                     'post_content' => $this->post_decode_content,
                 ]);
             }),
-            'post_country'=>$this->when(!($request->routeIs('post.hot')||$request->routeIs('notification.index')) , function (){
+            'post_country'=>$this->when($request->routeIs('post.myself') , function (){
                 return collect([
                     'total'=>collect($this->countryNum)->get('country_num' , 0),
                     'data'=>$this->countries

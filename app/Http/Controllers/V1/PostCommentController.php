@@ -142,6 +142,16 @@ class PostCommentController extends BaseController
         return PostCommentCollection::collection($comments);
     }
 
+    public function locateComment(Request $request , $commentId)
+    {
+        $postUuid = $request->input('post_uuid' , '');
+        $commentLastId = $request->input('comment_last_id' , 0);
+        $queryTime = $request->get('query_time' , '');
+        $queryTime = empty($queryTime)?$queryTime:date('Y-m-d H:i:s' , strtotime($queryTime));
+        $comments = $this->postComment->findByLocateCommentId($request , $commentId);
+        return $comments;
+    }
+
     /**
      * Display the specified resource.
      *

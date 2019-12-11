@@ -27,7 +27,7 @@ class PostCommentCollection extends Resource
             'comment_format_created_at' => $this->comment_format_created_at,
             'comment_like_state'=>$this->comment_like_state,
             'owner'=>new UserCollection($this->owner),
-            'children' => $this->when($request->routeIs('show.comment.by.post')&&isset($this->topTwoComments) , function (){
+            'children' => $this->when(($request->routeIs('show.comment.by.post')&&isset($this->topTwoComments))||($request->routeIs('show.locate.comment')&&isset($this->topTwoComments)) , function (){
                 return PostCommentCollection::collection($this->topTwoComments)->sortBy('comment_id')->values()->all();
             }),
             'comment_owner' => $this->comment_owner,
@@ -51,9 +51,15 @@ class PostCommentCollection extends Resource
                     'parent'=>new PostCommentSubCollection($this->parent),
                 ));
             }),
-            $this->mergeWhen($this->relationLoaded('to'), function (){
+            $this->mergeWhen($this->relationLoaded('to')||isset($this->toer), function (){
+                if($this->relationLoaded('to'))
+                {
+                    $user = new UserCollection($this->to);
+                }else{
+                    $user = new UserCollection($this->toer);
+                }
                 return collect(array(
-                    'to'=>new UserCollection($this->to),
+                    'to'=>$user,
                 ));
             }),
             'subCommentsCount'=>$this->when(isset($this->subCommentsCount) , function (){

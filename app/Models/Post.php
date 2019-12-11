@@ -48,7 +48,7 @@ class Post extends Model
 
     protected $localeKey = 'post_locale';
 
-    public $perPage = 10;
+    public $perPage = 8;
 
     public function comments()
     {
@@ -182,6 +182,16 @@ class Post extends Model
     {
         $post_title = optional($this->translate($this->post_default_locale))->post_title;
         return htmlspecialchars_decode(htmlspecialchars_decode($post_title , ENT_QUOTES) , ENT_QUOTES);
+    }
+
+    public function getPostIndexTitleAttribute()
+    {
+        $title = $this->post_decode_title;
+        if(empty($title))
+        {
+            return str_limit(strip_tags($this->post_decode_content) , 60 , '...');
+        }
+        return $title;
     }
 
     public function getPostRealRateAttribute()

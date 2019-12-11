@@ -24,9 +24,11 @@ class StorePostRequest extends FormRequest
     public function rules()
     {
         return [
-            'post_title' => 'bail|required|string|between:1,200',
-            'tag_slug' => 'bail|required|array',
-            'post_content' => 'bail|present|between:0,3000',
+//            'post_title' => 'bail|required|string|between:1,200',
+//            'post_title' => 'bail|present|between:0,3000',
+            'tag_slug' => 'bail|present|array',
+//            'post_content' => 'bail|present|between:0,3000',
+            'post_content' => 'bail|required|string|between:1,3000',
         ];
     }
 }

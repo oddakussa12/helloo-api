@@ -47,7 +47,7 @@ class PostComment extends Model
 
     protected $localeKey = 'comment_locale';
 
-    public $perPage = 6;
+    public $perPage = 5;
 
     protected $with = [
 //        'children'

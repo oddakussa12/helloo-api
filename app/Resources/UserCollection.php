@@ -29,7 +29,14 @@ class UserCollection extends Resource
             'user_score' => $this->user_score,
             'user_country'=>$this->user_country,
             'user_is_guest'=>$this->user_is_guest,
-            'user_follow_state' => $this->when(!($request->routeIs('show.more.comment')||$request->routeIs('comment.myself')||$request->routeIs('comment.mylike')||$request->routeIs('show.comment.by.post')||$request->routeIs('show.post.by.user')||$request->routeIs('notification.index')) , function () use ($request){
+            'user_follow_state' => $this->when(!($request->routeIs('show.more.comment')||
+                                                $request->routeIs('comment.myself')||
+                                                $request->routeIs('comment.mylike')||
+                                                $request->routeIs('show.comment.by.post')||
+                                                $request->routeIs('show.post.by.user')||
+                                                $request->routeIs('notification.index')||
+                                                $request->routeIs('show.locate.comment')
+                                                                                        ) , function () use ($request){
                 if($request->routeIs('user.rank')||$request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('post.myself')||$request->routeIs('show.post.by.user'))
                 {
                     return $this->user_follow_state;
