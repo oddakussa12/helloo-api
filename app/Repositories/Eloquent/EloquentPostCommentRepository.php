@@ -8,7 +8,10 @@
  */
 namespace App\Repositories\Eloquent;
 
+use App\Http\Requests\Request;
 use App\Models\PostComment;
+use App\Repositories\Contracts\UserRepository;
+use App\Resources\PostCommentCollection;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\PostRepository;
@@ -42,11 +45,18 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
         $topTwoComments = $this->topTwoComments($commentIds , $queryTime);
 
+        $userIds = $topTwoComments->pluck('user_id')->merge($topTwoComments->pluck('comment_to_id'))->unique();
+
+        $users = app(UserRepository::class)->findByMany($userIds->all());
+
         $subCommentsCount = $this->getChildCountByCommentIds($commentIds , $queryTime);
 
-        $topTwoComments->each(function($item , $key) use ($uuid){
+        $topTwoComments->each(function($item , $key) use ($uuid , $users){
             $item->post_uuid = $uuid;
+            $item->owner = $users->where('user_id' , $item->user_id)->first();
+            $item->toer = $users->where('user_id' , $item->comment_to_id)->first();
         });
+
         $comments->each(function ($item, $key) use ($uuid , $topTwoComments , $subCommentsCount) {
             $item->post_uuid = $uuid;
             $item->topTwoComments = $topTwoComments->where('comment_top_id',$item->comment_id);
@@ -62,33 +72,105 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
     public function findByCommentTopId($postUuid , $commentTopId , $commentLastId , $queryTime=null)
     {
-        $lastComment = $this->findOrFail($commentLastId);
-        if(empty($postUuid))
-        {
-            $post = app(PostRepository::class)->findOrFailById($lastComment->post_id);
-            $postUuid = $post->post_uuid;
-        }
         $comments = $this->allWithBuilder();
-        $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '>' , $lastComment->comment_id);
+        if($commentLastId!=0)
+        {
+            $lastComment = $this->findOrFail($commentLastId);
+            if(empty($postUuid))
+            {
+                $post = app(PostRepository::class)->findOrFailById($lastComment->post_id);
+                $postUuid = $post->post_uuid;
+            }
+            $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '>' , $lastComment->comment_id);
+        }else{
+            $comments = $comments->where('comment_top_id' , $commentTopId);
+        }
         if(!empty($queryTime))
         {
             $comments = $comments->where('comment_created_at' , '<=' , $queryTime);
         }
-        $comments = $comments->with('likes')->with('owner')->with('to');
+        $comments = $comments->with('likers');
         $comments = $comments->orderBy('comment_id')
             ->limit($this->perPage)->get();
-        $comments->each(function($item , $key) use ($postUuid){
+        $userIds = $comments->pluck('user_id')->merge($comments->pluck('comment_to_id'))->unique();
+        $users = app(UserRepository::class)->findByMany($userIds->all());
+        $comments->each(function($item , $key) use ($postUuid , $users){
             $item->post_uuid  = $postUuid;
+            $item->owner = $users->where('user_id' , $item->user_id)->first();
+            $item->toer = $users->where('user_id' , $item->comment_to_id)->first();
         });
         return $comments;
     }
 
+    public function findByLocateCommentId($request , $commentId)
+    {
+        $model = $this->model;
+        $comment = $this->findOrFail($commentId);
+        $postUuid = $request->input('post_uuid' , '');
+        if(empty($postUuid))
+        {
+            $post = app(PostRepository::class)->findOrFailById($comment->post_id);
+            $postUuid = $post->post_uuid;
+        }
+        if($comment->comment_top_id==0)
+        {
+            $locateCommentCount = $model->where('comment_top_id' , $comment->comment_top_id)
+                                    ->where('post_id' ,$comment->post_id)
+                                    ->where('comment_like_num' , '>' ,$comment->comment_like_num)
+                                    ->count();
+            $locateEqualCommentCount = $model->where('comment_top_id' , $comment->comment_top_id)
+                ->where('post_id' ,$comment->post_id)
+                ->where('comment_like_num' , $comment->comment_like_num)
+                ->where($this->model->getCreatedAtColumn() , '>=' , $comment->{$this->model->getCreatedAtColumn()})
+                ->count();
+            $locateCommentCount = $locateCommentCount+$locateEqualCommentCount;
+            $currentPage = $request->input($this->pageName , ceil($locateCommentCount/$model->perPage));
+            $currentPage = $currentPage<1?1:$currentPage;
+            $comments = $model->where('comment_top_id' , $comment->comment_top_id)
+                ->where('post_id' ,$comment->post_id)
+                ->with('translations')
+                ->with('likers')
+                ->with('owner')
+                ->orderBy('comment_like_num' , 'DESC')
+                ->orderBy($this->model->getCreatedAtColumn() , 'DESC')
+                ->paginate($this->perPage , ['*'] , $this->pageName , $currentPage);
+            $commentIds = $comments->pluck('comment_id')->all();//»ñÈ¡comment Id
+            $subCommentsCount = $this->getChildCountByCommentIds($commentIds);
+            $comments->each(function ($item, $key) use ($postUuid , $subCommentsCount) {
+                $item->post_uuid = $postUuid;
+                $item->subCommentsCount = collect($subCommentsCount->where('comment_top_id',$item->comment_id)->first())->get('num' , 0);
+            });
+            return PostCommentCollection::collection($comments);
+        }else{
+            $locateCommentCount = $model->where('comment_top_id' , $comment->comment_top_id)->where('comment_id' , '<' ,$commentId)->count();
+            $currentPage = $request->input($this->pageName , ceil($locateCommentCount/$model->perPage));
+            $currentPage = $currentPage<1?1:$currentPage;
+            $queryTime = $request->get('query_time' , '');
+            $queryTime = empty($queryTime)?$queryTime:date('Y-m-d H:i:s' , strtotime($queryTime));
+            $comments = $model->where('comment_top_id' , $comment->comment_top_id)
+                ->with('translations')
+                ->with('likers')
+                ->with('owner')
+                ->with('to')
+                ->orderBy('comment_id')
+                ->offset(($currentPage-1)*$this->perPage)
+                ->limit($this->perPage)
+                ->get();
+            $comments->each(function($item , $key) use ($postUuid){
+                $item->post_uuid  = $postUuid;
+            });
+            $topComment = $this->allWithBuilder()->with('likers')->with('owner')->where('comment_id' , $comment->comment_top_id)->first();
+            $topComment->post_uuid = $postUuid;
+            $topComment->topTwoComments = $comments;
+            return new PostCommentCollection($topComment);
+        }
+    }
 
     public function findByUserId($request , $user_id)
     {
         $comments = $this->allWithBuilder();
         $comments = $comments->where('user_id' , $user_id);
-        $comments = $comments->with('likes')
+        $comments = $comments->with('likers')
             ->with('owner')
             ->with('post')
             ->whereHas('post');
@@ -181,9 +263,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             ->where('rank','<',3)->select('c.comment_id')->pluck('comment_id')->toArray();
 
         $postComments = PostComment::whereIn('comment_id',$topTwoCommentIds)
-            ->with('translations')
-            ->with('to')
-            ->with('owner');
+            ->with('translations');
         if(auth()->check())
         {
             $postComments = $postComments->with(['likers'=>function($query){

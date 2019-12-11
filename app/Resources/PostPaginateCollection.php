@@ -18,13 +18,13 @@ class PostPaginateCollection extends Resource
             'post_uuid' => $this->post_uuid,
             'post_media' => $this->post_media,
             'post_default_locale' => $this->post_default_locale,
-            'post_title' => $this->post_decode_title,
+            'post_title' => $this->post_index_title,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
             'post_view_num' => $this->when($this->relationLoaded('viewCount') , function(){
                 return $this->post_view_num;
             }),
-            'topTwoComments'=> $this->when($request->get('home')==true||$request->routeIs('post.top') , function (){
+            'topTwoComments'=> $this->when(isset($this->topTwoComments) , function (){
                 return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_like_temp_num')->values()->all();
             }),
             'post_country'=> collect([

@@ -109,13 +109,12 @@ class PostController extends BaseController
      */
     public function store(StorePostRequest $request)
     {
-        $post_title = clean($request->input('post_title'));
-        if(empty($post_title))
-        {
-            abort(421);
-        }
+        $post_title = clean($request->input('post_title' , ''));
         $post_content = clean($request->input('post_content' , ''));
-	    $tag_slug = $request->input('tag_slug' , array());
+        \Validator::make(array('post_content'=>$post_content), [
+            'post_content' => ['bail','required','string','between:1,3000'],
+        ])->validate();
+	    $tag_slug = array_diff($request->input('tag_slug' , array()),array(null , ''));
 	    $post_image = $request->input('post_image' , array());
         $post_category_id = 1;
         $post_type = 'text';
@@ -128,7 +127,7 @@ class PostController extends BaseController
             $post_category_id = 2;
             $post_type = 'image';
         }
-        $postTitleLang = $this->translate->detectLanguage($post_title);
+        $postTitleLang = empty($post_title)?'en':$this->translate->detectLanguage($post_title);
         $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
         if(empty($post_content))
         {
@@ -257,7 +256,7 @@ class PostController extends BaseController
 
     public function myself(Request $request)
     {
-        return PostCollection::collection($this->post->paginateByUser($request , auth()->user()->user_id));
+        return PostPaginateCollection::collection($this->post->paginateByUser($request , auth()->user()->user_id));
     }
 
 

@@ -27,16 +27,17 @@ $V1Params = [
 
 $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh' , 'operationLog']] , function($api){
-        $api->resource('post' , 'PostController' , ['only' => ['index']]);
-//        $api->get('test' , 'AuthController@test');
+
+        $api->resource('post', 'PostController', ['only' => ['index']]);
+
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
 
-//        $api->get('login/google', 'AuthController@redirectToProvider');
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
         $api->get('postComment/more/{commentTopId}' , 'PostCommentController@moreComment')->name('show.more.comment');
+        $api->get('postComment/locate/{commentId}' , 'PostCommentController@locateComment')->name('show.locate.comment');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
 
 //        $api->resource('category' , 'CategoryController');
@@ -97,11 +98,11 @@ $api->group($V1Params , function ($api){
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe')->name('other.followMe');
-        $api->group(['middleware'=>'throttle:3,1'] , function ($api){
+        $api->group(['middleware'=>['throttle:3,1' , 'blacklist']] , function ($api){
             $api->post('post' , 'PostController@store')->name('post.store');
         });
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
-        $api->group(['middleware'=>'throttle:6,1'] , function ($api){
+        $api->group(['middleware'=>['throttle:3,1' , 'blacklist']] , function ($api){
             $api->post('postComment' , 'PostCommentController@store')->name('comment.store');
         });
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
