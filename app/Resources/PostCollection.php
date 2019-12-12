@@ -17,7 +17,7 @@ class PostCollection extends Resource
             'post_default_locale' => $this->post_default_locale,
             'post_content_default_locale' => $this->post_content_default_locale,
             'post_title' => $this->when(true , function() use ($request){
-                if($request->routeIs('notification.index'))
+                if($request->routeIs('notification.index')||$request->routeIs('post.hot'))
                 {
                     return $this->post_index_title;
                 }

@@ -12,10 +12,13 @@ class Blacklist extends BaseMiddleware
         if(\Storage::exists($blacklist)&&auth()->check())
         {
             $blacklist = \json_decode(\Storage::get($blacklist));
-            $list = $blacklist->list;
-            if(in_array(auth()->user()->user_name , $list))
+            if(!empty($blacklist))
             {
-                abort(403 , __('Sorry, you are forbidden from accessing this page.'));
+                $list = $blacklist->list;
+                if(in_array(auth()->user()->user_name , $list))
+                {
+                    abort(403 , __('Sorry, you are forbidden from accessing this page.'));
+                }
             }
         }
         return $next($request);
