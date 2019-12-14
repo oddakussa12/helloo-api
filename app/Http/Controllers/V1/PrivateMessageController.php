@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Http\Requests\Request;
+use App\Services\TranslateService;
 
 class PrivateMessageController extends BaseController
 {
