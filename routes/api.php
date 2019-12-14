@@ -126,6 +126,7 @@ $api->group($V1Params , function ($api){
         $api->get('roomtopic' , 'EventController@roomTopic')->name('event.roomtopic');
         $api->resource('user' , 'UserController' , ['only' => ['show']]);
     });
+    $api->post('privateMessage/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
 
 
 });

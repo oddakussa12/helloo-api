@@ -61,6 +61,14 @@ class TranslateService
         return $translate['text'];
     }
 
+    public function onlyTranslate($str , $option=array())
+    {
+        $options = array('target'=>config('translatable.translate_default_lang') , 'format'=>config('translatable.translate_default_format'));
+        $options = $option+$options;
+        $translate = $this->translate->translate($str , $options);
+        return $translate['text'];
+    }
+
     public function customizeTrans($str , $contentLang)
     {
         $translations = array();
