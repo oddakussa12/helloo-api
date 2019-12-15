@@ -16,9 +16,18 @@ class Device implements ShouldQueue
 
     public $deviceFields;
 
-    public function __construct($deviceFields)
+    public $type;
+
+    public $userId;
+
+    public function __construct($deviceFields , $type='init')
     {
         $this->deviceFields = $deviceFields;
+        $this->type = $type;
+        if(auth()->check())
+        {
+            $this->userId = auth()->id();
+        }
     }
 
     /**
@@ -28,46 +37,65 @@ class Device implements ShouldQueue
      */
     public function handle()
     {
-        $deviceFields = $this->deviceFields;
-        $deviceId = isset($deviceFields['deviceToken'])?$deviceFields['deviceToken']:'';
-        $appShortVersion = $deviceFields['appShortVersion'];
-        $appVersion = $deviceFields['appVersion'];
-        $appBundleIdentifier = $deviceFields['appBundleIdentifier'];
-        $vendorUUID = $deviceFields['vendorUUID'];
-        $systemName = $deviceFields['systemName'];
-        $systemVersion = $deviceFields['systemVersion'];
-        $phoneName = $deviceFields['phoneName'];
-        $phoneModel = $deviceFields['phoneModel'];
-        $localizedModel = $deviceFields['localizedModel'];
-        $networkType = $deviceFields['networkType'];
-        $carrierName = $deviceFields['carrierName'];
-        $deviceType = $deviceFields['deviceType'];
-        $device= DB::table('devices')->where('device_vendor_uuid' , $vendorUUID)->first();
         $dateTime = Carbon::now();
-        if(empty($device))
+        $type = $this->type;
+        $deviceFields = $this->deviceFields;
+        if($type=='signUpOrIn')
         {
-            $deviceData = array(
-                'device_id' => $deviceId,
-                'device_app_short_version' => $appShortVersion,
-                'device_app_version' => $appVersion,
-                'device_app_bundle_identifier' => $appBundleIdentifier,
-                'device_vendor_uuid' => $vendorUUID,
-                'device_system_name' => $systemName,
-                'device_system_version' => $systemVersion,
-                'device_phone_name' => $phoneName,
-                'device_phone_model' => $phoneModel,
-                'device_localized_model' => $localizedModel,
-                'device_network_type' => $networkType,
-                'device_carrier_name' => $carrierName,
-                'device_type' => $deviceType,
-                'device_created_at' => $dateTime,
-                'device_updated_at' => $dateTime,
-            );
-            DB::table('devices')->insert($deviceData);
-        }else{
-            if($device->device_id!=$deviceId)
+            if(!empty($deviceFields['deviceToken'])&&!empty($deviceFields['vendorUUID']))
             {
-                DB::table('devices')->where('device_vendor_uuid' , $vendorUUID)->update(array('device_id'=>$deviceId , 'device_updated_at' => $dateTime));
+                $userId = empty($this->userId)?0:$this->userId;
+                $device= DB::table('devices')->where('device_vendor_uuid' , $deviceFields['vendorUUID'])->first();
+                if(!empty($device))
+                {
+                    if($device->device_id!=$deviceFields['deviceToken']||$device->user_id!=$userId)
+                    {
+                        DB::table('devices')->where('device_vendor_uuid' , $deviceFields['vendorUUID'])->update(array('user_id'=>$userId ,'device_id'=>$deviceFields['deviceToken'] , 'device_updated_at' => $dateTime));
+                    }
+                }
+            }
+        }else{
+            $deviceId = isset($deviceFields['deviceToken'])?$deviceFields['deviceToken']:'';//
+            $appShortVersion = isset($deviceFields['appShortVersion'])?$deviceFields['appShortVersion']:'';//
+            $appVersion = isset($deviceFields['appVersion'])?$deviceFields['appVersion']:'';//
+            $appBundleIdentifier = isset($deviceFields['appBundleIdentifier'])?$deviceFields['appBundleIdentifier']:'';
+            $vendorUUID = $deviceFields['vendorUUID'];
+            $systemName = isset($deviceFields['systemName'])?$deviceFields['systemName']:'';
+            $systemVersion = isset($deviceFields['systemVersion'])?$deviceFields['systemVersion']:'';
+            $phoneName = isset($deviceFields['phoneName'])?$deviceFields['phoneName']:'';
+            $phoneModel = isset($deviceFields['phoneModel'])?$deviceFields['phoneModel']:'';
+            $localizedModel = isset($deviceFields['localizedModel'])?$deviceFields['localizedModel']:'';
+            $networkType = isset($deviceFields['networkType'])?$deviceFields['networkType']:'';;
+            $carrierName = isset($deviceFields['carrierName'])?$deviceFields['carrierName']:'';
+            $deviceType = $deviceFields['deviceType'];
+            $devicePlatformName = isset($deviceFields['devicePlatformName'])?$deviceFields['devicePlatformName']:'';
+            $device= DB::table('devices')->where('device_vendor_uuid' , $vendorUUID)->first();
+            if(empty($device))
+            {
+                $deviceData = array(
+                    'device_id' => $deviceId,//
+                    'device_app_short_version' => $appShortVersion,//
+                    'device_app_version' => $appVersion,//
+                    'device_app_bundle_identifier' => $appBundleIdentifier,//
+                    'device_vendor_uuid' => $vendorUUID,//
+                    'device_system_name' => $systemName,//
+                    'device_system_version' => $systemVersion,//
+                    'device_platform_name' => $devicePlatformName,//
+                    'device_phone_name' => $phoneName,
+                    'device_phone_model' => $phoneModel,//
+                    'device_localized_model' => $localizedModel,
+                    'device_network_type' => $networkType,
+                    'device_carrier_name' => $carrierName,
+                    'device_type' => $deviceType,
+                    'device_created_at' => $dateTime,
+                    'device_updated_at' => $dateTime,
+                );
+                DB::table('devices')->insert($deviceData);
+            }else{
+                if($device->device_id!=$deviceId)
+                {
+                    DB::table('devices')->where('device_vendor_uuid' , $vendorUUID)->update(array('device_id'=>$deviceId , 'device_updated_at' => $dateTime));
+                }
             }
         }
     }
