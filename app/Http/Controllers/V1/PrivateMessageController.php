@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Http\Requests\Request;
+use Illuminate\Http\Request;
+use App\Services\TranslateService;
 
 class PrivateMessageController extends BaseController
 {
-    private $post;
 
     private $translate;
 

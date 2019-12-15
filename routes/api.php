@@ -127,6 +127,7 @@ $api->group($V1Params , function ($api){
         $api->resource('user' , 'UserController' , ['only' => ['show']]);
     });
     $api->post('privateMessage/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
+    $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
 
 });

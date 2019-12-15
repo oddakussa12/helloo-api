@@ -8,12 +8,12 @@
  */
 namespace App\Repositories\Eloquent;
 
-use App\Http\Requests\Request;
+use Carbon\Carbon;
 use App\Models\PostComment;
-use App\Repositories\Contracts\UserRepository;
-use App\Resources\PostCommentCollection;
 use Illuminate\Support\Facades\DB;
+use App\Resources\PostCommentCollection;
 use App\Repositories\EloquentBaseRepository;
+use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
 
@@ -21,16 +21,20 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 {
     public function findByPostUuid($request , $uuid)
     {
+        $appends = array();
         $queryTime = $request->get('query_time' , '');
-        $queryTime = empty($queryTime)?$queryTime:date('Y-m-d H:i:s' , strtotime($queryTime));
         $post = app(PostRepository::class)->findOrFailByUuid($uuid);
-        $comments = $post->comments()
+        $comments = $post->comments()->withTrashed()
             ->with('translations')
-            ->where('comment_comment_p_id' , 0);
-        if(!empty($queryTime))
+            ->where('comment_comment_p_id' , 0)
+            ->whereNull($this->model->getDeletedAtColumn());
+        if(empty($queryTime))
         {
-            $comments = $comments->where('comment_created_at' , '<=' , $queryTime);
+            $queryTime = Carbon::now()->timestamp;
         }
+        $dateTime = Carbon::createFromTimestamp($queryTime)->toDateTimeString();
+        $comments = $comments->where('comment_created_at' , '<=' , $dateTime);
+        $appends['query_time'] = $queryTime;
         if(auth()->check())
         {
             $comments = $comments->with(['likers'=>function($query){
@@ -39,17 +43,16 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         }
         $comments = $comments->with('owner')
             ->orderBy('comment_like_num', 'DESC')
-            ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
             ->paginate($this->perPage , ['*'] , $this->pageName);
-        $commentIds = $comments->pluck('comment_id')->all();//获取comment Id
+        $commentIds = $comments->pluck('comment_id')->all();//鑾峰彇 comment Id
 
-        $topTwoComments = $this->topTwoComments($commentIds , $queryTime);
+        $topTwoComments = $this->topTwoComments($commentIds , $dateTime);
 
         $userIds = $topTwoComments->pluck('user_id')->merge($topTwoComments->pluck('comment_to_id'))->unique();
 
         $users = app(UserRepository::class)->findByMany($userIds->all());
 
-        $subCommentsCount = $this->getChildCountByCommentIds($commentIds , $queryTime);
+        $subCommentsCount = $this->getChildCountByCommentIds($commentIds , $dateTime);
 
         $topTwoComments->each(function($item , $key) use ($uuid , $users){
             $item->post_uuid = $uuid;
@@ -65,8 +68,9 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         $comments->appends(array('query_time'=>$queryTime));
         if($request->get('children')==='true')
         {
-            $comments->appends(array('children'=>'true'));
+            $appends['children'] = true;
         }
+        $comments->appends($appends);
         return $comments;
     }
 
@@ -134,7 +138,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
                 ->orderBy('comment_like_num' , 'DESC')
                 ->orderBy($this->model->getCreatedAtColumn() , 'DESC')
                 ->paginate($this->perPage , ['*'] , $this->pageName , $currentPage);
-            $commentIds = $comments->pluck('comment_id')->all();//获取comment Id
+            $commentIds = $comments->pluck('comment_id')->all();//锟斤拷取comment Id
             $subCommentsCount = $this->getChildCountByCommentIds($commentIds);
             $comments->each(function ($item, $key) use ($postUuid , $subCommentsCount) {
                 $item->post_uuid = $postUuid;

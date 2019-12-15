@@ -60,9 +60,6 @@ class PostCollection extends Resource
                 return collect(array(
                     'owner'=>new UserCollection($this->owner),
                 ));
-            }),
-            'queryTime'=>$this->when(isset($this->queryTime) , function (){
-                return optional($this->queryTime)->toDateTimeString();
             })
         ];
     }
