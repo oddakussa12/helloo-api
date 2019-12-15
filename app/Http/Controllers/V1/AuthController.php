@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
 use App\Models\PostComment;
 use App\Events\SignupEvent;
@@ -42,11 +43,13 @@ class AuthController extends BaseController
     public function signUp(StoreUserRequest $request)
     {
         $request_fields = $request->only(['name' , 'email' , 'password']);
+        $referer = $request->input('referer' , 'web');
         $user_fields[$this->user->getDefaultNameField()] = $request_fields['name'];
         $user_fields[$this->user->getDefaultEmailField()] = $request_fields['email'];
         $user_fields[$this->user->getDefaultPasswordField()] = $request_fields['password'];
         $user_fields['user_ip_address'] = getRequestIpAddress();
         $user_fields['user_uuid'] = Uuid::uuid1();
+        $user_fields['user_src'] = $referer;
         $addresses = geoip($user_fields['user_ip_address']);
         if($request->has('country_code'))
         {
@@ -108,6 +111,13 @@ class AuthController extends BaseController
         $user = auth()->user();
         $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
         $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
+        $referer = request()->input('referer' , 'web');
+        if($referer!='web')
+        {
+            $deviceFields = request()->only(['vendorUUID' , 'deviceToken']);
+            $device = new Device($deviceFields , 'signUpOrIn');
+            $this->dispatch($device->onQueue('registered_plant'));
+        }
         return $this->response->array([
             'access_token' => $token,
             'token_type' => 'bearer',
