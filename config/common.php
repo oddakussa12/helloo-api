@@ -8,7 +8,7 @@ return [
 		'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
 	],
     'front_domain'=> [
-        'h5'=>'www.yooul.com',
+        'h5'=>'yooul.com',
         'h5_test'=>'h5.mmantou.cn',
         'web'=>'web.yooul.com',
         'web_test'=>'web.mmantou.cn',
