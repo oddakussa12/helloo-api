@@ -8,7 +8,7 @@
  */
 namespace App\Listeners;
 
-
+use App\Jobs\Jpush;
 use App\Events\Follow;
 
 class FollowListener
@@ -33,6 +33,7 @@ class FollowListener
     {
         $object = $event->getObject();
         $object->refresh();
+        Jpush::dispatch('follow' , auth()->user()->user_name , $object->user_id)->onQueue('op_jpush');
         notify('user.following' ,
             array(
                 'from'=>auth()->id() ,

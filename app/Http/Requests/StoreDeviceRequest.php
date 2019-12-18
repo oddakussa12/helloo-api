@@ -25,11 +25,12 @@ class StoreDeviceRequest extends FormRequest
     public function rules()
     {
         return [
-            'deviceToken' => 'bail|nullable|size:64',
+            'deviceToken' => 'bail|nullable|string|between:1,128',
             'appShortVersion' => 'bail|nullable|string|between:1,64',
             'appVersion' => 'bail|nullable|string|between:1,64',
             'appBundleIdentifier' => 'bail|nullable|string|between:1,64',
-            'vendorUUID' => 'bail|required|string|between:1,128',
+            'vendorUUID' => 'bail|nullable|string|between:1,128',
+            'registrationId' => 'bail|required_if:deviceType,1|string|between:1,64',
             'systemName' => ['bail','nullable','string',Rule::in(['iOS', 'Android'])],
             'systemVersion' => 'bail|nullable|string|between:1,128',
             'phoneName' => 'bail|nullable|string|max:512',
@@ -39,6 +40,7 @@ class StoreDeviceRequest extends FormRequest
             'carrierName' => 'bail|nullable|string|between:1,128',
             'devicePlatformName' => 'bail|nullable|string|between:1,128',
             'deviceType' => 'bail|required|numeric|between:1,2',
+            'deviceLanguage' => 'bail|required|string|between:1,16',
         ];
     }
 }

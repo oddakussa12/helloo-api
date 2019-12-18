@@ -2,9 +2,11 @@
 return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
-        'like' => 'أعجبك تعليقك',
-        'comment'=>'رد على تعليقك',
-        'post_comment'=>'علق على مشاركتك',
+        'like' => '.أعجبك تعليقك',
+        'comment'=>'.رد على تعليقك',
+        'post_comment'=>'.علق على مشاركتك',
+        'private_message'=>'.قد تلقيت رسالة جديدة',
+        'follow'=>'followed you.',
     ],
     'global'=>[
         'first'=>'

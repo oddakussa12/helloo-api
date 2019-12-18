@@ -2,12 +2,10 @@
 
 namespace App\Listeners;
 
+use App\Jobs\Jpush;
 use App\Models\Post;
-use App\Models\PostComment;
 use App\Events\Liked;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Http\Request;
+use App\Models\PostComment;
 
 class LikeListener
 {
@@ -37,6 +35,7 @@ class LikeListener
         //获取事件中保存的信息
         $object = $event->getObject();
         $object->refresh();
+        Jpush::dispatch('like' , auth()->user()->user_name , $object->user_id)->onQueue('op_jpush');
         if($object instanceof Post)
         {
             $object->increment('post_like_num' , $event->getType());
