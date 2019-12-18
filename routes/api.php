@@ -126,8 +126,11 @@ $api->group($V1Params , function ($api){
         $api->get('roomtopic' , 'EventController@roomTopic')->name('event.roomtopic');
         $api->resource('user' , 'UserController' , ['only' => ['show']]);
     });
-    $api->post('privateMessage/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
+    $api->post('message/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
+    $api->post('message/push' , 'PrivateMessageController@push')->name('message.push');
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
+
+    $api->get('test' , 'TestController@index')->name('test.index');
 
 
 });

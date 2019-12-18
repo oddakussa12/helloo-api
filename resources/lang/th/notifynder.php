@@ -2,9 +2,11 @@
 return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
-        'like' => 'ชอบคุณ',
-        'comment'=>'ตอบความคิดเห็นของคุณ',
-        'post_comment'=>'แสดงความคิดเห็นในโพสต์ของคุณ',
+        'like' => 'ชอบคุณ.',
+        'comment'=>'ตอบความคิดเห็นของคุณ.',
+        'post_comment'=>'แสดงความคิดเห็นในโพสต์ของคุณ.',
+        'private_message'=>'คุณได้รับข้อความใหม.',
+        'follow'=>'followed you.',
     ],
     'global'=>[
         'first'=>'

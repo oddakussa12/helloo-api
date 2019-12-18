@@ -2,9 +2,7 @@
 
 namespace App\Listeners;
 
-
-use App\Models\Post;
-use App\Models\PostComment;
+use App\Jobs\Jpush;
 use App\Events\PostCommentCreated;
 
 class PostCommentCreatedListener
@@ -44,6 +42,7 @@ class PostCommentCreatedListener
         }
         if($object->comment_comment_p_id===0)
         {
+            Jpush::dispatch('comment' , auth()->user()->user_name , $post->user_id)->onQueue('op_jpush');
             $owner = $post->owner;
             notify('user.post_comment' ,
                 array(
@@ -59,6 +58,7 @@ class PostCommentCreatedListener
             );
         }else{
             $owner = $object->parent->owner;
+            Jpush::dispatch('comment' , auth()->user()->user_name , $object->parent->user_id)->onQueue('op_jpush');
             notify('user.comment' ,
                 array(
                     'from'=>auth()->id() ,

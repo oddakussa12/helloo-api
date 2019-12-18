@@ -9,8 +9,11 @@ return [
 	],
     'front_domain'=> [
         'h5'=>'www.yooul.com',
+        'h5_test'=>'h5.mmantou.cn',
         'web'=>'web.yooul.com',
+        'web_test'=>'web.mmantou.cn',
     ],
+    'app_dir' => env('APP_DIR', 'api.yooul.net'),
     'score_date'=>env('SCORE_DATE', '2019-11-25 00:00:00'),
     'rate_coefficient'=>env('RATE_COEFFICIENT', 0.7),
     'more_than_post_comment_num'=>env('MORE_THAN_POST_COMMENT_NUM', 5),

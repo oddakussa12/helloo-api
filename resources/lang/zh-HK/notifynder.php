@@ -2,9 +2,11 @@
 return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
-        'like' => '點讚了你',
-        'comment'=>'回復了你的評論',
-        'post_comment'=>'評論了你的帖子',
+        'like' => '點讚了你。',
+        'comment'=>'回復了你的評論。',
+        'post_comment'=>'評論了你的帖子。',
+        'private_message'=>'您已收到一则新消息。',
+        'follow'=>'關注了你。',
     ],
     'global'=>[
         'first'=>'

@@ -2,9 +2,11 @@
 return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
-        'like' => '당신의 의견을 좋아',
-        'comment'=>'귀하의 의견에 답변',
-        'post_comment'=>'귀하의 의견에 답변',
+        'like' => '당신의 의견을 좋아.',
+        'comment'=>'귀하의 의견에 답변.',
+        'post_comment'=>'귀하의 의견에 답변.',
+        'private_message'=>'새 메시지를 받았습니다.',
+        'follow'=>'followed you.',
     ],
     'global'=>[
         'first'=>'

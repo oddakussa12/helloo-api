@@ -2,9 +2,11 @@
 return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
-        'like' => 'menyukai komentar Anda',
-        'comment'=>'membalas komentar Anda',
-        'post_comment'=>'membalas komentar Anda',
+        'like' => 'menyukai komentar Anda.',
+        'comment'=>'membalas komentar Anda.',
+        'post_comment'=>'membalas komentar Anda.',
+        'private_message'=>'Anda telah menerima pesan baru.',
+        'follow'=>'followed you.',
     ],
     'global'=>[
         'first'=>'<p>Hai! Terima kasih telah bergabung bersama
