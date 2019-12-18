@@ -162,12 +162,16 @@ class JpushService
             'yue_hans_cn',
             'yue_hans',
             'zh_hant',
+            'zh-cn',
+            'zh',
         );
         $zhTWArray = array(
             'zh_hant_tw',
             'zh_hant_hk',
             'zh_hant_mo',
             'zh_hans_hk',
+            'zh-tw',
+            'zh-hk',
         );
         if(in_array($lang , $zhCNArray))
         {
