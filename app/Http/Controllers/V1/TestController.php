@@ -2,54 +2,50 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Services\JpushService;
+use App\Custom\RedisList;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Cache;
+use App\Repositories\Contracts\PostRepository;
+use Illuminate\Database\Concerns\BuildsQueries;
 
 class TestController extends BaseController
 {
     //
-    public function index()
+    use BuildsQueries;
+    public function index(Request $request)
     {
+        $perPage = 2;
 
-        echo basename(base_path());
-        echo '<br />';
-        echo config('common.app_dir');die;
-        var_dump(domain()!=domain(config('app.url')));die;
-        echo locale();
-        echo trans('notifynder.user.private_message' , [] , 'jas');
-//        JpushService::androidOrIosPush(array(
-//            'platform'=>'ios',
-//            'title'=>'测试标题',
-//            'content'=>'测试内容'.date('Y-m-d H:i:s' , time()),
-//            'builderId'=>1,
-//            'extras'=>array('type'=>'privateChat' , 'userId'=>1 , 'commentId'=>1),
-//            'type'=>3,
-//        ));
-//        JpushService::androidOrIosPush(array(
-//            'platform'=>'ios',
-//            'title'=>'您有一条新的评论',
-//            'content'=>'评论内容'.date('Y-m-d H:i:s' , time()),
-//            'builderId'=>1,
-//            'extras'=>array('type'=>'comment' , 'url'=>"https://yooul.com/inbox/myreplies"),
-//            'type'=>3,
-//        ));
-//        JpushService::androidOrIosPush(array(
-//            'platform'=>'ios',
-//            'title'=>'您有一条新的点赞',
-//            'content'=>'点赞内容'.date('Y-m-d H:i:s' , time()),
-//            'builderId'=>1,
-//            'extras'=>array('type'=>'like' , 'url'=>"https://yooul.com/inbox/mylikes"),
-//            'type'=>2,
-//            'registrationId'=>'141fe1da9ec229cd547'
-//        ));
-//        JpushService::androidOrIosPush(array(
-//            'platform'=>'ios',
-//            'title'=>'您有一条私信',
-//            'content'=>'私信内容'.date('Y-m-d H:i:s' , time()),
-//            'builderId'=>1,
-//            'extras'=>array('type'=>'privatechat' , 'user_id'=>"8138"),
-//            'type'=>2,
-//            'registrationId'=>'141fe1da9ec229cd547'
-//        ));
+        $redis = new RedisList();
+        $pageName = 'page';
+        $page = $request->input('page' , 1);
+        $index = $request->input('index' , 1);
+        $key = 'post_index_'.$index;
+
+//        for($i=1;$i<=100;$i++)
+//        {
+//            $rand = mt_rand(1 , 10000);
+//            $redis->zAdd('tester' , $rand, 'c'.$rand);
+//        }
+        $offset = ($page-1)*$perPage;
+        $list = $redis->zRangByScore($key , '-inf' , '+inf' , true , array($offset , $perPage));
+        $total = $redis->zSize($key);
+        return $this->paginator($list, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+    }
+
+    public function clearCache(Request $request)
+    {
+        Cache::forget('fine_post');
+        return $this->response->noContent();
+    }
+
+    public function testData()
+    {
+        return app(PostRepository::class)->getFinePostIds();
     }
     
 }

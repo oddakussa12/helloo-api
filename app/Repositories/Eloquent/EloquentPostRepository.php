@@ -4,15 +4,21 @@ namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
 use App\Models\Tag;
+use App\Custom\RedisList;
 use App\Models\PostComment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Cache;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
+use Illuminate\Database\Concerns\BuildsQueries;
 
 class EloquentPostRepository  extends EloquentBaseRepository implements PostRepository
 {
+
+    use BuildsQueries;
 
     public function all()
     {
@@ -93,54 +99,64 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->withTrashed()->with('owner');
         if ($request->get('home')!== null){
             $appends['home'] = $request->get('home');
-            $posts = $posts->where('post_topping' , 0);
-            $posts = $posts->with('viewCount');
-            if($request->get('follow')!== null&&auth()->check())
-            {
-                $appends['follow'] = $request->get('follow');
-                $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
-                $posts = $posts->whereIn('user_id',$userIds);
-            }
-            if ($request->get('keywords') !== null) {
-                $keywords = $request->get('keywords');
-                $appends['keywords'] = $keywords;
-                $posts->whereHas('translations', function ($query) use ($keywords) {
-                    $query->where('post_title', 'LIKE', "%{$keywords}%");
-                });
-            }
+            $type = $request->get('type' , 'default');
+            $appends['type'] = $type;
             $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
             $appends['order'] = $order;
             $orderBy = $request->get('order_by' , 'rate');
             $appends['order_by'] = $orderBy;
-            $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-            if($orderBy=='rate'||$orderBy==null)
+            $follow = $request->get('follow');
+            if($type=='default'&&$orderBy=='rate'&&$follow==null)
             {
-                $posts = $posts->where('post_hoting' , 1);
-                $rate_coefficient = config('common.rate_coefficient');
-                $more_than_post_comment_num = config('common.more_than_post_comment_num');
-                $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
-                $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
-                $posts->orderBy('rate' , 'DESC');
-            }
-            $posts->orderBy($this->model->getKeyName() , 'DESC');
-            $queryTime = $request->get('query_time' , '');
-            if(empty($queryTime))
-            {
-                $queryTime = Carbon::now()->timestamp;
-            }
-            $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
-            $appends['query_time'] = $queryTime;
+                $posts = $this->getFinePosts($posts);
+            }else{
+                $posts = $posts->where('post_topping' , 0);
+                $posts = $posts->with('viewCount');
+                if($follow!== null&&auth()->check())
+                {
+                    $appends['follow'] = $request->get('follow');
+                    $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
+                    $posts = $posts->whereIn('user_id',$userIds);
+                }
+                if ($request->get('keywords') !== null) {
+                    $keywords = $request->get('keywords');
+                    $appends['keywords'] = $keywords;
+                    $posts->whereHas('translations', function ($query) use ($keywords) {
+                        $query->where('post_title', 'LIKE', "%{$keywords}%");
+                    });
+                }
+                $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+                if(($orderBy=='rate'||$orderBy==null)&&$follow==null)
+                {
+                    $posts = $posts->where('post_fine' , 0);
+                    $posts = $posts->where('post_hoting' , 1);
+                    $rate_coefficient = config('common.rate_coefficient');
+                    $more_than_post_comment_num = config('common.more_than_post_comment_num');
+                    $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
+                    $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
+                    $posts->orderBy('rate' , 'DESC');
+                }
+                $posts->orderBy($this->model->getKeyName() , 'DESC');
+                $queryTime = $request->get('query_time' , '');
+                if(empty($queryTime))
+                {
+                    $queryTime = Carbon::now()->timestamp;
+                }
+                $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
+                $appends['query_time'] = $queryTime;
 
-//            $sorts = $this->getOrder($orderBy);
-//            foreach ($sorts as $sort)
-//            {
-//                $posts->orderBy($sort, $order);
-//            }
-            $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+    //            $sorts = $this->getOrder($orderBy);
+    //            foreach ($sorts as $sort)
+    //            {
+    //                $posts->orderBy($sort, $order);
+    //            }
+                $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+            }
+
 
             $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
 
-            $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
+//            $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
 
 //            $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接开
 
@@ -363,4 +379,68 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $post->firstOrFail();
     }
 
+    public function getFinePosts($posts)
+    {
+        $appends =array();
+        $request = request();
+        $perPage = $this->perPage;
+        $redis = new RedisList();
+        $pageName = $this->pageName;
+        $page = $request->input( $pageName, 1);
+        $index = $request->input('index' , mt_rand(1 , 5));
+        $appends['index'] = $index;
+        $key = 'post_index_'.$index;
+        $offset = ($page-1)*$perPage;
+        if($redis->existsKey($key))
+        {
+            $total = $redis->zSize($key);
+            $postIds = $redis->zRangByScore($key , '-inf' , '+inf' , true , array($offset , $perPage));
+            $postIds = array_keys($postIds);
+        }else{
+            $total = 0;
+            $postIds = array();
+        }
+        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+        $appends['order'] = $order;
+        $orderBy = $request->get('order_by' , 'rate');
+        $appends['order_by'] = $orderBy;
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();
+        $posts = $this->paginator($posts, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+        return $posts->appends($appends);
+    }
+
+    public function getFinePostIds()
+    {
+        return Cache::rememberForever('fine_post', function() {
+            return $this->model->where('post_topping' , 0)->where('post_fine' , 1)->select('post_id')->pluck('post_id')->all();
+        });
+    }
+
+    public function generatePostIdRandRank()
+    {
+
+        $min = 1;
+        $max = 5;
+        $redis = new RedisList();
+        $postIds = $this->getFinePostIds();
+        $postCount = count($postIds);
+        for ($i=$min ;$i<=$max;$i++)
+        {
+//            $data = array();
+            $postRankKey = 'post_index_'.$i;
+            $redis->delKey($postRankKey);
+            foreach ($postIds as $postId)
+            {
+                $randScore = mt_rand(1 , $postCount*100);
+//                array_push($data , array($postId=>$randScore));
+                $redis->zAdd($postRankKey , $randScore , $postId);
+            }
+//            var_dump(end($data));
+//            //$redis->zAdd($postRankKey , $data);
+        }
+    }
 }
