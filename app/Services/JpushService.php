@@ -88,11 +88,12 @@ class JpushService
             Log::info('push_error',
                 compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
             );
-        }else{
-            Log::info('push_success',
-                compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
-            );
         }
+//        else{
+//            Log::info('push_success',
+//                compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
+//            );
+//        }
         return $response;
     }
 
@@ -110,7 +111,7 @@ class JpushService
                     'type'=>2,
                     'registrationId'=>$device->device_registration_id
                 );
-                if($device->device_type=1)
+                if($device->device_type==1)
                 {
                     $data['content'] = trans('notifynder.user.private_message' , [] , $device->device_language);
                 }else{

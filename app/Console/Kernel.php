@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         //
 //        \App\Console\Commands\CalculatingRete::class,
         \App\Console\Commands\GenerateUserRank::class,
+        \App\Console\Commands\GeneratePostIdRank::class,
     ];
 
     /**
@@ -32,6 +33,8 @@ class Kernel extends ConsoleKernel
 //            ->everyFifteenMinutes();
         $schedule->command('generate:user_rank')
             ->daily();
+        $schedule->command('generate:post_id_rank')
+            ->everyFiveMinutes();
     }
 
     /**

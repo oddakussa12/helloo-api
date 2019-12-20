@@ -130,9 +130,8 @@ $api->group($V1Params , function ($api){
     $api->post('message/push' , 'PrivateMessageController@push')->name('message.push');
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
-    $api->get('test' , 'TestController@index')->name('test.index');
-
-
+    $api->get('test' , 'TestController@testData')->name('test.index');
+    $api->get('clear/cache' , 'TestController@clearCache')->name('clear.cache');
 });
 
 
