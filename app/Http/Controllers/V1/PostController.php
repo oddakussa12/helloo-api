@@ -259,6 +259,18 @@ class PostController extends BaseController
         return PostPaginateCollection::collection($this->post->paginateByUser($request , auth()->user()->user_id));
     }
 
+    public function fine()
+    {
+        return PostPaginateCollection::collection($this->post->getCustomFinePost());
+    }
+
+
+    public function block($uuid)
+    {
+        $this->post->blockPost($uuid);
+        return $this->response->created();
+    }
+
 
     public function test()
     {

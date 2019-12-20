@@ -33,6 +33,7 @@ $api->group($V1Params , function ($api){
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
+        $api->get('post/fine' , 'PostController@fine')->name('post.fine');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
 
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
@@ -84,6 +85,7 @@ $api->group($V1Params , function ($api){
         $api->put('post/{uuid}/favorite' , 'PostController@favorite')->name('post.favorite');
         $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite')->name('post.unFavorite');
         $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
+        $api->post('/post/{uuid}/block', 'PostController@block')->name('post.block');
 //                $api->put('post/{uuid}/dislike' , 'PostController@dislike');
         $api->put('post/{uuid}/revokeVote' , 'PostController@revokeVote')->name('post.revokeVote');
         $api->put('postComment/{comment_id}/like' , 'PostCommentController@like')->name('comment.like');
@@ -130,7 +132,7 @@ $api->group($V1Params , function ($api){
     $api->post('message/push' , 'PrivateMessageController@push')->name('message.push');
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
-    $api->get('test' , 'TestController@testData')->name('test.index');
+    $api->get('test' , 'TestController@index')->name('test.index');
     $api->get('clear/cache' , 'TestController@clearCache')->name('clear.cache');
 });
 

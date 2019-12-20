@@ -341,4 +341,54 @@ DOC;
 
         return $query->whereIn("user_id", $ids)->get();
     }
+
+
+
+    public function hiddenPosts($id=0)
+    {
+        if ($id === 0) {
+            $id = \Auth::id();
+        }
+        if ($value = Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
+            return json_decode($value);
+        }
+        $value = $this->initHiddenPosts($id);
+        return $value;
+    }
+
+    public function initHiddenPosts($id=0)
+    {
+        if ($id === 0) {
+            $id = \Auth::id();
+        }
+        $data = collect();
+        Redis::hmset('user.'.$id.'.data', array('hiddenPosts'=>$data));
+        return $data->all();
+    }
+
+    protected function cacheUserData($id)
+    {
+        $user = $this->model->where($this->model->getKeyName(), $id)->firstOrFail();
+        $userData = [
+            'hiddenPosts' => $this->hiddenPosts($user->user_id),
+        ];
+        Redis::hmset('user.'.$id.'.data', $userData);
+        return $userData;
+    }
+
+    public function updateHiddenPosts($id, $post_uuid)
+    {
+        $hiddenPosts = $this->hiddenPosts($id);
+
+        if(!in_array($post_uuid , $hiddenPosts))
+        {
+            array_push($hiddenPosts, $post_uuid);
+        }
+        // we need to make sure the cached data exists
+        if (!Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
+            $this->cacheUserData($id);
+        }
+        Redis::hset('user.'.$id.'.data', 'hiddenPosts', json_encode($hiddenPosts));
+        return $hiddenPosts;
+    }
 }
