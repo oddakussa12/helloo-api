@@ -509,6 +509,19 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
         ]);
+        $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
+        
+        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+
+        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+
+        $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
+
+        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $activeUsers) {
+            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
+        });
         return $posts->appends($appends);
     }
 
