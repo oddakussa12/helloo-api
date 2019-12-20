@@ -22,6 +22,8 @@ class UserCollection extends Resource
      */
     public function toArray($request)
     {
+        $include = $request->input('include');
+        $include = explode(',' ,$include);
         return [
             'user_id'=>$this->user_id,
             'user_name'=>$this->user_name,
@@ -37,8 +39,9 @@ class UserCollection extends Resource
                                                 $request->routeIs('show.comment.by.post')||
                                                 $request->routeIs('show.post.by.user')||
                                                 $request->routeIs('notification.index')||
-                                                $request->routeIs('show.locate.comment')
-                                                                                        ) , function () use ($request){
+                                                $request->routeIs('show.locate.comment'))
+                                                ||in_array('follow' , $include), function () use ($request){
+
                 if($request->routeIs('user.rank')||$request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('post.myself')||$request->routeIs('show.post.by.user'))
                 {
                     return $this->user_follow_state;

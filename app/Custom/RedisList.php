@@ -28,8 +28,13 @@ class RedisList{
         return Redis::ZRANGEBYSCORE($key,$min,$max ,  $options);
     }
     // Redis 返回数据按分数倒叙排序 // ZREVRANGEBYSCORE
-    public function zRevRangeByScore($key,$min,$max,bool $withScores=true , array $options=[]){
-        return Redis::ZREVRANGEBYSCORE($key,$min,$max ,  array('withScores'=>$withScores, 'limit'=>$options));
+    public function zRevRangeByScore($key,$max,$min,bool $withScores=true , array $limit=[]){
+        $options = array('withScores'=>$withScores);
+        if(!empty($limit))
+        {
+            $options['limit'] = $limit;
+        }
+        return Redis::ZREVRANGEBYSCORE($key,$max,$min ,  $options);
     }
 
     // 删除某个成员的值
