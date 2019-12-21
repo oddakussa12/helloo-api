@@ -510,7 +510,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             'pageName' => $pageName,
         ]);
         $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
-        
+
         $topCountries = $this->topCountries($postIds);//评论国家sql拼接
 
         $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
@@ -527,15 +527,28 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function customFinePost()
     {
+        $whereIn = false;
         $redis = new RedisList();
         $postKey = 'post_index_fine';
         $redis->delKey($postKey);
         $i = 0;
-        $this->model->orderBy('post_comment_num' , 'DESC')->chunk(8 , function($posts) use ($redis , $postKey , &$i){
-                $i++;
-                if($i>10)
+        $posts = $this->model;
+        $finePostFile = 'tmp/finePost.json';
+        if(\Storage::exists($finePostFile))
+        {
+            $whereIn = true;
+            $finePost = \Storage::get($finePostFile);
+            $finePost = \json_decode($finePost);
+            $posts = $posts->whereIn('post_uuid' , $finePost);
+        }
+        $posts->orderBy('post_comment_num' , 'DESC')->chunk(8 , function($posts) use ($redis , $postKey , &$i , $whereIn){
+                if(!$whereIn)
                 {
-                    return false;
+                    $i++;
+                    if($i>10)
+                    {
+                        return false;
+                    }
                 }
                 foreach ($posts as $post)
                 {
