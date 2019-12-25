@@ -61,12 +61,11 @@ class TranslateService
         return $translate['text'];
     }
 
-    public function onlyTranslate($str , $option=array())
+    public function onlyTranslate(array $str , $option=array())
     {
         $options = array('target'=>config('translatable.translate_default_lang') , 'format'=>config('translatable.translate_default_format'));
         $options = $option+$options;
-        $translate = $this->translate->translate($str , $options);
-        return $translate['text'];
+        return $this->translate->translateBatch($str , $options);
     }
 
     public function customizeTrans($str , $contentLang)

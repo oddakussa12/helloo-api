@@ -185,6 +185,7 @@ return [
         App\Providers\QiniuStorageServiceProvider::class,
         Overtrue\LaravelFollow\FollowServiceProvider::class,
         App\Providers\LaravelLocalizationServiceProvider::class,
+        Latrell\RongCloud\RongCloudServiceProvider::class,
 
     ],
 
@@ -237,6 +238,7 @@ return [
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
         'GeoIP' => Torann\GeoIP\GeoIPFacade::class,
         'Notifynder' => Fenos\Notifynder\Facades\Notifynder::class,
+        'RongCloud' => Latrell\RongCloud\Facades\RongCloud::class,
 
     ],
 

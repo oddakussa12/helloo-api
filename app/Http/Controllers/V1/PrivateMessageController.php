@@ -4,7 +4,6 @@ namespace App\Http\Controllers\V1;
 
 use App\Jobs\Jpush;
 use Illuminate\Http\Request;
-use App\Services\JpushService;
 use App\Services\TranslateService;
 
 class PrivateMessageController extends BaseController
@@ -20,11 +19,11 @@ class PrivateMessageController extends BaseController
     //
     public function translate(Request $request)
     {
-        $content = $request->input('content' , '');
+        $content = $request->input('content' , array());
         $target = $request->input('target' , 'en');
         if(empty($content))
         {
-            return $this->response->array(array('translate'=>$content , 'target'=>$target , 'origin'=>$target));
+            return $this->response->array(array('translate'=>$content , 'target'=>$target));
         }
         $languagesFile = 'google/languages.json';
         if(\Storage::exists($languagesFile))
@@ -33,12 +32,13 @@ class PrivateMessageController extends BaseController
             $languages = \json_decode($languages , true);
             if(!in_array($target , $languages))
             {
-                return $this->response->array(array('translate'=>$content , 'target'=>$target , 'origin'=>$target));
+                return $this->response->array(array('translate'=>$content , 'target'=>$target));
             }
         }
-        $originLang = $this->translate->detectLanguage($content);
+        $content = !is_array($content)?[$content]:$content;
+//        $originLang = $this->translate->detectLanguageBatch($content);
         $translate = $this->translate->onlyTranslate($content , array('target'=>$target));
-        return $this->response->array(array('translate'=>$translate , 'target'=>$target , 'origin'=>$originLang));
+        return $this->response->array(array('translate'=>$translate , 'target'=>$target));
     }
 
     public function push(Request $request)
@@ -56,5 +56,19 @@ class PrivateMessageController extends BaseController
         }
         return $this->response->noContent();
     }
+    public function token()
+    {
+        if(auth()->check())
+        {
+            $userId = auth()->id();
+            $user = auth()->user();
+            $name = $user->user_name;
+            $avatar = $user->user_avatar;
+            $token = \RongCloud::getToken($userId, $name, $avatar);
+            return $this->response->array($token);
+        }
+        return $this->response->noContent();
+    }
+
     
 }
