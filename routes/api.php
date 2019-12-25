@@ -130,6 +130,7 @@ $api->group($V1Params , function ($api){
     });
     $api->post('message/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
     $api->post('message/push' , 'PrivateMessageController@push')->name('message.push');
+    $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
     $api->get('test' , 'TestController@index')->name('test.index');
