@@ -237,7 +237,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $appends = array();
         $user = app(UserRepository::class)->findOrFail($userId);
-        $posts = $user->posts()->with('translations')->with('owner');
+        $posts = $user->posts()->with('translations')->with('owner')->with('dislikers');
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
             $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $orderBy = $request->get('order_by' , 'post_like_num');
