@@ -33,7 +33,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $include = $request->input('include' , '');
         $include = explode(',' ,$include);
         $posts = $this->allWithBuilder();
-        $posts = $posts->with('owner');
+        $posts = $posts->with('owner')->with('likers')->with('dislikers');
         $posts = $posts->with('viewCount');
         $posts = $posts->where('post_topping' , 1);
         $posts = $posts->orderBy('post_topped_at', 'DESC')
@@ -102,7 +102,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }else{
             $posts = $this->allWithBuilder();
         }
-        $posts = $posts->withTrashed()->with('owner');
+        $posts = $posts->with('likers')->with('dislikers')->withTrashed()->with('owner');
         if ($request->get('home')!== null){
             $appends['home'] = $request->get('home');
             $type = $request->get('type' , 'default');
@@ -501,7 +501,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $appends['order'] = $order;
         $orderBy = 'post_comment_num';
         $appends['order_by'] = $orderBy;
-        $posts = $posts->with('viewCount');
+        $posts = $posts->with('viewCount')->with('likers')->with('dislikers');
         $posts = $posts->with('owner');
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->whereIn('post_id' , $postIds)->orderBy($orderBy , $order)->get();

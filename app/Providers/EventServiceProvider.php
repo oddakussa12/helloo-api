@@ -33,6 +33,10 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\DisLiked' => [
             'App\Listeners\DisLikeListener',
         ],
+        
+        'App\Events\RemoveVote' => [
+            'App\Listeners\RemoveVoteListener',
+        ],
 
         'App\Events\PostCommentCreated' => [
             'App\Listeners\PostCommentCreatedListener',

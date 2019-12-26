@@ -17,16 +17,14 @@ return [
     /*
      * Table name for likes records.
      */
-    'likes_table' => 'common_likes',
-
-    'likes_likable_state' => 'likable_state',
+    'dislikes_table' => 'post_dislikes',
 
 
-    'likes_country_field' => 'likable_country',
+    'dislikes_country_field' => 'dislikable_country',
 
 
     /*
      * Model name for like record.
      */
-    'like_model' => 'App\Models\Like',
+    'dislike_model' => 'App\Models\Dislike',
 ];

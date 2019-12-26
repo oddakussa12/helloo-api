@@ -11,27 +11,26 @@
 namespace App\Events;
 
 
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Broadcasting\InteractsWithSockets;
-
-class Liked
+class RemoveVote
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
 
     private $user;
 
     private $object;
+
+    private $relation;
     /**
      * @var int
      */
-    private $type;
+    private $type=1;
 
 
-    public function __construct($user , $object , $type=1)
+
+    public function __construct($user , $object , $relation , $type=1)
     {
         $this->user = $user;
         $this->object = $object;
+        $this->relation = $relation;
         $this->type = $type;
     }
 
@@ -45,9 +44,15 @@ class Liked
         return $this->object;
     }
 
+    public function getRelation()
+    {
+        return $this->relation;
+    }
+
     public function getType()
     {
         return $this->type;
     }
+
 
 }

@@ -3,13 +3,13 @@
 namespace App\Listeners;
 
 use App\Models\Post;
-use App\Models\PostComment;
 use App\Events\DisLiked;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Models\PostComment;
+use App\Traits\CachablePost;
 
 class DisLikeListener
 {
+    use CachablePost;
     /**
      * 失败重试次数
      * @var int
@@ -38,18 +38,29 @@ class DisLikeListener
         $object->refresh();
         if($object instanceof Post)
         {
-            $object->decrement('post_like_num' , $event->getType());
+            $keyName = $object->getKeyName();
+            $keyValue = $object->{$object->getKeyName()};
+            $object->increment('post_like_num' , $event->getType());
+            notify('user.post_dislike' ,
+                array(
+                    'from'=>auth()->id() ,
+                    'to'=>$object->user_id ,
+                    'extra'=>array(
+                        "{$keyName}"=>$keyValue,
+                    ) ,
+                    'setField'=>array('contact_id' , $keyValue),
+                    'url'=>'/notification/post/'.$keyValue,
+                )
+            );
+            $this->updateLikeCount($keyValue , 'dislike');
+            $this->updateCountry($keyValue , auth()->user()->user_country_id);
         }else if($object instanceof PostComment)
         {
             $object->decrement('comment_like_num' , $event->getType());
             notify_remove([3] , $object);
         }
-        $relation = $event->getRelation();
-        if($relation->created_at>config('common.score_date'))
-        {
-            $user = auth()->user();
-            $user->decrement('user_score' , 1);
-        }
+        $user = auth()->user();
+        $user->decrement('user_score' , 1);
 
     }
 
