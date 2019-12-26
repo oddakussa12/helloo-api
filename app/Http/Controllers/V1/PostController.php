@@ -69,14 +69,21 @@ class PostController extends BaseController
     {
         $user = User::find(auth()->id());
         $post = $this->post->findOrFailByUuid($uuid);
-        $user->unlike($post);
+        $user->dislike($post);
         return $this->response->noContent();
     }
 
-    public function revokeVote($uuid)
+    public function revokeLike($uuid)
     {
         $post = $this->post->findOrFailByUuid($uuid);
         auth()->user()->revoke($post);
+        return $this->response->noContent();
+    }
+
+    public function revokeDislike($uuid)
+    {
+        $post = $this->post->findOrFailByUuid($uuid);
+        auth()->user()->revokeDislike($post);
         return $this->response->noContent();
     }
 

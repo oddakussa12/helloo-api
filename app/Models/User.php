@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\CanFavorite;
 use App\Traits\like\CanLike;
 use App\Traits\follow\CanFollow;
+use App\Traits\dislike\CanDislike;
 use App\Traits\follow\CanBeFollowed;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
@@ -14,7 +15,7 @@ use Fenos\Notifynder\Traits\NotifableLaravel53 as NotifableTrait;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use Notifiable,CanLike,NotifableTrait,CanFollow,CanBeFollowed,CanFavorite,CanResetPassword;
+    use Notifiable,CanLike,CanDislike,NotifableTrait,CanFollow,CanBeFollowed,CanFavorite,CanResetPassword;
 
     protected $primaryKey = 'user_id';
 

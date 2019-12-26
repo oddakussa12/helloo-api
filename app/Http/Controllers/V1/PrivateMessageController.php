@@ -56,6 +56,10 @@ class PrivateMessageController extends BaseController
         }
         return $this->response->noContent();
     }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     public function token()
     {
         if(auth()->check())
@@ -70,5 +74,18 @@ class PrivateMessageController extends BaseController
         return $this->response->noContent();
     }
 
+<<<<<<< Updated upstream
+=======
+    public function userCheckOnline($userId)
+    {
+        try{
+            $ret = \RongCloud::userCheckOnline($userId);
+        }catch (\Exception $e)
+        {
+            $ret = array('code'=>500 , 'message'=>$e->getMessage());
+        }
+        return $this->response->array($ret);
+    }
+>>>>>>> Stashed changes
     
 }

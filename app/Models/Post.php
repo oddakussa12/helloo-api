@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use App\Traits\tag\HasTags;
 use App\Traits\like\CanBeLiked;
+use App\Traits\dislike\CanBeDisliked;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\favorite\CanBeFavorited;
@@ -12,7 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
 {
-    use Translatable,CanBeLiked,CanBeFavorited,SoftDeletes,HasTags;
+    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags;
+
+    public $currentLocale = 'en';
 
     protected $table = "posts";
 
@@ -119,9 +122,20 @@ class Post extends Model
 
     public function getPostLikeStateAttribute()
     {
-        if(auth()->check()&&$this->isLikedBy(auth()->user()))
+        if(auth()->check())
         {
-            return $this->isLikedBy(auth()->user())->likable_state;
+            $likeBy = $this->isLikedBy(auth()->user());
+            return empty($likeBy)?false:true;
+        }
+        return false;
+    }
+
+    public function getPostDislikeStateAttribute()
+    {
+        if(auth()->check())
+        {
+            $likeBy = $this->isDislikedBy(auth()->user());
+            return empty($likeBy)?false:true;
         }
         return false;
     }
@@ -158,16 +172,20 @@ class Post extends Model
     {
         if(empty($this->post_content))
         {
+            $this->currentLocale = config('translatable.translate_default_lang');
             $post_content = optional($this->translate(config('translatable.translate_default_lang')))->post_content;
             if(empty($post_content))
             {
+                $this->currentLocale = $this->post_content_default_locale;
                 $post_content = optional($this->translate($this->post_content_default_locale))->post_content;
                 if(empty($post_content))
                 {
+                    $this->currentLocale = 'en';
                     $post_content = optional($this->translate('en'))->post_content;
                 }
             }
         }else{
+            $this->currentLocale = locale();
             $post_content = $this->post_content;
         }
         return htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
@@ -189,7 +207,7 @@ class Post extends Model
         $title = $this->post_decode_title;
         if(empty($title))
         {
-            return str_limit(strip_tags($this->post_decode_content) , 90 , '...');
+            return str_limit_by_lang(strip_tags($this->post_decode_content) , $this->currentLocale , 120);
         }
         return $title;
     }

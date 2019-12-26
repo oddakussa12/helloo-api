@@ -3,12 +3,12 @@
 
 namespace App\Resources;
 
-use Illuminate\Support\Facades\DB;
+use App\Traits\CachablePost;
 use Illuminate\Http\Resources\Json\Resource;
-use App\Repositories\Contracts\PostCommentRepository;
 
 class PostPaginateCollection extends Resource
 {
+    use CachablePost;
     /**
      *
      */
@@ -41,7 +41,9 @@ class PostPaginateCollection extends Resource
             'post_owner' =>$this->when(!$request->has('keywords') , function (){
                 return $this->post_owner;
             }),
-
+            'postLike' =>$this->likeCount($this->post_id),
+            'post_like_state'=>$this->post_like_state,
+            'post_dislike_state'=>$this->post_dislike_state,
         ];
     }
 

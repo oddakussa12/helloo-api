@@ -86,8 +86,9 @@ $api->group($V1Params , function ($api){
         $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite')->name('post.unFavorite');
         $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
         $api->post('/post/{uuid}/block', 'PostController@block')->name('post.block');
-//                $api->put('post/{uuid}/dislike' , 'PostController@dislike');
-        $api->put('post/{uuid}/revokeVote' , 'PostController@revokeVote')->name('post.revokeVote');
+        $api->put('post/{uuid}/dislike' , 'PostController@dislike')->name('post.dislike');
+        $api->put('post/{uuid}/revokeLike' , 'PostController@revokeLike')->name('post.revokeLike');
+        $api->put('post/{uuid}/revokeDislike' , 'PostController@revokeDislike')->name('post.revokeDislike');
         $api->put('postComment/{comment_id}/like' , 'PostCommentController@like')->name('comment.like');
 //                $api->put('postComment/{comment_id}/dislike' , 'PostCommentController@dislike');
         $api->put('postComment/{comment_id}/revokeVote' , 'PostCommentController@revokeVote')->name('comment.revokeVote');
@@ -135,6 +136,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('test' , 'TestController@index')->name('test.index');
     $api->get('clear/cache' , 'TestController@clearCache')->name('clear.cache');
+    $api->get('test/rong' , 'TestController@testRong')->name('test.rong');
+    $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
 });
 
 

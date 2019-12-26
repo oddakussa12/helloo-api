@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Custom\RedisList;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -46,5 +47,16 @@ class TestController extends BaseController
         Cache::forget('fine_post');
         app(PostRepository::class)->getFinePostIds();
         return $this->response->noContent();
+    }
+
+    public function testRong()
+    {
+        $postData = [
+            'country' => collect(array()),
+        ];
+        var_dump(Redis::hmget('post.data.test1' , '1'));
+
+        Redis::hmset('post.data.test', $postData);
+        var_dump(Redis::hmget('post.data.test' , array('country' , 'c')));
     }
 }

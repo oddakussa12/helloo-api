@@ -10,12 +10,11 @@
 
 namespace App\Traits\like;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Event;
 use App\Events\Liked;
 use App\Events\DisLiked;
-use Overtrue\LaravelLike\Events\Unliked;
-
+use App\Events\RemoveVote;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Database\Eloquent\Model;
 /**
  * Trait CanBeLiked.
  */
@@ -24,21 +23,22 @@ trait CanLike
     /**
      * @param \Illuminate\Database\Eloquent\Model $object
      */
-    public function like(Model $object , $tyep=1)
+    public function like(Model $object , $type=1)
     {
         $relation = $this->hasLiked($object);
         if (!$relation) {
             $like = app(config('like.like_model'));
             $like->{config('like.user_foreign_key')} = $this->getKey();
             $like->{config('like.likes_likable_state')}=1;
+            $like->{config('like.likes_country_field')}=auth()->user()->user_country_id;
             $object->likes()->save($like);
-            Event::dispatch(new Liked($this, $object , $tyep));
+            Event::dispatch(new Liked($this, $object , $type));
         }else{
             if($relation->{config('like.likes_likable_state')}===-1)
             {
                 $relation->{config('like.likes_likable_state')}=1;
                 $relation->save();
-                Event::dispatch(new Liked($this, $object , $tyep));
+                Event::dispatch(new Liked($this, $object , $type));
             }
         }
     }
@@ -81,7 +81,7 @@ trait CanLike
             $relation->delete();
             if($relation->{config('like.likes_likable_state')}===1)
             {
-                Event::dispatch(new DisLiked($this, $object , $relation));
+                Event::dispatch(new RemoveVote($this, $object , $relation));
             }else if($relation->{config('like.likes_likable_state')}===-1)
             {
                 Event::dispatch(new Liked($this, $object , $relation));

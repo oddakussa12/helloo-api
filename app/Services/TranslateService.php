@@ -40,6 +40,11 @@ class TranslateService
         return $strLanguage['languageCode'];
     }
 
+    public function detectLanguageBatch(array $str)
+    {
+        return $this->translate->detectLanguageBatch($str);
+    }
+
     public function translate($str , $option=array())
     {
         $options = array('target'=>config('translatable.translate_default_lang') , 'format'=>config('translatable.translate_default_format'));

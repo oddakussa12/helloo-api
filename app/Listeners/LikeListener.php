@@ -6,9 +6,11 @@ use App\Jobs\Jpush;
 use App\Models\Post;
 use App\Events\Liked;
 use App\Models\PostComment;
+use App\Traits\CachablePost;
 
 class LikeListener
 {
+    use CachablePost;
     /**
      * 失败重试次数
      * @var int
@@ -35,47 +37,48 @@ class LikeListener
         //获取事件中保存的信息
         $object = $event->getObject();
         $object->refresh();
-        Jpush::dispatch('like' , auth()->user()->user_name , $object->user_id)->onQueue('op_jpush');
         if($object instanceof Post)
         {
+            $keyName = $object->getKeyName();
+            $keyValue = $object->{$object->getKeyName()};
             $object->increment('post_like_num' , $event->getType());
+            notify('user.post_like' ,
+                array(
+                    'from'=>auth()->id() ,
+                    'to'=>$object->user_id ,
+                    'extra'=>array(
+                        "{$keyName}"=>$keyValue,
+                    ) ,
+                    'setField'=>array('contact_id' , $keyValue),
+                    'url'=>'/notification/post/'.$keyValue,
+                )
+            );
+            $this->updateLikeCount($keyValue , 'like');
+            $this->updateCountry($keyValue , auth()->user()->user_country_id);
         }else if($object instanceof PostComment)
         {
-            $object->increment('comment_like_num' , $event->getType());
+            Jpush::dispatch('like' , auth()->user()->user_name , $object->user_id)->onQueue('op_jpush');
+            $extra = array();
+            $keyName = $object->getKeyName();
+            $keyValue = $object->{$object->getKeyName()};
             $comment_like_temp_num = request()->input('comment_like_temp_num' , 0);
             if($comment_like_temp_num >0){
-                $object->increment('comment_like_temp_num' , $comment_like_temp_num);
+                $extra = array('comment_like_temp_num'=>\DB::raw('comment_like_temp_num+'.$comment_like_temp_num));
             }
+            $object->increment('comment_like_num' , $event->getType() , $extra);
             notify('user.like' ,
                 array(
                     'from'=>auth()->id() ,
-                    'to'=>$object->owner->user_id ,
+                    'to'=>$object->user_id ,
                     'extra'=>array(
-                        'comment_id'=>$object->{$object->getKeyName()},
+                        $keyName=>$object->{$object->getKeyName()},
                         'post_id'=>$object->post_id,
                     ) ,
-                    'setField'=>array('contact_id' , $object->{$object->getKeyName()}),
-                    'url'=>'/notification/post/'.$object->post_id.'/postComment/'.$object->{$object->getKeyName()},
+                    'setField'=>array('contact_id' , $keyValue),
+                    'url'=>'/notification/post/'.$object->post_id.'/postComment/'.$keyValue,
                 )
             );
-            if(auth()->user()->user_last_name!='test!@#qaz')
-            {
-                notify('admin.like_notice' ,
-                    array(
-                        'to'=>2 ,
-                        'extra'=>array(
-                            'comment_id'=>$object->{$object->getKeyName()},
-                            'post_id'=>$object->post_id,
-                            'from_id'=>auth()->id() ,
-                            'from_name'=>auth()->user()->user_name ,
-                            'to_id'=>$object->owner->user_id ,
-                            'to_name'=>$object->owner->user_name ,
-                        ) ,
-                        'url'=>'/notification/post/'.$object->post_id.'/postComment/'.$object->{$object->getKeyName()},
-                    ),
-                    true
-                );
-            }
+            $this->updateCountry($keyValue , auth()->user()->user_country_id);
         }
         $user = auth()->user();
         $user->increment('user_score' , 1);
