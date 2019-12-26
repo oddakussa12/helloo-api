@@ -56,10 +56,6 @@ class PrivateMessageController extends BaseController
         }
         return $this->response->noContent();
     }
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
     public function token()
     {
         if(auth()->check())
@@ -74,8 +70,6 @@ class PrivateMessageController extends BaseController
         return $this->response->noContent();
     }
 
-<<<<<<< Updated upstream
-=======
     public function userCheckOnline($userId)
     {
         try{
@@ -86,6 +80,6 @@ class PrivateMessageController extends BaseController
         }
         return $this->response->array($ret);
     }
->>>>>>> Stashed changes
+
     
 }
