@@ -37,8 +37,12 @@ class PrivateMessageController extends BaseController
         }
         $content = !is_array($content)?[$content]:$content;
 //        $originLang = $this->translate->detectLanguageBatch($content);
-        $translate = $this->translate->onlyTranslate($content , array('target'=>$target));
-        return $this->response->array(array('translate'=>$translate , 'target'=>$target));
+        $translates = $this->translate->onlyTranslate($content , array('target'=>$target));
+        $translates = array_map(function ($v){
+            $v['text'] = htmlspecialchars_decode(htmlspecialchars_decode($v['text'] , ENT_QUOTES) , ENT_QUOTES);
+            return $v;
+        } , $translates);
+        return $this->response->array(array('translate'=>$translates , 'target'=>$target));
     }
 
     public function push(Request $request)
