@@ -28,7 +28,7 @@ class DisLikeListener
     /**
      * Handle the event.
      *
-     * @param  object  $event
+     * @param DisLiked $event
      * @return void
      */
     public function handle(DisLiked $event)
@@ -36,14 +36,16 @@ class DisLikeListener
         //获取事件中保存的信息
         $object = $event->getObject();
         $object->refresh();
+        $user = $event->getUser();
         if($object instanceof Post)
         {
             $keyName = $object->getKeyName();
+            $tmpDislikeNum = $event->getTmpDislikeNum();
             $keyValue = $object->{$object->getKeyName()};
             $object->increment('post_like_num' , $event->getType());
             notify('user.post_dislike' ,
                 array(
-                    'from'=>auth()->id() ,
+                    'from'=>$user->user_id ,
                     'to'=>$object->user_id ,
                     'extra'=>array(
                         "{$keyName}"=>$keyValue,
@@ -52,15 +54,14 @@ class DisLikeListener
                     'url'=>'/notification/post/'.$keyValue,
                 )
             );
-            $this->updateLikeCount($keyValue , 'dislike');
-            $this->updateCountry($keyValue , auth()->user()->user_country_id);
+            $this->updateLikeCount($keyValue , 'dislike' , $tmpDislikeNum);
+            $this->updateCountry($keyValue , $user->user_country_id);
         }else if($object instanceof PostComment)
         {
             $object->decrement('comment_like_num' , $event->getType());
             notify_remove([3] , $object);
         }
-        $user = auth()->user();
-        $user->decrement('user_score' , 1);
+        $user->decrement('user_score');
 
     }
 

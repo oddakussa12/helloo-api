@@ -16,9 +16,9 @@ class Kernel extends ConsoleKernel
         //
 //        \App\Console\Commands\CalculatingRete::class,
         \App\Console\Commands\GenerateUserRank::class,
-        \App\Console\Commands\GeneratePostIdRank::class,
+//        \App\Console\Commands\GeneratePostIdRank::class,
         \App\Console\Commands\GeneratePostCommentNumRank::class,
-        \App\Console\Commands\GenerateFinePostCache::class
+//        \App\Console\Commands\GenerateFinePostCache::class
     ];
 
     /**

@@ -29,7 +29,7 @@ class LikeListener
     /**
      * Handle the event.
      *
-     * @param  object  $event
+     * @param Liked $event
      * @return void
      */
     public function handle(Liked $event)
@@ -37,14 +37,16 @@ class LikeListener
         //获取事件中保存的信息
         $object = $event->getObject();
         $object->refresh();
+        $user = $event->getUser();
         if($object instanceof Post)
         {
             $keyName = $object->getKeyName();
+            $tmpLikeNum = $event->getTmpLikeNum();
             $keyValue = $object->{$object->getKeyName()};
             $object->increment('post_like_num' , $event->getType());
             notify('user.post_like' ,
                 array(
-                    'from'=>auth()->id() ,
+                    'from'=>$user->user_id ,
                     'to'=>$object->user_id ,
                     'extra'=>array(
                         "{$keyName}"=>$keyValue,
@@ -53,13 +55,13 @@ class LikeListener
                     'url'=>'/notification/post/'.$keyValue,
                 )
             );
-            $this->updateLikeCount($keyValue , 'like');
-            $this->updateCountry($keyValue , auth()->user()->user_country_id);
+            $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum);
+            $this->updateCountry($keyValue , $user->user_country_id);
         }else if($object instanceof PostComment)
         {
-            Jpush::dispatch('like' , auth()->user()->user_name , $object->user_id)->onQueue('op_jpush');
             $extra = array();
             $keyName = $object->getKeyName();
+            $post = $object->post;
             $keyValue = $object->{$object->getKeyName()};
             $comment_like_temp_num = request()->input('comment_like_temp_num' , 0);
             if($comment_like_temp_num >0){
@@ -68,19 +70,18 @@ class LikeListener
             $object->increment('comment_like_num' , $event->getType() , $extra);
             notify('user.like' ,
                 array(
-                    'from'=>auth()->id() ,
+                    'from'=>$user->user_id ,
                     'to'=>$object->user_id ,
                     'extra'=>array(
                         $keyName=>$object->{$object->getKeyName()},
-                        'post_id'=>$object->post_id,
+                        'post_id'=>$post->post_id,
                     ) ,
                     'setField'=>array('contact_id' , $keyValue),
-                    'url'=>'/notification/post/'.$object->post_id.'/postComment/'.$keyValue,
+                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
                 )
             );
-            $this->updateCountry($keyValue , auth()->user()->user_country_id);
+            Jpush::dispatch('like' , $user->user_name , $object->user_id)->onQueue('op_jpush');
         }
-        $user = auth()->user();
         $user->increment('user_score' , 1);
     }
 }

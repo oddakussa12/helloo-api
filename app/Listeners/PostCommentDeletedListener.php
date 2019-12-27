@@ -2,10 +2,12 @@
 
 namespace App\Listeners;
 
+use App\Traits\CachablePost;
 use App\Events\PostCommentDeleted;
 
 class PostCommentDeletedListener
 {
+    use CachablePost;
     /**
      * 失败重试次数
      * @var int
@@ -24,7 +26,7 @@ class PostCommentDeletedListener
     /**
      * Handle the event.
      *
-     * @param  object  $event
+     * @param PostCommentDeleted $event
      * @return void
      */
     public function handle(PostCommentDeleted $event)
@@ -41,16 +43,18 @@ class PostCommentDeletedListener
             $post->decrement('post_comment_num');
             notify_remove([5] , $post);
         }else{
-            if(empty($object->parent))
+            $parent = $object->parent;
+            if(empty($parent))
             {
                 abort(404 , 'Parent comment has been deleted');
             }
             $post->decrement('post_comment_num');
-            notify_remove([6] , $object->parent);
+            notify_remove([6] , $parent);
         }
+        $user = auth()->user();
+        $this->updateCountry($post->post_id , $user->user_country_id , false);
         if($object->comment_created_at>config('common.score_date'))
         {
-            $user = auth()->user();
             $user->decrement('user_score' , 3);
         }
     }

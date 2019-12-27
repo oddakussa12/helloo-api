@@ -32,7 +32,6 @@ class FollowListener
     public function handle(Follow $event)
     {
         $object = $event->getObject();
-        $object->refresh();
         Jpush::dispatch('follow' , auth()->user()->user_name , $object->user_id)->onQueue('op_jpush');
         notify('user.following' ,
             array(

@@ -30,7 +30,7 @@ trait CanLike
             $like = app(config('like.like_model'));
             $like->{config('like.user_foreign_key')} = $this->getKey();
             $like->{config('like.likes_likable_state')}=1;
-            $like->{config('like.likes_country_field')}=auth()->user()->user_country_id;
+            $like->{config('like.likes_country_field')}=$this->user_country_id;
             $object->likes()->save($like);
             Event::dispatch(new Liked($this, $object , $type));
         }else{

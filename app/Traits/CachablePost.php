@@ -37,6 +37,14 @@ trait CachablePost
         }else{
             $likeData = $this->initLikeCount($id);
         }
+        if(!isset($likeData['tmp_like']))
+        {
+            $likeData['tmp_like'] = 0;
+        }
+        if(!isset($likeData['tpm_dislike']))
+        {
+            $likeData['tmp_dislike'] = 0;
+        }
         return $likeData;
     }
 
@@ -44,13 +52,13 @@ trait CachablePost
     {
         $postKey = 'post.'.$id.'.data';
         $field = 'like';
-        $likeData = array('like'=>0,'dislike'=>0);
+        $likeData = array('like'=>0,'dislike'=>0,'tmp_like'=>0,'tmp_dislike'=>0);
         $likeData = collect($likeData);
         Redis::hset($postKey , $field , $likeData);
         return $likeData;
     }
 
-    public function updateLikeCount($id , $type='like')
+    public function updateLikeCount($id , $type='like' , $tmpNum=0)
     {
         $postKey = 'post.'.$id.'.data';
         $field = 'like';
@@ -64,6 +72,15 @@ trait CachablePost
         {
             $likeType = $type;
             $likeCount = $likeData[$likeType]+1;
+            if($tmpNum>0)
+            {
+                if(isset($likeData['tmp_'.$type]))
+                {
+                    $likeData['tmp_'.$type] = $likeData['tmp_'.$type]+$tmpNum;
+                }else{
+                    $likeData['tmp_'.$type] = $tmpNum;
+                }
+            }
         }else if($type=='revokeLike'){
             $likeType = 'like';
             $likeCount = $likeData[$likeType]-1;
@@ -76,27 +93,6 @@ trait CachablePost
         }
         $likeData[$likeType] = $likeCount<0?0:$likeCount;
         $likeData = collect($likeData);
-
-//        if($type=='removeVote')
-//        {
-//            if($state==0)
-//            {
-//                $tmpType = 'like';
-//            }else{
-//                $tmpType = 'dislike';
-//            }
-//            $likeData[$tmpType] = $likeData[$tmpType]-1;
-//            $likeData[$tmpType] = $likeData[$tmpType]<0?0:$likeData[$tmpType];
-//        }else{
-//            $likeData[$type] = $likeData[$type]+1;
-////            if($count>1)
-////            {
-////                $reverseType = $type=='like'?'dislike':$type;
-////                $likeData[$reverseType] = $likeData[$reverseType]-1;
-////                $likeData[$reverseType] = $likeData[$reverseType]<0?0:$likeData[$reverseType];
-////            }
-//            $likeData = collect($likeData);
-//        }
         Redis::hset($postKey , $field , $likeData);
     }
     public function updateCountry($id, $country , $add=true)
