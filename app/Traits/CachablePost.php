@@ -41,7 +41,7 @@ trait CachablePost
         {
             $likeData['tmp_like'] = 0;
         }
-        if(!isset($likeData['tpm_dislike']))
+        if(!isset($likeData['tmp_dislike']))
         {
             $likeData['tmp_dislike'] = 0;
         }
