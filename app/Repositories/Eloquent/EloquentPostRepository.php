@@ -465,7 +465,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->where('post_fine' , 1);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
-        $posts->orderBy('post_created_at' , 'DESC');
+        $rate_coefficient = config('common.rate_coefficient');
+        $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
+        $posts->orderBy('rate' , 'DESC');
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 //        $posts = $this->paginator($posts, $total, $perPage, $page, [
 //            'path' => Paginator::resolveCurrentPath(),
