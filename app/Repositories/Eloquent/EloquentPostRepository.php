@@ -112,11 +112,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $orderBy = $request->get('order_by' , 'rate');
             $appends['order_by'] = $orderBy;
             $follow = $request->get('follow');
+            $posts = $posts->where('post_topping' , 0);
             if($type=='default'&&$orderBy=='rate'&&$follow==null)
             {
                 $posts = $this->getFinePosts($posts);
             }else{
-                $posts = $posts->where('post_topping' , 0);
                 $posts = $posts->with('viewCount');
                 $posts = $this->removeHidePost($posts);
                 if($follow!== null&&auth()->check())
@@ -399,40 +399,78 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
     }
 
+//    public function getFinePosts($posts)
+//    {
+//        $appends =array();
+//        $request = request();
+//        $perPage = $this->perPage;
+//        $redis = new RedisList();
+//        $pageName = $this->pageName;
+//        $page = $request->input( $pageName, 1);
+//        $index = $request->input('index' , mt_rand(1 , 5));
+//        $appends['index'] = $index;
+//        $key = 'post_index_'.$index;
+//        $offset = ($page-1)*$perPage;
+//        if($redis->existsKey($key))
+//        {
+//            $total = $redis->zSize($key);
+//            $postIds = $redis->zRangByScore($key , '-inf' , '+inf' , true , array($offset , $perPage));
+//            $postIds = array_keys($postIds);
+//        }else{
+//            $total = 0;
+//            $postIds = array();
+//        }
+//        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+//        $appends['order'] = $order;
+//        $orderBy = $request->get('order_by' , 'rate');
+//        $appends['order_by'] = $orderBy;
+//        $posts = $posts->with('viewCount');
+//        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+//        $posts = $this->removeHidePost($posts);
+//        $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();
+//        $posts = $this->paginator($posts, $total, $perPage, $page, [
+//            'path' => Paginator::resolveCurrentPath(),
+//            'pageName' => $pageName,
+//        ]);
+//        return $posts->appends($appends);
+//    }
+
 
     public function getFinePosts($posts)
     {
         $appends =array();
         $request = request();
-        $perPage = $this->perPage;
-        $redis = new RedisList();
-        $pageName = $this->pageName;
-        $page = $request->input( $pageName, 1);
-        $index = $request->input('index' , mt_rand(1 , 5));
-        $appends['index'] = $index;
-        $key = 'post_index_'.$index;
-        $offset = ($page-1)*$perPage;
-        if($redis->existsKey($key))
-        {
-            $total = $redis->zSize($key);
-            $postIds = $redis->zRangByScore($key , '-inf' , '+inf' , true , array($offset , $perPage));
-            $postIds = array_keys($postIds);
-        }else{
-            $total = 0;
-            $postIds = array();
-        }
+//        $perPage = $this->perPage;
+//        $redis = new RedisList();
+//        $pageName = $this->pageName;
+//        $page = $request->input( $pageName, 1);
+//        $index = $request->input('index' , mt_rand(1 , 5));
+//        $appends['index'] = $index;
+//        $key = 'post_index_'.$index;
+//        $offset = ($page-1)*$perPage;
+//        if($redis->existsKey($key))
+//        {
+//            $total = $redis->zSize($key);
+//            $postIds = $redis->zRangByScore($key , '-inf' , '+inf' , true , array($offset , $perPage));
+//            $postIds = array_keys($postIds);
+//        }else{
+//            $total = 0;
+//            $postIds = array();
+//        }
         $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
         $appends['order'] = $order;
-        $orderBy = $request->get('order_by' , 'rate');
+        $orderBy = $request->get('order_by' , 'post_created_at');
         $appends['order_by'] = $orderBy;
         $posts = $posts->with('viewCount');
+        $posts = $posts->where('post_fine' , 1);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
-        $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();
-        $posts = $this->paginator($posts, $total, $perPage, $page, [
-            'path' => Paginator::resolveCurrentPath(),
-            'pageName' => $pageName,
-        ]);
+        $posts->orderBy('post_created_at' , 'DESC');
+        $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+//        $posts = $this->paginator($posts, $total, $perPage, $page, [
+//            'path' => Paginator::resolveCurrentPath(),
+//            'pageName' => $pageName,
+//        ]);
         return $posts->appends($appends);
     }
 

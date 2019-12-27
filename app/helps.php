@@ -59,14 +59,7 @@ if(!function_exists('notify')){
                 $notifynder->{$k}($v);
             }
         }
-
         $notifynder->send();
-//            ->from(54)
-//            ->to(2)
-//            ->extra(['message' => 'Hey John, I\'m Doe.']) // define additional data
-//            ->extra(['action' => 'invitation'], false) // extend additional data
-//            ->url('http://laravelacademy.org/notifications')
-//            ->send();
     }
 }
 
@@ -87,7 +80,6 @@ if(!function_exists('notify_remove')){
                     ->where('from_id' , auth()->id())
                     ->where('contact_id' , $contact_id)
                     ->whereIn('category_id' , $category_id);
-
             })->delete();
         }
     }

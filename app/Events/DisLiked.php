@@ -9,7 +9,6 @@
  */
 
 namespace App\Events;
-use Illuminate\Broadcasting\PrivateChannel;
 
 class DisLiked
 {
@@ -17,6 +16,7 @@ class DisLiked
     private $object;
     private $type;
     private $relation;
+    private $post_dislike_temp_num;
 
     public function __construct($user , $object , $relation , $type=1)
     {
@@ -24,6 +24,7 @@ class DisLiked
         $this->object = $object;
         $this->type = $type;
         $this->relation = $relation;
+        $this->post_dislike_temp_num = request()->input('post_dislike_temp_num' , 0);
     }
 
     public function getUser()
@@ -46,8 +47,9 @@ class DisLiked
         return $this->relation;
     }
 
-    public function broadcastOn()
+    public function getTmpDislikeNum()
     {
-        return new PrivateChannel('channel-name');
+        return $this->post_dislike_temp_num;
     }
+
 }
