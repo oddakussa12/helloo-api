@@ -385,7 +385,13 @@ if (! function_exists('str_limit_by_lang')) {
                 case 'de':
                 case 'fr':
                 case 'es':
-                    $str = wordLimit($value , 0 , $limit = 100);
+                    try {
+                        $str = wordLimit($value , 0 , $limit);
+                    }catch (\Exception $e)
+                    {
+                        $limit = $limit+4;
+                        $str = str_limit_by_lang($value , 0 , $limit);
+                    }
                     break;
                 case 'zh-CN':
                 case 'zh-TW':
@@ -393,10 +399,10 @@ if (! function_exists('str_limit_by_lang')) {
                 case 'ja':
                 case 'ko':
                 case 'ar':
-                    $str = str_limit($value , $limit = 100);
+                    $str = str_limit($value , $limit);
                     break;
                 default:
-                    $str = mb_str_limit($value  ,100);
+                    $str = mb_str_limit($value  ,$limit);
                     break;
             }
         }

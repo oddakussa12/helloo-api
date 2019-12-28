@@ -207,8 +207,7 @@ class Post extends Model
         $title = $this->post_decode_title;
         if(empty($title))
         {
-            return str_limit(strip_tags($this->post_decode_content) , 120 , '...');
-            //return str_limit_by_lang(strip_tags($this->post_decode_content) , $this->currentLocale , 120);
+            return str_limit_by_lang(strip_tags($this->post_decode_content) , $this->currentLocale , 120);
         }
         return $title;
     }
