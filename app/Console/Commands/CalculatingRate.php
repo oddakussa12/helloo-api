@@ -2,25 +2,25 @@
 
 namespace App\Console\Commands;
 
-
+use App\Models\Post;
 use Illuminate\Console\Command;
-use App\Repositories\Contracts\PostRepository;
+use Illuminate\Support\Facades\Log;
 
-class GeneratePostCommentNumRank extends Command
+class CalculatingRate extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'generate:post_comment_num_rank';
+    protected $signature = 'calculating:rate';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'generate post comment num rank';
+    protected $description = 'calculating post rate';
 
     /**
      * Create a new command instance.
@@ -39,6 +39,13 @@ class GeneratePostCommentNumRank extends Command
      */
     public function handle()
     {
-        app(PostRepository::class)->customFinePost();
+        Post::withTrashed()->chunk(10, function ($posts){
+            $i = 1;
+            foreach ($posts as $post) {
+                $post->calculatingRate();
+
+                $i++;
+            }
+        });
     }
 }

@@ -118,6 +118,7 @@ class PostController extends BaseController
     {
         $post_title = clean($request->input('post_title' , ''));
         $post_content = clean($request->input('post_content' , ''));
+        $post_event_country = $request->input('post_event_country');
         \Validator::make(array('post_content'=>$post_content), [
             'post_content' => ['bail','required','string','between:1,3000'],
         ])->validate();
@@ -149,6 +150,7 @@ class PostController extends BaseController
             'post_uuid'=>Uuid::uuid1(),
             'post_category_id'=>$post_category_id,
             'post_country_id'=>auth()->user()->user_country_id,
+            'post_event_country_id'=>$post_event_country,
             'post_default_locale'=>$post_title_default_locale,
             'post_content_default_locale'=>$post_content_default_locale,
             'post_type' =>$post_type,
