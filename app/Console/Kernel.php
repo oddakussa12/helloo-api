@@ -40,15 +40,11 @@ class Kernel extends ConsoleKernel
 //            ->everyFiveMinutes();
         $schedule->command('generate:post_comment_num_rank')
             ->daily();
-<<<<<<< Updated upstream
-        $schedule->command('generate:fine_post_cache')
-            ->everyTenMinutes();
-        $schedule->command('generate:auto_store_post')
-            ->everyMinute();
-=======
 //        $schedule->command('generate:fine_post_cache')
 //            ->everyTenMinutes();
->>>>>>> Stashed changes
+        $schedule->command('generate:auto_store_post')
+            ->everyMinute();
+
     }
 
     /**
