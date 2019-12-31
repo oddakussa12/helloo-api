@@ -18,7 +18,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GenerateUserRank::class,
 //        \App\Console\Commands\GeneratePostIdRank::class,
         \App\Console\Commands\GeneratePostCommentNumRank::class,
-//        \App\Console\Commands\GenerateFinePostCache::class
+//        \App\Console\Commands\GenerateFinePostCache::class,
+        \App\Console\Commands\GeneratePostAuto::class,
     ];
 
     /**
@@ -41,6 +42,8 @@ class Kernel extends ConsoleKernel
             ->daily();
         $schedule->command('generate:fine_post_cache')
             ->everyTenMinutes();
+        $schedule->command('generate:auto_store_post')
+            ->everyMinute();
     }
 
     /**

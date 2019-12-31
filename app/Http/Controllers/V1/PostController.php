@@ -286,4 +286,9 @@ class PostController extends BaseController
         $post->attachTags(array('news' , 'knowledge' , 'dd'));
     }
 
+    public function autoStorePost()
+    {
+        $post = $this->post->autoStorePost();
+        return $post;
+    }
 }

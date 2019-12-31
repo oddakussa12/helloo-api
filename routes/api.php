@@ -35,6 +35,7 @@ $api->group($V1Params , function ($api){
         $api->get('post/top' , 'PostController@top')->name('post.top');
         $api->get('post/fine' , 'PostController@fine')->name('post.fine');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
+        $api->post('post/autopost' , 'PostController@autoStorePost')->name('post.auto.store.post');
 
         $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
         $api->get('postComment/more/{commentTopId}' , 'PostCommentController@moreComment')->name('show.more.comment');
