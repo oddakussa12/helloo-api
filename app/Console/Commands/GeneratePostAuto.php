@@ -6,21 +6,21 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Repositories\Contracts\PostRepository;
 
-class GeneratePostCommentNumRank extends Command
+class GeneratePostAuto extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'generate:post_comment_num_rank';
+    protected $signature = 'generate:auto_store_post';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'generate post comment num rank';
+    protected $description = 'Generate auto store post';
 
     /**
      * Create a new command instance.
@@ -39,6 +39,6 @@ class GeneratePostCommentNumRank extends Command
      */
     public function handle()
     {
-        app(PostRepository::class)->customFinePost();
+        app(PostRepository::class)->autoStorePost();
     }
 }

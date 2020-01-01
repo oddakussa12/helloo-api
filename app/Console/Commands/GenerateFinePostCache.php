@@ -20,7 +20,7 @@ class GenerateFinePostCache extends Command
      *
      * @var string
      */
-    protected $description = 'Generate fine post cache';
+    protected $description = 'generate fine post cache';
 
     /**
      * Create a new command instance.

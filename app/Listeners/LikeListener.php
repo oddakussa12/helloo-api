@@ -36,7 +36,6 @@ class LikeListener
     {
         //获取事件中保存的信息
         $object = $event->getObject();
-        $object->refresh();
         $user = $event->getUser();
         if($object instanceof Post)
         {

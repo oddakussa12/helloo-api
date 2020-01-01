@@ -39,6 +39,7 @@ class Post extends Model
         'post_default_locale',
         'post_content_default_locale',
         'post_country_id',
+        'post_event_country_id',
         'post_type',
         'post_rate',
         'post_topped_at' ,
@@ -264,6 +265,43 @@ class Post extends Model
             return '1K+';
         }
         return $fire;
+    }
+
+    public function setPostEventCountryIdAttribute($value)
+    {
+        if(is_numeric($value))
+        {
+            $index = $value;
+        }else{
+            if($value=='world')
+            {
+                $index = 0;
+            }else{
+                $index = array_search(strtoupper($value) , config('countries'));
+                if($index===false)
+                {
+                    $index = -1;
+                }else{
+                    $index = $index+1;
+                }
+            }
+        }
+        $this->attributes['post_event_country_id'] = $index;
+    }
+
+    public function getPostEventCountryAttribute()
+    {
+        $country_code = config('countries');
+        $country = ($this->post_event_country_id-1);
+        if($country==-1)
+        {
+            return 'world';
+        }
+        if(array_key_exists($country , $country_code))
+        {
+            return strtolower($country_code[$country]);
+        }
+        return null;
     }
 
     public function calculatingRate()

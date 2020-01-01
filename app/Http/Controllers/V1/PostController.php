@@ -118,6 +118,7 @@ class PostController extends BaseController
     {
         $post_title = clean($request->input('post_title' , ''));
         $post_content = clean($request->input('post_content' , ''));
+        $post_event_country = $request->input('post_event_country');
         \Validator::make(array('post_content'=>$post_content), [
             'post_content' => ['bail','required','string','between:1,3000'],
         ])->validate();
@@ -154,7 +155,10 @@ class PostController extends BaseController
             'post_type' =>$post_type,
             'post_rate'=>first_rate_comment_v2()
         );
-
+        if(!empty($post_event_country))
+        {
+            $post_info['post_event_country_id'] = $post_event_country;
+        }
         if($post_category_id==2&&!empty($post_image))
         {
             $post_image = array_slice($post_image,0 , 9);
@@ -286,4 +290,9 @@ class PostController extends BaseController
         $post->attachTags(array('news' , 'knowledge' , 'dd'));
     }
 
+    public function autoStorePost()
+    {
+        $post = $this->post->autoStorePost();
+        return $post;
+    }
 }
