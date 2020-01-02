@@ -606,7 +606,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         if(\Storage::exists($postinfo)) {
             $postinfo = \json_decode(\Storage::get($postinfo));
             if (!empty($postinfo)) {
-                $todaytime = date('h',time());
+                $todaytime = date('H',time());
                 if(isset($postinfo->{$todaytime})){
                     $postinfo = $postinfo->{$todaytime};
                     if(!empty($postinfo->post_content)){
