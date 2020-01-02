@@ -605,87 +605,83 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $postinfo = 'autopost/postlist/'.date('Ymd',time()).'.json';
         if(\Storage::exists($postinfo)) {
             $postinfo = \json_decode(\Storage::get($postinfo));
-            if (empty($postinfo)) {
-                dd($postinfo);
-            }
-        }
-//        $todaytime = date('h',time());
-        $todaytime = date('i',time());
-        if(isset($postinfo->{$todaytime})){
-            $postinfo = $postinfo->{$todaytime};
-            if(empty($postinfo->post_content)){return '200';};
-        }else{
-            return ('200');
-        }
-        $userinfo = 'autopost/rankuser/'.$postinfo->post_country.'.json';
-        if(\Storage::exists($userinfo)) {
-            $userinfo = \json_decode(\Storage::get($userinfo));
-            if (empty($userinfo)) {
-                dd($userinfo);
-            }
-        }
-        $user_id = explode(',',$userinfo->user_id);
-        $key = array_rand($user_id,1);
-        $user_id =  $user_id[$key];
-        $user = User::find($user_id);
-        $post_title = clean($postinfo->post_title);
-        $post_content = clean($postinfo->post_content).date('h',time()).date('i',time());
-        \Validator::make(array('post_content'=>$post_content), [
-            'post_content' => ['bail','required','string','between:1,3000'],
-        ])->validate();
-        $tag_slug = '';
-        $post_image = explode(',',$postinfo->post_image);
-        $post_category_id = 1;
-        $post_type = 'text';
-        $post_image = \array_filter($post_image , function($v , $k){
-            return !empty($v);
-        } , ARRAY_FILTER_USE_BOTH );
-        ksort($post_image);
-        if(!empty($post_image))
-        {
-            $post_category_id = 2;
-            $post_type = 'image';
-        }
-        $postTitleLang = empty($post_title)?'en':app(TranslateService::class)->detectLanguage($post_title);
-        $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
-        if(empty($post_content))
-        {
-            $postContentLang = 'und';
-            $post_content_default_locale = 'en';
-        }else{
-            $postContentLang = app(TranslateService::class)->detectLanguage($post_content);
-            $post_content_default_locale = $postContentLang=='und'?'en':$postContentLang;
-        }
-        $post_info= array(
-            'user_id'=>$user_id,
-            'post_uuid'=>Uuid::uuid1(),
-            'post_category_id'=>$post_category_id,
-            'post_country_id'=>$user->user_country_id,
-            'post_default_locale'=>$post_title_default_locale,
-            'post_content_default_locale'=>$postinfo->post_content_default_locale?$postinfo->post_content_default_locale:$post_content_default_locale,
-            'post_type' =>$post_type,
-            'post_fine' => 1,
-            "post_event_country_id" => $postinfo->post_event_country_id,
-            'post_rate'=>first_rate_comment_v2()
-        );
-        if($post_category_id==2&&!empty($post_image))
-        {
-            $post_image = array_slice($post_image,0 , 9);
-            $post_media_json = \json_encode(array('image'=>array(
-                'image_from'=>'upload',
-                'image_cover'=>$post_image[0],
-                'image_url'=>$post_image,
-                'image_count'=>count($post_image)
-            )));
-            $post_info['post_media'] = $post_media_json;
-        }
-        $post = $this->store($post_info);
-        if(!empty($tag_slug))
-        {
-            $post->attachTags($tag_slug);
-        }
-        PostTranslation::dispatch($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content)->onQueue('test');
+            if (!empty($postinfo)) {
+                $todaytime = date('h',time());
+                if(isset($postinfo->{$todaytime})){
+                    $postinfo = $postinfo->{$todaytime};
+                    if(!empty($postinfo->post_content)){
+                        $userinfo = 'autopost/rankuser/'.$postinfo->post_country.'.json';
+                        if(\Storage::exists($userinfo)) {
+                            $userinfo = \json_decode(\Storage::get($userinfo));
+                            if (!empty($userinfo)) {
+                                $user_id = explode(',',$userinfo->user_id);
+                                $key = array_rand($user_id,1);
+                                $user_id =  $user_id[$key];
+                                $user = User::find($user_id);
+                                $post_title = clean($postinfo->post_title);
+                                $post_content = clean($postinfo->post_content);
+                                \Validator::make(array('post_content'=>$post_content), [
+                                    'post_content' => ['bail','required','string','between:1,3000'],
+                                ])->validate();
+                                $tag_slug = '';
+                                $post_image = explode(',',$postinfo->post_image);
+                                $post_category_id = 1;
+                                $post_type = 'text';
+                                $post_image = \array_filter($post_image , function($v , $k){
+                                    return !empty($v);
+                                } , ARRAY_FILTER_USE_BOTH );
+                                ksort($post_image);
+                                if(!empty($post_image))
+                                {
+                                    $post_category_id = 2;
+                                    $post_type = 'image';
+                                }
+                                $postTitleLang = empty($post_title)?'en':app(TranslateService::class)->detectLanguage($post_title);
+                                $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
+                                if(empty($post_content))
+                                {
+                                    $postContentLang = 'und';
+                                    $post_content_default_locale = 'en';
+                                }else{
+                                    $postContentLang = app(TranslateService::class)->detectLanguage($post_content);
+                                    $post_content_default_locale = $postContentLang=='und'?'en':$postContentLang;
+                                }
+                                $post_info= array(
+                                    'user_id'=>$user_id,
+                                    'post_uuid'=>Uuid::uuid1(),
+                                    'post_category_id'=>$post_category_id,
+                                    'post_country_id'=>$user->user_country_id,
+                                    'post_default_locale'=>$post_title_default_locale,
+                                    'post_content_default_locale'=>$postinfo->post_content_default_locale?$postinfo->post_content_default_locale:$post_content_default_locale,
+                                    'post_type' =>$post_type,
+                                    'post_fine' => 1,
+                                    "post_event_country_id" => $postinfo->post_event_country_id,
+                                    'post_rate'=>first_rate_comment_v2()
+                                );
+                                if($post_category_id==2&&!empty($post_image))
+                                {
+                                    $post_image = array_slice($post_image,0 , 9);
+                                    $post_media_json = \json_encode(array('image'=>array(
+                                        'image_from'=>'upload',
+                                        'image_cover'=>$post_image[0],
+                                        'image_url'=>$post_image,
+                                        'image_count'=>count($post_image)
+                                    )));
+                                    $post_info['post_media'] = $post_media_json;
+                                }
+                                $post = $this->store($post_info);
+                                if(!empty($tag_slug))
+                                {
+                                    $post->attachTags($tag_slug);
+                                }
+                                PostTranslation::dispatch($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content)->onQueue('test');
 
-        return $post;
+                                return $post;
+                            }
+                        }
+                    };
+                }
+            }
+        }
     }
 }
