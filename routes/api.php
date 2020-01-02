@@ -102,11 +102,11 @@ $api->group($V1Params , function ($api){
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe')->name('other.followMe');
-        $api->group(['middleware'=>['throttle:3,1' , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['throttle:'.config('common.post_throttle_num').',1' , 'blacklist']] , function ($api){
             $api->post('post' , 'PostController@store')->name('post.store');
         });
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
-        $api->group(['middleware'=>['throttle:3,1' , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['throttle:'.config('common.post_comment_throttle_num').',1' , 'blacklist']] , function ($api){
             $api->post('postComment' , 'PostCommentController@store')->name('comment.store');
         });
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
