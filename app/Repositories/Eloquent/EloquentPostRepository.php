@@ -674,7 +674,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                                 {
                                     $post->attachTags($tag_slug);
                                 }
-                                PostTranslation::dispatch($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content)->onQueue('test');
+                                PostTranslation::dispatch($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content);
 
                                 return $post;
                             }
