@@ -60,7 +60,8 @@ class PostCollection extends Resource
                 return collect(array(
                     'owner'=>new UserCollection($this->owner),
                 ));
-            })
+            }),
+            'post_event_country'=>$this->post_event_country
         ];
     }
 
