@@ -42,8 +42,10 @@ class Kernel extends ConsoleKernel
             ->daily();
 //        $schedule->command('generate:fine_post_cache')
 //            ->everyTenMinutes();
-//        $schedule->command('generate:auto_store_post')
-//            ->everyMinute();
+        $schedule->command('generate:auto_store_post')
+            ->hourly();
+        $schedule->command('generate:user_follow')
+            ->hourly();
 
     }
 
