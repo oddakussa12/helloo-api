@@ -391,4 +391,33 @@ DOC;
         Redis::hset('user.'.$id.'.data', 'hiddenPosts', json_encode($hiddenPosts));
         return $hiddenPosts;
     }
+
+    public function randFollow()
+    {
+        $topTwoHundredFollower = \DB::select("SELECT
+	`f_users`.`user_id`, count(`f_common_follows`.`user_id`) AS `num`
+FROM
+	`f_users`,
+	`f_common_follows`
+WHERE
+	`f_users`.`user_id` = `f_common_follows`.`followable_id`
+GROUP BY
+	`followable_id`
+ORDER BY
+	`num` DESC
+LIMIT 200");
+
+        $followers = $this->generateFollower();
+        $topTwoHundredFollower = collect($topTwoHundredFollower)->chunk(10);
+        collect($topTwoHundredFollower)->each(function($users , $key)use($followers){
+            $follower = collect($followers)->random();
+            $users = $users->pluck('user_id')->all();
+            $follower->follow($users);
+        });
+    }
+
+    public function generateFollower()
+    {
+        return $this->model->inRandomOrder()->where('user_last_name' , 'test!@#qaz')->take(10)->get();
+    }
 }
