@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GeneratePostCommentNumRank::class,
 //        \App\Console\Commands\GenerateFinePostCache::class,
         \App\Console\Commands\GeneratePostAuto::class,
+        \App\Console\Commands\GenerateUserFollow::class
     ];
 
     /**
