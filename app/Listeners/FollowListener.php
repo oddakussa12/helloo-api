@@ -8,7 +8,6 @@
  */
 namespace App\Listeners;
 
-use App\Jobs\Jpush;
 use App\Events\Follow;
 
 class FollowListener
@@ -26,24 +25,25 @@ class FollowListener
     /**
      * Handle the event.
      *
-     * @param FollowEvent $event
+     * @param Follow $event
      * @return void
      */
     public function handle(Follow $event)
     {
         $object = $event->getObject();
-        Jpush::dispatch('follow' , auth()->user()->user_name , $object->user_id)->onQueue('op_jpush');
+        $follower = $event->getFollower();
         notify('user.following' ,
             array(
-                'from'=>auth()->id() ,
+                'from'=>$follower->user_id ,
                 'to'=>$object->user_id ,
                 'extra'=>array(
-                    'follow_user_id'=>auth()->id(),
+                    'follow_user_id'=>$follower->user_id,
                     'befollow_user_id'=>$object->user_id,
                 ) ,
                 'setField'=>array('contact_id' , $object->{$object->getKeyName()}),
-                'url'=>'/notification/user/'.auth()->id().'/userFollow/'.$object->{$object->getKeyName()},
-            )
+                'url'=>'/notification/user/'.$follower->user_id.'/userFollow/'.$object->{$object->getKeyName()},
+            ),
+        true
         );
     }
 

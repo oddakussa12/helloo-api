@@ -34,47 +34,47 @@ class PostCommentCreatedListener
     {
         //获取事件中保存的信息
         $extra = array();
-        $object = $event->getObject();
-        $post = $object->post;
+        $postComment = $event->getPostComment();
+        $post = $event->getPost();
+        $user = $event->getUser();
         $rate = rate_comment_v2($post->post_comment_num , $post->post_created_at);
         if($rate!=$post->post_rate)
         {
             $extra = array('post_rate'=>$rate);
         }
         $post->increment('post_comment_num' , 1 , $extra);
-        if($object->comment_comment_p_id===0)
+        if($postComment->comment_comment_p_id===0)
         {
-            Jpush::dispatch('comment' , auth()->user()->user_name , $post->user_id)->onQueue('op_jpush');
             notify('user.post_comment' ,
                 array(
-                    'from'=>auth()->id() ,
+                    'from'=>$user->user_id ,
                     'to'=>$post->user_id ,
                     'extra'=>array(
-                        'comment_id'=>$object->{$object->getKeyName()},
+                        'comment_id'=>$postComment->{$postComment->getKeyName()},
                         'post_id'=>$post->post_id,
                     ) ,
                     'setField'=>array('contact_id' , $post->post_id),
-                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$object->{$object->getKeyName()},
-                )
+                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->{$postComment->getKeyName()},
+                ),
+            true
             );
         }else{
-            $parent = $object->parent;
-            Jpush::dispatch('comment' , auth()->user()->user_name , $object->parent->user_id)->onQueue('op_jpush');
+            $parent = $postComment->parent;
             notify('user.comment' ,
                 array(
-                    'from'=>auth()->id() ,
+                    'from'=>$user->user_id ,
                     'to'=>$parent->user_id ,
                     'extra'=>array(
-                        'comment_id'=>$object->{$object->getKeyName()},
+                        'comment_id'=>$postComment->{$postComment->getKeyName()},
                         'post_id'=>$post->post_id,
-                        'comment_comment_p_id'=>$object->comment_comment_p_id
+                        'comment_comment_p_id'=>$postComment->comment_comment_p_id
                     ) ,
                     'setField'=>array('contact_id' , $parent->{$parent->getKeyName()}),
-                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$object->{$object->getKeyName()},
-                )
+                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->{$postComment->getKeyName()},
+                ),
+            true
             );
         }
-        $user = auth()->user();
         $this->updateCountry($post->post_id , $user->user_country_id);
         $user->increment('user_score' , 3);
     }

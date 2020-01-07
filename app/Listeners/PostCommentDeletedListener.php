@@ -34,6 +34,7 @@ class PostCommentDeletedListener
         //获取事件中保存的信息
         $object = $event->getObject();
         $post = $object->post;
+        $user = $event->getUser();
         if(empty($post))
         {
             abort(404 , 'Post has been deleted');
@@ -41,7 +42,7 @@ class PostCommentDeletedListener
         if($object->comment_comment_p_id===0)
         {
             $post->decrement('post_comment_num');
-            notify_remove([5] , $post);
+            notify_remove([5] , $post , $user);
         }else{
             $parent = $object->parent;
             if(empty($parent))
@@ -49,9 +50,8 @@ class PostCommentDeletedListener
                 abort(404 , 'Parent comment has been deleted');
             }
             $post->decrement('post_comment_num');
-            notify_remove([6] , $parent);
+            notify_remove([6] , $parent , $user);
         }
-        $user = auth()->user();
         $this->updateCountry($post->post_id , $user->user_country_id , false);
         if($object->comment_created_at>config('common.score_date'))
         {

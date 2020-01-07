@@ -71,6 +71,7 @@ $api->group($V1Params , function ($api){
 
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
+        $api->resource('report', 'ReportController',['only' => ['store']]);
 
         //聊天信息写入删除
         $api->resource('pychat', 'PyChatController',['only' => ['store','destroy']]);
@@ -82,11 +83,12 @@ $api->group($V1Params , function ($api){
         $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken')->name('qn.token');
         $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo')->name('follow.two');
+        $api->post('user/{user}/block', 'UserController@block')->name('user.block');
 
         $api->put('post/{uuid}/favorite' , 'PostController@favorite')->name('post.favorite');
         $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite')->name('post.unFavorite');
         $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
-        $api->post('/post/{uuid}/block', 'PostController@block')->name('post.block');
+        $api->post('post/{uuid}/block', 'PostController@block')->name('post.block');
         $api->put('post/{uuid}/dislike' , 'PostController@dislike')->name('post.dislike');
         $api->put('post/{uuid}/revokeLike' , 'PostController@revokeLike')->name('post.revokeLike');
         $api->put('post/{uuid}/revokeDislike' , 'PostController@revokeDislike')->name('post.revokeDislike');

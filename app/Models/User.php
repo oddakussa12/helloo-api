@@ -159,9 +159,9 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(YesterdayScore::class , 'user_id' , 'user_id');
     }
 
-    public function likePost()
+    public function reports()
     {
-        return $this->belongsToMany(Post::class , 'posts_likes' , 'user_id' , 'post_id')->withPivot('post_like_state');
+        return $this->hasMany(Report::class, 'user_id', $this->getKeyName());
     }
 
     public function posts()

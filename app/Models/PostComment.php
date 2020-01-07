@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use App\Traits\like\CanBeLiked;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\like\CanBeLiked;
 use App\Traits\favorite\CanBeFavorited;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -23,10 +23,9 @@ class PostComment extends Model
 
     protected $primaryKey = 'comment_id';
 
-    public $translatedAttributes = ['comment_locale' , 'comment_content'];
+    public $translatedAttributes = ['comment_content'];
 
     protected $fillable = [
-        'comment_id' ,
         'post_id' ,
         'user_id' ,
         'comment_to_id' ,
@@ -49,19 +48,6 @@ class PostComment extends Model
 
     public $perPage = 5;
 
-    protected $with = [
-//        'children'
-    ];
-
-//    public function comment()
-//    {
-//        return $this->hasMany('App\Models\PostComment' , 'comment_comment_p_id');
-//    }
-//
-//    public function user()
-//    {
-//        return $this->belongsTo('App\Models\User' , 'user_id' , 'user_id');
-//    }
 
     public function owner()
     {

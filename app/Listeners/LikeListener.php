@@ -77,10 +77,11 @@ class LikeListener
                     ) ,
                     'setField'=>array('contact_id' , $keyValue),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
-                )
+                ),
+            true
             );
-            Jpush::dispatch('like' , $user->user_name , $object->user_id)->onQueue('op_jpush');
+
         }
-        $user->increment('user_score' , 1);
+        $user->increment('user_score');
     }
 }

@@ -26,14 +26,14 @@ class UnFollowListener
     /**
      * Handle the event.
      *
-     * @param UnFollowEvent $event
+     * @param UnFollow $event
      * @return void
      */
     public function handle(UnFollow $event)
     {
         $object = $event->getObject();
-        $object->refresh();
-        notify_remove(1 , $object);
+        $follower = $event->getFollower();
+        notify_remove(1 , $object , $follower);
     }
 
     /**

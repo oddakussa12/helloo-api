@@ -18,13 +18,14 @@ class Follow
 
 
 
+    private $follower;
     private $object;
 
 
-    public function __construct($object)
+    public function __construct($follower , $object)
     {
+        $this->follower = $follower;
         $this->object = $object;
-
     }
 
     public function getObject()
@@ -32,6 +33,10 @@ class Follow
         return $this->object;
     }
 
+    public function getFollower()
+    {
+        return $this->follower;
+    }
 
 
 }

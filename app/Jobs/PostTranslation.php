@@ -52,23 +52,6 @@ class PostTranslation implements ShouldQueue
         $this->postContentDefaultLang = $postContentDefaultLang;
 
         if (auth()->check()) {
-            if(auth()->user()->user_last_name!='test!@#qaz')
-            {
-                notify('admin.post_notice' ,
-                    array(
-                        'to'=>2 ,
-                        'extra'=>array(
-                            'post_id'=>$this->post->post_id,
-                            'from_id'=>auth()->id() ,
-                            'from_name'=>auth()->user()->user_name ,
-                            'to_id'=>$this->post->owner->user_id ,
-                            'to_name'=>$this->post->owner->user_name ,
-                        ) ,
-                        'url'=>'/notification/post/'.$this->post->post_id,
-                    ),
-                    true
-                );
-            }
             $user = auth()->user();
             $user->increment('user_score' , 2);
         }

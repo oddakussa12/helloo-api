@@ -112,16 +112,18 @@ class UserController extends BaseController
     public function follow($user_id)
     {
         $user = $this->user->findOrFail($user_id);
-        auth()->user()->follow($user);
-        event(new Follow($user));
+        $follower = auth()->user();
+        $follower->follow($user);
+        event(new Follow($follower , $user));
         return $this->response->noContent();
     }
 
     public function unfollow($user_id)
     {
         $user = $this->user->findOrFail($user_id);
-        auth()->user()->unfollow($user);
-        event(new UnFollow($user));
+        $follower = auth()->user();
+        $follower->unfollow($user);
+        event(new UnFollow($follower , $user));
         return $this->response->noContent();
     }
 
@@ -155,6 +157,12 @@ class UserController extends BaseController
     public function rank(Request $request)
     {
         return UserCollection::collection($this->user->getUserRank());
+    }
+
+    public function block($userId)
+    {
+        $this->user->blockUser($userId);
+        return $this->response->created();
     }
 
     public function getQiniuUploadToken(Request $request)
