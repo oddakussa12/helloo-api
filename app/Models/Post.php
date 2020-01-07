@@ -86,6 +86,12 @@ class Post extends Model
         return $this->user_id == $user->user_id;
     }
 
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
+
     public function getPostOwnerAttribute()
     {
         if(auth()->check())

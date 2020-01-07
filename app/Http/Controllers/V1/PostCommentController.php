@@ -96,10 +96,11 @@ class PostCommentController extends BaseController
             $contentLang = $this->translate->detectLanguage($commentContent);
             $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
         }
+        $user = auth()->user();
         $comment = array(
             'post_id'=>$post->post_id,
-            'user_id'=>auth()->id(),
-            'comment_country_id'=>auth()->user()->user_country_id,
+            'user_id'=>$user->user_id,
+            'comment_country_id'=>$user->user_country_id,
             'comment_comment_p_id'=>$commentPId,
             'comment_top_id'=>$comment_top_id,
             'comment_default_locale'=>$contentDefaultLang,
@@ -118,8 +119,11 @@ class PostCommentController extends BaseController
             $comment[$contentDefaultLang] = array('comment_content'=>$commentContent);
 
             $postComment = $this->postComment->store($comment);
-            event(new PostCommentCreated($postComment));
+
+            event(new PostCommentCreated($post , $postComment , $user));
+
             $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
+
             if(domain()!=domain(config('app.url')))
             {
                 $this->dispatch($job->onQueue('test'));
@@ -127,7 +131,7 @@ class PostCommentController extends BaseController
                 $this->dispatch($job);
             }
         }
-
+        $postComment->post_uuid = $postUuid;
         return new PostCommentCollection($postComment);
     }
 
@@ -238,13 +242,13 @@ class PostCommentController extends BaseController
      */
     public function destroy($id)
     {
-        //
         $postComment = $this->postComment->findOrFail($id);
-        if($postComment->user_id!=auth()->id())
+        $user = auth()->user();
+        if($postComment->user_id!=$user->user_id)
         {
             abort(401);
         }
-        event(new PostCommentDeleted($postComment));
+        event(new PostCommentDeleted($user , $postComment));
         $this->postComment->destroy($postComment);
         return $this->response->noContent();
     }

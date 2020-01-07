@@ -20,18 +20,24 @@ class PostCommentDeleted
 
 
 
+    private $user;
     private $object;
 
 
-    public function __construct($object)
+    public function __construct($user , $object)
     {
+        $this->user = $user;
         $this->object = $object;
-
     }
 
     public function getObject()
     {
         return $this->object;
+    }
+
+    public function getUser()
+    {
+        return $this->user;
     }
 
 

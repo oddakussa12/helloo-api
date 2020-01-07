@@ -123,6 +123,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }else{
                 $posts = $posts->with('viewCount');
                 $posts = $this->removeHidePost($posts);
+                $posts = $this->removeHideUser($posts);
                 if($follow!== null&&auth()->check())
                 {
                     $appends['follow'] = $request->get('follow');
@@ -506,6 +507,19 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }
 
         }
+    }
+
+    public function removeHideUser($post)
+    {
+        if(auth()->check())
+        {
+            $hideUsers = app(UserRepository::class)->hiddenUsers();
+            if(!empty($hideUsers))
+            {
+                $post = $post->whereNotIn('user_id' , $hideUsers);
+            }
+        }
+        return $post;
     }
 
     public function removeHidePost($post)

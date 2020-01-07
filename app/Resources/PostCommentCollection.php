@@ -25,8 +25,22 @@ class PostCommentCollection extends Resource
             'comment_image' => $this->comment_image,
             'comment_created_at' => optional($this->comment_created_at)->toDateTimeString(),
             'comment_format_created_at' => $this->comment_format_created_at,
-            'comment_like_state'=>$this->comment_like_state,
-            'owner'=>new UserCollection($this->owner),
+            'comment_like_state'=>$this->when(true , function () use ($request) {
+                if($request->routeIs('comment.store'))
+                {
+                    return false;
+                }else{
+                    return $this->comment_like_state;
+                }
+            }),
+            'owner'=>$this->when(true , function () use ($request){
+                if($request->routeIs('comment.store'))
+                {
+                    return new UserCollection(auth()->user());
+                }else{
+                    return new UserCollection($this->owner);
+                }
+            }),
             'children' => $this->when(($request->routeIs('show.comment.by.post')&&isset($this->topTwoComments))||($request->routeIs('show.locate.comment')&&isset($this->topTwoComments)) , function (){
                 return PostCommentCollection::collection($this->topTwoComments)->sortBy('comment_id')->values()->all();
             }),
@@ -43,7 +57,7 @@ class PostCommentCollection extends Resource
                 }
                 return '';
             }),
-            'post'=>$this->when($this->relationLoaded('post'), function (){
+            'post'=>$this->when($this->relationLoaded('post')&&!$request->routeIs('comment.store'), function (){
                 return new PostCollection($this->post);
             }),
             $this->mergeWhen($this->relationLoaded('parent'), function (){

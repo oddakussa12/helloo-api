@@ -67,8 +67,8 @@ class PostController extends BaseController
 
     public function dislike($uuid)
     {
-        $user = User::find(auth()->id());
         $post = $this->post->findOrFailByUuid($uuid);
+        $user = auth()->user();
         $user->dislike($post);
         return $this->response->noContent();
     }

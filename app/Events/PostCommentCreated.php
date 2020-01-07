@@ -20,18 +20,34 @@ class PostCommentCreated
 
 
 
-    private $object;
+    private $postComment;
+    private $post;
+    private $user;
 
 
-    public function __construct($object)
+    public function __construct($post , $postComment , $user)
     {
-        $this->object = $object;
+        $this->postComment = $postComment;
+
+        $this->post = $post;
+
+        $this->user = $user;
 
     }
 
-    public function getObject()
+    public function getPostComment()
     {
-        return $this->object;
+        return $this->postComment;
+    }
+
+    public function getPost()
+    {
+        return $this->post;
+    }
+
+    public function getUser()
+    {
+        return $this->user;
     }
 
 

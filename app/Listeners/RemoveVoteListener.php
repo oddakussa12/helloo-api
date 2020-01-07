@@ -38,19 +38,18 @@ class RemoveVoteListener
         //获取事件中保存的信息
         $object = $event->getObject();
         $relation = $event->getRelation();
-        $user = auth()->user();
-        $object->refresh();
+        $user = $event->getUser();
         if($object instanceof Post)
         {
             $keyValue = $object->{$object->getKeyName()};
             $object->decrement('post_like_num' , $event->getType());
             if($relation instanceof Like)
             {
-                notify_remove([9] , $object);
+                notify_remove([9] , $object , $user);
                 $this->updateLikeCount($keyValue , 'revokeLike');
             }elseif ($relation instanceof Dislike)
             {
-                notify_remove([10] , $object);
+                notify_remove([10] , $object , $user);
                 $this->updateLikeCount($keyValue , 'revokeDislike');
             }
             $this->updateCountry($keyValue , $user->user_country_id , false);
@@ -59,7 +58,7 @@ class RemoveVoteListener
             $object->decrement('comment_like_num' , $event->getType());
             if($relation instanceof Like)
             {
-                notify_remove([3] , $object);
+                notify_remove([3] , $object , $user);
             }
         }
         if($relation->created_at>config('common.score_date'))

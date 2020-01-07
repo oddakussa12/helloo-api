@@ -180,12 +180,13 @@ return [
         App\Providers\RouteServiceProvider::class,
         Jenssegers\Agent\AgentServiceProvider::class,
         Torann\GeoIP\GeoIPServiceProvider::class,
-        Fenos\Notifynder\NotifynderServiceProvider::class,
+//        Fenos\Notifynder\NotifynderServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         App\Providers\QiniuStorageServiceProvider::class,
         Overtrue\LaravelFollow\FollowServiceProvider::class,
         App\Providers\LaravelLocalizationServiceProvider::class,
         Latrell\RongCloud\RongCloudServiceProvider::class,
+        App\Providers\NotificationServiceProvider::class,
 
     ],
 

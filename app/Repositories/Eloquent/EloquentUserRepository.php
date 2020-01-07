@@ -328,6 +328,14 @@ DOC;
         $this->getYesterdayUserRank();
     }
 
+    public function blockUser($userId)
+    {
+        if(auth()->check())
+        {
+            $this->updateHiddenUsers(auth()->id() , $userId);
+        }
+    }
+
     /**
      * @inheritdoc
      */
@@ -342,7 +350,29 @@ DOC;
         return $query->whereIn("user_id", $ids)->get();
     }
 
+    public function updateHiddenUsers($id, $user_id)
+    {
+        $hiddenUsers = $this->hiddenUsers($id);
 
+        if(!in_array($user_id , $hiddenUsers))
+        {
+            array_push($hiddenUsers, $user_id);
+        }
+        Redis::hset('user.'.$id.'.data', 'hiddenUsers', json_encode($hiddenUsers));
+        return $hiddenUsers;
+    }
+
+    public function hiddenUsers($id=0)
+    {
+        if ($id === 0) {
+            $id = \Auth::id();
+        }
+        if ($value = Redis::hget('user.'.$id.'.data', 'hiddenUsers')) {
+            return json_decode($value);
+        }
+        $value = $this->initHiddenUsers($id);
+        return $value;
+    }
 
     public function hiddenPosts($id=0)
     {
@@ -354,6 +384,16 @@ DOC;
         }
         $value = $this->initHiddenPosts($id);
         return $value;
+    }
+
+    public function initHiddenUsers($id=0)
+    {
+        if ($id === 0) {
+            $id = \Auth::id();
+        }
+        $data = collect();
+        Redis::hmset('user.'.$id.'.data', array('hiddenUsers'=>$data));
+        return $data->all();
     }
 
     public function initHiddenPosts($id=0)

@@ -17,14 +17,19 @@ class UnFollow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
 
-
+    private $follower;
     private $object;
 
 
-    public function __construct($object)
+    public function __construct($follower , $object)
     {
+        $this->follower = $follower;
         $this->object = $object;
+    }
 
+    public function getFollower()
+    {
+        return $this->follower;
     }
 
     public function getObject()

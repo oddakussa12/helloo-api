@@ -39,7 +39,7 @@ if(!function_exists('dynamicSetLocales')){
 }
 
 if(!function_exists('notify')){
-    function notify($category = 'user.like' , $data = array() , $anonymous=false)
+    function notify($category = 'user.like' , $data = array() , $isJpush=true, $anonymous=false)
     {
 	//echo 1;die;
         $params = array('from'=>'' , 'to'=>'' , 'extra'=>array() , 'url'=>'' , 'expire'=>'' , 'setField'=>array());
@@ -56,32 +56,40 @@ if(!function_exists('notify')){
             {
                 $notifynder->{$k}($v[0] , $v[1]);
             }else{
-                $notifynder->{$k}($v);
+                if($k=='from'&&($v instanceof \Illuminate\Database\Eloquent\Model))
+                {
+                    $notifynder->{$k}($v->{$v->getKeyName()});
+                }else{
+                    $notifynder->{$k}($v);
+                }
             }
         }
-        $notifynder->send();
+        if($isJpush)
+        {
+            $notifynder->sendWithJpush();
+        }else{
+            $notifynder->send();
+        }
     }
 }
 
 if(!function_exists('notify_remove')){
-    function notify_remove($category_id , $object)
+    function notify_remove($category_id , $object ,$from=null)
     {
         $contact_id = $object->{$object->getKeyName()};
+        $from_id = $from==null?auth()->id():$from->user_id;
         if(!is_array($category_id)){
-            $object->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
-                $query
-                    ->where('from_id' , auth()->id())
-                    ->where('contact_id' , $contact_id)
-                    ->where('category_id' , $category_id);
-            })->delete();
+            $user = $object;
+            $category_id = [$category_id];
         }else{
-            $object->owner->getNotificationRelation()->where(function($query) use ($contact_id , $category_id){
-                $query
-                    ->where('from_id' , auth()->id())
-                    ->where('contact_id' , $contact_id)
-                    ->whereIn('category_id' , $category_id);
-            })->delete();
+            $user = $object->owner;
         }
+        $user->getNotificationRelation()->where(function($query) use ($contact_id , $category_id , $from_id){
+            $query
+                ->where('from_id' , $from_id)
+                ->where('contact_id' , $contact_id)
+                ->whereIn('category_id' , $category_id);
+        })->delete();
     }
 }
 

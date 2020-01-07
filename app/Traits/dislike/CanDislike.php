@@ -29,7 +29,7 @@ trait CanDislike
         if (!$relation) {
             $dislike = app(config('dislike.dislike_model'));
             $dislike->{config('dislike.user_foreign_key')} = $this->getKey();
-            $dislike->{config('dislike.dislikes_country_field')} = auth()->user()->user_country_id;
+            $dislike->{config('dislike.dislikes_country_field')} = $this->user_country_id;
             $object->dislikes()->save($dislike);
             Event::dispatch(new DisLiked($this, $object , $relation , $type));
         }
