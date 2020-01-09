@@ -40,8 +40,8 @@ class FollowListener
                     'follow_user_id'=>$follower->user_id,
                     'befollow_user_id'=>$object->user_id,
                 ) ,
-                'setField'=>array('contact_id' , $object->{$object->getKeyName()}),
-                'url'=>'/notification/user/'.$follower->user_id.'/userFollow/'.$object->{$object->getKeyName()},
+                'setField'=>array('contact_id' , $object->getKey()),
+                'url'=>'/notification/user/'.$follower->user_id.'/userFollow/'.$object->getKey(),
             )
         );
     }

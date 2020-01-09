@@ -41,7 +41,7 @@ class DisLikeListener
         {
             $keyName = $object->getKeyName();
             $tmpDislikeNum = $event->getTmpDislikeNum();
-            $keyValue = $object->{$object->getKeyName()};
+            $keyValue = $object->getKey();
             $object->increment('post_like_num' , $event->getType());
             notify('user.post_dislike' ,
                 array(

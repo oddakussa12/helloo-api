@@ -41,7 +41,7 @@ class LikeListener
         {
             $keyName = $object->getKeyName();
             $tmpLikeNum = $event->getTmpLikeNum();
-            $keyValue = $object->{$object->getKeyName()};
+            $keyValue = $object->getKey();
             $object->increment('post_like_num' , $event->getType());
             notify('user.post_like' ,
                 array(
@@ -62,7 +62,7 @@ class LikeListener
             $extra = array();
             $keyName = $object->getKeyName();
             $post = $object->post;
-            $keyValue = $object->{$object->getKeyName()};
+            $keyValue = $object->getKey();
             $comment_like_temp_num = request()->input('comment_like_temp_num' , 0);
             if($comment_like_temp_num >0){
                 $extra = array('comment_like_temp_num'=>\DB::raw('comment_like_temp_num+'.$comment_like_temp_num));
@@ -73,7 +73,7 @@ class LikeListener
                     'from'=>$user->user_id ,
                     'to'=>$object->user_id ,
                     'extra'=>array(
-                        $keyName=>$object->{$object->getKeyName()},
+                        $keyName=>$keyValue,
                         'post_id'=>$post->post_id,
                     ) ,
                     'setField'=>array('contact_id' , $keyValue),
