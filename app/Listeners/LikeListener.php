@@ -52,7 +52,8 @@ class LikeListener
                     ) ,
                     'setField'=>array('contact_id' , $keyValue),
                     'url'=>'/notification/post/'.$keyValue,
-                )
+                ),
+                false
             );
             $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum);
             $this->updateCountry($keyValue , $user->user_country_id);
@@ -77,8 +78,7 @@ class LikeListener
                     ) ,
                     'setField'=>array('contact_id' , $keyValue),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
-                ),
-            true
+                )
             );
 
         }

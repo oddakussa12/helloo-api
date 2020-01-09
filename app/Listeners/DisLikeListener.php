@@ -52,7 +52,8 @@ class DisLikeListener
                     ) ,
                     'setField'=>array('contact_id' , $keyValue),
                     'url'=>'/notification/post/'.$keyValue,
-                )
+                ),
+                false
             );
             $this->updateLikeCount($keyValue , 'dislike' , $tmpDislikeNum);
             $this->updateCountry($keyValue , $user->user_country_id);

@@ -55,8 +55,7 @@ class PostCommentCreatedListener
                     ) ,
                     'setField'=>array('contact_id' , $post->post_id),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->{$postComment->getKeyName()},
-                ),
-            true
+                )
             );
         }else{
             $parent = $postComment->parent;
@@ -71,8 +70,7 @@ class PostCommentCreatedListener
                     ) ,
                     'setField'=>array('contact_id' , $parent->{$parent->getKeyName()}),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->{$postComment->getKeyName()},
-                ),
-            true
+                )
             );
         }
         $this->updateCountry($post->post_id , $user->user_country_id);

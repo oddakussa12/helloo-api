@@ -1,11 +1,16 @@
 <?php
 return [
 	'qnUploadDomain'=>[
-		'video_domain' => 'https://qnidvideo.mmantou.cn/',
-		'subtitle_domain' => 'https://qnidsubtitle.mmantou.cn/',
-		'thumbnail_domain' => 'https://qnidimage.mmantou.cn/',
-		'avatar_domain' => 'https://qnidwebother.mmantou.cn/',
-		'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
+//		'video_domain' => 'https://qnidvideo.mmantou.cn/',
+//		'subtitle_domain' => 'https://qnidsubtitle.mmantou.cn/',
+//		'thumbnail_domain' => 'https://qnidimage.mmantou.cn/',
+//		'avatar_domain' => 'https://qnidwebother.mmantou.cn/',
+//		'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
+        'video_domain' => 'https://qnidyooulvideo.mmantou.cn/',
+        'subtitle_domain' => 'https://qnidyooulsubtitle.mmantou.cn/',
+        'thumbnail_domain' => 'https://qnidyooulimage.mmantou.cn/',
+        'avatar_domain' => 'https://qnwebothersia.mmantou.cn/',
+        'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
 	],
     'front_domain'=> [
         'h5'=>'yooul.com',
@@ -18,5 +23,9 @@ return [
     'rate_coefficient'=>env('RATE_COEFFICIENT', 0.7),
     'more_than_post_comment_num'=>env('MORE_THAN_POST_COMMENT_NUM', 5),
     'post_throttle_num' =>env('POST_THROTTLE_NUM', 1),
-    'post_comment_throttle_num' =>env('POST_COMMENT_THROTTLE_NUM', 1),
+    'post_comment_throttle_num' =>env('POST_COMMENT_THROTTLE_NUM', 2),
+    'authorization'=>[
+        'create_post'=>env('AUTHORIZATION_CREATE_POST' , true),
+        'create_post_comment'=>env('AUTHORIZATION_CREATE_POST_COMMENT' , true),
+    ]
 ];

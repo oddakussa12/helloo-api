@@ -5,19 +5,21 @@ namespace App\Repositories\Eloquent;
 use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\User;
+use Ramsey\Uuid\Uuid;
 use App\Custom\RedisList;
 use App\Models\PostComment;
 use Illuminate\Http\Request;
+use App\Jobs\PostTranslation;
 use Illuminate\Support\Facades\DB;
+use App\Services\TranslateService;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
-use App\Services\TranslateService;
-use App\Jobs\PostTranslation;
 use Illuminate\Database\Concerns\BuildsQueries;
-use Ramsey\Uuid\Uuid;
+
 
 class EloquentPostRepository  extends EloquentBaseRepository implements PostRepository
 {
@@ -534,6 +536,23 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }
         }
         return $post;
+    }
+
+    public function isNewCountry($id , $country)
+    {
+        $num = 0;
+        $postKey = 'post.'.$id.'.data';
+        $field = 'country';
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $countryData = \json_decode(Redis::hget($postKey, $field) , true);
+            \Log::error(Redis::hget($postKey, $field));
+            if(array_key_exists($country ,$countryData))
+            {
+                $num = $countryData[$country];
+            }
+        }
+        return $num;
     }
 
     public function getCustomFinePost()
