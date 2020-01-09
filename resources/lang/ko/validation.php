@@ -130,6 +130,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'name' => [
+            'unique' => '이 계정은 사용 중입니다.',
+        ],
     ],
 
     /*

@@ -50,13 +50,12 @@ class PostCommentCreatedListener
                     'from'=>$user->user_id ,
                     'to'=>$post->user_id ,
                     'extra'=>array(
-                        'comment_id'=>$postComment->{$postComment->getKeyName()},
+                        'comment_id'=>$postComment->getKey(),
                         'post_id'=>$post->post_id,
                     ) ,
                     'setField'=>array('contact_id' , $post->post_id),
-                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->{$postComment->getKeyName()},
-                ),
-            true
+                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->getKey(),
+                )
             );
         }else{
             $parent = $postComment->parent;
@@ -65,14 +64,13 @@ class PostCommentCreatedListener
                     'from'=>$user->user_id ,
                     'to'=>$parent->user_id ,
                     'extra'=>array(
-                        'comment_id'=>$postComment->{$postComment->getKeyName()},
+                        'comment_id'=>$postComment->getKey(),
                         'post_id'=>$post->post_id,
                         'comment_comment_p_id'=>$postComment->comment_comment_p_id
                     ) ,
-                    'setField'=>array('contact_id' , $parent->{$parent->getKeyName()}),
-                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->{$postComment->getKeyName()},
-                ),
-            true
+                    'setField'=>array('contact_id' , $parent->getKey()),
+                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->getKey(),
+                )
             );
         }
         $this->updateCountry($post->post_id , $user->user_country_id);

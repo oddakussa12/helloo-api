@@ -41,7 +41,7 @@ class RemoveVoteListener
         $user = $event->getUser();
         if($object instanceof Post)
         {
-            $keyValue = $object->{$object->getKeyName()};
+            $keyValue = $object->getKey();
             $object->decrement('post_like_num' , $event->getType());
             if($relation instanceof Like)
             {

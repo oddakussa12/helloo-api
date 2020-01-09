@@ -74,14 +74,28 @@ return [
             'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
             'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
             'bucket'     => env('QINIU_BUCKET', 'idwebother'),
-            'domain'     => env('QINIU_DOMAIN', 'http://qnidwebother.mmantou.cn'), // or host:
+            'domain'     => env('QINIU_DOMAIN', 'https://qnidwebother.mmantou.cn/'), // or host:
         ],
         'qn_image' => [
             'driver'     => 'qn_image',
             'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
             'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
             'bucket'     => env('QINIU_BUCKET', 'pythonidimage'),
-            'domain'     => env('QINIU_DOMAIN', 'http://qnidimage.mmantou.cn'), // or host: https://xxxx.clouddn.com
+            'domain'     => env('QINIU_DOMAIN', 'https://qnidimage.mmantou.cn/'), // or host: https://xxxx.clouddn.com
+        ],
+        'qn_avatar_sia' => [
+            'driver'     => 'qn_avatar_sia',
+            'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
+            'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
+            'bucket'     => env('QINIU_BUCKET', 'idwebother-sia'),
+            'domain'     => env('QINIU_DOMAIN', 'https://qnwebothersia.mmantou.cn/'), // or host:
+        ],
+        'qn_image_sia' => [
+            'driver'     => 'qn_avatar_sia',
+            'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
+            'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
+            'bucket'     => env('QINIU_BUCKET', 'idimage'),
+            'domain'     => env('QINIU_DOMAIN', 'https://qnidyooulimage.mmantou.cn/'), // or host: https://xxxx.clouddn.com
         ],
 
     ],

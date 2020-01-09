@@ -33,6 +33,7 @@ trait CanLike
             $like->{config('like.likes_country_field')}=$this->user_country_id;
             $object->likes()->save($like);
             Event::dispatch(new Liked($this, $object , $type));
+            return $this->user_country_id;
         }else{
             if($relation->{config('like.likes_likable_state')}===-1)
             {
@@ -40,6 +41,7 @@ trait CanLike
                 $relation->save();
                 Event::dispatch(new Liked($this, $object , $type));
             }
+            return false;
         }
     }
 
@@ -86,7 +88,9 @@ trait CanLike
             {
                 Event::dispatch(new Liked($this, $object , $relation));
             }
+            return $relation->likable_country;
         }
+        return false;
     }
     /**
      * @param \Illuminate\Database\Eloquent\Model $object

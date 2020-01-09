@@ -45,8 +45,14 @@ class PostController extends BaseController
     public function like($uuid)
     {
         $post = $this->post->findOrFailByUuid($uuid);
-        auth()->user()->like($post);
-        return $this->response->noContent();
+        $country = auth()->user()->like($post);
+        $response = $this->response->noContent();
+        $num = 0;
+        if($country!==false)
+        {
+            $num = $this->post->isNewCountry($post->getKey() , $country);
+        }
+        return $response->header('Country-Num', $num);
     }
 
 
@@ -69,22 +75,42 @@ class PostController extends BaseController
     {
         $post = $this->post->findOrFailByUuid($uuid);
         $user = auth()->user();
-        $user->dislike($post);
-        return $this->response->noContent();
+        $country = $user->dislike($post);
+        $response = $this->response->noContent();
+        $num = 0;
+        if($country!==false)
+        {
+            $num = $this->post->isNewCountry($post->getKey() , $country);
+        }
+        return $response->header('Country-Num', $num);
     }
 
     public function revokeLike($uuid)
     {
         $post = $this->post->findOrFailByUuid($uuid);
-        auth()->user()->revoke($post);
-        return $this->response->noContent();
+        $country = auth()->user()->revoke($post);
+        \Log::error('revokeLike'.$country);
+        $response = $this->response->noContent();
+        $num = 0;
+        if($country!==false)
+        {
+            $num = $this->post->isNewCountry($post->getKey() , $country);
+        }
+        return $response->header('Country-Num', $num);
     }
 
     public function revokeDislike($uuid)
     {
         $post = $this->post->findOrFailByUuid($uuid);
-        auth()->user()->revokeDislike($post);
-        return $this->response->noContent();
+        $country = auth()->user()->revokeDislike($post);
+        \Log::error('revokeDislike'.$country);
+        $response = $this->response->noContent();
+        $num = 0;
+        if($country!==false)
+        {
+            $num = $this->post->isNewCountry($post->getKey() , $country);
+        }
+        return $response->header('Country-Num', $num);
     }
 
     public function showPostByUser(Request $request , $userId)

@@ -32,7 +32,9 @@ trait CanDislike
             $dislike->{config('dislike.dislikes_country_field')} = $this->user_country_id;
             $object->dislikes()->save($dislike);
             Event::dispatch(new DisLiked($this, $object , $relation , $type));
+            return $this->user_country_id;
         }
+        return false;
     }
 
 
@@ -47,7 +49,9 @@ trait CanDislike
         if ($relation) {
             $relation->delete();
             Event::dispatch(new RemoveVote($this, $object , $relation));
+            return $relation->dislikable_country;
         }
+        return false;
     }
 
 

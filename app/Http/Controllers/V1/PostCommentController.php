@@ -113,6 +113,7 @@ class PostCommentController extends BaseController
         if(empty($commentContent))
         {
             $postComment = $this->postComment->store($comment);
+            event(new PostCommentCreated($post , $postComment , $user));
         }else{
             dynamicSetLocales(array($contentDefaultLang));
 
