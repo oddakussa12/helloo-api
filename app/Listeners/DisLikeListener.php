@@ -62,7 +62,7 @@ class DisLikeListener
             $object->decrement('comment_like_num' , $event->getType());
             notify_remove([3] , $object , $user);
         }
-        $user->decrement('user_score');
+        $user->increment('user_score');
 
     }
 

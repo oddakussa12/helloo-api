@@ -107,7 +107,7 @@ class Post extends Model
         if($this->post_type=='video')
         {
             $value[$this->post_type]['video_url'] = config('common.qnUploadDomain.video_domain').$value[$this->post_type]['video_url'];
-            $value[$this->post_type]['video_thumbnail_url'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['video_thumbnail_url'].'?imageView2/0/w/400/h/300';
+            $value[$this->post_type]['video_thumbnail_url'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['video_thumbnail_url'].'?imageView2/0/w/400/h/300|imageslim';
             $value[$this->post_type]['video_subtitle_url'] = \array_map(function($v){
                 return config('common.qnUploadDomain.subtitle_domain').$v;
             } , $value[$this->post_type]['video_subtitle_url']);
@@ -118,10 +118,10 @@ class Post extends Model
             $value[$this->post_type]['image_cover'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['image_cover'];
             $image_url = $value[$this->post_type]['image_url'];
             $value[$this->post_type]['image_url'] = \array_map(function($v){
-                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageMogr2/auto-orient/interlace/1';
+                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageMogr2/auto-orient/interlace/1|imageslim';
             } , $image_url);
             $value[$this->post_type]['thumb_image_url'] = \array_map(function($v){
-                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/192/h/192/interlace/1';
+                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/192/h/192/interlace/1|imageslim';
             } , $image_url);
         }
         return $value;

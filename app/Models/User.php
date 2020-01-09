@@ -110,7 +110,7 @@ class User extends Authenticatable implements JWTSubject
         if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
             return $value;
         }
-        return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/100/h/100/interlace/1';
+        return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
     }
 
 //    public function videoViews()
