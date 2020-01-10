@@ -144,11 +144,12 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 {
                     $posts = $posts->where('post_fine' , 0);
                     $posts = $posts->where('post_hoting' , 1);
-                    $rate_coefficient = config('common.rate_coefficient');
+//                    $rate_coefficient = config('common.rate_coefficient');
+//                    $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
+//                    $posts->orderBy('rate' , 'DESC');
+                    $posts->orderBy('post_rate' , 'DESC');
                     $more_than_post_comment_num = config('common.more_than_post_comment_num');
                     $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
-                    $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
-                    $posts->orderBy('rate' , 'DESC');
                 }
                 $posts->orderBy($this->model->getKeyName() , 'DESC');
                 $queryTime = $request->get('query_time' , '');
@@ -473,9 +474,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
         $posts = $this->removeHideUser($posts);
-        $rate_coefficient = config('common.rate_coefficient');
-        $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
-        $posts->orderBy('rate' , 'DESC');
+//        $rate_coefficient = config('common.rate_coefficient');
+//        $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
+//        $posts->orderBy('rate' , 'DESC');
+        $posts->orderBy('post_rate' , 'DESC');
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 //        $posts = $this->paginator($posts, $total, $perPage, $page, [
 //            'path' => Paginator::resolveCurrentPath(),

@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')
         //          ->hourly();
         $schedule->command('calculating:rate')
-            ->everyMinute();
+            ->everyThirtyMinutes();
         $schedule->command('generate:user_rank')
             ->daily();
 //        $schedule->command('generate:post_id_rank')

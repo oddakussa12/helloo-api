@@ -35,6 +35,7 @@ class LikeListener
     public function handle(Liked $event)
     {
         //获取事件中保存的信息
+        $extra = array();
         $object = $event->getObject();
         $user = $event->getUser();
         if($object instanceof Post)
@@ -42,7 +43,15 @@ class LikeListener
             $keyName = $object->getKeyName();
             $tmpLikeNum = $event->getTmpLikeNum();
             $keyValue = $object->getKey();
-            $object->increment('post_like_num' , $event->getType());
+            $commentNum = $object->post_comment_num;
+            $likeNum = $object->post_like_num+$event->getType();
+            $createdTime = $object->post_created_at;
+            $rate = rate_comment_v2($commentNum , $createdTime , $likeNum);
+            if($rate!=$object->post_rate)
+            {
+                $extra = array('post_rate'=>$rate);
+            }
+            $object->increment('post_like_num' , $event->getType() , $extra);
             notify('user.post_like' ,
                 array(
                     'from'=>$user->user_id ,

@@ -192,6 +192,13 @@ class User extends Authenticatable implements JWTSubject
         $this->attributes['user_country_id'] = $index;
     }
 
+    public function calculatingScore($score)
+    {
+        $this->timestamps = false;
+        $this->user_score = $score;
+        $this->save();
+    }
+
 
 
 

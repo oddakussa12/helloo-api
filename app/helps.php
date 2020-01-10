@@ -204,10 +204,18 @@ if (!function_exists('rate_comment_v2')) {
      * @param float $gravity
      * @return float
      */
-    function rate_comment_v2($comments, $create_time, $likes=0 , $gravity = 1)
+    function rate_comment_v2($comments, $create_time, $likes=0 , $gravity = 0)
     {
+        $gravity = $gravity==0?config('common.rate_coefficient'):$gravity;
         $ctime = strtotime($create_time);
-        return ($likes + $comments + 1) / pow(floor((time()-$ctime)/3600) + 2, $gravity);
+        $intervals = time()-$ctime;
+        if($intervals<86400)
+        {
+            $numerator = $likes + $comments + 1;
+        }else{
+            $numerator = $likes/config('common.like_coefficient') + $comments + 1;
+        }
+        return $numerator / pow(floor((time()-$ctime)/3600) + 2, $gravity);
     }
 }
 
