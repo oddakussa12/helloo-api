@@ -14,7 +14,7 @@ class TencentTranslateService
     public function __construct()
     {
         $this->url = 'https://api.ai.qq.com/fcgi-bin/nlp/nlp_texttranslate';
-        $this->appId = '2123421139';
+        $this->appId = '21234211391';
         $this->appKey = 'rtR1M63KUjY332kg';
     }
 
@@ -72,7 +72,7 @@ class TencentTranslateService
         return $sign;
     }
 
-    protected function doHttpPost($url, $params)
+    protected function doHttpPost($url, $params , &$turn=1)
     {
         $curl = curl_init();
         $response = false;
@@ -104,13 +104,29 @@ class TencentTranslateService
             {
                 $msg = curl_error($curl);
                 $response = false;
-                $message = json_encode(array('ret' => -1, 'msg' => "sdk http post err: {$msg}", 'http_code' => $code));
+                $message = json_encode(array('ret' => -1, 'msg' => "sdk http post err: {$msg}", 'http_code' => $code , 'url'=>$url , 'body'=>$body));
                 Log::error($message);
                 break;
+            }else{
+                $res = \json_decode($response , true);
+                if($res['ret']!=0)
+                {
+                    $res['url']=$url;
+                    $res['body']=$body;
+                    Log::error(\json_encode($res));
+                    $response = false;
+                    break;
+                }
             }
         } while (0);
         curl_close($curl);
+        if($response==false&&$turn<3)
+        {
+            $turn = $turn +1;
+            $response = $this->doHttpPost($url, $params , $turn);
+        }
         return $response;
+
     }
 
     public function xssReplace($str)
