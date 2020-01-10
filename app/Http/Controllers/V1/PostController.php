@@ -89,7 +89,6 @@ class PostController extends BaseController
     {
         $post = $this->post->findOrFailByUuid($uuid);
         $country = auth()->user()->revoke($post);
-        \Log::error('revokeLike'.$country);
         $response = $this->response->noContent();
         $num = 0;
         if($country!==false)
@@ -103,7 +102,6 @@ class PostController extends BaseController
     {
         $post = $this->post->findOrFailByUuid($uuid);
         $country = auth()->user()->revokeDislike($post);
-        \Log::error('revokeDislike'.$country);
         $response = $this->response->noContent();
         $num = 0;
         if($country!==false)

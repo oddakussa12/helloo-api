@@ -91,7 +91,7 @@ return [
             'domain'     => env('QINIU_DOMAIN', 'https://qnwebothersia.mmantou.cn/'), // or host:
         ],
         'qn_image_sia' => [
-            'driver'     => 'qn_avatar_sia',
+            'driver'     => 'qn_image_sia',
             'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
             'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
             'bucket'     => env('QINIU_BUCKET', 'idimage'),

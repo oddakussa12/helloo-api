@@ -64,11 +64,21 @@ class PrivateMessageController extends BaseController
     {
         if(auth()->check())
         {
-            $userId = auth()->id();
             $user = auth()->user();
-            $name = $user->user_name;
-            $avatar = $user->user_avatar;
-            $token = \RongCloud::getToken($userId, $name, $avatar);
+            $userId = $user->user_id;
+            try{
+                $name = $user->user_name;
+                $avatar = $user->user_avatar;
+                $token = \RongCloud::getToken($userId, $name, $avatar);
+            }catch (\Exception $e)
+            {
+                $token = array(
+                    'code'=>500,
+                    'userId'=>$userId,
+                    'message'=>$e->getMessage(),
+                );
+                \Log::error(\json_encode($token));
+            }
             return $this->response->array($token);
         }
         return $this->response->noContent();
