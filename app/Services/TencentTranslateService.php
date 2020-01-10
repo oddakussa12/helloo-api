@@ -14,7 +14,7 @@ class TencentTranslateService
     public function __construct()
     {
         $this->url = 'https://api.ai.qq.com/fcgi-bin/nlp/nlp_texttranslate';
-        $this->appId = '21234211391';
+        $this->appId = '2123421139';
         $this->appKey = 'rtR1M63KUjY332kg';
     }
 
