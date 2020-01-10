@@ -548,7 +548,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
         {
             $countryData = \json_decode(Redis::hget($postKey, $field) , true);
-            \Log::error(Redis::hget($postKey, $field));
             if(array_key_exists($country ,$countryData))
             {
                 $num = $countryData[$country];
