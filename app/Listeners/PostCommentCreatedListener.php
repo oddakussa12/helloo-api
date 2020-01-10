@@ -33,16 +33,20 @@ class PostCommentCreatedListener
     public function handle(PostCommentCreated $event)
     {
         //获取事件中保存的信息
+        $type = 1;
         $extra = array();
         $postComment = $event->getPostComment();
         $post = $event->getPost();
         $user = $event->getUser();
-        $rate = rate_comment_v2($post->post_comment_num , $post->post_created_at);
+        $commentNum = $post->post_comment_num+$type;
+        $likeNum = $post->post_like_num;
+        $createdTime = $post->post_created_at;
+        $rate = rate_comment_v2($commentNum , $createdTime , $likeNum);
         if($rate!=$post->post_rate)
         {
             $extra = array('post_rate'=>$rate);
         }
-        $post->increment('post_comment_num' , 1 , $extra);
+        $post->increment('post_comment_num' , $type , $extra);
         if($postComment->comment_comment_p_id===0)
         {
             notify('user.post_comment' ,

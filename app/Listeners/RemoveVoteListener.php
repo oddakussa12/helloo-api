@@ -36,13 +36,24 @@ class RemoveVoteListener
     public function handle(RemoveVote $event)
     {
         //获取事件中保存的信息
+        $extra = array();
+        $type = $event->getType();
         $object = $event->getObject();
         $relation = $event->getRelation();
         $user = $event->getUser();
         if($object instanceof Post)
         {
             $keyValue = $object->getKey();
-            $object->decrement('post_like_num' , $event->getType());
+            $commentNum = $object->post_comment_num;
+            $likeNum = $object->post_like_num-$type;
+            $createdTime = $object->post_created_at;
+            $rate = rate_comment_v2($commentNum , $createdTime , $likeNum);
+            if($rate!=$object->post_rate)
+            {
+                $extra = array('post_rate'=>$rate);
+            }
+            $object->decrement('post_like_num' , $type , $extra);
+
             if($relation instanceof Like)
             {
                 notify_remove([9] , $object , $user);

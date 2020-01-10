@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class CalculatingRate extends Command
 {
@@ -40,11 +39,8 @@ class CalculatingRate extends Command
     public function handle()
     {
         Post::withTrashed()->chunk(10, function ($posts){
-            $i = 1;
             foreach ($posts as $post) {
                 $post->calculatingRate();
-
-                $i++;
             }
         });
     }

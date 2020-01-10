@@ -312,9 +312,11 @@ class Post extends Model
 
     public function calculatingRate()
     {
-        $rate = rate_comment_v2($this->post_comment_num , $this->post_created_at);
+        $rate_coefficient = config('common.rate_coefficient');
+        $rate = rate_comment_v2($this->post_comment_num , $this->post_created_at,$this->post_like_num,$rate_coefficient);
         if($rate!=$this->post_rate)
         {
+            $this->timestamps = false;
             $this->post_rate = $rate;
             $this->save();
         }
