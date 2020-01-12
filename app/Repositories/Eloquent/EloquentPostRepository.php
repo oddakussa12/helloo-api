@@ -8,6 +8,7 @@ use App\Models\User;
 use Ramsey\Uuid\Uuid;
 use App\Custom\RedisList;
 use App\Models\PostComment;
+use App\Models\PostViewNum;
 use Illuminate\Http\Request;
 use App\Jobs\PostTranslation;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +41,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $include = explode(',' ,$include);
         $posts = $this->allWithBuilder();
         $posts = $posts->with('owner')->with('likers')->with('dislikers');
-        $posts = $posts->with('viewCount');
+//        $posts = $posts->with('viewCount');
         $posts = $posts->where('post_topping' , 1);
         $posts = $posts->orderBy('post_topped_at', 'DESC')
             ->limit(8)
@@ -123,7 +124,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             {
                 $posts = $this->getFinePosts($posts);
             }else{
-                $posts = $posts->with('viewCount');
+//                $posts = $posts->with('viewCount');
                 $posts = $this->removeHidePost($posts);
                 $posts = $this->removeHideUser($posts);
                 if($follow!== null&&auth()->check())
@@ -469,7 +470,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $appends['order'] = $order;
         $orderBy = $request->get('order_by' , 'post_created_at');
         $appends['order_by'] = $orderBy;
-        $posts = $posts->with('viewCount');
+//        $posts = $posts->with('viewCount');
         $posts = $posts->where('post_fine' , 1);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
@@ -493,9 +494,24 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         });
     }
 
+    public function generatePostViewRandRank()
+    {
+        $postViewRankKey = 'post_view_rank';
+        $postViewVirtualRankKey = 'post_view_virtual_rank';
+        $redis = new RedisList();
+        $redis->delKey($postViewRankKey);
+        $redis->delKey($postViewVirtualRankKey);
+        PostViewNum::chunk(20 , function($posts) use ($redis , $postViewRankKey , $postViewVirtualRankKey){
+            foreach ($posts as $post)
+            {
+                $redis->zAdd($postViewRankKey , $post->post_view_num , $post->post_id);
+                $redis->zAdd($postViewVirtualRankKey , post_view($post->post_view_num) , $post->post_id);
+            }
+        });
+    }
+
     public function generatePostIdRandRank()
     {
-
         $min = 1;
         $max = 10;
         $redis = new RedisList();
@@ -580,8 +596,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $appends['order'] = $order;
         $orderBy = 'post_comment_num';
         $appends['order_by'] = $orderBy;
-        $posts = $posts->with('viewCount')->with('likers')->with('dislikers');
-        $posts = $posts->with('owner');
+//        $posts = $posts->with('viewCount');
+        $posts = $posts->with('owner')->with('likers')->with('dislikers');
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->whereIn('post_id' , $postIds)->orderBy($orderBy , $order)->get();
         $posts = $this->paginator($posts, $total, $perPage, $page, [
@@ -634,6 +650,24 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $redis->zAdd($postKey , $post->post_comment_num , $post->post_id);
                 }
         });
+    }
+    public function generateAutoIncreasePostView()
+    {
+        $redis = new RedisList();
+        $postKey = 'post_view_virtual_rank';
+        $perPage = 10;
+        $count = $redis->zSize($postKey);
+        $lastPage = ceil($count/$perPage);
+        for ($page=1;$page<=$lastPage;$page++)
+        {
+            $offset = ($page-1)*$perPage;
+            $posts = $redis->zRangByScore($postKey , '-inf' , '+inf' , true , array($offset , $perPage));
+            foreach ($posts as $postId=>$score)
+            {
+                $add = mt_rand(50 , 150);
+                $redis->zIncrBy($postKey , $add , $postId);
+            }
+        }
     }
     public function autoStorePost()
     {

@@ -2,14 +2,13 @@
 
 namespace App\Listeners;
 
-use App\Events\PostViewCreated;
-use App\Events\PostViewEvent;
 use App\Models\PostViewNum;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Traits\CachablePost;
+use App\Events\PostViewCreated;
 
 class PostViewCreatedListener
 {
+    use CachablePost;
     /**
      * Create the event listener.
      *
@@ -36,17 +35,8 @@ class PostViewCreatedListener
         }else{
             $postViewNum->increment('post_view_num');
         }
+        $this->updateViewVirtualCount($postView->post_id);
+        $this->updateViewCount($postView->post_id);
     }
 
-    /**
-     * Handle the event.
-     *
-     * @param PostViewEvent $event
-     * @param $exception
-     * @return void
-     */
-    public function failed(PostViewEvent $event, $exception)
-    {
-
-    }
 }

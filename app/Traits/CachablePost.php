@@ -48,6 +48,115 @@ trait CachablePost
         return $likeData;
     }
 
+    public function viewCount($id)
+    {
+        $score = 0;
+        $postKey = 'post_view_rank';
+        if(Redis::exists($postKey))
+        {
+            $score = Redis::zscore($postKey, $id);
+        }
+        return intval($score);
+    }
+
+    public function viewVirtualCount($id)
+    {
+        $score = 0;
+        $postKey = 'post_view_virtual_rank';
+        if(Redis::exists($postKey))
+        {
+            $score = Redis::zscore($postKey, $id);
+            if(!empty($score))
+            {
+                if(mt_rand(1 , 10000000)>7000000)
+                {
+                    $score = $score+mt_rand(1,5);
+                    Redis::zadd($postKey , $score , $id);
+                }
+            }else{
+                $score = post_view();
+                Redis::zadd($postKey , $score , $id);
+            }
+        }
+        if($score>10000)
+        {
+            $score = round($score/1000 , 1).'k';
+        }
+        return $score;
+    }
+
+    public function updateViewCount($id)
+    {
+        $postKey = 'post_view_rank';
+        $add = 0;
+        if(Redis::exists($postKey))
+        {
+            $score = Redis::zscore($postKey, $id);
+            if(empty($score))
+            {
+                $score = 1;
+            }else{
+                $score = $score+1;
+            }
+        }
+        return Redis::zadd($postKey , $add , $id);
+    }
+
+    public function updateViewVirtualCount($id)
+    {
+        $postKey = 'post_view_virtual_rank';
+        $add = 0;
+        if(Redis::exists($postKey))
+        {
+            $score = Redis::zscore($postKey, $id);
+            if(!empty($score))
+            {
+                $num = $this->getRelativelyRealViewCount($score);
+                $num = $num+1;
+                $add = post_view($num);
+            }else{
+                $add = post_view();
+            }
+        }
+        return Redis::zadd($postKey , $add , $id);
+    }
+
+
+    public function getRelativelyRealViewCount($view_count=1) {
+
+        if($view_count<100)
+        {
+            $num = 1;
+        }elseif ($view_count>=100&&$view_count<800)
+        {
+            $num = 2;
+        }elseif ($view_count>=800&&$view_count<2000)
+        {
+            $num = 3;
+        }elseif ($view_count>=2000&&$view_count<4000)
+        {
+            $num = 4;
+        }elseif ($view_count>=4000&&$view_count<7000)
+        {
+            $num = 5;
+        }elseif ($view_count>=7000&&$view_count<=8230)
+        {
+            $num = 6;
+        }else{
+            $num = floor($view_count/1370);
+        }
+        return $num;
+    }
+
+
+    public function initViewCount($id , $view=0)
+    {
+        $postKey = 'post.'.$id.'.data';
+        $field = 'view';
+        Redis::hset($postKey , $field , $view);
+        return $view;
+    }
+
     public function initLikeCount($id)
     {
         $postKey = 'post.'.$id.'.data';
@@ -56,6 +165,22 @@ trait CachablePost
         $likeData = collect($likeData);
         Redis::hset($postKey , $field , $likeData);
         return $likeData;
+    }
+
+    public function isNewCountry($id , $country)
+    {
+        $num = 0;
+        $postKey = 'post.'.$id.'.data';
+        $field = 'country';
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $countryData = \json_decode(Redis::hget($postKey, $field) , true);
+            if(array_key_exists($country ,$countryData))
+            {
+                $num = $countryData[$country];
+            }
+        }
+        return $num;
     }
 
     public function updateLikeCount($id , $type='like' , $tmpNum=0)

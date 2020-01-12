@@ -21,9 +21,7 @@ class PostPaginateCollection extends Resource
             'post_title' => $this->post_index_title,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
-            'post_view_num' => $this->when($this->relationLoaded('viewCount') , function(){
-                return $this->post_view_num;
-            }),
+            'post_view_num' => $this->viewVirtualCount($this->post_id),
             'topTwoComments'=> $this->when(isset($this->topTwoComments) , function (){
                 return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_like_temp_num')->values()->all();
             }),
