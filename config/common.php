@@ -29,5 +29,7 @@ return [
     'authorization'=>[
         'create_post'=>env('AUTHORIZATION_CREATE_POST' , true),
         'create_post_comment'=>env('AUTHORIZATION_CREATE_POST_COMMENT' , true),
-    ]
+    ],
+    'ios_secret'=>'LDKEIJLAKXL',
+    'android_secret'=>'PEPVLKASDMW',
 ];

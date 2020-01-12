@@ -3,10 +3,12 @@
 
 namespace App\Resources;
 
+use App\Traits\CachablePost;
 use Illuminate\Http\Resources\Json\Resource;
 
 class PostCollection extends Resource
 {
+    use CachablePost;
     /**
      *
      */
@@ -26,9 +28,7 @@ class PostCollection extends Resource
             'post_media'=>$this->post_media,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
-            'post_view_num' => $this->when($this->relationLoaded('viewCount') , function(){
-                return $this->post_view_num;
-            }),
+            'post_view_num' => $this->viewVirtualCount($this->post_id),
             'post_created_at'=>optional($this->post_created_at)->toDateTimeString(),
             'post_format_created_at'=> $this->post_format_created_at,
             'tags'=>$this->when($this->relationLoaded('tag') , function (){

@@ -425,6 +425,74 @@ if (! function_exists('str_limit_by_lang')) {
         return $str;
     }
 }
+if (! function_exists('app_signature')) {
+    function app_signature(&$params)
+    {
+        if (empty($params['time_stamp']))
+        {
+            $params['time_stamp'] = time();
+        }
+        if (empty($params['version']))
+        {
+            $params['version'] = uniqid();
+        }
+        if (empty($params['platform']))
+        {
+            $params['platform'] = 1;
+        }
+        // 1. 字典升序排序
+        ksort($params);
+
+        // 2. 拼按URL键值对
+        $str = '';
+        foreach ($params as $key => $value)
+        {
+            if ($value !== '')
+            {
+                $str .= $key . '=' . urlencode($value) . '&';
+            }
+        }
+        if($params['platform']==1)
+        {
+            $appkey = config('android_secret');
+        }else{
+            $appkey = config('ios_secret');
+        }
+        // 3. 拼接app_key
+        $str .= 'app_key=' . $appkey;
+        // 4. MD5运算+转换大写，得到请求签名
+        $sign = strtolower(md5($str));
+        return $sign;
+    }
+}
+
+if (! function_exists('post_view')) {
+    function post_view($view_count=1)
+    {
+        if ($view_count < 6) {
+            switch ($view_count)
+            {
+                case 1:
+                    $num = mt_rand(50 , 100);
+                    break;
+                case 2:
+                    $num = mt_rand(100 , 800);
+                    break;
+                case 3:
+                    $num = mt_rand(800 , 2000);
+                    break;
+                case 4:
+                    $num = mt_rand(2000 , 4000);
+                    break;
+                default:
+                    $num = mt_rand(4000 , 7000);
+                    break;
+            }
+            return $num;
+        }
+        return ceil(round($view_count * 1.37 , 3)*1000)+mt_rand(1,10);
+    }
+}
 
 
 
