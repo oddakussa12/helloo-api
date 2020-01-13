@@ -23,6 +23,7 @@ return [
     'rate_coefficient'=>env('RATE_COEFFICIENT', 0.7),
     'like_coefficient'=>env('LIKE_COEFFICIENT', 5),
     'user_rank_coefficient'=>env('USER_RANK_COEFFICIENT', 1),
+    'user_rank_add_num'=>env('USER_RANK_ADD_NUM', 1),
     'more_than_post_comment_num'=>env('MORE_THAN_POST_COMMENT_NUM', 5),
     'post_throttle_num' =>env('POST_THROTTLE_NUM', 1),
     'post_comment_throttle_num' =>env('POST_COMMENT_THROTTLE_NUM', 2),
