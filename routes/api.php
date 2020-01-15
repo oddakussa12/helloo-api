@@ -87,17 +87,11 @@ $api->group($V1Params , function ($api){
 
         $api->put('post/{uuid}/favorite' , 'PostController@favorite')->name('post.favorite');
         $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite')->name('post.unFavorite');
-        $api->group(['middleware' => 'api.throttle', 'limit' => 1, 'expires' => 1] , function ($api){
-            $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
-        });
-        $api->group(['middleware' => 'api.throttle', 'limit' => 1, 'expires' => 1] , function ($api){
-            $api->put('post/{uuid}/dislike' , 'PostController@dislike')->name('post.dislike');
-        });
-        
+        $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
+        $api->post('post/{uuid}/block', 'PostController@block')->name('post.block');
+        $api->put('post/{uuid}/dislike' , 'PostController@dislike')->name('post.dislike');
         $api->put('post/{uuid}/revokeLike' , 'PostController@revokeLike')->name('post.revokeLike');
         $api->put('post/{uuid}/revokeDislike' , 'PostController@revokeDislike')->name('post.revokeDislike');
-        $api->post('post/{uuid}/block', 'PostController@block')->name('post.block');
-
         $api->put('postComment/{comment_id}/like' , 'PostCommentController@like')->name('comment.like');
 //                $api->put('postComment/{comment_id}/dislike' , 'PostCommentController@dislike');
         $api->put('postComment/{comment_id}/revokeVote' , 'PostCommentController@revokeVote')->name('comment.revokeVote');
