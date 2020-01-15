@@ -139,7 +139,7 @@ $api->group($V1Params , function ($api){
 
     $api->get('test' , 'TestController@index')->name('test.index');
     $api->get('clear/cache' , 'TestController@clearCache')->name('clear.cache');
-    $api->get('test/app' , 'AppController@index')->name('app.index');
+    $api->get('app/version' , 'AppController@index')->name('app.index');
     $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
 });
 
