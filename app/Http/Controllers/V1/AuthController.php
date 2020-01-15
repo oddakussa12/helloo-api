@@ -7,10 +7,8 @@ use Ramsey\Uuid\Uuid;
 use App\Models\PostComment;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginUserRequest;
-use Fenos\Notifynder\Facades\Notifynder;
 use Illuminate\Support\Facades\Password;
 use App\Http\Requests\ForgetPasswordRequest;
 use App\Repositories\Contracts\UserRepository;
@@ -180,22 +178,6 @@ class AuthController extends BaseController
         return 'name';
     }
 
-    public function test()
-    {
-        $disk = Storage::disk('idwebother');
-        $token = $disk->getUploadToken();
-        dd($token);
-        Notifynder::category('user.following')
-            ->from(54)
-            ->to(2)
-            ->extra(['message' => 'Hey John, I\'m Doe.']) // define additional data
-            ->extra(['action' => 'invitation'], false) // extend additional data
-            ->url('http://laravelacademy.org/notifications')
-            ->send();
-        $userNotified = $this->user->find(2);
-        dd($userNotified->getNotificationsNotRead()->toArray());
-    }
-
     public function handleProviderCallback(Request $request)
     {
         $oauthType = $request->input('oauthtype');
@@ -326,6 +308,45 @@ class AuthController extends BaseController
             }
         }
         return $this->response->noContent();
+    }
+
+    public function accountExists($account , $type)
+    {
+        $response = $this->response;
+        if(in_array($type , array('name' , 'email')))
+        {
+            $type = strtolower($type);
+            if($type=='name')
+            {
+                $rule = [
+                    $type => [
+                        'required',
+                        function ($attribute, $value, $fail) {
+                            if (emoji_test($value)) {
+                                $fail(trans('validation.regex'));
+                            }
+                        },
+                        'regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u',
+                        'min:4',
+                        'max:32',
+                        'unique:users,user_'.$type
+                    ],
+                ];
+            }else{
+                $rule = [
+                    $type => [
+                        'required',
+                        'email',
+                        'unique:users,user_'.$type
+                    ],
+                ];
+            }
+            \Validator::make(array($type=>$account), $rule)->validate();
+            $response = $response->noContent()->statusCode(200);
+        }else{
+            $response = $response->errorMethodNotAllowed();
+        }
+        return $response;
     }
 
 

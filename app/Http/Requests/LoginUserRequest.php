@@ -25,7 +25,14 @@ class LoginUserRequest extends FormRequest
     {
         return [
 //            //
-            'name'=>'required',
+            'name'=>[
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (emoji_test($value)) {
+                        $fail(trans('validation.regex'));
+                    }
+                },
+            ],
             'password'=>'required|min:4|max:16',
         ];
     }

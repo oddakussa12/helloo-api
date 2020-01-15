@@ -208,13 +208,7 @@ if (!function_exists('rate_comment_v2')) {
     {
         $gravity = $gravity==0?config('common.rate_coefficient'):$gravity;
         $ctime = strtotime($create_time);
-        $intervals = time()-$ctime;
-        if($intervals<86400)
-        {
-            $numerator = $likes + $comments + 1;
-        }else{
-            $numerator = $likes/config('common.like_coefficient') + $comments + 1;
-        }
+        $numerator = $likes + $comments + 1;
         return $numerator / pow(floor((time()-$ctime)/3600) + 2, $gravity);
     }
 }
@@ -493,6 +487,20 @@ if (! function_exists('post_view')) {
             return $num;
         }
         return ceil(round($view_count * 1.37 , 3)*1000)+mt_rand(1,10);
+    }
+}
+
+if (!function_exists('emoji_test')) {
+    function emoji_test($text)
+    {
+        $len = mb_strlen($text);
+        for ($i = 0; $i < $len; $i++) {
+            $word = mb_substr($text, $i, 1);
+            if (strlen($word) > 3) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
