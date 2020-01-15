@@ -428,15 +428,15 @@ if (! function_exists('str_limit_by_lang')) {
 if (! function_exists('app_signature')) {
     function app_signature(&$params)
     {
-        if (empty($params['time_stamp']))
+        if (!isset($params['time_stamp']))
         {
             $params['time_stamp'] = time();
         }
-        if (empty($params['version']))
+        if (!isset($params['version']))
         {
             $params['version'] = uniqid();
         }
-        if (empty($params['platform']))
+        if (!isset($params['platform']))
         {
             $params['platform'] = 1;
         }
@@ -449,19 +449,21 @@ if (! function_exists('app_signature')) {
         {
             if ($value !== '')
             {
-                $str .= $key . '=' . urlencode($value) . '&';
+                $str .= $key . '=' . $value . '&';
             }
         }
         if($params['platform']==1)
         {
-            $appkey = config('android_secret');
+            $appkey = config('common.android_secret');
         }else{
-            $appkey = config('ios_secret');
+            $appkey = config('common.ios_secret');
         }
         // 3. 拼接app_key
         $str .= 'app_key=' . $appkey;
         // 4. MD5运算+转换大写，得到请求签名
+
         $sign = strtolower(md5($str));
+
         return $sign;
     }
 }
