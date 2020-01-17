@@ -57,7 +57,7 @@ $api->group($V1Params , function ($api){
         $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
 
     });
-    $api->group(['middleware'=>'throttle:1,1'] , function ($api){
+    $api->group(['middleware'=>'throttle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
         $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');
     });
 
@@ -83,20 +83,30 @@ $api->group($V1Params , function ($api){
         $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken')->name('qn.token');
         $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo')->name('follow.two');
-        $api->post('user/{user}/block', 'UserController@block')->name('user.block');
 
-        $api->put('post/{uuid}/favorite' , 'PostController@favorite')->name('post.favorite');
-        $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite')->name('post.unFavorite');
-        $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
+        $api->post('user/{user}/block', 'UserController@block')->name('user.block');
         $api->post('post/{uuid}/block', 'PostController@block')->name('post.block');
-        $api->put('post/{uuid}/dislike' , 'PostController@dislike')->name('post.dislike');
+
+//        $api->put('post/{uuid}/favorite' , 'PostController@favorite')->name('post.favorite');
+//        $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite')->name('post.unFavorite');
+
+        $api->group(['middleware'=>['throttle:'.config('common.post_like_throttle_num').','.config('common.post_like_throttle_expired') , 'blacklist']] , function ($api){
+            $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
+        });
+
+        $api->group(['middleware'=>['throttle:'.config('common.post_dislike_throttle_num').','.config('common.post_dislike_throttle_expired') , 'blacklist']] , function ($api){
+            $api->put('post/{uuid}/dislike' , 'PostController@dislike')->name('post.dislike');
+        });
+
         $api->put('post/{uuid}/revokeLike' , 'PostController@revokeLike')->name('post.revokeLike');
         $api->put('post/{uuid}/revokeDislike' , 'PostController@revokeDislike')->name('post.revokeDislike');
-        $api->put('postComment/{comment_id}/like' , 'PostCommentController@like')->name('comment.like');
+        $api->group(['middleware'=>['throttle:'.config('common.post_comment_like_throttle_num').','.config('common.post_comment_like_throttle_expired') , 'blacklist']] , function ($api) {
+            $api->put('postComment/{comment_id}/like', 'PostCommentController@like')->name('comment.like');
+        });
 //                $api->put('postComment/{comment_id}/dislike' , 'PostCommentController@dislike');
         $api->put('postComment/{comment_id}/revokeVote' , 'PostCommentController@revokeVote')->name('comment.revokeVote');
-        $api->put('postComment/{comment_id}/favorite' , 'PostCommentController@favorite')->name('comment.favorite');
-        $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite')->name('comment.unFavorite');
+//        $api->put('postComment/{comment_id}/favorite' , 'PostCommentController@favorite')->name('comment.favorite');
+//        $api->put('postComment/{comment_id}/unfavorite' , 'PostCommentController@unfavorite')->name('comment.unFavorite');
         $api->get('user/myfollow' , 'UserController@myFollow')->name('myself.follow');
         $api->get('user/followme' , 'UserController@followMe')->name('myself.followMe');
         $api->put('user/{id}/follow' , 'UserController@follow')->name('user.follow');
@@ -104,11 +114,11 @@ $api->group($V1Params , function ($api){
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe')->name('other.followMe');
-        $api->group(['middleware'=>['throttle:'.config('common.post_throttle_num').',1' , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['throttle:'.config('common.post_throttle_num').','.config('common.post_throttle_expired') , 'blacklist']] , function ($api){
             $api->post('post' , 'PostController@store')->name('post.store');
         });
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
-        $api->group(['middleware'=>['throttle:'.config('common.post_comment_throttle_num').',1' , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['throttle:'.config('common.post_comment_throttle_num').','.config('common.post_comment_throttle_expired') , 'blacklist']] , function ($api){
             $api->post('postComment' , 'PostCommentController@store')->name('comment.store');
         });
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);

@@ -208,7 +208,13 @@ if (!function_exists('rate_comment_v2')) {
     {
         $gravity = $gravity==0?config('common.rate_coefficient'):$gravity;
         $ctime = strtotime($create_time);
-        $numerator = $likes + $comments + 1;
+        $intervals = time()-$ctime;
+        if($intervals<86400)
+        {
+            $numerator = $likes + $comments + 1;
+        }else{
+            $numerator = $comments + 1;
+        }
         return $numerator / pow(floor((time()-$ctime)/3600) + 2, $gravity);
     }
 }
