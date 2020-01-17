@@ -25,8 +25,20 @@ return [
     'user_rank_coefficient'=>env('USER_RANK_COEFFICIENT', 1),
     'user_rank_add_num'=>env('USER_RANK_ADD_NUM', 1),
     'more_than_post_comment_num'=>env('MORE_THAN_POST_COMMENT_NUM', 5),
+
+    'forget_password_throttle_num' =>env('FORGET_PASSWORD_THROTTLE_NUM', 1),
+    'forget_password_throttle_expired' =>env('FORGET_PASSWORD_THROTTLE_EXPIRED', 1),
     'post_throttle_num' =>env('POST_THROTTLE_NUM', 1),
+    'post_throttle_expired' =>env('POST_THROTTLE_EXPIRED', 1),
     'post_comment_throttle_num' =>env('POST_COMMENT_THROTTLE_NUM', 2),
+    'post_comment_throttle_expired' =>env('POST_COMMENT_THROTTLE_EXPIRED', 1),
+    'post_like_throttle_num' =>env('POST_Like_THROTTLE_NUM', 6),
+    'post_like_throttle_expired' =>env('POST_Like_THROTTLE_EXPIRED', 1),
+    'post_dislike_throttle_num' =>env('POST_DISLike_THROTTLE_NUM', 6),
+    'post_dislike_throttle_expired' =>env('POST_DISLike_THROTTLE_EXPIRED', 1),
+    'post_comment_like_throttle_num' =>env('POST_COMMENT_Like_THROTTLE_NUM', 6),
+    'post_comment_like_throttle_expired' =>env('POST_COMMENT_Like_THROTTLE_EXPIRED', 1),
+
     'authorization'=>[
         'create_post'=>env('AUTHORIZATION_CREATE_POST' , true),
         'create_post_comment'=>env('AUTHORIZATION_CREATE_POST_COMMENT' , true),
