@@ -16,9 +16,8 @@ class ThrottleRequests extends Throttle
             $this->calculateRemainingAttempts($key, $maxAttempts, $retryAfter),
             $retryAfter
         );
-
         return new HttpException(
-            429, trans('auth.throttle_limit'), null, $headers
+            429, trans('auth.throttle' , ['seconds' => $headers['X-RateLimit-Remain-Time']]), null, $headers
         );
     }
 
@@ -42,5 +41,21 @@ class ThrottleRequests extends Throttle
             $key .= '|'.$routeName;
         }
         return sha1($key);
+    }
+
+    protected function getHeaders($maxAttempts, $remainingAttempts, $retryAfter = null)
+    {
+        $headers = [
+            'X-RateLimit-Limit' => $maxAttempts,
+            'X-RateLimit-Remaining' => $remainingAttempts,
+        ];
+
+        if (! is_null($retryAfter)) {
+            $headers['Retry-After'] = $retryAfter;
+            $headers['X-RateLimit-Reset'] = $this->availableAt($retryAfter);
+            $headers['X-RateLimit-Remain-Time'] = $this->secondsUntil($retryAfter);
+        }
+
+        return $headers;
     }
 }
