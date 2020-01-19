@@ -17,7 +17,7 @@ class ThrottleRequests extends Throttle
             $retryAfter
         );
         return new HttpException(
-            429, trans('auth.throttle' , ['seconds' => $headers['X-RateLimit-Remain-Time']]), null, $headers
+            429, trans('auth.throttle_remain' , ['seconds' => $headers['X-RateLimit-Remain-Time']]), null, $headers
         );
     }
 

@@ -14,5 +14,6 @@ return [
 
     'failed'   => 'Estas credenciales no coinciden con nuestros registros.',
     'throttle' => 'Demasiados intentos de acceso. Por favor intente nuevamente en :seconds segundos.',
+    'throttle_remain' => 'Demasiados intentos. Please try again in :seconds seconds.',
     'throttle_limit' => 'La operación es muy frecuente, ¡intente más tarde!',
 ];

@@ -14,5 +14,6 @@ return [
 
     'failed'   => 'Identitas tersebut tidak cocok dengan data kami.',
     'throttle' => 'Terlalu banyak usaha masuk. Silahkan coba lagi dalam :seconds detik.',
+    'throttle_remain' => 'Terlalu banyak upaya. Silahkan coba lagi dalam :seconds detik.',
     'throttle_limit' => 'Operasi terlalu sering, silakan coba lagi nanti!',
 ];
