@@ -56,7 +56,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function findMyFollow($object)
     {
-        $followers = $object->followings()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
+        $followers = $object->followings()->orderByDesc('common_follows.created_at')->paginate(12,['*'],'follow_page');
 
         $userIds = $followers->pluck('user_id')->all(); //获取分页user id
 
@@ -75,7 +75,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function findFollowMe($object)
     {
-        $followers = $object->followers()->orderByDesc('common_follows.created_at')->paginate(10,['*'],'follow_page');
+        $followers = $object->followers()->orderByDesc('common_follows.created_at')->paginate(12 ,['*'],'follow_page');
 
         $userIds = $followers->pluck('user_id')->all(); //获取分页user id
 

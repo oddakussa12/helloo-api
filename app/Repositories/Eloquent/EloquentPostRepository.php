@@ -51,16 +51,16 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
 //        $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接
 
-        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
 
-        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
         $activeUsers = app(UserRepository::class)->getYesterdayUserRank(); //获取活跃用户
 
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum ,$activeUsers){
+        $posts->each(function ($item, $key) use ($activeUsers){
 //            $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
-            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
             $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
         });
         if(in_array('follow' , $include))
@@ -173,17 +173,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
 //            $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接开
 
-            $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-
-            $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+//            $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+//
+//            $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
 
             $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
 
-            $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $activeUsers) {
+            $posts->each(function ($item, $key) use ($activeUsers) {
 //                $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
-                $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-                $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+//                $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+//                $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
                 $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
             });
 
@@ -209,14 +209,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
 
-        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-
-        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
-
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum) {
-            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
-            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-        });
+//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+//
+//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+//
+//        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum) {
+//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+//        });
         return $posts->appends($appends);
     }
 
@@ -267,15 +267,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
 
-        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-
-        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+//
+//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
         $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $followers) {
-            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+        $posts->each(function ($item, $key) use ($followers) {
+//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
             $item->owner->user_follow_state = in_array($item->user_id , $followers);
         });
 
@@ -475,6 +475,13 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
         $posts = $this->removeHideUser($posts);
+        $queryTime = $request->get('query_time' , '');
+        if(empty($queryTime))
+        {
+            $queryTime = Carbon::now()->timestamp;
+        }
+        $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
+        $appends['query_time'] = $queryTime;
 //        $rate_coefficient = config('common.rate_coefficient');
 //        $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
 //        $posts->orderBy('rate' , 'DESC');
@@ -606,15 +613,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         ]);
         $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
 
-        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-
-        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
+//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
+//
+//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
         $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
 
-        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum , $activeUsers) {
-            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+        $posts->each(function ($item, $key) use ($activeUsers) {
+//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
+//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
             $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
         });
         return $posts->appends($appends);
