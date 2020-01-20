@@ -45,4 +45,5 @@ return [
     ],
     'ios_secret'=>'LDKEIJLAKXL',
     'android_secret'=>'PEPVLKASDMW',
+    'common_secret'=>'EIKANMECJ',
 ];

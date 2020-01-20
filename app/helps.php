@@ -206,7 +206,7 @@ if (!function_exists('rate_comment_v2')) {
      */
     function rate_comment_v2($comments, $create_time, $likes=0 , $gravity = 0)
     {
-        $gravity = $gravity==0?config('common.rate_coefficient'):$gravity;
+        $gravity = $gravity==0?post_gravity():$gravity;
         $ctime = strtotime($create_time);
         $intervals = time()-$ctime;
         if($intervals<86400)
@@ -251,8 +251,9 @@ if (!function_exists('first_rate_comment_v2')) {
      * @param float $gravity
      * @return float
      */
-    function first_rate_comment_v2($gravity = 1)
+    function first_rate_comment_v2($gravity = 0)
     {
+        $gravity = $gravity==0?post_gravity():$gravity;
         return 1 / pow(2, $gravity);
     }
 }
@@ -468,6 +469,35 @@ if (! function_exists('app_signature')) {
     }
 }
 
+if (! function_exists('common_signature')) {
+    function common_signature(&$params)
+    {
+        if (!isset($params['time_stamp']))
+        {
+            $params['time_stamp'] = time();
+        }
+        // 1. 字典升序排序
+        ksort($params);
+
+        // 2. 拼按URL键值对
+        $str = '';
+        foreach ($params as $key => $value)
+        {
+            if ($value !== '')
+            {
+                $str .= $key . '=' . $value . '&';
+            }
+        }
+        // 3. 拼接app_key
+        $str .= 'app_key=' . config('common.common_secret');
+        // 4. MD5运算+转换大写，得到请求签名
+
+        $sign = strtolower(md5($str));
+
+        return $sign;
+    }
+}
+
 if (! function_exists('post_view')) {
     function post_view($view_count=1)
     {
@@ -507,6 +537,20 @@ if (!function_exists('emoji_test')) {
             }
         }
         return false;
+    }
+}
+
+if (!function_exists('post_gravity'))
+{
+    function post_gravity(float $rate=0)
+    {
+        if($rate>0)
+        {
+            \Cache::forget('post_gravity');
+        }
+        return \Cache::rememberForever('post_gravity' , function() use ($rate){
+            return $rate>0?$rate:config('common.rate_coefficient');
+        });
     }
 }
 
