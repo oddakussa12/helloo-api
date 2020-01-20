@@ -2,36 +2,46 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Models\App;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 
-class AppController extends BaseController
+class SetController extends BaseController
 {
 
-    public function index(Request $request)
+    public function postRate(Request $request)
     {
-        $params = $request->only('platform' , 'version' , 'time_stamp');
+        $params = $request->only('referer' , 'time_stamp');
+        $rate = floatval($request->input('rate' , 0));
         $signature = strtolower(strval($request->input('signature')));
+        $app_signature = '';
         if(!empty($signature))
         {
-            $app_signature = app_signature($params);
+            $params['rate'] = $rate;
+            $app_signature = common_signature($params);
             if($signature==$app_signature)
             {
-                $app = $this->getFirstApp();
-                $platform = $app[$params['platform']];
-                $platform->isUpgrade = version_compare($params['version'] , $platform['version'] , '<');
-                return $this->response->array($platform);
+                post_gravity($rate);
+                return $this->response->noContent();
             }
         }
-        return $this->response->noContent();
+        $error = \json_encode(
+            array(
+                'params'=>$params ,
+                'rate'=>$rate ,
+                'signature'=>$signature ,
+                'app_signature'=>$app_signature
+            )
+        );
+        return $this->response->errorBadRequest($error);
+
     }
 
     protected function getFirstApp()
     {
         $ios = 0;
         $android = 1;
+        Cache::forget('lastVersionApp');
         return Cache::rememberForever('lastVersionApp' , function() use ($ios , $android){
             $app = new App();
             $ios_app = $app->where('platform' , $ios)->orderBy('id' , 'DESC')->first();
