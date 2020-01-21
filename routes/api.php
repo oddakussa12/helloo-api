@@ -148,7 +148,7 @@ $api->group($V1Params , function ($api){
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name')->name('user.account.exists');
-    $api->get('clear/cache' , 'TestController@clearCache')->name('clear.cache');
+    $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
     $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');

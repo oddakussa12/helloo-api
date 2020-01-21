@@ -21,7 +21,8 @@ class Kernel extends ConsoleKernel
 //        \App\Console\Commands\GenerateFinePostCache::class,
         \App\Console\Commands\GeneratePostAuto::class,
         \App\Console\Commands\GenerateUserFollow::class,
-        \App\Console\Commands\GenerateAutoIncreasePostView::class
+        \App\Console\Commands\GenerateAutoIncreasePostView::class,
+        \Torann\GeoIP\Console\Update::class
     ];
 
     /**
@@ -50,6 +51,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('generate:user_follow')
             ->hourly();
         $schedule->command('generate:auto_increase_post_view')
+            ->daily();
+        $schedule->command('geoip:update')
             ->daily();
     }
 
