@@ -97,7 +97,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $appends = array();
         $include = $request->input('include' , '');
-        $appends['include'] = $include;
+        if(!empty($include))
+        {
+            $appends['include'] = $include;
+        }
         $include = explode(',' ,$include);
         if($request->get('tag')!==null)
         {

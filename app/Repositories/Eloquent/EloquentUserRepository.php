@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
+use Dingo\Api\Exception\DeleteResourceFailedException;
 
 class EloquentUserRepository  extends EloquentBaseRepository implements UserRepository
 {
@@ -454,6 +455,30 @@ LIMIT 200");
             $follower = collect($followers)->random();
             $users = $users->pluck('user_id')->all();
             $follower->follow($users);
+        });
+    }
+
+    public function isDeletedUser($name)
+    {
+        $deletedUsers = $this->getDeletedUsers();
+        throw_if($deletedUsers->has($name), new DeleteResourceFailedException('Your account has been deleted!'));
+        throw_if($deletedUsers->flip()->has($name), new DeleteResourceFailedException('Your account has been deleted!'));
+    }
+
+    public function getDeletedUsers()
+    {
+        $deletedUsersFile = 'deletedUsers/users.json';
+        return Cache::rememberForever('deletedUsers' , function() use ($deletedUsersFile){
+            $users = array();
+            if(\Storage::exists($deletedUsersFile))
+            {
+                $deletedUsers = \json_decode(\Storage::get($deletedUsersFile) , true);
+                if(getType($deletedUsers)=='array')
+                {
+                    $users = $deletedUsers;
+                }
+            }
+            return collect($users);
         });
     }
 
