@@ -139,6 +139,7 @@ class AuthController extends BaseController
     {
         $user_fields = $request->only($this->username(), 'password');
         $credentials['password'] = $user_fields['password'];
+        //$this->user->isDeletedUser($user_fields[$this->username()]);
         $supportFields = array($this->user->getDefaultEmailField() , $this->user->getDefaultNameField());
         foreach ($supportFields as $field) {
             if (empty($user_fields[$field])) {

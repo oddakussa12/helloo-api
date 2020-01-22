@@ -42,8 +42,8 @@ class AppController extends BaseController
 
     public function clearCache(Request $request)
     {
-        Cache::forget('fine_post');
-        app(PostRepository::class)->getFinePostIds();
+        Cache::forget('lastVersionApp');
+        $this->getFirstApp();
         return $this->response->noContent();
     }
 
