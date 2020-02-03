@@ -632,4 +632,9 @@ LIMIT 200");
         ];
         return $this->model->inRandomOrder()->whereIn('user_id' , $faker)->take(10)->get();
     }
+
+    public function findByLikeName($name)
+    {
+        return $this->model->where('user_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id' , 'user_name' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
+    }
 }

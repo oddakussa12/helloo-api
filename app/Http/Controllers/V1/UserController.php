@@ -28,9 +28,27 @@ class UserController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         //
+        $name = $request->input('name' , '');
+        $users = collect(array());
+        $rule = [
+            'name' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (emoji_test($value)) {
+                        $fail(trans('validation.regex'));
+                    }
+                },
+                'regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u'
+            ],
+        ];
+        $validator = \Validator::make(array('name'=>$name), $rule);
+        if (!$validator->fails()) {
+            $users = $this->user->findByLikeName($name);
+        }
+        return UserCollection::collection($users);
     }
 
     /**
