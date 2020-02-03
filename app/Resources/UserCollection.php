@@ -33,6 +33,7 @@ class UserCollection extends Resource
             'user_is_guest'=>$this->user_is_guest,
             'user_follow_state' => $this->when(!($request->routeIs('show.more.comment')||
                                                 $request->routeIs('comment.myself')||
+                                                $request->routeIs('user.name.search')||
                                                 $request->routeIs('comment.store')||
                                                 $request->routeIs('post.index')||
                                                 $request->routeIs('post.top')||
