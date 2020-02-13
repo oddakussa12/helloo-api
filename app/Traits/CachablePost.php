@@ -233,12 +233,14 @@ trait CachablePost
             $countryList = collect(\json_decode(Redis::hget($postKey, $field) , true));
             $count = $countryList->count();
             $times = $count>10?10:$count;
-            $countryKeys = $countryList->keys()->random($times);
+            $countryList = $countryList->sort(function($x, $y){
+                return true;
+            })->take($times);
+
             $countries = config('countries');
-            $country = $countryKeys->map(function($item , $key) use ($countries , $countryList){
-                $country_num = $countryList->get($item, 0);
-                return array('country_code'=>strtolower($countries[$item-1]) , 'country_num'=>$country_num);
-            });
+            $country = $countryList->map(function($item , $key) use ($countries){
+                return array('country_code'=>strtolower($countries[$key-1]) , 'country_num'=>$item);
+            })->sortByDesc('country_num')->values();
         }
         return collect(array('data'=>$country , 'total'=>$count));
     }
