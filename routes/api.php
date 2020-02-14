@@ -68,6 +68,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');
     $api->post('user/signIn' , 'AuthController@signIn')->name('sign.in');
     $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
+    $api->post('auth/signIn/mobile/{mobile}' , 'AuthController@signInSmsSend')->name('sign.in.sms.send');
 
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
@@ -153,6 +154,7 @@ $api->group($V1Params , function ($api){
     $api->get('app/version' , 'AppController@index')->name('app.index');
     $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');
+    $api->get('post/{uuid}/country' , 'PostController@country')->name('post.country');
 });
 
 

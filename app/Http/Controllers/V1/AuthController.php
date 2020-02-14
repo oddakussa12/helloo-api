@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use SmsManager;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
 use App\Models\PostComment;
@@ -350,5 +351,11 @@ class AuthController extends BaseController
         return $response;
     }
 
+    public function signInSmsSend($mobile)
+    {
+        $result = SmsManager::requestVerifySms();
+        \Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
+        return $this->response->noContent();
+    }
 
 }

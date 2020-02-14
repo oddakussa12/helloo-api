@@ -220,6 +220,17 @@ class Post extends Model
         return $title;
     }
 
+    public function getPostIndexLocaleAttribute()
+    {
+        if($this->post_decode_title)
+        {
+            return $this->post_default_locale;
+        }else{
+            return $this->post_content_default_locale;
+        }
+
+    }
+
     public function getPostRealRateAttribute()
     {
 //        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
