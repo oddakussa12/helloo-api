@@ -211,7 +211,7 @@ if (!function_exists('rate_comment_v2')) {
         $intervals = time()-$ctime;
         if($intervals<86400)
         {
-            $numerator = $likes + $comments + 1;
+            $numerator = round(floatval(config('common.like_weight')) , 5)*$likes + $comments + 1;
         }else{
             $numerator = $comments + 1;
         }
