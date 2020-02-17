@@ -205,6 +205,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $posts->whereHas('translations', function ($query) use ($keywords) {
                 $query->where('post_title', 'LIKE', "%{$keywords}%");
             });
+            $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         }else{
             $posts = $posts->where('post_id' , 0);
         }
