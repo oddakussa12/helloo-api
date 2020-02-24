@@ -8,6 +8,7 @@ use Ramsey\Uuid\Uuid;
 use App\Models\PostComment;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
+use App\Resources\UserTagCollection;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use Illuminate\Support\Facades\Password;
@@ -91,6 +92,20 @@ class AuthController extends BaseController
         $user = auth()->user();
         $country_code = $request->input('country_code');
         $user_avatar = $request->input('user_avatar');
+        $user_cover = $request->input('user_cover');
+        $user_gender = $request->input('user_gender');
+        $user_picture = $request->input('user_picture' , array());
+        $tag_slug = array_diff($request->input('tag_slug' , array()),array(null , ''));
+        $user_picture = \array_filter($user_picture , function($v , $k){
+            return !empty($v);
+        } , ARRAY_FILTER_USE_BOTH );
+        ksort($user_picture);
+        if(empty($user_picture))
+        {
+            $user_picture = array_slice($user_picture,0 , 8);
+            $user_picture_json = \json_encode($user_picture);
+            $fields['user_picture'] = $user_picture_json;
+        }
         if(!empty($country_code))
         {
             $fields['user_country_id'] = $country_code;
@@ -99,9 +114,21 @@ class AuthController extends BaseController
         {
             $fields['user_avatar'] = $user_avatar;
         }
+        if(!empty($user_cover))
+        {
+            $fields['user_cover'] = $user_cover;
+        }
+        if(!empty($user_gender))
+        {
+            $fields['user_gender'] = $user_gender;
+        }
         if(!empty($fields))
         {
             $user = $this->user->update($user,$fields);
+        }
+        if(!empty($tag_slug))
+        {
+            $this->user->attachTags($user , $tag_slug);
         }
         return $user;
     }
@@ -172,6 +199,9 @@ class AuthController extends BaseController
         $user->yesterdayScore = optional($yesterday_score_rank)->user_rank_score;
         $user->yesterdayRank = optional($yesterday_score_rank)->rank;
         $user->userRank = $rank;
+        $user->userTags = UserTagCollection::collection($user->tags);
+        unset($user->tags);
+        unset($user->user_country);
         return $this->response->array($user);
     }
 

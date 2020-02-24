@@ -2,7 +2,6 @@
 
 namespace App\Listeners;
 
-use App\Jobs\Jpush;
 use App\Traits\CachablePost;
 use App\Events\PostCommentCreated;
 
