@@ -150,6 +150,7 @@ $api->group($V1Params , function ($api){
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name')->name('user.account.exists');
     $api->get('user' , 'UserController@index')->name('user.name.search');
+    $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
     $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
