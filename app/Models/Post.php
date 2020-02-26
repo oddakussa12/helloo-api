@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use App\Traits\tag\HasTags;
+use App\Traits\CachablePost;
 use App\Traits\like\CanBeLiked;
 use App\Traits\dislike\CanBeDisliked;
 use Dimsav\Translatable\Translatable;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
 {
-    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags;
+    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags,CachablePost;
 
     public $currentLocale = 'en';
 
@@ -220,6 +221,17 @@ class Post extends Model
         return $title;
     }
 
+    public function getPostIndexLocaleAttribute()
+    {
+        if($this->post_decode_title)
+        {
+            return $this->post_default_locale;
+        }else{
+            return $this->post_content_default_locale;
+        }
+
+    }
+
     public function getPostRealRateAttribute()
     {
 //        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');
@@ -312,7 +324,9 @@ class Post extends Model
 
     public function calculatingRate()
     {
-        $rate = rate_comment_v2($this->post_comment_num , $this->post_created_at,$this->post_like_num);
+        $commenterNum = $this->commenterCount($this->getKey());
+        $countryNum = $this->countryNum($this->getKey());
+        $rate = rate_comment_v3($this->post_comment_num , $this->post_created_at, $this->post_like_num , $commenterNum , $countryNum);
         if($rate!=$this->post_rate)
         {
             $this->timestamps = false;

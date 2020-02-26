@@ -306,6 +306,13 @@ class PostController extends BaseController
         return $this->response->created();
     }
 
+    public function country($uuid)
+    {
+        $post = $this->post->findOrFailByUuid($uuid);
+        $postCountries = $this->post->getPostCountry($post->post_id);
+        return $this->response->array($postCountries);
+    }
+
 
     public function test()
     {

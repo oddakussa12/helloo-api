@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\V1;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\V1\BaseController;
 use App\Models\User;
-use App\Repositories\Contracts\UserRepository;
-use App\Resources\UserCollection;
 use App\Events\Follow;
 use App\Events\UnFollow;
+use Illuminate\Http\Request;
+use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
+use Illuminate\Support\Facades\Storage;
+use App\Repositories\Contracts\UserRepository;
+
 class UserController extends BaseController
 {
 
@@ -28,9 +28,27 @@ class UserController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         //
+        $name = $request->input('name' , '');
+        $users = collect(array());
+        $rule = [
+            'name' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (emoji_test($value)) {
+                        $fail(trans('validation.regex'));
+                    }
+                },
+                'regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u'
+            ],
+        ];
+        $validator = \Validator::make(array('name'=>$name), $rule);
+        if (!$validator->fails()) {
+            $users = $this->user->findByLikeName($name);
+        }
+        return UserCollection::collection($users);
     }
 
     /**
@@ -190,5 +208,39 @@ class UserController extends BaseController
         $disk = Storage::disk($driver);
         $token = $disk->getUploadToken(null , 3600 , $policy);
         return array('qntoken'=>$token);
+    }
+
+    public function profileLike($id)
+    {
+        $this->user->profileLike($id);
+        return $this->response->noContent();
+    }
+
+    public function profileRevokeLike($id)
+    {
+        $this->user->profileRevokeLike($id);
+        return $this->response->noContent();
+    }
+
+    public function cancelled($name , $email)
+    {
+        $deletedUsersFile = 'deletedUsers/users.json';
+        $cancelledUsers = array();
+        if(\Storage::exists($deletedUsersFile))
+        {
+            $deletedUsers = \json_decode(\Storage::get($deletedUsersFile) , true);
+            if(getType($deletedUsers)=='array')
+            {
+                $cancelledUsers = $deletedUsers;
+            }
+        }
+        $cancelledUsers = collect($cancelledUsers);
+        if(!($cancelledUsers->has($name)||$cancelledUsers->flip()->has($name)||$cancelledUsers->flip()->has($email)||$cancelledUsers->flip()->has($email)))
+        {
+            $cancelledUsers->put($name , $email);
+            \Storage::put($deletedUsersFile , \json_encode($cancelledUsers , JSON_ERROR_UNSUPPORTED_TYPE|JSON_PRETTY_PRINT));
+            \Cache::forget('deletedUsers');
+        }
+
     }
 }

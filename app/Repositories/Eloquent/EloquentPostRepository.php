@@ -203,8 +203,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $keywords = $request->get('keywords');
             $appends['keywords'] = $keywords;
             $posts->whereHas('translations', function ($query) use ($keywords) {
-                $query->where('post_title', 'LIKE', "%{$keywords}%");
+                $query->where('post_content', 'LIKE', "%{$keywords}%");
             });
+            $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         }else{
             $posts = $posts->where('post_id' , 0);
         }
@@ -580,6 +581,22 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }
         }
         return $num;
+    }
+
+    public function getPostCountry($postId)
+    {
+        $countryData = collect();
+        $postKey = 'post.'.$postId.'.data';
+        $field = 'country';
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $countryData = collect(\json_decode(Redis::hget($postKey, $field) , true));
+        }
+        $countries = config('countries');
+        $country = $countryData->map(function($item , $key) use ($countries){
+            return array('country_code'=>strtolower($countries[$key-1]) , 'country_num'=>$item);
+        })->sortByDesc('country_num')->values()->all();
+        return $country;
     }
 
     public function getCustomFinePost()

@@ -25,6 +25,10 @@ return [
     'user_rank_coefficient'=>env('USER_RANK_COEFFICIENT', 1),
     'user_rank_add_num'=>env('USER_RANK_ADD_NUM', 1),
     'more_than_post_comment_num'=>env('MORE_THAN_POST_COMMENT_NUM', 5),
+    'like_weight'=>env('LIKE_WEIGHT', 0),
+    'comment_weight'=>env('COMMENT_WEIGHT', 1),
+    'commenter_weight'=>env('COMMENTER_WEIGHT', 0),
+    'post_country_weight'=>env('POST_COUNTRY_WEIGHT', 0),
 
     'forget_password_throttle_num' =>env('FORGET_PASSWORD_THROTTLE_NUM', 1),
     'forget_password_throttle_expired' =>env('FORGET_PASSWORD_THROTTLE_EXPIRED', 1),

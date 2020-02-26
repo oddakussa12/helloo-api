@@ -2,7 +2,6 @@
 
 namespace App\Listeners;
 
-use App\Jobs\Jpush;
 use App\Models\Post;
 use App\Events\Liked;
 use App\Models\PostComment;
@@ -43,10 +42,12 @@ class LikeListener
             $keyName = $object->getKeyName();
             $tmpLikeNum = $event->getTmpLikeNum();
             $keyValue = $object->getKey();
+            $commenterNum = $this->commenterCount($keyValue);
+            $countryNum = $this->countryNum($keyValue);
             $commentNum = $object->post_comment_num;
             $likeNum = $object->post_like_num+$event->getType();
             $createdTime = $object->post_created_at;
-            $rate = rate_comment_v2($commentNum , $createdTime , $likeNum);
+            $rate = rate_comment_v3($commentNum , $createdTime , $likeNum , $commenterNum , $countryNum);
             if($rate!=$object->post_rate)
             {
                 $extra = array('post_rate'=>$rate);

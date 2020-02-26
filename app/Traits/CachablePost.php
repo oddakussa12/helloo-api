@@ -2,7 +2,6 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redis;
 
 trait CachablePost
@@ -222,6 +221,19 @@ trait CachablePost
         Redis::hset($postKey , $field , $likeData);
     }
 
+    public function countryNum($id)
+    {
+        $postKey = 'post.'.$id.'.data';
+        $field = 'country';
+        $count = 0;
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $countryList = collect(\json_decode(Redis::hget($postKey, $field) , true));
+            $count = $countryList->count();
+        }
+        return $count;
+    }
+
     public function countryCount($id)
     {
         $postKey = 'post.'.$id.'.data';
@@ -233,12 +245,14 @@ trait CachablePost
             $countryList = collect(\json_decode(Redis::hget($postKey, $field) , true));
             $count = $countryList->count();
             $times = $count>10?10:$count;
-            $countryKeys = $countryList->keys()->random($times);
+            $countryList = $countryList->sort(function($x, $y){
+                return true;
+            })->take($times);
+
             $countries = config('countries');
-            $country = $countryKeys->map(function($item , $key) use ($countries , $countryList){
-                $country_num = $countryList->get($item, 0);
-                return array('country_code'=>strtolower($countries[$item-1]) , 'country_num'=>$country_num);
-            });
+            $country = $countryList->map(function($item , $key) use ($countries){
+                return array('country_code'=>strtolower($countries[$key-1]) , 'country_num'=>$item);
+            })->sortByDesc('country_num')->values();
         }
         return collect(array('data'=>$country , 'total'=>$count));
     }
@@ -277,5 +291,70 @@ trait CachablePost
             }
         }
         Redis::hset($postKey , $field , $countryData);
+    }
+
+    public function commenterCount($id)
+    {
+        $postKey = 'post.'.$id.'.data';
+        $field = 'commenter';
+        $count = 0;
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $count = collect(\json_decode(Redis::hget($postKey, $field) , true))->count();
+        }
+        return $count;
+    }
+
+    public function isNewCommenter($id , $user)
+    {
+        $num = 0;
+        $postKey = 'post.'.$id.'.data';
+        $field = 'commenter';
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $commentData = \json_decode(Redis::hget($postKey, $field) , true);
+            if(array_key_exists($user ,$commentData))
+            {
+                $num = $commentData[$user];
+            }
+        }
+        return $num;
+    }
+
+    public function updateComment($id, $user , $add=true)
+    {
+        // we need to make sure the cached data exists
+        $postKey = 'post.'.$id.'.data';
+        $field = 'commenter';
+        $commentData = collect();
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $commentData = \json_decode(Redis::hget($postKey, $field) , true);
+            if(array_key_exists($user ,$commentData))
+            {
+                if($add)
+                {
+                    $commentData[$user] = $commentData[$user]+1;
+                }else{
+                    $commentData[$user] = $commentData[$user]-1;
+                    if($commentData[$user]<=0)
+                    {
+                        unset($commentData[$user]);
+                    }
+                }
+            }else{
+                if($add)
+                {
+                    $commentData[$user] = 1;
+                }
+            }
+            $commentData = collect($commentData);
+        }else{
+            if($add)
+            {
+                $commentData = collect(array($user=>1));
+            }
+        }
+        Redis::hset($postKey , $field , $commentData);
     }
 }

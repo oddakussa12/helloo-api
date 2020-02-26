@@ -18,6 +18,7 @@ class PostPaginateCollection extends Resource
             'post_uuid' => $this->post_uuid,
             'post_media' => $this->post_media,
             'post_default_locale' => $this->post_default_locale,
+            'post_index_locale' => $this->post_index_locale,
             'post_title' => $this->post_index_title,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
