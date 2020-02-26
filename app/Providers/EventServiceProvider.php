@@ -50,6 +50,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\UnFollow' => [
             'App\Listeners\UnFollowListener',
         ],
+        'App\Events\UserProfileLikeEvent' => [
+            'App\Listeners\UserProfileLikeListener',
+        ],
+        'App\Events\UserProfileRevokeLikeEvent' => [
+            'App\Listeners\UserProfileRevokeLikeListener',
+        ],
     ];
 
     /**

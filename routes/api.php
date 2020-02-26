@@ -68,7 +68,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');
     $api->post('user/signIn' , 'AuthController@signIn')->name('sign.in');
     $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
-    $api->post('auth/signIn/mobile/{mobile}' , 'AuthController@signInSmsSend')->name('sign.in.sms.send');
+    $api->get('auth/smsCode' , 'AuthController@smsSend')->name('auth.sms.send');
 
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
@@ -112,6 +112,8 @@ $api->group($V1Params , function ($api){
         $api->get('user/followme' , 'UserController@followMe')->name('myself.followMe');
         $api->put('user/{id}/follow' , 'UserController@follow')->name('user.follow');
         $api->put('user/{id}/unfollow' , 'UserController@unfollow')->name('user.unFollow');
+        $api->put('user/{user}/like' , 'UserController@profileLike')->name('user.profile.like');
+        $api->put('user/{user}/revokeLike' , 'UserController@profileRevokeLike')->name('user.profile.revoke.like');
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe')->name('other.followMe');
@@ -150,6 +152,7 @@ $api->group($V1Params , function ($api){
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name')->name('user.account.exists');
     $api->get('user' , 'UserController@index')->name('user.name.search');
+    $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
     $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');

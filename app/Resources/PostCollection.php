@@ -41,12 +41,13 @@ class PostCollection extends Resource
                     'post_content' => $this->post_decode_content,
                 ]);
             }),
-            'post_country'=>$this->when($request->routeIs('post.myself') , function (){
-                return collect([
-                    'total'=>collect($this->countryNum)->get('country_num' , 0),
-                    'data'=>$this->countries
-                ]);
-            }),
+//            'post_country'=>$this->when($request->routeIs('post.myself') , function (){
+//                return collect([
+//                    'total'=>collect($this->countryNum)->get('country_num' , 0),
+//                    'data'=>$this->countries
+//                ]);
+//            }),
+            'post_country'=>$this->countryCount($this->post_id),
             $this->mergeWhen($request->routeIs('post.show'), function (){
                 return collect([
                     'post_media'=>$this->post_media,

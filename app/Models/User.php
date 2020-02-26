@@ -10,6 +10,7 @@ use App\Traits\follow\CanBeFollowed;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use App\Foundation\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Fenos\Notifynder\Traits\NotifableLaravel53 as NotifableTrait;
 
 class User extends Authenticatable implements JWTSubject
@@ -60,7 +61,8 @@ class User extends Authenticatable implements JWTSubject
         'user_is_pro' ,
         'user_age_changed' ,
         'user_ip_address' ,
-        'user_score' ,
+        'user_profile_like_num' ,
+        'user_picture' ,
     ];
 
     public $default_name_field = 'user_name';
@@ -80,15 +82,11 @@ class User extends Authenticatable implements JWTSubject
         'user_pwd',
         'user_first_name' ,
         'user_last_name' ,
-        'user_gender' ,
         'user_email_code' ,
         'user_device_id' ,
         'user_language' ,
-        'user_cover' ,
         'user_src' ,
         'user_country_id' ,
-        'user_age' ,
-        'user_about' ,
         'user_google' ,
         'user_facebook' ,
         'user_twitter' ,
@@ -111,6 +109,29 @@ class User extends Authenticatable implements JWTSubject
             return $value;
         }
         return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+    }
+    public function getUserCoverAttribute($value)
+    {
+        $value = empty($value)?'userdefalutcover.jpg':$value;
+        if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
+            return $value;
+        }
+        return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+    }
+
+    public function getUserPictureAttribute($value)
+    {
+        $value = \json_decode($value , true);
+        $value = $value===null?array():$value;
+        return \array_map(function($v){
+            return config('common.qnUploadDomain.avatar_domain').$v.'?imageMogr2/auto-orient/interlace/1|imageslim';
+        } , $value);
+
+    }
+
+    public function getUserAboutAttribute($value)
+    {
+        return strval($value);
     }
 
 //    public function videoViews()
@@ -197,6 +218,25 @@ class User extends Authenticatable implements JWTSubject
         $this->timestamps = false;
         $this->user_score = $score;
         $this->save();
+    }
+
+    public function profileLike()
+    {
+        return $this->hasOne(UserProfileLike::class , 'user_id' , 'user_id');
+    }
+
+    public function tags(): MorphToMany
+    {
+        return $this
+            ->morphToMany(UserTag::class, 'taggable' , 'users_taggables' , 'taggable_id' , 'tag_id')
+            ->orderBy('tag_sort');
+    }
+
+    public function setUserGenderAttribute($value)
+    {
+        $value = intval($value);
+        $value = $value==1?$value:0;
+        $this->attributes['user_gender'] = $value;
     }
 
 

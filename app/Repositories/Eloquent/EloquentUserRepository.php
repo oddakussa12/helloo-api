@@ -10,11 +10,15 @@ namespace App\Repositories\Eloquent;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
+use App\Models\UserTag;
 use App\Models\PostComment;
 use App\Models\YesterdayScore;
 use Illuminate\Support\Facades\DB;
+use App\Events\UserProfileLikeEvent;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Model;
+use App\Events\UserProfileRevokeLikeEvent;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
 use Dingo\Api\Exception\DeleteResourceFailedException;
@@ -485,150 +489,7 @@ LIMIT 200");
     public function generateFollower()
     {
         $faker = [
-            "28398",
-            "28426",
-            "28432",
-            "15741",
-            "28463",
-            "28427",
-            "15719",
-            "15688",
-            "27639",
-            "23294",
-            "26477",
-            "26795",
-            "28399",
-            "23306",
-            "27637",
-            "27845",
-            "28413",
-            "26803",
-            "28423",
-            "28365",
-            "28425",
-            "28438",
-            "27638",
-            "28445",
-            "8144",
-            "15689",
-            "15701",
-            "28313",
-            "15698",
-            "28362",
-            "28402",
-            "23297",
-            "15675",
-            "28428",
-            "28374",
-            "15710",
-            "26781",
-            "28363",
-            "23296",
-            "27647",
-            "15743",
-            "15666",
-            "28443",
-            "15700",
-            "28446",
-            "27649",
-            "28451",
-            "27643",
-            "28300",
-            "15724",
-            "28389",
-            "26868",
-            "27648",
-            "26823",
-            "27667",
-            "26786",
-            "28303",
-            "28414",
-            "26843",
-            "15680",
-            "15679",
-            "28424",
-            "28421",
-            "28439",
-            "28375",
-            "28378",
-            "28420",
-            "28447",
-            "28422",
-            "23302",
-            "15699",
-            "26827",
-            "28401",
-            "28386",
-            "27652",
-            "28441",
-            "28376",
-            "28317",
-            "28430",
-            "28435",
-            "28452",
-            "23310",
-            "28411",
-            "15665",
-            "27644",
-            "27666",
-            "28384",
-            "26833",
-            "28462",
-            "28387",
-            "26849",
-            "23313",
-            "28364",
-            "26476",
-            "27850",
-            "28419",
-            "26826",
-            "28388",
-            "28431",
-            "28400",
-            "14173",
-            "26806",
-            "23295",
-            "15705",
-            "28429",
-            "23293",
-            "27848",
-            "26800",
-            "28299",
-            "28316",
-            "26862",
-            "28479",
-            "28371",
-            "28442",
-            "15722",
-            "28434",
-            "28369",
-            "28367",
-            "28377",
-            "15697",
-            "28450",
-            "28448",
-            "28373",
-            "27655",
-            "28360",
-            "28361",
-            "28290",
-            "28314",
-            "28315",
-            "28370",
-            "28444",
-            "28318",
-            "28412",
-            "28437",
-            "28390",
-            "15673",
-            "26830",
-            "28440",
-            "26865",
-            "28449",
-            "15667",
-            "28372",
-            "28366",
-            "28385"
+
         ];
         return $this->model->inRandomOrder()->whereIn('user_id' , $faker)->take(10)->get();
     }
@@ -636,5 +497,46 @@ LIMIT 200");
     public function findByLikeName($name)
     {
         return $this->model->where('user_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id' , 'user_name' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
+    }
+
+    public function profileLike($id)
+    {
+        $user = $this->findOrFail($id);
+        $likeUserId = auth()->id();
+        $userProfileLikeKey = 'user.'.$id.'.profile.like';
+        $userProfileLikesKey = 'user.profile.likes';
+        if(Redis::zrank($userProfileLikeKey , $likeUserId)===null)
+        {
+            $like = auth()->user()->profileLike()->updateOrCreate(array('profile_user_id'=>$user->getKey()));
+            event(new UserProfileLikeEvent($user));
+            Redis::zadd($userProfileLikeKey , $like->created_at->timestamp , $likeUserId);
+            Redis::zIncrBy($userProfileLikesKey , 1 , $id);
+        }
+    }
+
+    public function profileRevokeLike($id)
+    {
+        $user = $this->findOrFail($id);
+        $likeUserId = auth()->id();
+        $userProfileLikeKey = 'user.'.$id.'.profile.like';
+        $userProfileLikesKey = 'user.profile.likes';
+        if(Redis::zrank($userProfileLikeKey , $likeUserId)!==null)
+        {
+            auth()->user()->profileLike()->delete();
+            event(new UserProfileRevokeLikeEvent($user));
+            Redis::zrem($userProfileLikeKey , $likeUserId);
+            Redis::zIncrBy($userProfileLikesKey , -1 , $id);
+        }
+    }
+
+    public function attachTags(Model $user  , $tag_slug)
+    {
+        $tags = UserTag::whereIn('tag_slug' , $tag_slug)->select('tag_id' , 'tag_slug')->get();
+        $tags_id = $tags->pluck('tag_id')->toArray();
+        $tags_id = array_filter($tags_id ,function($v){
+            return is_int($v);
+        });
+        $user->tags()->sync($tags_id);
+
     }
 }

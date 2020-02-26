@@ -219,6 +219,43 @@ if (!function_exists('rate_comment_v2')) {
     }
 }
 
+if (!function_exists('rate_comment_v3')) {
+    /**
+     * Calculates the rate for sorting by hot.
+     *
+     * @param $comments
+     * @param $create_time
+     * @param int $likes
+     * @param int $commenters
+     * @param int $countries
+     * @param float $gravity
+     * @return float
+     */
+    function rate_comment_v3($comments, $create_time, $likes=0 , $commenters=0 , $countries=0 , $gravity = 0)
+    {
+        $gravity = $gravity==0?post_gravity():$gravity;
+        $ctime = strtotime($create_time);
+        $intervals = time()-$ctime;
+        $likeWeight = config('common.like_weight');
+        $commentWeight = config('common.comment_weight');
+        $commenterWeight = config('common.commenter_weight');
+        $postCountryWeight = config('common.post_country_weight');
+        $numerator = round(floatval($commentWeight) , 5)*$comments
+            + round(floatval($commenterWeight) , 5)*$commenters
+            + round(floatval($postCountryWeight) , 5)*$countries
+            + 1;
+        if($intervals<86400)
+        {
+            $numerator = $numerator + round(floatval($likeWeight) , 5)*$likes
+                + round(floatval($commentWeight) , 5)*$comments
+                + round(floatval($commenterWeight) , 5)*$commenters
+                + round(floatval($postCountryWeight) , 5)*$countries
+                + 1;
+        }
+        return $numerator / pow(floor((time()-$ctime)/3600) + 2, $gravity);
+    }
+}
+
 if (!function_exists('domains')) {
     /**
      * Calculates the rate for sorting by hot.
