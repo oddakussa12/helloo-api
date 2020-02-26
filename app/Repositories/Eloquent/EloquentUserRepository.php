@@ -536,7 +536,7 @@ LIMIT 200");
         $tags_id = array_filter($tags_id ,function($v){
             return is_int($v);
         });
-        $user->tags()->syncWithoutDetaching($tags_id);
+        $user->tags()->sync($tags_id);
 
     }
 }

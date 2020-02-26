@@ -96,13 +96,13 @@ class AuthController extends BaseController
         $user_avatar = $request->input('user_avatar');
         $user_cover = $request->input('user_cover');
         $user_gender = $request->input('user_gender');
-        $user_picture = $request->input('user_picture' , array());
+        $user_picture = (array)$request->input('user_picture' , array());
         $tag_slug = array_diff($request->input('tag_slug' , array()),array(null , ''));
         $user_picture = \array_filter($user_picture , function($v , $k){
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
         ksort($user_picture);
-        if(!empty($user_picture))
+        if($request->has('user_picture'))
         {
             $user_picture = array_slice($user_picture,0 , 8);
             $user_picture_json = \json_encode($user_picture);
@@ -128,15 +128,15 @@ class AuthController extends BaseController
         {
             $fields['user_cover'] = $user_cover;
         }
-        if(!empty($user_gender))
+        if($user_gender!==null)
         {
-            $fields['user_gender'] = $user_gender;
+            $fields['user_gender'] = intval($user_gender);
         }
         if(!empty($fields))
         {
             $user = $this->user->update($user,$fields);
         }
-        if(!empty($tag_slug))
+        if($request->has('tag_slug'))
         {
             $this->user->attachTags($user , $tag_slug);
         }
