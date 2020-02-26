@@ -44,7 +44,7 @@ class CalculatingCommenter extends Command
             $postIds = $posts->pluck('post_id')->all();
             $sql = "select count(`user_id`) as `num`,`user_id`, `post_id` from `f_posts_comments` where `post_id` in (
 ".join(',' , $postIds)."
-) AND `comment_deleted_at is NUll` GROUP BY `post_id`,`user_id`;";
+) AND `comment_deleted_at` is NUll GROUP BY `post_id`,`user_id`;";
             $commenters = collect(\DB::select($sql));
             foreach ($postIds as $postId)
             {
