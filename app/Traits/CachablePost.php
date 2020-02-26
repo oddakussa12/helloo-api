@@ -2,7 +2,6 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Redis;
 
 trait CachablePost
@@ -220,6 +219,19 @@ trait CachablePost
         $likeData[$likeType] = $likeCount<0?0:$likeCount;
         $likeData = collect($likeData);
         Redis::hset($postKey , $field , $likeData);
+    }
+
+    public function countryNum($id)
+    {
+        $postKey = 'post.'.$id.'.data';
+        $field = 'country';
+        $count = 0;
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $countryList = collect(\json_decode(Redis::hget($postKey, $field) , true));
+            $count = $countryList->count();
+        }
+        return $count;
     }
 
     public function countryCount($id)

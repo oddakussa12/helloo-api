@@ -37,10 +37,13 @@ class PostCommentCreatedListener
         $postComment = $event->getPostComment();
         $post = $event->getPost();
         $user = $event->getUser();
+        $keyValue = $post->getKey();
+        $commenterNum = $this->commenterCount($keyValue);
+        $countryNum = $this->countryNum($keyValue);
         $commentNum = $post->post_comment_num+$type;
         $likeNum = $post->post_like_num;
         $createdTime = $post->post_created_at;
-        $rate = rate_comment_v2($commentNum , $createdTime , $likeNum);
+        $rate = rate_comment_v3($commentNum , $createdTime , $likeNum , $commenterNum , $countryNum);
         if($rate!=$post->post_rate)
         {
             $extra = array('post_rate'=>$rate);
@@ -77,6 +80,7 @@ class PostCommentCreatedListener
             );
         }
         $this->updateCountry($post->post_id , $user->user_country_id);
+        $this->updateComment($post->post_id , $user->getKey());
         $user->increment('user_score' , 3);
     }
 }

@@ -62,6 +62,7 @@ class User extends Authenticatable implements JWTSubject
         'user_age_changed' ,
         'user_ip_address' ,
         'user_profile_like_num' ,
+        'user_picture' ,
     ];
 
     public $default_name_field = 'user_name';

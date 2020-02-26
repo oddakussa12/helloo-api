@@ -62,12 +62,10 @@ class UserCollection extends Resource
             'user_rank_score' => $this->when($request->routeIs('user.rank') , function () use ($request){
                 return $this->user_rank_score;
             })
-            ,'userTags'=>$this->when(in_array('tag' , $include) , function (){
-                return $this->tags;
-            })
             ,$this->mergeWhen($request->routeIs('user.show'), function (){
                 return collect([
-                    'user_age'=> UserTagCollection::collection($this->user_age),
+                    'user_age'=> $this->user_age,
+                    'userTags'=> UserTagCollection::collection($this->tags),
                     'user_gender'=>$this->user_gender,
                     'user_like_state'=>$this->isLiked($this->user_id),
                     'user_followme_count'=>$this->followers()->count(),

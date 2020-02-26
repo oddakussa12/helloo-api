@@ -91,6 +91,8 @@ class AuthController extends BaseController
     {
         $user = auth()->user();
         $country_code = $request->input('country_code');
+        $user_age = $request->input('user_age');
+        $user_about = $request->input('user_about');
         $user_avatar = $request->input('user_avatar');
         $user_cover = $request->input('user_cover');
         $user_gender = $request->input('user_gender');
@@ -100,7 +102,7 @@ class AuthController extends BaseController
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
         ksort($user_picture);
-        if(empty($user_picture))
+        if(!empty($user_picture))
         {
             $user_picture = array_slice($user_picture,0 , 8);
             $user_picture_json = \json_encode($user_picture);
@@ -110,9 +112,17 @@ class AuthController extends BaseController
         {
             $fields['user_country_id'] = $country_code;
         }
+        if($user_age!==null)
+        {
+            $fields['user_age'] = $user_age;
+        }
         if(!empty($user_avatar))
         {
             $fields['user_avatar'] = $user_avatar;
+        }
+        if(!empty($user_about))
+        {
+            $fields['user_about'] = $user_about;
         }
         if(!empty($user_cover))
         {
