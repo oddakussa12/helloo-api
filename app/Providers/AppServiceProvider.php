@@ -60,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        $this->app['request']->server->set('HTTPS', domain()!=domain(config('app.url'))||env('REDIRECT_HTTPS'  , false));
+        $this->app['request']->server->set('HTTPS', domain()==domain(config('app.url'))||env('REDIRECT_HTTPS'  , false));
 
 
     }
