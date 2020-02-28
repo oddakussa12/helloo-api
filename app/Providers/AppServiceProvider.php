@@ -59,8 +59,9 @@ class AppServiceProvider extends ServiceProvider
                 \Log::info(' execution time: '.$query->time.'ms; '.$tmp."\n\n\t");
             });
         }
-
-        $this->app['request']->server->set('HTTPS', domain()==domain(config('app.url'))||env('REDIRECT_HTTPS'  , false));
+        $request = $this->app['request'];
+        $isSecure = $this->app['request']->isSecure()||domain()==domain(config('app.url'))||env('REDIRECT_HTTPS'  , false);
+        $request->server->set('HTTPS', $isSecure);
 
 
     }
