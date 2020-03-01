@@ -166,6 +166,7 @@ class AuthController extends BaseController
                 'user_email'=>$user->user_email,
                 'user_country'=>$user->user_country,
                 'user_is_guest'=>$user->user_is_guest,
+                'user_level'=>$user->user_level,
                 'yesterdayScore' => optional($yesterday_score_rank)->user_rank_score,
                 'yesterdayRank' => optional($yesterday_score_rank)->rank,
                 'userRank' => $rank

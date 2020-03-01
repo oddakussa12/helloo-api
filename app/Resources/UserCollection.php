@@ -36,6 +36,7 @@ class UserCollection extends Resource
             'user_score' => $this->user_score,
             'user_country'=>$this->user_country,
             'user_is_guest'=>$this->user_is_guest,
+            'user_level'=>$this->user_level,
             'user_follow_state' => $this->when(!($request->routeIs('show.more.comment')||
                                                 $request->routeIs('comment.myself')||
                                                 $request->routeIs('user.name.search')||

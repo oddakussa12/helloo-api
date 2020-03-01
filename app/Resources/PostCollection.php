@@ -51,12 +51,15 @@ class PostCollection extends Resource
             $this->mergeWhen($request->routeIs('post.show'), function (){
                 return collect([
                     'post_media'=>$this->post_media,
-                    'post_view_num' => $this->post_view_num,
+//                    'post_view_num' => $this->post_view_num,
                 ]);
             }),
             'post_owner' =>$this->when(!$request->routeIs('post.hot') , function (){
                 return $this->post_owner;
             }),
+            'postLike' =>$this->likeCount($this->post_id),
+            'post_like_state'=>$this->post_like_state,
+            'post_dislike_state'=>$this->post_dislike_state,
             $this->mergeWhen(!($request->routeIs('post.hot')||$request->routeIs('notification.index')), function (){
                 return collect(array(
                     'owner'=>new UserCollection($this->owner),

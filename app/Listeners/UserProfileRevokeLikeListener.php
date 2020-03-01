@@ -19,7 +19,7 @@ class UserProfileRevokeLikeListener
     /**
      * Handle the event.
      *
-     * @param PostViewEvent $event
+     * @param UserProfileRevokeLikeEvent $event
      * @return void
      */
     public function handle(UserProfileRevokeLikeEvent $event)
