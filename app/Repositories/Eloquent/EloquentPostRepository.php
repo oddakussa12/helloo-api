@@ -227,7 +227,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function showByUuid($uuid)
     {
         $post = $this->model;
-        $post = $post->where('post_uuid', $uuid);
+        $post = $post->where('post_uuid', $uuid)->with('likers')->with('dislikers');
 //        $post = $post->with(['tags' => function($query){
 //            $query->with('translations');
 //        }]);

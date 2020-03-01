@@ -59,7 +59,7 @@ class User extends Authenticatable implements JWTSubject
         'user_verified' ,
         'user_is_guest' ,
         'user_is_pro' ,
-        'user_age_changed' ,
+        'user_level' ,
         'user_ip_address' ,
         'user_profile_like_num' ,
         'user_picture' ,

@@ -19,7 +19,7 @@ class UserProfileLikeListener
     /**
      * Handle the event.
      *
-     * @param PostViewEvent $event
+     * @param UserProfileLikeEvent $event
      * @return void
      */
     public function handle(UserProfileLikeEvent $event)
