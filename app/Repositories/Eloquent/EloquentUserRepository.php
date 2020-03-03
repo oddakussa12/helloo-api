@@ -496,7 +496,7 @@ LIMIT 200");
 
     public function findByLikeName($name)
     {
-        return $this->model->where('user_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id' , 'user_name' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
+        return $this->model->where('user_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id' , 'user_name' , 'user_level' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
     }
 
     public function profileLike($id)
