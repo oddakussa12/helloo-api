@@ -243,4 +243,23 @@ class UserController extends BaseController
         }
 
     }
+
+    public function isRyOnline($id)
+    {
+        return $this->response->array(array(
+            'status'=>$this->user->isOnline($id)
+        ));
+    }
+
+    public function updateRyUserOnlineState(Request $request)
+    {
+        \Log::error(\json_encode($request->all()));
+        $id = $request->input('userid');
+        $status = $request->input('status');
+        if($id!=null&&$status!==null)
+        {
+            $this->user->updateUserOnlineState($id , $status);
+        }
+        return $this->response->noContent();
+    }
 }
