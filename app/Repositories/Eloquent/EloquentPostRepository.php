@@ -126,6 +126,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             if($type=='default'&&$orderBy=='rate'&&$follow==null)
             {
                 $posts = $this->getFinePosts($posts);
+            }else if($type=='new'&&$follow==null){
+                $posts = $this->getMixPosts($posts);
             }else{
 //                $posts = $posts->with('viewCount');
                 $posts = $this->removeHidePost($posts);
@@ -779,5 +781,96 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 }
             }
         }
+    }
+
+    public function generateNewPostRandRank()
+    {
+
+        $whereIn = false;
+        $redis = new RedisList();
+        $postKey = 'post_index_new';
+        $redis->delKey($postKey);
+        $i = 0;
+        $posts = $this->model;
+        $posts->orderBy('post_created_at' , 'DESC')->chunk(10 , function($posts) use ($redis , $postKey , &$i , $whereIn){
+            if(!$whereIn)
+            {
+                $i++;
+                if($i>100)
+                {
+                    return false;
+                }
+            }
+            foreach ($posts as $post)
+            {
+
+                $redis->zAdd($postKey , strtotime(optional($post->post_created_at)->toDateTimeString()) , $post->post_id);
+            }
+        });
+    }
+
+    public function generateRatePostRandRank()
+    {
+        $whereIn = false;
+        $redis = new RedisList();
+        $postKey = 'post_index_rate';
+        $redis->delKey($postKey);
+        $i = 0;
+        $posts = $this->model;
+        $posts->orderBy('post_rate' , 'DESC')->chunk(10 , function($posts) use ($redis , $postKey , &$i , $whereIn){
+            if(!$whereIn)
+            {
+                $i++;
+                if($i>100)
+                {
+                    return false;
+                }
+            }
+            foreach ($posts as $post)
+            {
+                $redis->zAdd($postKey , $post->post_rate , $post->post_id);
+            }
+        });
+    }
+
+    public function getMixPosts($posts)
+    {
+        $appends =array();
+        $request = request();
+        $newPerPage = config('common.post_new_per');
+        $ratePerPage = config('common.post_rate_per');
+        $perPage = $newPerPage+$ratePerPage;
+        $redis = new RedisList();
+        $pageName = $this->pageName;
+        $page = $request->input( $pageName, 1);
+        $queryTime = $request->input( 'query_time', time());
+        $newKey = 'post_index_new';
+        $rateKey = 'post_index_rate';
+        $rateOffset = ($page-1)*$ratePerPage;
+        $newOffset = ($page-1)*$newPerPage;
+        if($redis->existsKey($rateKey))
+        {
+            $rateTotal = $redis->zSize($rateKey);
+            $ratePostIds = $redis->zRevRangeByScore($rateKey , '+inf' , '-inf' , true , array($rateOffset , $ratePerPage));
+            $newTotal = $redis->zSize($newKey);
+            $newPostIds = $redis->zRevRangeByScore($newKey , $queryTime , '-inf' , true , array($newOffset , $newPerPage));
+            $postIds = array_merge(array_keys($ratePostIds) , array_keys($newPostIds));
+            $total = $rateTotal+$newTotal;
+        }else{
+            $total = 0;
+            $postIds = array();
+        }
+        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+        $appends['order'] = $order;
+        $orderBy = $request->get('order_by' , 'rate');
+        $appends['order_by'] = $orderBy;
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts = $this->removeHidePost($posts);
+        $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();
+        $posts = $this->paginator($posts, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+        return $posts->appends($appends);
     }
 }

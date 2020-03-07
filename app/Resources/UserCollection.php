@@ -30,7 +30,9 @@ class UserCollection extends Resource
             'user_id'=>$this->user_id,
             'user_name'=>$this->user_name,
             'user_avatar'=>$this->user_avatar,
-            'user_cover'=>$this->user_cover,
+            'user_cover'=>$this->when($request->routeIs('my.profile')||$request->routeIs('user.show'),function (){
+                return $this->user_cover;
+            }),
             'user_gender'=>$this->user_gender,
             'user_about'=>$this->user_about,
             'user_score' => $this->user_score,
@@ -47,6 +49,7 @@ class UserCollection extends Resource
                                                 $request->routeIs('show.comment.by.post')||
                                                 $request->routeIs('show.post.by.user')||
                                                 $request->routeIs('notification.index')||
+                                                $request->routeIs('user.ry.online.random')||
                                                 $request->routeIs('show.locate.comment'))
                                                 ||in_array('follow' , $include), function () use ($request){
 

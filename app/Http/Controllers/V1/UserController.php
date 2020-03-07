@@ -241,7 +241,18 @@ class UserController extends BaseController
             \Storage::put($deletedUsersFile , \json_encode($cancelledUsers , JSON_ERROR_UNSUPPORTED_TYPE|JSON_PRETTY_PRINT));
             \Cache::forget('deletedUsers');
         }
+    }
 
+    public function randRyOnlineUser(Request $request)
+    {
+        $userId = intval($this->user->randDiffRyOnlineUser());
+        if($userId>0)
+        {
+            $user = $this->user->findOrFail($userId);
+            return new UserCollection($user);
+        }else{
+            return $this->response->errorNotFound();
+        }
     }
 
     public function isRyOnline($id)
@@ -253,12 +264,15 @@ class UserController extends BaseController
 
     public function updateRyUserOnlineState(Request $request)
     {
-        \Log::error(\json_encode($request->all()));
-        $id = $request->input('userid');
-        $status = $request->input('status');
-        if($id!=null&&$status!==null)
+        $user = $request->input('0');
+        if(!empty($user))
         {
-            $this->user->updateUserOnlineState($id , $status);
+            $id = array_get($user , 'userid');
+            $status = array_get($user , 'status');
+            if($id!=null&&$status!==null)
+            {
+                $this->user->updateUserOnlineState($id , $status);
+            }
         }
         return $this->response->noContent();
     }

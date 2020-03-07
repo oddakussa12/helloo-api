@@ -412,17 +412,70 @@ DOC;
         return $data->all();
     }
 
+    protected function randRyOnlineUser()
+    {
+        $key = 'ry_user_online_state';
+        return Redis::srandmember($key);
+    }
+
+    public function randDiffRyOnlineUser()
+    {
+        $key = 'ry_user_online_state';
+        $selfUser = intval(request()->input('self'));
+        if($selfUser>0)
+        {
+            $tmpUsedUserKey = 'ry_tmp_used_user_'.$selfUser;
+            $diffUsedUserKey = 'ry_diff_used_user_'.$selfUser;
+            $usedUser = request()->input('used' , array());
+            $usedUser = getType($usedUser)=='array'?$usedUser:array();
+            array_push($usedUser , $selfUser);
+            $usedUser = array_unique($usedUser);
+            if(!empty($usedUser))
+            {
+                Redis::sadd($tmpUsedUserKey , $usedUser);
+            }
+            Redis::sdiffstore($diffUsedUserKey , array($key , $tmpUsedUserKey));
+
+            $user =  Redis::srandmember($diffUsedUserKey);
+
+            Redis::del($diffUsedUserKey);
+            Redis::del($tmpUsedUserKey);
+            if(intval($user)<=0)
+            {
+                $randUsersFile = 'randUsers/users.json';
+                if(\Storage::exists($randUsersFile))
+                {
+                    $randUsers = \json_decode(\Storage::get($randUsersFile) , true);
+                    if(getType($randUsers)=='array')
+                    {
+                        $user = array_random(array_unique(array_diff($randUsers , $usedUser)));
+                    }
+                }
+            }
+            return $user;
+        }else{
+            return $this->randRyOnlineUser();
+        }
+    }
+
     public function updateUserOnlineState($id , $status)
     {
         $key = 'ry_user_online_state';
+        $bitKey = 'ry_user_online_state_bit';
         $status = intval($status)>0?1:0;
-        Redis::setBit($key , $id , $status);
+        Redis::setBit($bitKey , $id , $status);
+        if($status==0)
+        {
+            Redis::sadd($key , $id);
+        }else{
+            Redis::srem($key , $id);
+        }
     }
 
     public function isOnline($id)
     {
-        $key = 'ry_user_online_state';
-        $statue = Redis::getBit($key , $id);
+        $bitKey = 'ry_user_online_state_bit';
+        $statue = Redis::getBit($bitKey , $id);
         return intval($statue);
     }
 
