@@ -50,4 +50,6 @@ return [
     'ios_secret'=>'LDKEIJLAKXL',
     'android_secret'=>'PEPVLKASDMW',
     'common_secret'=>'EIKANMECJ',
+    'post_new_per'=>config('POST_NEW_PER' , 3),
+    'post_rate_per'=>config('POST_RATE_PER' , 7),
 ];

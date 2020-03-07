@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Models\User;
 use App\Models\Post;
 use Ramsey\Uuid\Uuid;
+use App\Custom\RedisList;
 use Illuminate\Http\Request;
 use App\Events\PostViewEvent;
 use App\Jobs\PostTranslation;
@@ -277,6 +277,9 @@ class PostController extends BaseController
             $user = auth()->user();
             $user->decrement('user_score' , 2);
         }
+        $redis = new RedisList();
+        $postKey = 'post_index_new';
+        $redis->zRem($postKey , $post->getKey());
         return $this->response->noContent();
     }
 

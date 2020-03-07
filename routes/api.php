@@ -160,6 +160,7 @@ $api->group($V1Params , function ($api){
     $api->get('post/{uuid}/country' , 'PostController@country')->name('post.country');
     $api->get('user/{id}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
+    $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
 });
 
 

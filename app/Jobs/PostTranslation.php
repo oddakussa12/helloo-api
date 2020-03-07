@@ -3,11 +3,12 @@
 namespace App\Jobs;
 
 use App\Models\Post;
-use App\Services\TencentTranslateService;
+use App\Custom\RedisList;
 use Illuminate\Bus\Queueable;
 use App\Services\TranslateService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Services\TencentTranslateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
@@ -55,6 +56,9 @@ class PostTranslation implements ShouldQueue
             $user = auth()->user();
             $user->increment('user_score' , 2);
         }
+        $redis = new RedisList();
+        $postKey = 'post_index_new';
+        $redis->zAdd($postKey , strtotime(optional($this->post->post_created_at)->toDateTimeString()) , $this->post->getKey());
     }
     /**
      * Execute the job.
