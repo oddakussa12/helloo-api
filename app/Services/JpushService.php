@@ -193,6 +193,9 @@ class JpushService
             case 'comment':
                 $title = trans('notifynder.user.comment' , [] , $lang);
                 break;
+            case 'post_comment':
+                $title = trans('notifynder.user.post_comment' , [] , $lang);
+                break;
             case 'follow':
                 $title = trans('notifynder.user.follow' , [] , $lang);
                 break;

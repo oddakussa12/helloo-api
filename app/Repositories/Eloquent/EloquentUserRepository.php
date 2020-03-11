@@ -428,6 +428,7 @@ DOC;
             $diffUsedUserKey = 'ry_diff_used_user_'.$selfUser;
             $usedUser = request()->input('used' , array());
             $usedUser = getType($usedUser)=='array'?$usedUser:array();
+            $usedUser = array_slice($usedUser , 0 , 2);
             array_push($usedUser , $selfUser);
             $usedUser = array_unique($usedUser);
             if(!empty($usedUser))
