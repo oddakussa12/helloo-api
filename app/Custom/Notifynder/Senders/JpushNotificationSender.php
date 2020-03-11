@@ -57,6 +57,8 @@ class JpushNotificationSender implements SenderContract
                     $type = 'like';
                 break;
             case 'user.post_comment':
+                $type = 'post_comment';
+                break;
             case 'user.comment':
                 $type = 'comment';
                 break;
