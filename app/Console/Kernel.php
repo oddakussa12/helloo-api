@@ -22,6 +22,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GeneratePostAuto::class,
         \App\Console\Commands\GenerateUserFollow::class,
         \App\Console\Commands\GenerateAutoIncreasePostView::class,
+        \App\Console\Commands\GeneratePostRank::class,
         \Torann\GeoIP\Console\Update::class
     ];
 
@@ -52,6 +53,10 @@ class Kernel extends ConsoleKernel
             ->everyTenMinutes();
         $schedule->command('generate:auto_increase_post_view')
             ->daily();
+        $schedule->command('generate:post_rank')
+            ->hourlyAt(25);
+        $schedule->command('generate:post_rank')
+            ->hourlyAt(55);
         $schedule->command('geoip:update')
             ->daily();
     }
