@@ -477,7 +477,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $orderBy = $request->get('order_by' , 'post_created_at');
         $appends['order_by'] = $orderBy;
 //        $posts = $posts->with('viewCount');
-        $posts = $posts->where('post_' , 1);
+        $posts = $posts->where('post_hoting' , 1);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
         $posts = $this->removeHideUser($posts);
