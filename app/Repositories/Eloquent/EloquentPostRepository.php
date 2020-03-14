@@ -126,7 +126,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             if($type=='default'&&$orderBy=='rate'&&$follow==null)
             {
                 $posts = $this->getFinePosts($posts);
-            }else if($type=='new'&&$follow==null){
+            }else if($type=='mix'&&$follow==null){
                 $posts = $this->getMixPosts($posts);
             }else{
 //                $posts = $posts->with('viewCount');
@@ -811,9 +811,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function generateRatePostRandRank()
     {
+        $index = intval(ceil(date('i')/30));
+        $index = $index!=1?1:2;
         $whereIn = false;
         $redis = new RedisList();
-        $postKey = 'post_index_rate';
+        $postKey = 'post_index_rate_'.$index;
         $redis->delKey($postKey);
         $i = 0;
         $posts = $this->model;
@@ -843,11 +845,22 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $redis = new RedisList();
         $pageName = $this->pageName;
         $page = $request->input( $pageName, 1);
-        $queryTime = $request->input( 'query_time', time());
+        $queryTime = $request->input( 'query_time', '');
+        if(empty($queryTime))
+        {
+            $queryTime = Carbon::now()->timestamp;
+        }
+        $appends['query_time'] = $queryTime;
         $newKey = 'post_index_new';
-        $rateKey = 'post_index_rate';
+
+        $index = intval($request->input( 'index', ceil(date('i' , time())/30)));
+        $index = !in_array($index , array(1 , 2))?ceil(date('i' , time())/30):$index;
+        $appends['index'] = $index;
+
+        $rateKey = 'post_index_rate_'.$index;
         $rateOffset = ($page-1)*$ratePerPage;
         $newOffset = ($page-1)*$newPerPage;
+
         if($redis->existsKey($rateKey))
         {
             $rateTotal = $redis->zSize($rateKey);
@@ -860,10 +873,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $total = 0;
             $postIds = array();
         }
-        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
-        $appends['order'] = $order;
-        $orderBy = $request->get('order_by' , 'rate');
-        $appends['order_by'] = $orderBy;
+//        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+//        $appends['order'] = $order;
+//        $orderBy = $request->get('order_by' , 'rate');
+//        $appends['order_by'] = $orderBy;
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
         $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();

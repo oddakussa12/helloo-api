@@ -59,6 +59,7 @@ class PostTranslation implements ShouldQueue
         $redis = new RedisList();
         $postKey = 'post_index_new';
         $redis->zAdd($postKey , strtotime(optional($this->post->post_created_at)->toDateTimeString()) , $this->post->getKey());
+        $redis->remZsetList($postKey , 1000);
     }
     /**
      * Execute the job.

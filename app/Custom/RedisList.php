@@ -97,6 +97,13 @@ class RedisList{
             Redis::zremrangebyrank($key,0,count($data)-1);
         }
     }
+
+    // 设置zset的长度
+    public function remZsetList($key,$lenth =4){
+        if($this->zSize($key)>$lenth){
+            Redis::zremrangebyrank($key,0,0);
+        }
+    }
     public function getListInfoByCondition($key,$start,$end,array $limit,$sort = 'asc'){
         if($sort == 'desc'){
             $pageNum = $limit['limit'][0]*$limit['limit'][1];
