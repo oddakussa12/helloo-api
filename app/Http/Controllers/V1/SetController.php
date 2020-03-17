@@ -68,7 +68,7 @@ class SetController extends BaseController
     public function clearDxCache(Request $request)
     {
         $switch = intval($request->input('switch' , 1));
-        $post_uuid = intval($request->input('post_uuid' , ''));
+        $post_uuid = strval($request->input('post_uuid' , ''));
         Cache::forget('dxSwitch');
         Cache::rememberForever('dxSwitch' , function() use ($switch , $post_uuid) {
             return array('switch'=>intval($switch) , 'post_uuid'=>strval($post_uuid));
