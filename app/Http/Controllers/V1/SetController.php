@@ -59,17 +59,19 @@ class SetController extends BaseController
 
     public function dxSwitch()
     {
-        $value = Cache::remember('dxSwitch', 100 , function() {
-            return 1;
+        $value = Cache::rememberForever('dxSwitch' , function() {
+            return array('switch'=>1 , 'post_uuid'=>'');
         });
-        return $this->response->array(array('switch'=>$value));
+        return $this->response->array($value);
     }
 
     public function clearDxCache(Request $request)
     {
         $switch = intval($request->input('switch' , 1));
-        Cache::remember('dxSwitch', 100 , function() use ($switch) {
-            return $switch;
+        $post_uuid = intval($request->input('post_uuid' , ''));
+        Cache::forget('dxSwitch');
+        Cache::rememberForever('dxSwitch' , function() use ($switch , $post_uuid) {
+            return array('switch'=>intval($switch) , 'post_uuid'=>strval($post_uuid));
         });
         return $this->response->noContent();
     }

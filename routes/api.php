@@ -158,6 +158,7 @@ $api->group($V1Params , function ($api){
     $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');
     $api->get('set/dx/switch' , 'SetController@dxSwitch')->name('set.dx.switch');
+    $api->post('set/dx/clearDxCache' , 'SetController@clearDxCache')->name('set.dx.switch.clear.cache');
     $api->get('post/{uuid}/country' , 'PostController@country')->name('post.country');
     $api->get('user/{id}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
