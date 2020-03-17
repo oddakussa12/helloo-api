@@ -4,7 +4,6 @@
 namespace App\Resources;
 
 use App\Traits\CachablePost;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Resources\Json\Resource;
 
 class PostPaginateCollection extends Resource
@@ -15,9 +14,6 @@ class PostPaginateCollection extends Resource
      */
     public function toArray($request)
     {
-        $cache = Cache::rememberForever('dxSwitch' , function() {
-            return array('switch'=>1 , 'post_uuid'=>'');
-        });
         return [
             'post_uuid' => $this->post_uuid,
             'post_media' => $this->post_media,
@@ -27,9 +23,8 @@ class PostPaginateCollection extends Resource
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
             'post_view_num' => $this->viewVirtualCount($this->post_id),
-            'topTwoComments'=> $this->when(isset($this->topTwoComments) , function () use ($cache){
-                $order = $cache['post_uuid']==$this->post_uuid?'comment_id':'comment_like_temp_num';
-                return PostCommentCollection::collection($this->topTwoComments)->sortByDesc($order)->values()->all();
+            'topTwoComments'=> $this->when(isset($this->topTwoComments) , function (){
+                return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_like_temp_num')->values()->all();
             }),
 //            'post_country'=> collect([
 //                'total'=>collect($this->countryNum)->get('country_num' , 0),
