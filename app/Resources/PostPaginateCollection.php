@@ -28,7 +28,7 @@ class PostPaginateCollection extends Resource
             'post_comment_num' => $this->post_comment_num,
             'post_view_num' => $this->viewVirtualCount($this->post_id),
             'topTwoComments'=> $this->when(isset($this->topTwoComments) , function () use ($cache){
-                $order = $cache==$this->post_uuid?'comment_id':'comment_like_temp_num';
+                $order = $cache['post_uuid']==$this->post_uuid?'comment_id':'comment_like_temp_num';
                 return PostCommentCollection::collection($this->topTwoComments)->sortByDesc($order)->values()->all();
             }),
 //            'post_country'=> collect([
