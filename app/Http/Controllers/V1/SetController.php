@@ -50,10 +50,27 @@ class SetController extends BaseController
         });
     }
 
-    public function clearCache(Request $request)
+    public function clearCache()
     {
         Cache::forget('fine_post');
         app(PostRepository::class)->getFinePostIds();
+        return $this->response->noContent();
+    }
+
+    public function dxSwitch()
+    {
+        $value = Cache::remember('dxSwitch', 100 , function() {
+            return 1;
+        });
+        return $this->response->array(array('switch'=>$value));
+    }
+
+    public function clearDxCache(Request $request)
+    {
+        $switch = intval($request->input('switch' , 1));
+        Cache::remember('dxSwitch', 100 , function() use ($switch) {
+            return $switch;
+        });
         return $this->response->noContent();
     }
 

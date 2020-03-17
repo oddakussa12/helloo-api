@@ -128,6 +128,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $posts = $this->getFinePosts($posts);
             }else if($type=='mix'&&$follow==null){
                 $posts = $this->getMixPosts($posts);
+            }else if($type=='tmp'&&$follow==null){
+                $posts = $this->getTmpPosts($posts);
             }else{
 //                $posts = $posts->with('viewCount');
                 $posts = $this->removeHidePost($posts);
@@ -171,6 +173,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     //            {
     //                $posts->orderBy($sort, $order);
     //            }
+                $posts = $posts->where('post_type' , '!=' , 'tmp');
                 $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             }
 
@@ -449,6 +452,20 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        ]);
 //        return $posts->appends($appends);
 //    }
+    public function getTmpPosts($posts)
+    {
+        $appends =array();
+        $request = request();
+        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+        $appends['order'] = $order;
+        $orderBy = $request->get('order_by' , 'post_created_at');
+        $appends['order_by'] = $orderBy;
+        $posts = $posts->where('post_type' , 'tpm');
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts->orderBy($this->model->getCreatedAtColumn() , 'DESC');
+        $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+        return $posts->appends($appends);
+    }
 
 
     public function getFinePosts($posts)
@@ -492,6 +509,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
 //        $posts->orderBy('rate' , 'DESC');
         $posts->orderBy('post_rate' , 'DESC');
+        $posts = $posts->where('post_type' , '!=' , 'tmp');
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 //        $posts = $this->paginator($posts, $total, $perPage, $page, [
 //            'path' => Paginator::resolveCurrentPath(),
