@@ -268,7 +268,9 @@ class Post extends Model
         {
             Carbon::setLocale('zh_TW');
         }else{
-            $translator = \Carbon\Translator::get('en');
+            $locale = 'en';
+            Carbon::setLocale($locale);
+            $translator = \Carbon\Translator::get($locale);
             $translator->setMessages($locale , [
                 'minute' => ':count m|:count m',
                 'hour' => ':count h|:count h',
