@@ -42,9 +42,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
                 $query->where('users.user_id' , auth()->id());
             }]);
         }
-        $cache = Cache::rememberForever('dxSwitch' , function() {
-            return array('switch'=>1 , 'post_uuid'=>'');
-        });
+        $cache = dx_uuid();
         $orderBy = $uuid==$cache['post_uuid']?'comment_id':'comment_like_num';
         $comments = $comments->with('owner')
             ->orderBy($orderBy, 'DESC')
@@ -81,9 +79,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
     public function findByCommentTopId($postUuid , $commentTopId , $commentLastId , $queryTime=null)
     {
-        $cache = Cache::rememberForever('dxSwitch' , function() {
-            return array('switch'=>1 , 'post_uuid'=>'');
-        });
+        $cache = dx_uuid();
         $comments = $this->allWithBuilder();
         if($commentLastId!=0)
         {
@@ -257,9 +253,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
     public function topTwoComments($commentIds , $uuid=null , $queryTime=null)
     {
-        $cache = Cache::rememberForever('dxSwitch' , function() {
-            return array('switch'=>1 , 'post_uuid'=>'');
-        });
+        $cache = dx_uuid();
         $order = $uuid==$cache['post_uuid']?'desc':'asc';
         $topTwoCommentQuery = PostComment::whereIn('comment_top_id',$commentIds)
             ->where('comment_comment_p_id' , '>' , 0);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -59,20 +60,29 @@ class SetController extends BaseController
 
     public function dxSwitch()
     {
-        $value = Cache::rememberForever('dxSwitch' , function() {
-            return array('switch'=>1 , 'post_uuid'=>'');
-        });
-        return $this->response->array($value);
+        $agent = new Agent();
+        if($agent->match('YooulAndroid'))
+        {
+            $key = 'dxSwitchAndroid';
+        }else{
+            $key = 'dxSwitchIos';
+        }
+        return $this->response->array(array_merge(dx_uuid(), dx_switch($key) , array('type'=>$key)));
     }
 
     public function clearDxCache(Request $request)
     {
-        $switch = intval($request->input('switch' , 1));
+        $switch = intval($request->input('switch' , 0));
         $post_uuid = strval($request->input('post_uuid' , ''));
-        Cache::forget('dxSwitch');
-        Cache::rememberForever('dxSwitch' , function() use ($switch , $post_uuid) {
-            return array('switch'=>intval($switch) , 'post_uuid'=>strval($post_uuid));
-        });
+        $type = strval($request->input('type' , 'android'));
+        if($type=='android')
+        {
+            $key = 'dxSwitchAndroid';
+        }else{
+            $key = 'dxSwitchIos';
+        }
+        dx_switch($key , $switch);
+        dx_uuid($post_uuid);
         return $this->response->noContent();
     }
 

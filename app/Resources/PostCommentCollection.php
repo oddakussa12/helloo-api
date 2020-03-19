@@ -13,9 +13,7 @@ class PostCommentCollection extends Resource
      */
     public function toArray($request)
     {
-        $cache = Cache::rememberForever('dxSwitch' , function() {
-            return array('switch'=>1 , 'post_uuid'=>'');
-        });
+        $cache = dx_uuid();
         return [
             'comment_id' => $this->comment_id,
             'comment_comment_p_id' => $this->comment_comment_p_id,
