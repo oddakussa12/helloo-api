@@ -257,10 +257,11 @@ if (!function_exists('rate_comment_v3')) {
     }
 }
 
-if (!function_exists('domains')) {
+if (!function_exists('domain')) {
     /**
      * Calculates the rate for sorting by hot.
      *
+     * @param null $domain
      * @param string $item
      * @return float
      */
