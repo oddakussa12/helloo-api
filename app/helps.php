@@ -596,7 +596,7 @@ if (!function_exists('dx_switch'))
 {
     function dx_switch($key='dx_switch' , $switch=null)
     {
-        if($switch!=null)
+        if($switch!==null)
         {
             Cache::forget($key);
         }
