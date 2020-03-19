@@ -24,6 +24,8 @@ class RyChat extends Model
     protected $fillable = [
         'chat_msg_uid',
         'chat_from_id',
+        'chat_from_name',
+        'chat_from_extra',
         'chat_to_id',
         'chat_content',
         'chat_msg_type',

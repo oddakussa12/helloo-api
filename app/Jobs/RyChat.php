@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use Carbon\Carbon;
+use App\Models\RyChatFailed;
 use Illuminate\Bus\Queueable;
 use Illuminate\Validation\Rule;
 use App\Models\RyChat as RyChats;
@@ -29,6 +29,7 @@ class RyChat implements ShouldQueue
      */
     public function handle()
     {
+        $raw = $this->data;
         $rule = [
             'fromUserId' => [
                 'required',
@@ -45,7 +46,7 @@ class RyChat implements ShouldQueue
             ],
             'channelType' => [
                 'required',
-                Rule::in(['PRIVATE', 'GROUP', 'CHATROOM', 'CUSTOMER_SERVICE', 'SYSTEM', 'APP_PUBLIC_SERVICE', 'PUBLIC_SERVICE']),
+                Rule::in(['PERSON' , 'PRIVATE', 'GROUP', 'CHATROOM', 'CUSTOMER_SERVICE', 'SYSTEM', 'APP_PUBLIC_SERVICE', 'PUBLIC_SERVICE']),
             ],
             'msgTimestamp' => [
                 'required'
@@ -64,12 +65,49 @@ class RyChat implements ShouldQueue
                 'filled',
             ],
         ];
-        $validator = \Validator::make($this->data, $rule);
+        $validator = \Validator::make($raw, $rule);
         if ($validator->fails()) {
-            \Log::error(\json_encode($validator->errors()));
-            \Log::error(\json_encode($this->data));
+            $data = array(
+                'raw'=>\json_encode($raw , JSON_UNESCAPED_UNICODE),
+                'errors'=>\json_encode($validator->errors() , JSON_UNESCAPED_UNICODE)
+            );
+            RyChatFailed::create($data);
         }else{
-            \Log::info(\json_encode($this->data));
+            $data = array(
+                'chat_msg_uid'=>$raw['msgUID'],
+                'chat_from_id'=>$raw['fromUserId'],
+                'chat_to_id'=>$raw['toUserId'],
+                'chat_msg_type'=>$raw['objectName'],
+                'chat_channel_type'=>$raw['channelType'],
+                'chat_time'=>$raw['msgTimestamp'],
+                'chat_sensitive_type'=>$raw['sensitiveType'],
+                'chat_raw'=>\json_encode($raw , JSON_UNESCAPED_UNICODE),
+            );
+            if(isset($raw['source']))
+            {
+                $data['chat_source'] = $raw['source'];
+            }
+            if(isset($raw['groupUserIds']))
+            {
+                $data['chat_group_to_id'] = $raw['groupUserIds'];
+            }
+            if(isset($raw['content']))
+            {
+                $content = \json_decode($raw['content'] , true);
+                if(isset($content['content']))
+                {
+                    $data['chat_content'] = $content['content'];
+                }
+                if(isset($content['user']))
+                {
+                    $data['chat_from_name'] = $content['user']['name'];
+                }
+                if(isset($content['user']['extra']))
+                {
+                    $data['chat_from_extra'] = \json_encode($content['user']['extra'] , JSON_UNESCAPED_UNICODE);
+                }
+            }
+            RyChats::create($data);
         }
 
     }

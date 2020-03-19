@@ -49,7 +49,6 @@ class RyChatController extends BaseController
      */
     public function store(Request $request)
     {
-        \Log::error('--------'.\json_encode($request->all()));
         $response = $this->response->noContent();
         $device = new RyChat($request->all());
         $this->dispatch($device->onQueue('store_ry_msg'));
