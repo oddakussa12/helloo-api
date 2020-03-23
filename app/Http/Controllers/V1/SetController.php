@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -50,10 +51,38 @@ class SetController extends BaseController
         });
     }
 
-    public function clearCache(Request $request)
+    public function clearCache()
     {
         Cache::forget('fine_post');
         app(PostRepository::class)->getFinePostIds();
+        return $this->response->noContent();
+    }
+
+    public function dxSwitch()
+    {
+        $agent = new Agent();
+        if($agent->match('YooulAndroid'))
+        {
+            $key = 'dxSwitchAndroid';
+        }else{
+            $key = 'dxSwitchIos';
+        }
+        return $this->response->array(array_merge(dx_uuid(), dx_switch($key) , array('type'=>$key)));
+    }
+
+    public function clearDxCache(Request $request)
+    {
+        $switch = intval($request->input('switch' , 0));
+        $post_uuid = strval($request->input('post_uuid' , ''));
+        $type = strval($request->input('type' , 'android'));
+        if($type=='android')
+        {
+            $key = 'dxSwitchAndroid';
+        }else{
+            $key = 'dxSwitchIos';
+        }
+        dx_switch($key , $switch);
+        dx_uuid($post_uuid);
         return $this->response->noContent();
     }
 

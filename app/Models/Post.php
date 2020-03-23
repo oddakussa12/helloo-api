@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Jenssegers\Agent\Agent;
 use App\Traits\tag\HasTags;
 use App\Traits\CachablePost;
 use App\Traits\like\CanBeLiked;
@@ -196,13 +197,31 @@ class Post extends Model
             $this->currentLocale = locale();
             $post_content = $this->post_content;
         }
-        return htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
+        $post_content = htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
+        $agent = new Agent();
+        if($agent->match('YoouliOS')||$agent->match('YooulAndroid'))
+        {
+            $post_content = str_replace(
+                array("<br>" , "<br/>" , "<br />" , "<br  />" , "<br >" , "< br>" , "<  br>" , "<br  >" , "<br/ >" , "<br/  >") ,
+                "\n" , $post_content);
+        }
+        return $post_content;
     }
 
     public function getPostDefaultContentAttribute()
     {
         $post_content = optional($this->translate($this->post_content_default_locale))->post_content;
-        return htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
+        $post_content =  htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
+        $agent = new Agent();
+        if($agent->match('YoouliOS')||$agent->match('YooulAndroid'))
+        {
+            $post_content = str_replace(
+                array("<br>" , "<br/>" , "<br />" , "<br  />" , "<br >" , "< br>" , "<  br>" , "<br  >" , "<br/ >" , "<br/  >") ,
+                "\n" , $post_content);
+        }
+        return $post_content;
+
+
     }
     public function getPostDefaultTitleAttribute()
     {
@@ -248,11 +267,16 @@ class Post extends Model
         }elseif ($locale=='zh-TW'||$locale=='zh-HK')
         {
             Carbon::setLocale('zh_TW');
-        }elseif ($locale=='en'){
+        }else{
+            $locale = 'en';
+            Carbon::setLocale($locale);
             $translator = \Carbon\Translator::get($locale);
             $translator->setMessages($locale , [
-                'minute' => ':count min|:count min',
-                'hour' => ':count hr|:count hr',
+                'minute' => ':count m|:count m',
+                'hour' => ':count h|:count h',
+                'day' => ':count d|:count d',
+                'month' => ':count mo|:count mo',
+                'year' => ':count yr|:count yr',
             ]);
         }
         return Carbon::parse($this->post_created_at)->diffForHumans();

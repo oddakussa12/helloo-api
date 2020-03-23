@@ -3,7 +3,7 @@
 
 namespace App\Resources;
 
-use App\Repositories\Contracts\UserRepository;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Resources\Json\Resource;
 
 class PostCommentCollection extends Resource
@@ -13,6 +13,7 @@ class PostCommentCollection extends Resource
      */
     public function toArray($request)
     {
+        $cache = dx_uuid();
         return [
             'comment_id' => $this->comment_id,
             'comment_comment_p_id' => $this->comment_comment_p_id,
@@ -41,8 +42,13 @@ class PostCommentCollection extends Resource
                     return new UserCollection($this->owner);
                 }
             }),
-            'children' => $this->when(($request->routeIs('show.comment.by.post')&&isset($this->topTwoComments))||($request->routeIs('show.locate.comment')&&isset($this->topTwoComments)) , function (){
-                return PostCommentCollection::collection($this->topTwoComments)->sortBy('comment_id')->values()->all();
+            'children' => $this->when(($request->routeIs('show.comment.by.post')&&isset($this->topTwoComments))||($request->routeIs('show.locate.comment')&&isset($this->topTwoComments)) , function () use ($cache){
+                if($cache['post_uuid']==$this->post_uuid)
+                {
+                    return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_id')->values()->all();
+                }else{
+                    return PostCommentCollection::collection($this->topTwoComments)->sortBy('comment_id')->values()->all();
+                }
             }),
             'comment_owner' => $this->comment_owner,
             'post_uuid'=>$this->when(!($request->routeIs('post.index')||$request->routeIs('post.top')), function (){

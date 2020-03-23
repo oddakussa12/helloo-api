@@ -126,8 +126,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             if($type=='default'&&$orderBy=='rate'&&$follow==null)
             {
                 $posts = $this->getFinePosts($posts);
-            }else if($type=='new'&&$follow==null){
+            }else if($type=='mix'&&$follow==null){
                 $posts = $this->getMixPosts($posts);
+            }else if($type=='tmp'&&$follow==null){
+                $posts = $this->getTmpPosts($posts);
             }else{
 //                $posts = $posts->with('viewCount');
                 $posts = $this->removeHidePost($posts);
@@ -171,6 +173,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     //            {
     //                $posts->orderBy($sort, $order);
     //            }
+                $posts = $posts->where('post_type' , '!=' , 'tmp');
                 $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             }
 
@@ -449,6 +452,20 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        ]);
 //        return $posts->appends($appends);
 //    }
+    public function getTmpPosts($posts)
+    {
+        $appends =array();
+        $request = request();
+        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+        $appends['order'] = $order;
+        $orderBy = $request->get('order_by' , 'post_created_at');
+        $appends['order_by'] = $orderBy;
+        $posts = $posts->where('post_type' , 'tpm');
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts->orderBy($this->model->getCreatedAtColumn() , 'DESC');
+        $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+        return $posts->appends($appends);
+    }
 
 
     public function getFinePosts($posts)
@@ -477,7 +494,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $orderBy = $request->get('order_by' , 'post_created_at');
         $appends['order_by'] = $orderBy;
 //        $posts = $posts->with('viewCount');
-//        $posts = $posts->where('post_fine' , 1);
+        $posts = $posts->where('post_hoting' , 1);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
         $posts = $this->removeHideUser($posts);
@@ -492,6 +509,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
 //        $posts->orderBy('rate' , 'DESC');
         $posts->orderBy('post_rate' , 'DESC');
+        $posts = $posts->where('post_type' , '!=' , 'tmp');
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 //        $posts = $this->paginator($posts, $total, $perPage, $page, [
 //            'path' => Paginator::resolveCurrentPath(),
@@ -811,13 +829,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function generateRatePostRandRank()
     {
+        $index = intval(ceil(date('i')/30));
+        $index = $index!=1?1:2;
         $whereIn = false;
         $redis = new RedisList();
-        $postKey = 'post_index_rate';
+        $postKey = 'post_index_rate_'.$index;
         $redis->delKey($postKey);
         $i = 0;
         $posts = $this->model;
-        $posts->orderBy('post_rate' , 'DESC')->chunk(10 , function($posts) use ($redis , $postKey , &$i , $whereIn){
+        $posts->where('post_hoting' , 1)->orderBy('post_rate' , 'DESC')->chunk(10 , function($posts) use ($redis , $postKey , &$i , $whereIn){
             if(!$whereIn)
             {
                 $i++;
@@ -843,11 +863,22 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $redis = new RedisList();
         $pageName = $this->pageName;
         $page = $request->input( $pageName, 1);
-        $queryTime = $request->input( 'query_time', time());
+        $queryTime = $request->input( 'query_time', '');
+        if(empty($queryTime))
+        {
+            $queryTime = Carbon::now()->timestamp;
+        }
+        $appends['query_time'] = $queryTime;
         $newKey = 'post_index_new';
-        $rateKey = 'post_index_rate';
+
+        $index = intval($request->input( 'index', ceil(date('i' , time())/30)));
+        $index = !in_array($index , array(1 , 2))?ceil(date('i' , time())/30):$index;
+        $appends['index'] = $index;
+
+        $rateKey = 'post_index_rate_'.$index;
         $rateOffset = ($page-1)*$ratePerPage;
         $newOffset = ($page-1)*$newPerPage;
+
         if($redis->existsKey($rateKey))
         {
             $rateTotal = $redis->zSize($rateKey);
@@ -860,10 +891,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $total = 0;
             $postIds = array();
         }
-        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
-        $appends['order'] = $order;
-        $orderBy = $request->get('order_by' , 'rate');
-        $appends['order_by'] = $orderBy;
+//        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
+//        $appends['order'] = $order;
+//        $orderBy = $request->get('order_by' , 'rate');
+//        $appends['order_by'] = $orderBy;
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
         $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();

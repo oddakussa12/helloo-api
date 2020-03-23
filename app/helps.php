@@ -1,5 +1,6 @@
 <?php
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 if (! function_exists('locale')) {
     function locale($locale = null)
@@ -256,10 +257,11 @@ if (!function_exists('rate_comment_v3')) {
     }
 }
 
-if (!function_exists('domains')) {
+if (!function_exists('domain')) {
     /**
      * Calculates the rate for sorting by hot.
      *
+     * @param null $domain
      * @param string $item
      * @return float
      */
@@ -587,6 +589,34 @@ if (!function_exists('post_gravity'))
         }
         return \Cache::rememberForever('post_gravity' , function() use ($rate){
             return $rate>0?$rate:config('common.rate_coefficient');
+        });
+    }
+}
+
+if (!function_exists('dx_switch'))
+{
+    function dx_switch($key='dx_switch' , $switch=null)
+    {
+        if($switch!==null)
+        {
+            Cache::forget($key);
+        }
+        return Cache::rememberForever($key , function() use ($switch){
+            return array('switch'=>intval($switch));
+        });
+    }
+}
+
+if (!function_exists('dx_uuid'))
+{
+    function dx_uuid($post_uuid='' , $key='dx_uuid')
+    {
+        if($post_uuid!='')
+        {
+            Cache::forget($key);
+        }
+        return Cache::rememberForever($key , function() use ($post_uuid){
+            return array('post_uuid'=>strval($post_uuid));
         });
     }
 }

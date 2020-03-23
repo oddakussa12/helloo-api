@@ -11,6 +11,7 @@ namespace App\Repositories\Eloquent;
 use Carbon\Carbon;
 use App\Models\PostComment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Resources\PostCommentCollection;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -41,12 +42,14 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
                 $query->where('users.user_id' , auth()->id());
             }]);
         }
+        $cache = dx_uuid();
+        $orderBy = $uuid==$cache['post_uuid']?'comment_id':'comment_like_num';
         $comments = $comments->with('owner')
-            ->orderBy('comment_like_num', 'DESC')
+            ->orderBy($orderBy, 'DESC')
             ->paginate($this->perPage , ['*'] , $this->pageName);
         $commentIds = $comments->pluck('comment_id')->all();//获取 comment Id
 
-        $topTwoComments = $this->topTwoComments($commentIds , $dateTime);
+        $topTwoComments = $this->topTwoComments($commentIds , $uuid , $dateTime);
 
         $userIds = $topTwoComments->pluck('user_id')->merge($topTwoComments->pluck('comment_to_id'))->unique();
 
@@ -76,6 +79,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
     public function findByCommentTopId($postUuid , $commentTopId , $commentLastId , $queryTime=null)
     {
+        $cache = dx_uuid();
         $comments = $this->allWithBuilder();
         if($commentLastId!=0)
         {
@@ -85,7 +89,8 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
                 $post = app(PostRepository::class)->findOrFailById($lastComment->post_id);
                 $postUuid = $post->post_uuid;
             }
-            $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , '>' , $lastComment->comment_id);
+            $compare = $cache['post_uuid']==$postUuid?'<':'>';
+            $comments = $comments->where('comment_top_id' , $commentTopId)->where('comment_id' , $compare , $lastComment->comment_id);
         }else{
             $comments = $comments->where('comment_top_id' , $commentTopId);
         }
@@ -94,7 +99,8 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $comments = $comments->where('comment_created_at' , '<=' , $queryTime);
         }
         $comments = $comments->with('likers');
-        $comments = $comments->orderBy('comment_id')
+        $order = $cache['post_uuid']==$postUuid?'DESC':'ASC';
+        $comments = $comments->orderBy('comment_id' , $order)
             ->limit($this->perPage)->get();
         $userIds = $comments->pluck('user_id')->merge($comments->pluck('comment_to_id'))->unique();
         $users = app(UserRepository::class)->findByMany($userIds->all());
@@ -245,8 +251,10 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     }
 
 
-    public function topTwoComments($commentIds , $queryTime=null)
+    public function topTwoComments($commentIds , $uuid=null , $queryTime=null)
     {
+        $cache = dx_uuid();
+        $order = $uuid==$cache['post_uuid']?'desc':'asc';
         $topTwoCommentQuery = PostComment::whereIn('comment_top_id',$commentIds)
             ->where('comment_comment_p_id' , '>' , 0);
         if(!empty($queryTime))
@@ -255,7 +263,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         }
         $topTwoCommentQuery = $topTwoCommentQuery->orderBy('comment_top_id')
             ->select(DB::raw('*,@comment := NULL ,@rank := 0'))
-            ->orderBy('comment_id');
+            ->orderBy('comment_id' , $order);
         $topTwoCommentQuery = DB::table(DB::raw("({$topTwoCommentQuery->toSql()}) as b"))
             ->mergeBindings($topTwoCommentQuery->getQuery())
             ->select(DB::raw('b.*,IF (

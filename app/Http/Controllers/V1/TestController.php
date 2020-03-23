@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Cache;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
+use Google\Cloud\Translate\V3\TranslationServiceClient;
+
 
 class TestController extends BaseController
 {
@@ -49,14 +51,52 @@ class TestController extends BaseController
         return $this->response->noContent();
     }
 
-    public function testRong()
+    public function test()
     {
-        $postData = [
-            'country' => collect(array()),
-        ];
-        var_dump(Redis::hmget('post.data.test1' , '1'));
+//        $translationClient = new TranslationServiceClient();
+//        $content = ['one', 'two', 'three'];
+//        $targetLanguage = 'zh-CN';
+//        $response = $translationClient->translateText(
+//            $content,
+//            $targetLanguage,
+//            TranslationServiceClient::locationName('speachregins', 'global')
+//        );
+//
+//        foreach ($response->getTranslations() as $key => $translation) {
+//            $separator = $key === 2
+//                ? '!'
+//                : ', ';
+//            echo $translation->getTranslatedText() . $separator;
+//        }
+//
 
-        Redis::hmset('post.data.test', $postData);
-        var_dump(Redis::hmget('post.data.test' , array('country' , 'c')));
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.config('common.google_application_credentials'));
+
+        $translationServiceClient = new TranslationServiceClient();
+
+        $projectId = 'curious-nucleus-251404';
+        $targetLanguage = 'zh-CN';
+
+        /** Uncomment and populate these variables in your code */
+        $text = 'Hello, world!';
+        // $targetLanguage = 'fr';
+        // $projectId = '[Google Cloud Project ID]';
+        $contents = [$text , 'hi'];
+        $formattedParent = $translationServiceClient->locationName($projectId, 'global');
+
+        try {
+            $response = $translationServiceClient->translateText(
+                $contents,
+                $targetLanguage,
+                $formattedParent
+            );
+            // Display the translation for each input text provided
+            foreach ($response->getTranslations() as $translation) {
+                printf('Translated text: %s' . PHP_EOL, $translation->getTranslatedText());
+            }
+        } finally {
+            $translationServiceClient->close();
+        }
+
     }
 }
