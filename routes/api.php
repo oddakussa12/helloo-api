@@ -164,6 +164,8 @@ $api->group($V1Params , function ($api){
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
+    $api->get('test/index' , 'TestController@test')->name('test.test');
+
 });
 
 
