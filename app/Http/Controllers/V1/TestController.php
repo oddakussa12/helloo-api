@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
+use Google\Cloud\Storage\StorageClient;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
@@ -53,6 +54,12 @@ class TestController extends BaseController
 
     public function test()
     {
+        putenv('GOOGLE_APPLICATION_CREDENTIALS='.config('common.google_application_credentials'));
+
+        $storage = new StorageClient();
+        foreach ($storage->buckets() as $bucket) {
+            printf('Bucket: %s' . PHP_EOL, $bucket->name());
+        }
 //        $translationClient = new TranslationServiceClient();
 //        $content = ['one', 'two', 'three'];
 //        $targetLanguage = 'zh-CN';
@@ -70,11 +77,10 @@ class TestController extends BaseController
 //        }
 //
 
-        putenv('GOOGLE_APPLICATION_CREDENTIALS='.config('common.google_application_credentials'));
 
         $translationServiceClient = new TranslationServiceClient();
 
-        $projectId = 'curious-nucleus-251404';
+        $projectId = 'speachregins';
         $targetLanguage = 'zh-CN';
 
         /** Uncomment and populate these variables in your code */
