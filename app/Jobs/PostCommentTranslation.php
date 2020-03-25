@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\PostComment;
 use Illuminate\Bus\Queueable;
 use App\Services\TranslateService;
+use App\Services\V3TranslateService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Services\TencentTranslateService;
@@ -48,14 +49,19 @@ class PostCommentTranslation implements ShouldQueue
         $language = $this->contentLang=='und'?'en':$this->contentLang;
         $postComment = $this->postComment;
         $commentContent = $this->commentContent;
-        $translate = app(TranslateService::class);
-        $lang = config('translatable.locales');
-        $index = array_search($language , $lang);
+        if(config('common.google_translation_version')=='v2')
+        {
+            $translate = app(TranslateService::class);
+        }else{
+            $translate = app(V3TranslateService::class);
+        }
+        $languages = config('translatable.locales');
+        $index = array_search($language , $languages);
         if($index!==false)
         {
-            unset($lang[$index]);
+            unset($languages[$index]);
         }
-        foreach ($lang as $l)
+        foreach ($languages as $l)
         {
             if($l=='zh-HK')
             {

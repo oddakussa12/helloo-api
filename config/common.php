@@ -52,5 +52,8 @@ return [
     'common_secret'=>'EIKANMECJ',
     'post_new_per'=>config('POST_NEW_PER' , 3),
     'post_rate_per'=>config('POST_RATE_PER' , 7),
-    'google_application_credentials'=>env('GOOGLE_APPLICATION_CREDENTIALS' , storage_path().'/app/google/application_default_credentials.json')
+    'google_application_credentials'=>env('GOOGLE_APPLICATION_CREDENTIALS' , storage_path().'/app/google/application_default_credentials.json'),
+    'google_project_id'=>env('GOOGLE_PROJECT_ID', 'speachregins'),
+    'google_location'=>env('GOOGLE_LOCATION', 'global'),
+    'google_translation_version'=>env('GOOGLE_TRANSLATION_VERSION', 'v3')
 ];

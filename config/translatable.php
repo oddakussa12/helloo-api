@@ -138,4 +138,6 @@ return [
 
 	'translate_default_format' => 'html',
 
+	'translate_V3_default_format' => 'text/html',
+
 ];

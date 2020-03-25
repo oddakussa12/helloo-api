@@ -10,6 +10,7 @@ use App\Events\PostViewEvent;
 use App\Jobs\PostTranslation;
 use App\Resources\PostCollection;
 use App\Services\TranslateService;
+use App\Services\V3TranslateService;
 use App\Http\Requests\StorePostRequest;
 use App\Resources\PostPaginateCollection;
 use App\Repositories\Contracts\PostRepository;
@@ -21,7 +22,7 @@ class PostController extends BaseController
      */
     private $post;
     /**
-     * @var TranslateService
+     * @var TranslateService||V3TranslateService
      */
     private $translate;
 
@@ -29,12 +30,19 @@ class PostController extends BaseController
      * Display a listing of the resource.
      *
      * @param PostRepository $post
+     * @param TranslateService $translateService
+     * @param V3TranslateService $v3TranslateService
      */
 
-    public function __construct(PostRepository $post,TranslateService $translate)
+    public function __construct(PostRepository $post,TranslateService $translateService ,V3TranslateService $v3TranslateService)
     {
         $this->post = $post;
-        $this->translate = $translate;
+        if(config('common.google_translation_version')=='v2')
+        {
+            $this->translate = $translateService;
+        }else{
+            $this->translate = $v3TranslateService;
+        }
     }
 
     public function index(Request $request)
