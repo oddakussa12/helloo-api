@@ -6,11 +6,13 @@ use App\Models\Post;
 use App\Custom\RedisList;
 use Illuminate\Bus\Queueable;
 use App\Services\TranslateService;
+use App\Services\V3TranslateService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Services\TencentTranslateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use App\Models\PostTranslation as PostTranslationModel;
 
 class PostTranslation implements ShouldQueue
 {
@@ -60,6 +62,7 @@ class PostTranslation implements ShouldQueue
         $postKey = 'post_index_new';
         $redis->zAdd($postKey , strtotime(optional($this->post->post_created_at)->toDateTimeString()) , $this->post->getKey());
         $redis->remZsetList($postKey , 1000);
+
     }
     /**
      * Execute the job.
@@ -68,13 +71,18 @@ class PostTranslation implements ShouldQueue
      */
     public function handle()
     {
-        dynamicSetLocales(array($this->postTitleLang , $this->postContentLang));
+        $exceptLanguages = array($this->postTitleLang , $this->postContentLang);
         $post = $this->post;
         $postTitle = $this->post_title;
         $postContent = $this->post_content;
-        $translate = app(TranslateService::class);
-        $lang = config('translatable.locales');
-        foreach ($lang as $l)
+        if(config('common.google_translation_version')=='v2')
+        {
+            $translate = app(TranslateService::class);
+        }else{
+            $translate = app(V3TranslateService::class);
+        }
+        $languages = config('translatable.locales');
+        foreach ($languages as $l)
         {
             if($l=='zh-HK')
             {
@@ -92,10 +100,10 @@ class PostTranslation implements ShouldQueue
                     $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
                     if($title===false)
                     {
-                        $title = $translate->translate($postTitle , array('target'=>$t));
+                        $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
                     }
                 }else{
-                    $title = $translate->translate($postTitle , array('target'=>$t));
+                    $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
                 }
             }
 
@@ -109,10 +117,10 @@ class PostTranslation implements ShouldQueue
                     $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
                     if($content===false)
                     {
-                        $content = $translate->translate($postContent , array('target'=>$t));
+                        $content = $translate->translate($postContent , array('target'=>$t , 'resource'=>$this->postContentLang));
                     }
                 }else {
-                    $content = $translate->translate($postContent, array('target' => $t, 'format' => 'html'));
+                    $content = $translate->translate($postContent, array('target' => $t , 'resource'=>$this->postContentLang));
                 }
             }
             $post->fill([
@@ -120,7 +128,25 @@ class PostTranslation implements ShouldQueue
             ]);
             $post->save();
         }
-
-
+        $exceptLanguages = array_unique(array_diff($exceptLanguages , $languages));
+        foreach ($exceptLanguages as $l)
+        {
+            if(empty($postTitle)||$l==$this->postTitleLang||$this->postTitleDefaultLang=='und')
+            {
+                $title = $postTitle;
+            }else{
+                $title = $translate->translate($postTitle , array('target'=>$l , 'resource'=>$this->postTitleLang));
+            }
+            if(empty($postContent)||$l==$this->postContentLang||$this->postContentDefaultLang=='und')
+            {
+                $content = $postContent;
+            }else{
+                $content = $translate->translate($postContent, array('target' => $l , 'resource'=>$this->postContentLang));
+            }
+            PostTranslationModel::updateOrCreate(
+                ['post_id' => $post->getKey(), 'post_locale' => $l] ,
+                ['post_title'=>$title , 'post_content'=>$content]
+            );
+        }
     }
 }
