@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\RequestException;
 use Google\Cloud\Translate\TranslateClient;
 use Google\Cloud\Translate\V3\TranslationServiceClient;
+use Google\Cloud\Translate\V3\TranslateTextGlossaryConfig;
 
 class V3TranslateService
 {
@@ -23,6 +24,10 @@ class V3TranslateService
     protected $languages;
 
     private $formattedParent;
+
+    private $glossaryPath;
+
+    private $glossaryConfig;
 
     protected $translations=array();
 
@@ -73,12 +78,20 @@ class V3TranslateService
             return $str;
         }
         try {
+            $glossaryPath = $this->translate->glossaryName(
+                config('common.google_project_id'),
+                config('common.google_location'),
+                config('common.google_glossary_id')
+            );
+            $glossaryConfig = new TranslateTextGlossaryConfig();
+            $glossaryConfig->setGlossary($glossaryPath);
             $response = $this->translate->translateText(
                 [$str],
                 $options['target'],
                 $this->formattedParent,
                 [
                     'sourceLanguage'=>$resource,
+                    'glossaryConfig' => $glossaryConfig,
                     'mimeType' => $options['format']
                 ]
             );
