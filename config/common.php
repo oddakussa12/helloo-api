@@ -54,6 +54,9 @@ return [
     'post_rate_per'=>config('POST_RATE_PER' , 7),
     'google_application_credentials'=>env('GOOGLE_APPLICATION_CREDENTIALS' , storage_path().'/app/google/application_default_credentials.json'),
     'google_project_id'=>env('GOOGLE_PROJECT_ID', 'speachregins'),
-    'google_location'=>env('GOOGLE_LOCATION', 'global'),
+    'google_project_bucket_mame'=>env('GOOGLE_PROJECT_BUCKET_NAME', 'translation_v3_glossary_2020324'),
+    'google_glossary_name'=>env('GOOGLE_GLOSSARY_NAME', 'glossary.csv'),
+    'google_glossary_id'=>env('GOOGLE_GLOSSARY_id', 'yooul_v3_glossary_20200325'),
+    'google_location'=>env('GOOGLE_LOCATION', 'us-central1'),
     'google_translation_version'=>env('GOOGLE_TRANSLATION_VERSION', 'v3')
 ];
