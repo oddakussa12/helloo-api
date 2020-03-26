@@ -164,6 +164,9 @@ $api->group($V1Params , function ($api){
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
+    $api->get('ry/room/chat/translation' , 'RyChatController@roomChatTranslation')->name('user.ry.room.message.translation');
+    $api->get('ry/room/chat' , 'RyChatController@showByRoom')->name('user.ry.room.message.index');
+    $api->post('ry/room/chat' , 'RyChatController@storeRoomChat')->name('user.ry.room.message.store');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 
 });
