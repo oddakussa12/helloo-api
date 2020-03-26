@@ -45,6 +45,13 @@ class TranslateService
         return $this->translate->detectLanguageBatch($str);
     }
 
+    public function translateBatch(array $str , $option=array())
+    {
+        $options = array('target'=>config('translatable.translate_default_lang') , 'format'=>config('translatable.translate_default_format'));
+        $options = $option+$options;
+        return $this->translate->translateBatch($str , $options);
+    }
+
     public function translate($str , $option=array())
     {
         $options = array('target'=>config('translatable.translate_default_lang') , 'format'=>config('translatable.translate_default_format'));

@@ -60,52 +60,47 @@ class TestController extends BaseController
 
     public function test()
     {
-
         putenv('GOOGLE_APPLICATION_CREDENTIALS='.config('common.google_application_credentials'));
         $text = "﻿cool,what?<br />fuck you!";
         $sourceLanguage='en';
         $targetLanguage='zh-CN';
         $location = 'us-central1';
         $projectId = 'speachregins';
-
         $glossaryId = 'yooul_v3_glossary_20200325';
         $bucketName = 'translation_v3_glossary_2020324';
         $inputUri = 'gs://'.$bucketName.'/glossary.csv';
+        echo PHP_EOL.'getListGlossaries'.PHP_EOL;
+        $this->getListGlossaries($projectId,$location);
+
+    }
+
+    public function getListGlossaries($projectId,$location)
+    {
         $translationServiceClient = new TranslationServiceClient();
-        $glossaryPath = $translationServiceClient->glossaryName(
-            $projectId,
-            $location,
-            $glossaryId
-        );
-        $contents = [$text];
+
+        /** Uncomment and populate these variables in your code */
         $formattedParent = $translationServiceClient->locationName(
             $projectId,
             $location
         );
-        $glossaryConfig = new TranslateTextGlossaryConfig();
-        $glossaryConfig->setGlossary($glossaryPath);
-
-// Optional. Can be "text/plain" or "text/html".
-        $mimeType = 'text/html';
 
         try {
-            $response = $translationServiceClient->translateText(
-                $contents,
-                $targetLanguage,
-                $formattedParent,
-                [
-                    'sourceLanguageCode' => $sourceLanguage,
-                    'glossaryConfig' => $glossaryConfig,
-                    'mimeType' => $mimeType
-                ]
-            );
-            // Display the translation for each input text provided
-            foreach ($response->getGlossaryTranslations() as $translation) {
-                printf('Translated text: %s' . PHP_EOL, $translation->getTranslatedText());
+            // Iterate through all elements
+            $pagedResponse = $translationServiceClient->listGlossaries($formattedParent);
+            foreach ($pagedResponse->iterateAllElements() as $responseItem) {
+                printf('Glossary name: %s' . PHP_EOL, $responseItem->getName());
+                printf('Entry count: %s' . PHP_EOL, $responseItem->getEntryCount());
+                printf(
+                    'Input URI: %s' . PHP_EOL,
+                    $responseItem->getInputConfig()
+                        ->getGcsSource()
+                        ->getInputUri()
+                );
             }
         } finally {
             $translationServiceClient->close();
         }
-
     }
+
+
 }

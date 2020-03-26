@@ -50,6 +50,7 @@ class UserCollection extends Resource
                                                 $request->routeIs('show.post.by.user')||
                                                 $request->routeIs('notification.index')||
                                                 $request->routeIs('user.ry.online.random')||
+                                                $request->routeIs('user.ry.room.message.index')||
                                                 $request->routeIs('show.locate.comment'))
                                                 ||in_array('follow' , $include), function () use ($request){
 
