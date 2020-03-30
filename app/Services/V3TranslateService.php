@@ -7,7 +7,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Exception\RequestException;
-use Google\Cloud\Translate\TranslateClient;
+use Google\Cloud\Translate\V2\TranslateClient;
 use Google\Cloud\Translate\V3\TranslationServiceClient;
 use Google\Cloud\Translate\V3\TranslateTextGlossaryConfig;
 
