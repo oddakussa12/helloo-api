@@ -88,7 +88,7 @@ class PostTranslation implements ShouldQueue
         {
             if($l=='zh-HK')
             {
-                $t = 'zh-TW';
+                continue;
             }else{
                 $t = $l;
             }
@@ -130,6 +130,9 @@ class PostTranslation implements ShouldQueue
             ]);
             $post->save();
         }
+        $post->translate('zh-HK')->post_title = $post->translate('zh-TW')->post_title;
+        $post->translate('zh-HK')->post_content = $post->translate('zh-TW')->post_content;
+        $post->save();
         $exceptLanguages = array_unique(array_diff($exceptLanguages , $languages));
         foreach ($exceptLanguages as $l)
         {
