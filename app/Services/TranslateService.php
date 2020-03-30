@@ -54,7 +54,12 @@ class TranslateService
     {
         $options = array('target'=>config('translatable.translate_default_lang') , 'format'=>config('translatable.translate_default_format'));
         $options = $option+$options;
-        $lang = $this->detectLanguage($str);
+        if(isset($options['resource']))
+        {
+            $lang = strval($options['resource']);
+        }else{
+            $lang = $this->detectLanguage($str);
+        }
         if(isset($options['target'])&&$lang==$options['target'])
         {
             return $str;
