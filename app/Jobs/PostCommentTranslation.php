@@ -67,7 +67,7 @@ class PostCommentTranslation implements ShouldQueue
         {
             if($l=='zh-HK')
             {
-                $t = 'zh-TW';
+                continue;
             }else{
                 $t = $l;
             }
@@ -92,5 +92,9 @@ class PostCommentTranslation implements ShouldQueue
             ]);
             $postComment->save();
         }
+        $postComment->fill([
+            "zh-HK"  => ['comment_content' => $postComment->translate('zh-TW')->comment_content],
+        ]);
+        $postComment->save();
     }
 }
