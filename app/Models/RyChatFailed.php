@@ -3,16 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class RyChatFailed extends Model
 {
-    use SoftDeletes;
-
     protected $table = "ry_chats_failed";
 
-    const CREATED_AT = 'chat_created_at';
+    const CREATED_AT = 'created_at';
 
 
     protected $primaryKey = 'id';

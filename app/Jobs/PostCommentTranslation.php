@@ -16,6 +16,7 @@ class PostCommentTranslation implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private $languages;
 
     private $translate;
 
@@ -34,6 +35,7 @@ class PostCommentTranslation implements ShouldQueue
      */
     public function __construct(PostComment $postComment , $contentLang , $commentContent)
     {
+        $this->languages = config('translatable.locales');
         $this->postComment = $postComment;
         $this->contentLang = $contentLang;
         $this->commentContent= $commentContent;
@@ -55,7 +57,7 @@ class PostCommentTranslation implements ShouldQueue
         }else{
             $translate = app(V3TranslateService::class);
         }
-        $languages = config('translatable.locales');
+        $languages = $this->languages;
         $index = array_search($language , $languages);
         if($index!==false)
         {
