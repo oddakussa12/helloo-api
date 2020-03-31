@@ -97,6 +97,13 @@ return [
             'bucket'     => env('QINIU_BUCKET', 'idimage'),
             'domain'     => env('QINIU_DOMAIN', 'https://qnidyooulimage.mmantou.cn/'), // or host: https://xxxx.clouddn.com
         ],
+        'qn_video_sia' => [
+            'driver'     => 'qn_video_sia',
+            'access_key' => env('QINIU_ACCESS_KEY', 'Rzzn0G7I6K38FsVHHkW9o48ZWZsuOpPvRQGzZyLS'),
+            'secret_key' => env('QINIU_SECRET_KEY', 'BrMK7FBrj7wvzA7KC7q4fBsaYBznA2p_6PWT6ku5'),
+            'bucket'     => env('QINIU_BUCKET', 'idvideo'),
+            'domain'     => env('QINIU_DOMAIN', 'https://qnidyooulvideo.mmantou.cn/'), // or host: https://xxxx.clouddn.com
+        ],
 
     ],
 
