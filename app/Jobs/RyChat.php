@@ -47,7 +47,7 @@ class RyChat implements ShouldQueue
             ],
             'channelType' => [
                 'required',
-                Rule::in(['PERSON' , 'PRIVATE', 'GROUP', 'CHATROOM', 'CUSTOMER_SERVICE', 'SYSTEM', 'APP_PUBLIC_SERVICE', 'PUBLIC_SERVICE']),
+                Rule::in(['PERSON' , 'TEMPGROUP' , 'PRIVATE', 'GROUP', 'CHATROOM', 'CUSTOMER_SERVICE', 'SYSTEM', 'APP_PUBLIC_SERVICE', 'PUBLIC_SERVICE']),
             ],
             'msgTimestamp' => [
                 'required'
@@ -75,7 +75,7 @@ class RyChat implements ShouldQueue
             RyChatFailed::create($data);
         }else{
             $lock_key = 'ry_room_chat_'.$raw['msgUID'];
-            if(Redis::set($lock_key, 1, "nx", "ex", 20))
+            if(Redis::set($lock_key, 1, "nx", "ex", 30))
             {
                 $data = array(
                     'chat_msg_uid'=>$raw['msgUID'],
