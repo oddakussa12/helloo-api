@@ -187,7 +187,7 @@ class UserController extends BaseController
     {
         $type = $request->input('type' , 1);
         $driver = $request->input('driver' , 'qn_avatar');
-        if(!in_array($driver , array('qn_avatar' , 'qn_image')))
+        if(!in_array($driver , array('qn_avatar' , 'qn_image' , 'qn_video')))
         {
             $driver = 'qn_avatar';
         }
@@ -200,11 +200,17 @@ class UserController extends BaseController
         $url = $config['domain'];
         $policy = [
             'saveKey'=>"$(etag)$(ext)",
-            'mimeLimit'=>'image/*',
+//            'mimeLimit'=>'image/*',
             'fsizeLimit'=>5242880,
             'forceSaveKey'=>true,
             'returnBody'=>"{\"key\": \"$key\", \"hash\": \"$(etag)\", \"w\": $(imageInfo.width),\"h\": $(imageInfo.height),\"size\": \"$(fsize)\",\"url\":\"$url\"}"
         ];
+        if(strpos($driver , 'video')===false)
+        {
+            $policy['mimeLimit'] = 'image/*';
+        }else{
+            $policy['mimeLimit'] = 'video/*';
+        }
         $disk = Storage::disk($driver);
         $token = $disk->getUploadToken(null , 3600 , $policy);
         return array('qntoken'=>$token);

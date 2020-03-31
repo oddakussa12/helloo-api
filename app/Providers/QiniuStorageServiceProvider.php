@@ -127,6 +127,20 @@ class QiniuStorageServiceProvider extends QiniuBaseServiceProvider
             $flysystem->addPlugin(new RefreshFile());
             return $flysystem;
         });
+        app('filesystem')->extend('qn_video_sia', function ($app, $config) {
+            $adapter = new QiniuAdapter(
+                $config['access_key'], $config['secret_key'],
+                $config['bucket'], $config['domain']
+            );
+
+            $flysystem = new Filesystem($adapter);
+            $flysystem->addPlugin(new FetchFile());
+            $flysystem->addPlugin(new UploadToken());
+            $flysystem->addPlugin(new FileUrl());
+            $flysystem->addPlugin(new PrivateDownloadUrl());
+            $flysystem->addPlugin(new RefreshFile());
+            return $flysystem;
+        });
     }
 
     public function boot()
