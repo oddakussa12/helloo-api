@@ -148,8 +148,6 @@ class PostController extends BaseController
      */
     public function store(StorePostRequest $request)
     {
-        \Log::error(\json_encode($request->all()));
-
         $post_title = clean($request->input('post_title' , ''));
         $post_content = clean($request->input('post_content' , ''));
         $post_event_country = $request->input('post_event_country');
