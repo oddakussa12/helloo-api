@@ -6,7 +6,6 @@ use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Log;
-use GuzzleHttp\Exception\RequestException;
 use Google\Cloud\Translate\V2\TranslateClient;
 use Google\Cloud\Translate\V3\TranslationServiceClient;
 use Google\Cloud\Translate\V3\TranslateTextGlossaryConfig;
@@ -90,7 +89,7 @@ class V3TranslateService
                 $options['target'],
                 $this->formattedParent,
                 [
-                    'sourceLanguage'=>$resource,
+                    'sourceLanguageCode'=>$resource,
                     'glossaryConfig' => $glossaryConfig,
                     'mimeType' => $options['format']
                 ]
