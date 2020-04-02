@@ -13,7 +13,7 @@ class BackendAuthenticated extends BaseMiddleware
         $app_signature = common_signature($params);
         if($signature!=$app_signature)
         {
-//            abort(403 , __('Unauthorized'));
+            abort(403 , __('Unauthorized'));
         }
         return $next($request);
     }

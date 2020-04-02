@@ -621,6 +621,52 @@ if (!function_exists('dx_uuid'))
     }
 }
 
+if (! function_exists('block_user')) {
+
+    function block_user($userName)
+    {
+        $users = array();
+        $filePath = 'blacklist/blacklist.json';
+        if(\Storage::exists($filePath))
+        {
+            $list = (array)\json_decode(\Storage::get($filePath) , true);
+            if(isset($list['list']))
+            {
+                $users = $list['list'];
+            }
+        }
+        array_push($users , $userName);
+        $users = array_unique($users);
+        \Storage::put($filePath , \json_encode(array('list'=>$users) , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+        return $users;
+    }
+}
+
+if (! function_exists('unblock_user')) {
+
+    function unblock_user($userName)
+    {
+        $users = array();
+        $filePath = 'blacklist/blacklist.json';
+        if(\Storage::exists($filePath))
+        {
+            $list = (array)\json_decode(\Storage::get($filePath) , true);
+            if(isset($list['list']))
+            {
+                $users = $list['list'];
+                $key = array_search($userName , $users);
+                if($key!==false)
+                {
+                    unset($users[$key]);
+                }
+            }
+        }
+        $users = array_unique($users);
+        \Storage::put($filePath , \json_encode(array('list'=>$users) , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+        return $users;
+    }
+}
+
 
 
 
