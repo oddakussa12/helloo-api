@@ -168,8 +168,8 @@ $api->group($V1Params , function ($api){
     $api->get('ry/room/chat' , 'RyChatController@showByRoom')->name('user.ry.room.message.index');
     $api->post('ry/room/chat' , 'RyChatController@storeRoomChat')->name('user.ry.room.message.store');
     $api->group(['middleware'=>['backAuth']] , function($api){
-        $api->post('ry/set/block' , 'RySetController@block')->name('user.ry.set.block');
-        $api->post('ry/set/unblock' , 'RySetController@unblock')->name('user.ry.set.unblock');
+        $api->post('ry/set/block' , 'RySetController@blockUser')->name('user.ry.set.block');
+        $api->post('ry/set/unblock' , 'RySetController@unblockUser')->name('user.ry.set.unblock');
     });
     $api->get('test/index' , 'TestController@test')->name('test.test');
 

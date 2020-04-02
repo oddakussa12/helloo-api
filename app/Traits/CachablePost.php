@@ -94,9 +94,9 @@ trait CachablePost
             $score = Redis::zscore($postKey, $id);
             if(empty($score))
             {
-                $score = 1;
+                $add = 1;
             }else{
-                $score = $score+1;
+                $add = $score+1;
             }
         }
         return Redis::zadd($postKey , $add , $id);
