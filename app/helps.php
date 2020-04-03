@@ -636,7 +636,7 @@ if (! function_exists('block_user')) {
             }
         }
         array_push($users , $userName);
-        $users = array_unique($users);
+        $users = array_values(array_unique($users));
         \Storage::put($filePath , \json_encode(array('list'=>$users) , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
         return $users;
     }
@@ -661,7 +661,7 @@ if (! function_exists('unblock_user')) {
                 }
             }
         }
-        $users = array_unique($users);
+        $users = array_values(array_unique($users));
         \Storage::put($filePath , \json_encode(array('list'=>$users) , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
         return $users;
     }
