@@ -99,7 +99,7 @@ class RySetController extends BaseController
             Redis::zRem($key, $userId);
             unblock_user($userName);
             $res = array(
-                'code'=>500,
+                'code'=>$e->getCode(),
                 'userId'=>$userId,
                 'minute'=>$minute,
                 'message'=>$e->getMessage(),
@@ -137,12 +137,23 @@ class RySetController extends BaseController
                 block_user($userName);
             }
             $res = array(
-                'code'=>500,
+                'code'=>$e->getCode(),
                 'userId'=>$userId,
                 'message'=>$e->getMessage(),
             );
             \Log::error(\json_encode($res));
         }
         return $this->response->array($res);
+    }
+
+    public function userCheckOnline($userId)
+    {
+        try{
+            $ret = \RongCloud::userCheckOnline($userId);
+        }catch (\Exception $e)
+        {
+            $ret = array('code'=>500 , 'message'=>$e->getMessage());
+        }
+        return $this->response->array($ret);
     }
 }

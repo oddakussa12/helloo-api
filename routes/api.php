@@ -155,7 +155,7 @@ $api->group($V1Params , function ($api){
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
-    $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
+    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');
     $api->get('set/dx/switch' , 'SetController@dxSwitch')->name('set.dx.switch');
     $api->post('set/dx/clearDxCache' , 'SetController@clearDxCache')->name('set.dx.switch.clear.cache');
@@ -171,6 +171,7 @@ $api->group($V1Params , function ($api){
         $api->post('ry/set/block' , 'RySetController@blockUser')->name('user.ry.set.block');
         $api->post('ry/set/unblock' , 'RySetController@unblockUser')->name('user.ry.set.unblock');
     });
+    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 
 });
