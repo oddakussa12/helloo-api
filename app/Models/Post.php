@@ -48,6 +48,10 @@ class Post extends Model
         'post_topping'
     ];
 
+    protected $casts = [
+        'post_media' => 'array',
+    ];
+
     public $translationModel = 'App\Models\PostTranslation';
 
     public $paginateParamName = 'post_page';
@@ -103,16 +107,21 @@ class Post extends Model
         return false;
     }
 
-    public function getPostMediaAttribute($value)
+    public function getPostMutationMediaAttribute()
     {
-        $value = \json_decode($value , true);
+        $value = $this->post_media;
         if($this->post_type=='video')
         {
             $value[$this->post_type]['video_url'] = config('common.qnUploadDomain.video_domain').$value[$this->post_type]['video_url'];
             $value[$this->post_type]['video_thumbnail_url'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['video_thumbnail_url'].'?imageView2/0/w/400/h/300|imageslim';
-            $value[$this->post_type]['video_subtitle_url'] = empty($value[$this->post_type]['video_subtitle_url'])?"":\array_map(function($v){
+            $video_subtitle = (array)$value[$this->post_type]['video_subtitle_url'];
+            $video_subtitle = \array_filter($video_subtitle , function($v , $k){
+                return !empty($v)&&!empty($k);
+            } , ARRAY_FILTER_USE_BOTH );
+
+            $value[$this->post_type]['video_subtitle_url'] = \array_map(function($v){
                 return config('common.qnUploadDomain.subtitle_domain').$v;
-            } , (array)$value[$this->post_type]['video_subtitle_url']);
+            } , $video_subtitle);
         }else if($this->post_type=='news'){
             $value[$this->post_type]['news_cover_image'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['news_cover_image'];
 
@@ -128,6 +137,7 @@ class Post extends Model
         }
         return $value;
     }
+
 
     public function getPostLikeStateAttribute()
     {

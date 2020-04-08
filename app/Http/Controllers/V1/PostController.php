@@ -200,12 +200,12 @@ class PostController extends BaseController
         if($post_category_id==2&&!empty($post_image))
         {
             $post_image = array_slice($post_image,0 , 9);
-            $post_media_json = \json_encode(array('image'=>array(
+            $post_media_json = array('image'=>array(
                 'image_from'=>'upload',
                 'image_cover'=>$post_image[0],
                 'image_url'=>$post_image,
                 'image_count'=>count($post_image)
-                )));
+                ));
             $post_info['post_media'] = $post_media_json;
         }
         if($post_category_id==3&&!empty($post_video))
@@ -216,7 +216,7 @@ class PostController extends BaseController
             $video_time = isset($post_video['video_time'])?$post_video['video_time']:0;
             $video_size = isset($post_video['video_size'])?$post_video['video_size']:0;
             $video_subtitle_url = isset($post_video['video_subtitle_url'])?$post_video['video_subtitle_url']:'';
-            $post_media_json = \json_encode(array('video'=>array(
+            $post_media_json = array('video'=>array(
                 'video_from'=>'upload',
                 'video_url'=>$video_url,
                 'video_subtitle_locale'=>$video_subtitle_locale,
@@ -224,7 +224,7 @@ class PostController extends BaseController
                 'video_time'=>$video_time,
                 'video_size'=>$video_size,
                 'video_subtitle_url'=>$video_subtitle_url
-            )));
+            ));
             $post_info['post_media'] = $post_media_json;
         }
         dynamicSetLocales(array($post_title_default_locale , $post_content_default_locale));
@@ -283,12 +283,27 @@ class PostController extends BaseController
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  string  $uuid
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $uuid)
     {
-        //
+        $subtitle = $request->input('subtitle' , '');
+        $language = $request->input('locale' , locale());
+        $post = $this->post->findOrFailByUuid($uuid);
+        if($post->post_type=='video')
+        {
+            $media = $post->post_media;
+            $subtitles = (array)$media['video']['video_subtitle_url'];
+            $subtitles = \array_filter($subtitles , function($v , $k){
+                return !empty($v)&&!empty($k);
+            } , ARRAY_FILTER_USE_BOTH );
+            $subtitles[$language] = $subtitle;
+            $media['video']['video_subtitle_url'] = $subtitles;
+            $post->post_media = $media;
+            $post->save();
+        }
+        return $this->response->accepted();
     }
 
     /**

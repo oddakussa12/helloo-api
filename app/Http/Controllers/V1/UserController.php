@@ -201,15 +201,17 @@ class UserController extends BaseController
         $policy = [
             'saveKey'=>"$(etag)$(ext)",
 //            'mimeLimit'=>'image/*',
-            'fsizeLimit'=>5242880,
-            'forceSaveKey'=>true,
-            'returnBody'=>"{\"key\": \"$key\", \"hash\": \"$(etag)\", \"w\": $(imageInfo.width),\"h\": $(imageInfo.height),\"size\": \"$(fsize)\",\"url\":\"$url\"}"
+
+            'forceSaveKey'=>true
         ];
         if(strpos($driver , 'video')===false)
         {
             $policy['mimeLimit'] = 'image/*';
+            $policy['returnBody'] = "{\"key\": \"$key\", \"hash\": \"$(etag)\", \"w\": $(imageInfo.width),\"h\": $(imageInfo.height),\"size\": \"$(fsize)\",\"url\":\"$url\"}";
         }else{
+            $policy['fsizeLimit'] = 52428800;
             $policy['mimeLimit'] = 'video/*';
+            $policy['returnBody'] = "{\"key\": \"$key\", \"hash\": \"$(etag)\", \"size\": \"$(fsize)\",\"url\":\"$url\"}";
         }
         $disk = Storage::disk($driver);
         $token = $disk->getUploadToken(null , 3600 , $policy);

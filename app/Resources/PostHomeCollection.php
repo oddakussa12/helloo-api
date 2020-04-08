@@ -15,7 +15,7 @@ class PostHomeCollection extends Resource
 //            'post_id' => $this->post_id,
 //            'user_id' => $this->user_id,
             'post_uuid' => $this->post_uuid,
-            'post_media' => $this->post_media,
+            'post_media' => $this->post_mutation_media,
             'post_default_locale' => $this->post_default_locale,
             'post_title' => $this->post_decode_title,
             'post_content' => strip_tags($this->post_decode_content),
