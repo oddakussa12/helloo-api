@@ -29,7 +29,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh' , 'operationLog']] , function($api){
 
         $api->resource('post', 'PostController', ['only' => ['index']]);
-
+        $api->patch('post/{uuid}', 'PostController@update');
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
@@ -170,6 +170,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['backAuth']] , function($api){
         $api->post('ry/set/block' , 'RySetController@blockUser')->name('user.ry.set.block');
         $api->post('ry/set/unblock' , 'RySetController@unblockUser')->name('user.ry.set.unblock');
+        $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
     });
     $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('test/index' , 'TestController@test')->name('test.test');
