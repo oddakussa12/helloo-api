@@ -37,6 +37,7 @@ class Api{
      * @param $name     用户名称，最大长度 128 字节。用来在 Push 推送时，或者客户端没有提供用户信息时，显示用户的名称。
      * @param $portraitUri  用户头像 URI，最大长度 1024 字节。
      * @return json|xml
+     * @throws Exception
      */
     public function getToken($userId, $name, $portraitUri) {
         try{
@@ -52,7 +53,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            throw new ($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -62,13 +63,14 @@ class Api{
      * @param $toUserId     接收用户 Id，提供多个本参数可以实现向多人发送消息。注意：向多人发送消息时，本参数为数组（必传）
      * @param $objectName   消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content      发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
-     * @param string $pushContent     如果为自定义消息，定义显示的 Push 内容。(可选)
-     * @param string $pushData        针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
-     * @param string $count           针对 iOS 平台，Push 时用来控制未读消息显示数，只有在 toUserId 为一个用户 Id 的时候有效。(可选)
-     * @param int    $verifyBlacklist 是否过滤发送人黑名单列表，0 表示为不过滤、 1 表示为过滤，默认为 0 不过滤。(可选)
-     * @param int    $isPersisted     当前版本有新的自定义消息，而老版本没有该自定义消息时，老版本客户端收到消息后是否进行存储，0 表示为不存储、 1 表示为存储，默认为 1 存储消息。(可选)
-     * @param int    $isCounted       当前版本有新的自定义消息，而老版本没有该自定义消息时，老版本客户端收到消息后是否进行未读消息计数，0 表示为不计数、 1 表示为计数，默认为 1 计数，未读消息数增加 1。(可选)
+     * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
+     * @param string $pushData 针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
+     * @param string $count 针对 iOS 平台，Push 时用来控制未读消息显示数，只有在 toUserId 为一个用户 Id 的时候有效。(可选)
+     * @param int $verifyBlacklist 是否过滤发送人黑名单列表，0 表示为不过滤、 1 表示为过滤，默认为 0 不过滤。(可选)
+     * @param int $isPersisted 当前版本有新的自定义消息，而老版本没有该自定义消息时，老版本客户端收到消息后是否进行存储，0 表示为不存储、 1 表示为存储，默认为 1 存储消息。(可选)
+     * @param int $isCounted 当前版本有新的自定义消息，而老版本没有该自定义消息时，老版本客户端收到消息后是否进行未读消息计数，0 表示为不计数、 1 表示为计数，默认为 1 计数，未读消息数增加 1。(可选)
      * @return json|xml
+     * @throws Exception
      */
     public function messagePrivatePublish($fromUserId,$toUserId, $objectName, $content, $pushContent='', $pushData = '',$count = NULL,$verifyBlacklist = 0,$isPersisted = 1,$isCounted = 1) {
         try{
@@ -101,21 +103,22 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
     /**
      * 发送单聊模板消息 方法
      * @param $fromUserId   发送人用户 Id。（必传）
-     * @param $toUserId     接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
+     * @param array $toUserId 接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
      * @param $objectName   消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $values       消息内容中，标识位对应内容。（必传）
      * @param $content      发送消息内容，内容中定义标识通过 values 中设置的标识位内容进行替换，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
-     * @param string $pushContent   如果为自定义消息，定义显示的 Push 内容。(可选)
-     * @param string $pushData  针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
-     * @param $verifyBlacklist   是否过滤发送人黑名单列表，0 为不过滤、 1 为过滤，默认为 0 不过滤。(可选)
+     * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
+     * @param string $pushData 针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
+     * @param int $verifyBlacklist 是否过滤发送人黑名单列表，0 为不过滤、 1 为过滤，默认为 0 不过滤。(可选)
      * @return json|xml
+     * @throws Exception
      */
     public function messagePrivatePublishTemplate($fromUserId,array $toUserId, $objectName, $values, $content, $pushContent='', $pushData = '', $verifyBlacklist=0) {
         try{
@@ -146,19 +149,21 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
+
     /**
      * 发送系统模板消息 方法
      * @param $fromUserId   发送人用户 Id。（必传）
-     * @param $toUserId     接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
+     * @param array $toUserId 接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
      * @param $objectName   消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $values       消息内容中，标识位对应内容。（必传）
      * @param $content      发送消息内容，内容中定义标识通过 values 中设置的标识位内容进行替换，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
-     * @param string $pushContent   如果为自定义消息，定义显示的 Push 内容。(可选)
-     * @param string $pushData  针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
+     * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
+     * @param string $pushData 针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
      * @return json|xml
+     * @throws Exception
      */
     public function messageSystemPublishTemplate($fromUserId,array $toUserId, $objectName, $values, $content, $pushContent='', $pushData = '') {
         try{
@@ -188,19 +193,20 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 以一个用户身份向群组发送消息
      * @param $fromUserId           发送人用户 Id。（必传）
-     * @param $toGroupId             接收群Id，提供多个本参数可以实现向多群发送消息。（必传）
+     * @param array $toGroupId 接收群Id，提供多个本参数可以实现向多群发送消息。（必传）
      * @param $objectName           消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content              发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
-     * @param string $pushContent   如果为自定义消息，定义显示的 Push 内容。(可选)
-     * @param string $pushData      针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
+     * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
+     * @param string $pushData 针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
      * @return json|xml
+     * @throws Exception
      */
     public function messageGroupPublish($fromUserId, $toGroupId = array(), $objectName, $content, $pushContent='', $pushData = '') {
         try{
@@ -227,7 +233,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -235,10 +241,11 @@ class Api{
     /**
      * 一个用户向聊天室发送消息
      * @param $fromUserId               发送人用户 Id。（必传）
-     * @param $toChatroomId             接收聊天室Id，提供多个本参数可以实现向多个聊天室发送消息。（必传）
+     * @param array $toChatroomId 接收聊天室Id，提供多个本参数可以实现向多个聊天室发送消息。（必传）
      * @param $objectName               消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content                  发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function messageChatroomPublish($fromUserId, $toChatroomId = array(), $objectName, $content) {
         try{
@@ -262,19 +269,20 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 发送讨论组消息
      * @param $fromUserId               发送人用户 Id。（必传）
      * @param $toDiscussionId             接收讨论组 Id。（必传）
      * @param $objectName               消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content                  发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
-     * @param string $pushContent   如果为自定义消息，定义显示的 Push 内容。(可选)
-     * @param string $pushData  针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
+     * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
+     * @param string $pushData 针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
      * @return json|xml
+     * @throws Exception
      */
     public function messageDiscussionPublish($fromUserId,$toDiscussionId,$objectName,$content,$pushContent='',$pushData='') {
         try{
@@ -301,19 +309,20 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
     /**
      * 一个用户向一个或多个用户发送系统消息
      * @param $fromUserId       发送人用户 Id。（必传）
-     * @param $toUserId         接收用户Id，提供多个本参数可以实现向多用户发送系统消息。（必传）
+     * @param array $toUserId 接收用户Id，提供多个本参数可以实现向多用户发送系统消息。（必传）
      * @param $objectName       消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content          发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
-     * @param string $pushContent   如果为自定义消息，定义显示的 Push 内容。(可选)
-     * @param string $pushData  针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
+     * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
+     * @param string $pushData 针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
      * @return json|xml
+     * @throws Exception
      */
     public function messageSystemPublish($fromUserId,$toUserId = array(),$objectName,$content,$pushContent='',$pushData = '') {
         try{
@@ -340,7 +349,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -353,6 +362,7 @@ class Api{
      * @param $pushData         针对 iOS 平台为 Push 通知时附加到 payload 中，Android 客户端收到推送消息时对应字段名为 pushData。(可选)
      * @param $os               针对操作系统发送 Push (可选)
      * @return json|xml
+     * @throws Exception
      */
     public function messageBroadcast($fromUserId,$objectName,$content,$pushContent = NULL,$pushData = NULL,$os = NULL) {
         try{
@@ -380,7 +390,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -388,6 +398,7 @@ class Api{
      * 获取 APP 内指定某天某小时内的所有会话消息记录的下载地址
      * @param $date     指定北京时间某天某小时，格式为：2014010101,表示：2014年1月1日凌晨1点。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function messageHistory($date) {
         try{
@@ -398,7 +409,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -406,6 +417,7 @@ class Api{
      * 删除 APP 内指定某天某小时内的所有会话消息记录
      * @param $date string 指定北京时间某天某小时，格式为2014010101,表示：2014年1月1日凌晨1点。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function messageHistoryDelete($date) {
         try{
@@ -416,7 +428,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -424,8 +436,9 @@ class Api{
     /**
      * 向融云服务器提交 userId 对应的用户当前所加入的所有群组。
      * @param $userId           被同步群信息的用户Id。（必传）
-     * @param array $data       该用户的群信息。（必传）array('key'=>'val')
+     * @param array $data 该用户的群信息。（必传）array('key'=>'val')
      * @return json|xml
+     * @throws Exception
      */
     public function groupSync($userId, $data = array()) {
         try{
@@ -447,7 +460,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -458,6 +471,7 @@ class Api{
      * @param $groupId          要加入的群 Id。（必传）
      * @param $groupName        要加入的群 Id 对应的名称。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function groupJoin($userId, $groupId, $groupName) {
         try{
@@ -478,7 +492,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -488,6 +502,7 @@ class Api{
      * @param $userId       要退出群的用户 Id。（必传）
      * @param $groupId      要退出的群 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function groupQuit($userId, $groupId) {
         try{
@@ -502,7 +517,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -511,6 +526,7 @@ class Api{
      * @param $userId           操作解散群的用户 Id。（必传）
      * @param $groupId          要解散的群 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function groupDismiss($userId, $groupId) {
         try{
@@ -524,17 +540,18 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
 
     /**
      * 创建群组，并将用户加入该群组，用户将可以收到该群的消息。注：其实本方法是加入群组方法 /group/join 的别名。
-     * @param $userId       要加入群的用户 Id。（必传）
+     * @param array $userId 要加入群的用户 Id。（必传）
      * @param $groupId      要加入的群 Id。（必传）
      * @param $groupName    要加入的群 Id 对应的名称。（可选）
      * @return json|xml
+     * @throws Exception
      */
     public function groupCreate(array $userId, $groupId, $groupName) {
         try{
@@ -551,15 +568,16 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 刷新群组信息 方法
      * @param $groupId      群组 Id。（必传）
      * @param $groupName    群组名称。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function groupRefresh($groupId, $groupName) {
         try{
@@ -574,14 +592,15 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 查询群成员 方法
      * @param $groupId      群 Id。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function groupUserQuery( $groupId ) {
         try{
@@ -594,15 +613,16 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
 
     /**
      * 创建聊天室
-     * @param array $data   key:要创建的聊天室的id；val:要创建的聊天室的name。（必传）
+     * @param array $data key:要创建的聊天室的id；val:要创建的聊天室的name。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomCreate($data = array()) {
         try{
@@ -618,16 +638,17 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
 
     /**
      * 创建聊天室
-     * @param array $userId   要加入聊天室的用户 Id，可提交多个，最多不超过 50 个。（必传）
-     * @param array $chatroomId   要加入的聊天室 Id。（必传）
+     * @param array $userId 要加入聊天室的用户 Id，可提交多个，最多不超过 50 个。（必传）
+     * @param array $chatroomId 要加入的聊天室 Id。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomJoin(array $userId,$chatroomId) {
         try{
@@ -641,7 +662,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -649,6 +670,7 @@ class Api{
      * 销毁聊天室
      * @param $chatroomId   要销毁的聊天室 Id。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomDestroy($chatroomId) {
         try{
@@ -659,7 +681,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -667,6 +689,7 @@ class Api{
      * 查询聊天室信息 方法
      * @param $chatroomId   要查询的聊天室id（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomQuery($chatroomId) {
         try{
@@ -677,7 +700,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -685,6 +708,7 @@ class Api{
      * 聊天室消息停止分发 方法
      * @param $chatroomId   要查询的聊天室id（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomMessageStopDistribution($chatroomId) {
         try{
@@ -695,14 +719,15 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 聊天室消息恢复分发 方法
      * @param $chatroomId   要查询的聊天室id（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomMessageResumeDistribution($chatroomId) {
         try{
@@ -713,15 +738,17 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 查询聊天室内用户
      * @param $chatroomId  聊天室 Id
-     * @param $count       要获取的聊天室成员数，上限为 500 ，超过 500 时最多返回 500 个成员（必传）
-     * @param $order       加入聊天室的先后顺序， 1 为加入时间正序， 2 为加入时间倒序（必传）
+     * @param int $count 要获取的聊天室成员数，上限为 500 ，超过 500 时最多返回 500 个成员（必传）
+     * @param int $order 加入聊天室的先后顺序， 1 为加入时间正序， 2 为加入时间倒序（必传）
+     * @return mixed
+     * @throws Exception
      */
     public function userChatroomQuery($chatroomId,$count = 500,$order = 1) {
         try{
@@ -743,7 +770,7 @@ class Api{
             }
             return $ret;
         } catch(Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -752,6 +779,7 @@ class Api{
      * 检查用户在线状态 方法
      * @param $userId    用户 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function userCheckOnline($userId) {
         try{
@@ -762,7 +790,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -826,9 +854,10 @@ class Api{
     /**
      *刷新用户信息 方法  说明：当您的用户昵称和头像变更时，您的 App Server 应该调用此接口刷新在融云侧保存的用户信息，以便融云发送推送消息的时候，能够正确显示用户信息
      * @param $userId   用户 Id，最大长度 32 字节。是用户在 App 中的唯一标识码，必须保证在同一个 App 内不重复，重复的用户 Id 将被当作是同一用户。（必传）
-     * @param string $name  用户名称，最大长度 128 字节。用来在 Push 推送时，或者客户端没有提供用户信息时，显示用户的名称。
-     * @param string $portraitUri   用户头像 URI，最大长度 1024 字节
+     * @param string $name 用户名称，最大长度 128 字节。用来在 Push 推送时，或者客户端没有提供用户信息时，显示用户的名称。
+     * @param string $portraitUri 用户头像 URI，最大长度 1024 字节
      * @return mixed
+     * @throws Exception
      */
     public function userRefresh($userId,$name='',$portraitUri='') {
         try{
@@ -844,7 +873,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -852,8 +881,9 @@ class Api{
     /**
      * 添加用户到黑名单
      * @param $userId       用户 Id。（必传）
-     * @param $blackUserId  被加黑的用户Id。(必传)
+     * @param array $blackUserId 被加黑的用户Id。(必传)
      * @return mixed
+     * @throws Exception
      */
     public function userBlacklistAdd($userId,$blackUserId = array()) {
         try{
@@ -872,7 +902,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -881,6 +911,7 @@ class Api{
      * 获取某个用户的黑名单列表
      * @param $userId   用户 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function userBlacklistQuery($userId) {
         try{
@@ -891,7 +922,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -899,8 +930,9 @@ class Api{
     /**
      * 从黑名单中移除用户
      * @param $userId               用户 Id。（必传）
-     * @param array $blackUserId    被移除的用户Id。(必传)
+     * @param array $blackUserId 被移除的用户Id。(必传)
      * @return mixed
+     * @throws Exception
      */
     public function userBlacklistRemove($userId, $blackUserId = array()) {
         try{
@@ -919,17 +951,18 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
 
     }
-    
+
     /**
      * 添加禁言群成员
      * @param $userId   用户 Id。（必传）
      * @param $groupId 群组 Id。（必传）
      * @param $minute 禁言时长，以分钟为单位，可以不传此参数，默认为永久禁言。
      * @return mixed
+     * @throws Exception
      */
     public function groupUserGagAdd($userId,$groupId,$minute) {
         try{
@@ -947,16 +980,17 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
-    
+
+
     /**
      * 移除禁言群成员
      * @param $userId   用户 Id。（必传）
      * @param $groupId 群组 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function groupUserGagRollback($userId,$groupId) {
         try{
@@ -971,14 +1005,15 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 查询被禁言群成员
      * @param $groupId 群组 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function groupUserGagList($groupId) {
         try{
@@ -990,14 +1025,15 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 添加敏感词
      * @param $word 敏感词，最长不超过 32 个字符。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function wordfilterAdd($word) {
         try{
@@ -1009,14 +1045,15 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 移除敏感词
      * @param $word 敏感词，最长不超过 32 个字符。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function wordfilterDelete($word) {
         try{
@@ -1028,12 +1065,14 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
+
     /**
      * 查询敏感词列表
      * @return mixed
+     * @throws Exception
      */
     public function wordfilterList() {
         try{
@@ -1042,7 +1081,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -1052,6 +1091,7 @@ class Api{
      * @param $chatroomId 聊天室 Id。（必传）
      * @param $minute 禁言时长，以分钟为单位，最大值为43200分钟。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function chatroomUserGagAdd($userId,$chatroomId,$minute) {
         try{
@@ -1069,7 +1109,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -1078,6 +1118,7 @@ class Api{
      * @param $userId 用户 Id。（必传）
      * @param $chatroomId 聊天室 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function chatroomUserGagRollback($userId,$chatroomId) {
         try{
@@ -1092,13 +1133,15 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
+
     /**
      * 查询被禁言聊天室成员 方法
      * @param $chatroomId 聊天室 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function chatroomUserGagList($chatroomId) {
         try{
@@ -1110,7 +1153,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -1120,6 +1163,7 @@ class Api{
      * @param $chatroomId 聊天室 Id。（必传）
      * @param $minute 封禁时长，以分钟为单位，最大值为43200分钟。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function chatroomUserBlockAdd($userId,$chatroomId,$minute) {
         try{
@@ -1137,7 +1181,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -1146,6 +1190,7 @@ class Api{
      * @param $userId 用户 Id。（必传）
      * @param $chatroomId 聊天室 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function chatroomUserBlockRollback($userId,$chatroomId) {
         try{
@@ -1160,13 +1205,15 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
+
     /**
      * 查询被封禁聊天室成员 方法
      * @param $chatroomId 聊天室 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function chatroomUserBlockList($chatroomId) {
         try{
@@ -1178,15 +1225,16 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 推送服务 添加标签 方法
      * @param string $userId 用户 Id。（必传）
      * @param array $tags 用户标签，一个用户最多添加 20 个标签，每个 tags 最大不能超过 40 个字节，标签中不能包含特殊字符。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function pushUserTagSet($userId,array $tags) {
         try{
@@ -1201,26 +1249,17 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
     /**
      * 推送服务 推送 方法
      * @param $platform 目标操作系统，ios、android 最少传递一个。如果需要给两个系统推送消息时，则需要全部填写。（必传）
-     * @param $audience 推送条件，包括： tag 、 userid 、 is_to_all。（必传）
-     * @param $audience[ tag ] 用户标签，每次发送时最多发送 20 个标签，标签之间为与的关系，is_to_all 为 true 时可不传。（非必传）
-     * @param $audience[ userid ] 用户 Id，每次发送时最多发送 1000 个用户，如果 tag 和 userid 两个条件同时存在时，则以 userid 为准，如果 userid 有值时，则 platform 参数无效，is_to_all 为 true 时可不传。（非必传）
-     * @param $audience[ is_to_all ] 是否全部推送，false 表示按 tag 或 userid 条件推送，true 表示向所有用户推送，tag 和 userid 两个条件无效。（必传）
-     * @param $notification 按操作系统类型推送消息内容，如 platform 中设置了给 ios 和 android 系统推送消息，而在 notifications 中只设置了 ios 的推送内容，则 android 的推送内容为最初 alert 设置的内容。（非必传）
-     * @param $notification[ alert ] 	默认推送消息内容，如填写了 ios 或 android 下的 alert 时，则推送内容以对应平台系统的 alert 为准。（必传）
-     * @param $notification[ ios ] 设置 iOS 平台下的推送及附加信息。（非必传）
-     * @param $notification[ android ] 设置 Android 平台下的推送及附加信息。（非必传）
-     * @param $notification[ ios ][ alert ] ios平台下的推送消息内容，传入后默认的推送消息内容失效，不能为空。（非必传）
-     * @param $notification[ ios ][ extras ]  ios平台下的附加信息，如果开发者自己需要，可以自己在 App 端进行解析。（非必传）
-     * @param $notification[ android ][ alert ] android平台下的推送消息内容，传入后默认的推送消息内容失效，不能为空。（非必传）
-     * @param $notification[ android ][ extras ]  android平台下的附加信息，如果开发者自己需要，可以自己在 App 端进行解析。（非必传）
+     * @param $audience [ is_to_all ] 是否全部推送，false 表示按 tag 或 userid 条件推送，true 表示向所有用户推送，tag 和 userid 两个条件无效。（必传）
+     * @param $notification [ android ][ extras ]  android平台下的附加信息，如果开发者自己需要，可以自己在 App 端进行解析。（非必传）
      * @return mixed
+     * @throws Exception
      */
     public function push( $platform,$audience,$notification ) {
         try{
@@ -1242,29 +1281,19 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 推送服务 推送消息 方法
      * @param $platform 目标操作系统，ios、android 最少传递一个。如果需要给两个系统推送消息时，则需要全部填写。（必传）
      * @param $fromuserid  发送人用户 Id。（必传）
-     * @param $audience 推送条件，包括： tag 、 userid 、 is_to_all。（必传）
-     * @param $audience[ tag ] 用户标签，每次发送时最多发送 20 个标签，标签之间为与的关系，is_to_all 为 true 时可不传。（非必传）
-     * @param $audience[ userid ] 用户 Id，每次发送时最多发送 1000 个用户，如果 tag 和 userid 两个条件同时存在时，则以 userid 为准，如果 userid 有值时，则 platform 参数无效，is_to_all 为 true 时可不传。（非必传）
-     * @param $audience[ is_to_all ] 是否全部推送，false 表示按 tag 或 userid 条件推送，true 表示向所有用户推送，tag 和 userid 两个条件无效。（必传）
-     * @param $message[ content ]  发送消息内容，参考融云 Server API 消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
-     * @param $message[ objectName ]  消息类型，参考融云 Server API 消息类型表.消息标志；可自定义消息类型。（必传）
-     * @param $notification 按操作系统类型推送消息内容，如 platform 中设置了给 ios 和 android 系统推送消息，而在 notifications 中只设置了 ios 的推送内容，则 android 的推送内容为最初 alert 设置的内容。（非必传）
-     * @param $notification[ alert ] 	默认推送消息内容，如填写了 ios 或 android 下的 alert 时，则推送内容以对应平台系统的 alert 为准。（必传）
-     * @param $notification[ ios ] 设置 iOS 平台下的推送及附加信息。（非必传）
-     * @param $notification[ android ] 设置 Android 平台下的推送及附加信息。（非必传）
-     * @param $notification[ ios ][ alert ] ios平台下的推送消息内容，传入后默认的推送消息内容失效，不能为空。（非必传）
-     * @param $notification[ ios ][ extras ]  ios平台下的附加信息，如果开发者自己需要，可以自己在 App 端进行解析。（非必传）
-     * @param $notification[ android ][ alert ] android平台下的推送消息内容，传入后默认的推送消息内容失效，不能为空。（非必传）
-     * @param $notification[ android ][ extras ]  android平台下的附加信息，如果开发者自己需要，可以自己在 App 端进行解析。（非必传）
+     * @param $audience [ is_to_all ] 是否全部推送，false 表示按 tag 或 userid 条件推送，true 表示向所有用户推送，tag 和 userid 两个条件无效。（必传）
+     * @param $message [ objectName ]  消息类型，参考融云 Server API 消息类型表.消息标志；可自定义消息类型。（必传）
+     * @param $notification [ android ][ extras ]  android平台下的附加信息，如果开发者自己需要，可以自己在 App 端进行解析。（非必传）
      * @return mixed
+     * @throws Exception
      */
     public function pushMessage( $platform,$fromuserid,$audience,$message,$notification ) {
         try{
@@ -1296,13 +1325,14 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 获取图片验证码 方法
      * @return mixed
+     * @throws Exception
      */
     public function smsGetImgCode() {
         try{
@@ -1312,18 +1342,19 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 发送短信验证码 方法
      * @param $mobile     接收短信验证码的目标手机号，每分钟同一手机号只能发送一次短信验证码，同一手机号 1 小时内最多发送 3 次。（必传）
      * @param $templateId 短信模板 Id，在开发者后台->短信服务->服务设置->短信模版中获取。（必传）
      * @param $verifyId   图片验证标识 Id ，开启图片验证功能后此参数必传，否则可以不传。在获取图片验证码方法返回值中获取。
      * @param $verifyCode 图片验证码，开启图片验证功能后此参数必传，否则可以不传。
-     * @param $region     手机号码所属国家区号，目前只支持中国区号 86
+     * @param string $region 手机号码所属国家区号，目前只支持中国区号 86
      * @return mixed
+     * @throws Exception
      */
     public function smsSendCode($mobile,$templateId,$verifyId = NULL,$verifyCode = NULL,$region='86') {
         try{
@@ -1345,15 +1376,16 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 验证码验证 方法
      * @param $sessionId 短信验证码唯一标识，在发送短信验证码方法，返回值中获取。（必传）
      * @param $code      短信验证码内容。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function smsVerifyCode($sessionId,$code) {
         try{
@@ -1370,14 +1402,13 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
-    
+
     /**
      * 创建http header参数
-     * @param array $data
-     * @return bool
+     * @return array
      */
     private function createHttpHeader() {
         $nonce = mt_rand();
@@ -1433,7 +1464,9 @@ class Api{
      * 发起 server 请求
      * @param $action
      * @param $params
-     * @param $httpHeader
+     * @param string $contentType
+     * @param string $module
+     * @param string $httpMethod
      * @return mixed
      */
     public function curl($action, $params,$contentType='urlencoded',$module = 'im',$httpMethod='POST') {
