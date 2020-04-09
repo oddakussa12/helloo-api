@@ -54,9 +54,29 @@ class RyChatController extends BaseController
      */
     public function store(Request $request)
     {
+        $all = $request->all();
         $response = $this->response->noContent();
-        $device = new RyChat($request->all());
-        $this->dispatch($device->onQueue('store_ry_msg'));
+        $rule = [
+            'msgUID' => [
+                'required',
+            ]
+        ];
+        $validator = \Validator::make($all, $rule);
+        if ($validator->fails()) {
+            $data = array(
+                'raw'=>\json_encode($all , JSON_UNESCAPED_UNICODE),
+                'errors'=>\json_encode($validator->errors() , JSON_UNESCAPED_UNICODE)
+            );
+            RyChatFailed::create($data);
+        }else{
+            $msgUID = $request->input('msgUID' , '');
+            $lock_key = 'ry_room_chat_'.$msgUID;
+            if(Redis::set($lock_key, 1, "nx", "ex", 15))
+            {
+                $device = new RyChat($all);
+                $this->dispatch($device->onQueue('store_ry_msg'));
+            }
+        }
         return $response->setStatusCode(200);
     }
 
