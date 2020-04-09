@@ -36,11 +36,10 @@ class Api{
      * @param $userId   用户 Id，最大长度 32 字节。是用户在 App 中的唯一标识码，必须保证在同一个 App 内不重复，重复的用户 Id 将被当作是同一用户。
      * @param $name     用户名称，最大长度 128 字节。用来在 Push 推送时，或者客户端没有提供用户信息时，显示用户的名称。
      * @param $portraitUri  用户头像 URI，最大长度 1024 字节。
-     * @param $recursion
      * @return json|xml
      * @throws Exception
      */
-    public function getToken($userId, $name, $portraitUri , $recursion=false) {
+    public function getToken($userId, $name, $portraitUri) {
         try{
             if(empty($userId))
                 throw new Exception('用户 Id 不能为空');
@@ -51,18 +50,7 @@ class Api{
 
             $ret = $this->curl('/user/getToken',array('userId'=>$userId,'name'=>$name,'portraitUri'=>$portraitUri));
             if(empty($ret))
-            {
                 throw new Exception('请求失败');
-            }
-            if(!is_array($ret))
-            {
-                if($recursion)
-                {
-                    throw new Exception($ret);
-                }else{
-                    return $this->getToken($userId, $name, $portraitUri , true);
-                }
-            }
             return $ret;
         }catch (Exception $e) {
             throw new Exception($e->getMessage());
@@ -104,11 +92,11 @@ class Api{
                 'isPersisted'=>$isPersisted,
                 'isCounted'=>$isCounted
             );
-            if (!empty($pushContent)) 
+            if (!empty($pushContent))
                 $params['pushContent'] = $pushContent;
-            if (!empty($pushData)) 
+            if (!empty($pushData))
                 $params['pushData'] = $pushData;
-            if (!empty($count)) 
+            if (!empty($count))
                 $params['count'] = $count;
             $ret = $this->curl('/message/private/publish', $params);
             if(empty($ret))
@@ -122,13 +110,13 @@ class Api{
     /**
      * 发送单聊模板消息 方法
      * @param $fromUserId   发送人用户 Id。（必传）
-     * @param $toUserId     接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
+     * @param array $toUserId 接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
      * @param $objectName   消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $values       消息内容中，标识位对应内容。（必传）
      * @param $content      发送消息内容，内容中定义标识通过 values 中设置的标识位内容进行替换，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
      * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
      * @param string $pushData 针对 iOS 平台，Push 通知附加的 payload 字段，字段名为 appData。(可选)
-     * @param $verifyBlacklist   是否过滤发送人黑名单列表，0 为不过滤、 1 为过滤，默认为 0 不过滤。(可选)
+     * @param int $verifyBlacklist 是否过滤发送人黑名单列表，0 为不过滤、 1 为过滤，默认为 0 不过滤。(可选)
      * @return json|xml
      * @throws Exception
      */
@@ -144,18 +132,18 @@ class Api{
                 throw new Exception('标识位对应内容 不能为空');
             if(empty($content))
                 throw new Exception('发送消息内容 不能为空');
-    
+
             $params = array(
-                    'fromUserId'=>$fromUserId,
-                    'toUserId' => $toUserId,
-                    'objectName'=>$objectName,
-                    'values'=>$values,
-                    'content'=>$content,
-                    'pushContent'=>$pushContent,
-                    'pushData'=>$pushData,
-                    'verifyBlacklist' => $verifyBlacklist,
+                'fromUserId'=>$fromUserId,
+                'toUserId' => $toUserId,
+                'objectName'=>$objectName,
+                'values'=>$values,
+                'content'=>$content,
+                'pushContent'=>$pushContent,
+                'pushData'=>$pushData,
+                'verifyBlacklist' => $verifyBlacklist,
             );
-    
+
             $ret = $this->curl('/message/private/publish_template', $params,'json');
             if(empty($ret))
                 throw new Exception('请求失败');
@@ -168,7 +156,7 @@ class Api{
     /**
      * 发送系统模板消息 方法
      * @param $fromUserId   发送人用户 Id。（必传）
-     * @param $toUserId     接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
+     * @param array $toUserId 接收用户 Id，提供多个本参数可以实现向多人发送消息。（必传）
      * @param $objectName   消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $values       消息内容中，标识位对应内容。（必传）
      * @param $content      发送消息内容，内容中定义标识通过 values 中设置的标识位内容进行替换，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
@@ -189,17 +177,17 @@ class Api{
                 throw new Exception('标识位对应内容 不能为空');
             if(empty($content))
                 throw new Exception('发送消息内容 不能为空');
-    
+
             $params = array(
-                    'fromUserId'=>$fromUserId,
-                    'toUserId' => $toUserId,
-                    'objectName'=>$objectName,
-                    'values'=>$values,
-                    'content'=>$content,
-                    'pushContent'=>$pushContent,
-                    'pushData'=>$pushData,
+                'fromUserId'=>$fromUserId,
+                'toUserId' => $toUserId,
+                'objectName'=>$objectName,
+                'values'=>$values,
+                'content'=>$content,
+                'pushContent'=>$pushContent,
+                'pushData'=>$pushData,
             );
-    
+
             $ret = $this->curl('/message/system/publish_template', $params,'json');
             if(empty($ret))
                 throw new Exception('请求失败');
@@ -212,7 +200,7 @@ class Api{
     /**
      * 以一个用户身份向群组发送消息
      * @param $fromUserId           发送人用户 Id。（必传）
-     * @param $toGroupId             接收群Id，提供多个本参数可以实现向多群发送消息。（必传）
+     * @param array $toGroupId 接收群Id，提供多个本参数可以实现向多群发送消息。（必传）
      * @param $objectName           消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content              发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
      * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
@@ -253,7 +241,7 @@ class Api{
     /**
      * 一个用户向聊天室发送消息
      * @param $fromUserId               发送人用户 Id。（必传）
-     * @param $toChatroomId             接收聊天室Id，提供多个本参数可以实现向多个聊天室发送消息。（必传）
+     * @param array $toChatroomId 接收聊天室Id，提供多个本参数可以实现向多个聊天室发送消息。（必传）
      * @param $objectName               消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content                  发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
      * @return json|xml
@@ -306,14 +294,14 @@ class Api{
                 throw new Exception('消息类型 不能为空');
             if(empty($content))
                 throw new Exception('发送消息内容 不能为空');
-    
+
             $params = array(
-                    'fromUserId'=>$fromUserId,
-                    'toDiscussionId'=>$toDiscussionId,
-                    'objectName'=>$objectName,
-                    'content'=>$content,
-                    'pushContent'=>$pushContent,
-                    'pushData'=>$pushData
+                'fromUserId'=>$fromUserId,
+                'toDiscussionId'=>$toDiscussionId,
+                'objectName'=>$objectName,
+                'content'=>$content,
+                'pushContent'=>$pushContent,
+                'pushData'=>$pushData
             );
             $paramsString = http_build_query($params);
             $ret = $this->curl('/message/discussion/publish',$paramsString);
@@ -328,7 +316,7 @@ class Api{
     /**
      * 一个用户向一个或多个用户发送系统消息
      * @param $fromUserId       发送人用户 Id。（必传）
-     * @param $toUserId         接收用户Id，提供多个本参数可以实现向多用户发送系统消息。（必传）
+     * @param array $toUserId 接收用户Id，提供多个本参数可以实现向多用户发送系统消息。（必传）
      * @param $objectName       消息类型，参考融云消息类型表.消息标志；可自定义消息类型。（必传）
      * @param $content          发送消息内容，参考融云消息类型表.示例说明；如果 objectName 为自定义消息类型，该参数可自定义格式。（必传）
      * @param string $pushContent 如果为自定义消息，定义显示的 Push 内容。(可选)
@@ -384,7 +372,7 @@ class Api{
                 throw new Exception('消息类型不能为空');
             if(empty($content))
                 throw new Exception('发送消息内容不能为空');
-            
+
             $params['fromUserId'] = $fromUserId;
             $params['objectName'] = $objectName;
             $params['content'] = $content;
@@ -559,7 +547,7 @@ class Api{
 
     /**
      * 创建群组，并将用户加入该群组，用户将可以收到该群的消息。注：其实本方法是加入群组方法 /group/join 的别名。
-     * @param $userId       要加入群的用户 Id。（必传）
+     * @param array $userId 要加入群的用户 Id。（必传）
      * @param $groupId      要加入的群 Id。（必传）
      * @param $groupName    要加入的群 Id 对应的名称。（可选）
      * @return json|xml
@@ -589,6 +577,7 @@ class Api{
      * @param $groupId      群组 Id。（必传）
      * @param $groupName    群组名称。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function groupRefresh($groupId, $groupName) {
         try{
@@ -597,7 +586,7 @@ class Api{
             if(empty($groupName))
                 throw new Exception('群组名称 不能为空');
             $ret = $this->curl('/group/refresh',
-                    array('groupId' => $groupId,'groupName' => $groupName)
+                array('groupId' => $groupId,'groupName' => $groupName)
             );
             if(empty($ret))
                 throw new Exception('请求失败');
@@ -611,13 +600,14 @@ class Api{
      * 查询群成员 方法
      * @param $groupId      群 Id。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function groupUserQuery( $groupId ) {
         try{
             if(empty($groupId))
                 throw new Exception('要加入的群 Id 不能为空');
             $ret = $this->curl('/group/user/query',
-                    array('groupId' => $groupId)
+                array('groupId' => $groupId)
             );
             if(empty($ret))
                 throw new Exception('请求失败');
@@ -630,8 +620,9 @@ class Api{
 
     /**
      * 创建聊天室
-     * @param array $data   key:要创建的聊天室的id；val:要创建的聊天室的name。（必传）
+     * @param array $data key:要创建的聊天室的id；val:要创建的聊天室的name。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomCreate($data = array()) {
         try{
@@ -654,9 +645,10 @@ class Api{
 
     /**
      * 创建聊天室
-     * @param array $userId   要加入聊天室的用户 Id，可提交多个，最多不超过 50 个。（必传）
-     * @param array $chatroomId   要加入的聊天室 Id。（必传）
+     * @param array $userId 要加入聊天室的用户 Id，可提交多个，最多不超过 50 个。（必传）
+     * @param array $chatroomId 要加入的聊天室 Id。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomJoin(array $userId,$chatroomId) {
         try{
@@ -678,6 +670,7 @@ class Api{
      * 销毁聊天室
      * @param $chatroomId   要销毁的聊天室 Id。（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomDestroy($chatroomId) {
         try{
@@ -696,6 +689,7 @@ class Api{
      * 查询聊天室信息 方法
      * @param $chatroomId   要查询的聊天室id（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomQuery($chatroomId) {
         try{
@@ -714,6 +708,7 @@ class Api{
      * 聊天室消息停止分发 方法
      * @param $chatroomId   要查询的聊天室id（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomMessageStopDistribution($chatroomId) {
         try{
@@ -732,6 +727,7 @@ class Api{
      * 聊天室消息恢复分发 方法
      * @param $chatroomId   要查询的聊天室id（必传）
      * @return json|xml
+     * @throws Exception
      */
     public function chatroomMessageResumeDistribution($chatroomId) {
         try{
@@ -749,8 +745,10 @@ class Api{
     /**
      * 查询聊天室内用户
      * @param $chatroomId  聊天室 Id
-     * @param $count       要获取的聊天室成员数，上限为 500 ，超过 500 时最多返回 500 个成员（必传）
-     * @param $order       加入聊天室的先后顺序， 1 为加入时间正序， 2 为加入时间倒序（必传）
+     * @param int $count 要获取的聊天室成员数，上限为 500 ，超过 500 时最多返回 500 个成员（必传）
+     * @param int $order 加入聊天室的先后顺序， 1 为加入时间正序， 2 为加入时间倒序（必传）
+     * @return mixed
+     * @throws Exception
      */
     public function userChatroomQuery($chatroomId,$count = 500,$order = 1) {
         try{
@@ -781,6 +779,7 @@ class Api{
      * 检查用户在线状态 方法
      * @param $userId    用户 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function userCheckOnline($userId) {
         try{
@@ -855,9 +854,10 @@ class Api{
     /**
      *刷新用户信息 方法  说明：当您的用户昵称和头像变更时，您的 App Server 应该调用此接口刷新在融云侧保存的用户信息，以便融云发送推送消息的时候，能够正确显示用户信息
      * @param $userId   用户 Id，最大长度 32 字节。是用户在 App 中的唯一标识码，必须保证在同一个 App 内不重复，重复的用户 Id 将被当作是同一用户。（必传）
-     * @param string $name  用户名称，最大长度 128 字节。用来在 Push 推送时，或者客户端没有提供用户信息时，显示用户的名称。
-     * @param string $portraitUri   用户头像 URI，最大长度 1024 字节
+     * @param string $name 用户名称，最大长度 128 字节。用来在 Push 推送时，或者客户端没有提供用户信息时，显示用户的名称。
+     * @param string $portraitUri 用户头像 URI，最大长度 1024 字节
      * @return mixed
+     * @throws Exception
      */
     public function userRefresh($userId,$name='',$portraitUri='') {
         try{
@@ -881,7 +881,7 @@ class Api{
     /**
      * 添加用户到黑名单
      * @param $userId       用户 Id。（必传）
-     * @param $blackUserId  被加黑的用户Id。(必传)
+     * @param array $blackUserId 被加黑的用户Id。(必传)
      * @return mixed
      * @throws Exception
      */
@@ -911,6 +911,7 @@ class Api{
      * 获取某个用户的黑名单列表
      * @param $userId   用户 Id。（必传）
      * @return mixed
+     * @throws Exception
      */
     public function userBlacklistQuery($userId) {
         try{
@@ -929,8 +930,9 @@ class Api{
     /**
      * 从黑名单中移除用户
      * @param $userId               用户 Id。（必传）
-     * @param array $blackUserId    被移除的用户Id。(必传)
+     * @param array $blackUserId 被移除的用户Id。(必传)
      * @return mixed
+     * @throws Exception
      */
     public function userBlacklistRemove($userId, $blackUserId = array()) {
         try{
@@ -1311,7 +1313,7 @@ class Api{
                 throw new Exception('推送消息内容不能为空');
             if(empty($notification['alert']))
                 throw new Exception('	默认推送消息内容不能为空');
-            
+
             $message['content'] = json_encode($message['content']);
             $params['platform'] = $platform;
             $params['fromuserid'] = $fromuserid;
@@ -1363,12 +1365,12 @@ class Api{
 
             $params['mobile'] = $mobile;
             $params['templateId'] = $templateId;
-            if (!empty($verifyId)) 
+            if (!empty($verifyId))
                 $params['verifyId'] = $verifyId;
-            if (!empty($verifyCode)) 
+            if (!empty($verifyCode))
                 $params['verifyCode'] = $verifyCode;
             $params['region'] = $region;
-            
+
             $ret = $this->curl('/sendCode',$params,'urlencoded','sms','POST');
             if(empty($ret))
                 throw new Exception('请求失败');
@@ -1394,7 +1396,7 @@ class Api{
 
             $params['sessionId'] = $sessionId;
             $params['code'] = $code;
-            
+
             $ret = $this->curl('/verifyCode',$params,'urlencoded','sms','POST');
             if(empty($ret))
                 throw new Exception('请求失败');
