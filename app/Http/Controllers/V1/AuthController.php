@@ -395,7 +395,6 @@ class AuthController extends BaseController
     public function signInSmsSend($mobile)
     {
         $result = SmsManager::requestVerifySms();
-        \Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
         return $this->response->noContent();
     }
 

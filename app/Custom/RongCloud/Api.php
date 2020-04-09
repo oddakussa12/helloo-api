@@ -52,7 +52,7 @@ class Api{
                 throw new Exception('请求失败');
             return $ret;
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            throw new ($e->getMessage());
         }
     }
 

@@ -61,7 +61,7 @@ class CalculatingCountry extends Command
             }
         }catch (\Exception $e)
         {
-            \Log::error(\json_encode($e));
+
         }
 
     }
