@@ -29,7 +29,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh' , 'operationLog']] , function($api){
 
         $api->resource('post', 'PostController', ['only' => ['index']]);
-
+        $api->patch('post/{uuid}', 'PostController@update');
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
@@ -155,7 +155,7 @@ $api->group($V1Params , function ($api){
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
-    $api->get('rong/state/user/{id}' , 'PrivateMessageController@userCheckOnline')->name('rong.user.is_online');
+    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');
     $api->get('set/dx/switch' , 'SetController@dxSwitch')->name('set.dx.switch');
     $api->post('set/dx/clearDxCache' , 'SetController@clearDxCache')->name('set.dx.switch.clear.cache');
@@ -168,9 +168,11 @@ $api->group($V1Params , function ($api){
     $api->get('ry/room/chat' , 'RyChatController@showByRoom')->name('user.ry.room.message.index');
     $api->post('ry/room/chat' , 'RyChatController@storeRoomChat')->name('user.ry.room.message.store');
     $api->group(['middleware'=>['backAuth']] , function($api){
-        $api->post('ry/set/block' , 'RySetController@block')->name('user.ry.set.block');
-        $api->post('ry/set/unblock' , 'RySetController@unblock')->name('user.ry.set.unblock');
+        $api->post('ry/set/block' , 'RySetController@blockUser')->name('user.ry.set.block');
+        $api->post('ry/set/unblock' , 'RySetController@unblockUser')->name('user.ry.set.unblock');
+        $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
     });
+    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 
 });

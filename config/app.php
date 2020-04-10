@@ -185,7 +185,7 @@ return [
         App\Providers\QiniuStorageServiceProvider::class,
         Overtrue\LaravelFollow\FollowServiceProvider::class,
         App\Providers\LaravelLocalizationServiceProvider::class,
-        Latrell\RongCloud\RongCloudServiceProvider::class,
+        App\Providers\RongCloudServiceProvider::class,
         App\Providers\NotificationServiceProvider::class,
         Toplan\PhpSms\PhpSmsServiceProvider::class,
         App\Providers\SmsManagerServiceProvider::class,

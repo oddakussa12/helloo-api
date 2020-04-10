@@ -26,7 +26,7 @@ class StorePostRequest extends FormRequest
         return [
 //            'post_title' => 'bail|required|string|between:1,200',
 //            'post_title' => 'bail|present|between:0,3000',
-            'tag_slug' => 'bail|filled|array',
+//            'tag_slug' => 'bail|present|array',
 //            'post_content' => 'bail|present|between:0,3000',
             'post_content' => 'bail|required|string|between:1,3000',
 //            'post_event_country' => 'bail|required|string|between:1,10',

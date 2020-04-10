@@ -25,7 +25,7 @@ class PostCollection extends Resource
                 }
                 return $this->post_decode_title;
             }),
-            'post_media'=>$this->post_media,
+            'post_media'=>$this->post_mutation_media,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
             'post_view_num' => $this->viewVirtualCount($this->post_id),
@@ -50,8 +50,6 @@ class PostCollection extends Resource
             'post_country'=>$this->countryCount($this->post_id),
             $this->mergeWhen($request->routeIs('post.show'), function (){
                 return collect([
-                    'post_media'=>$this->post_media,
-//                    'post_view_num' => $this->post_view_num,
                     'postLike' =>$this->likeCount($this->post_id),
                     'post_like_state'=>$this->post_like_state,
                     'post_dislike_state'=>$this->post_dislike_state,
