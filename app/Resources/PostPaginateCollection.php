@@ -22,14 +22,13 @@ class PostPaginateCollection extends Resource
             'post_title' => $this->post_index_title,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
-            'post_view_num' => $this->viewVirtualCount($this->post_id),
+            'post_view_num' => $this->when($request->routeIs('post.myself') , function (){
+                return $this->viewVirtualCount($this->post_id);
+            }),
             'topTwoComments'=> $this->when(isset($this->topTwoComments) , function (){
                 return PostCommentCollection::collection($this->topTwoComments)->sortByDesc('comment_like_temp_num')->values()->all();
             }),
-//            'post_country'=> collect([
-//                'total'=>collect($this->countryNum)->get('country_num' , 0),
-//                'data'=>$this->countries
-//            ]),
+
             'post_country'=> $this->countryCount($this->post_id),
 
             'post_created_at'=> optional($this->post_created_at)->toDateTimeString(),

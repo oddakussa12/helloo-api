@@ -53,8 +53,6 @@ class SetController extends BaseController
 
     public function clearCache()
     {
-        Cache::forget('fine_post');
-        app(PostRepository::class)->getFinePostIds();
         return $this->response->noContent();
     }
 
