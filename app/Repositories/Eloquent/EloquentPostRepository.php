@@ -493,6 +493,25 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         ]);
     }
 
+    public function setCustomEssencePost(string $postId , bool $operation=true , int $score=0)
+    {
+        $redis = new RedisList();
+        $postKey = 'post_index_essence';
+        $key = 'post_index_essence_manual';
+        if(!empty($postId))
+        {
+            if($operation)
+            {
+                $score = $score==0?mt_rand(11111 , 99999):$score;
+                $redis->zAdd($key , $score , $postId);
+                $redis->zAdd($postKey , $score , $postId);
+            }else{
+                $redis->zRem($key , $postId);
+                $redis->zRem($postKey , $postId);
+            }
+        }
+    }
+
     public function customEssencePost()
     {
         $redis = new RedisList();
@@ -515,6 +534,25 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $redis->zAdd($postKey , $score , $post->post_id);
             }
         });
+
+        $key = 'post_index_essence_manual';
+        if($redis->existsKey($key))
+        {
+            $total = $redis->zSize($key);
+            $turn = 1;
+            $perTurn = 10;
+            $offset = ($turn-1)*$perTurn;
+            while($offset<$total)
+            {
+                $postIds = $redis->zRevRangeByScore($key , '+inf' , '-inf' , true , array($offset , $perTurn));
+                foreach ($postIds as $postId=>$score)
+                {
+                    $redis->zAdd($postKey , $score , $postId);
+                }
+                $turn++;
+                $offset = ($turn-1)*$perTurn;
+            }
+        }
     }
 
 

@@ -62,5 +62,22 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function getCustomEssencePost()
+    {
+        $posts = $this->post->allWithBuilder();
+        $posts = $this->post->getCustomEssencePost($posts);
+        return $this->response->item($posts);
+    }
+
+
+    public function setCustomEssencePost()
+    {
+        $postId = $this->input('post_id' , '');
+        $score = $this->input('score' , mt_rand(11111 , 99999));
+        $operation = $this->input('operation' , true);
+        $this->post->setCustomEssencePost($postId , $score , $operation);
+        return $this->response->noContent();
+    }
+
 
 }
