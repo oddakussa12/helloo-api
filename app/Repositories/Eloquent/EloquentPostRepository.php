@@ -4,17 +4,12 @@ namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
 use App\Models\Tag;
-use App\Models\User;
-use Ramsey\Uuid\Uuid;
 use App\Custom\RedisList;
 use App\Models\PostComment;
 use App\Models\PostViewNum;
 use Illuminate\Http\Request;
-use App\Jobs\PostTranslation;
 use Illuminate\Support\Facades\DB;
-use App\Services\TranslateService;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -41,26 +36,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $include = explode(',' ,$include);
         $posts = $this->allWithBuilder();
         $posts = $posts->with('owner')->with('likers')->with('dislikers');
-//        $posts = $posts->with('viewCount');
         $posts = $posts->where('post_topping' , 1);
         $posts = $posts->orderBy('post_topped_at', 'DESC')
             ->limit(8)
             ->get();
-
-        $postIds = $posts->pluck('post_id')->all();//获取post Id
-
-//        $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接
-
-//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-
-//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
-
         $activeUsers = app(UserRepository::class)->getYesterdayUserRank(); //获取活跃用户
 
         $posts->each(function ($item, $key) use ($activeUsers){
-//            $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
-//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+
             $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
         });
         if(in_array('follow' , $include))
@@ -126,12 +109,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             if($type=='default'&&$orderBy=='rate'&&$follow==null)
             {
                 $posts = $this->getFinePosts($posts);
-            }else if($type=='mix'&&$follow==null){
-                $posts = $this->getMixPosts($posts);
+            }else if($type=='essence'&&$follow==null){
+                $posts = $this->getCustomEssencePost($posts);
             }else if($type=='tmp'&&$follow==null){
                 $posts = $this->getTmpPosts($posts);
             }else{
-//                $posts = $posts->with('viewCount');
                 $posts = $this->removeHidePost($posts);
                 $posts = $this->removeHideUser($posts);
                 if($follow!== null&&auth()->check())
@@ -167,31 +149,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 }
                 $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
                 $appends['query_time'] = $queryTime;
-
-    //            $sorts = $this->getOrder($orderBy);
-    //            foreach ($sorts as $sort)
-    //            {
-    //                $posts->orderBy($sort, $order);
-    //            }
                 $posts = $posts->where('post_type' , '!=' , 'tmp');
                 $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             }
-
-            $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
-
-//            $topTwoComments = $this->topTwoComments($postIds);//评论前两条sql拼接开
-
-//            $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-//
-//            $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
 
             $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
 
             $posts->each(function ($item, $key) use ($activeUsers) {
-//                $item->topTwoComments = $topTwoComments->where('post_id',$item->post_id);
-//                $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-//                $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
                 $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
             });
 
@@ -204,28 +169,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 });
             }
             return $posts->appends($appends);
-        }elseif ($request->get('keywords') !== null) {
-            $keywords = $request->get('keywords');
-            $appends['keywords'] = $keywords;
-            $posts->whereHas('translations', function ($query) use ($keywords) {
-                $query->where('post_content', 'LIKE', "%{$keywords}%");
-            });
-            $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         }else{
             $posts = $posts->where('post_id' , 0);
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 
-        $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
-
-//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-//
-//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
-//
-//        $posts->each(function ($item, $key) use ($topCountries , $topCountryNum) {
-//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
-//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-//        });
         return $posts->appends($appends);
     }
 
@@ -233,14 +181,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $post = $this->model;
         $post = $post->where('post_uuid', $uuid)->with('likers')->with('dislikers');
-//        $post = $post->with(['tags' => function($query){
-//            $query->with('translations');
-//        }]);
         $post = $post->firstOrFail();
-//        $topCountries = $this->topCountries([$post->post_id]);
-//        $topCountryNum = $this->countryNum([$post->post_id]);
-//        $post->countries = $topCountries->where('post_id',$post->post_id)->values()->all();
-//        $post->countryNum = $topCountryNum->where('post_id',$post->post_id)->first();
         return $post;
     }
 
@@ -274,17 +215,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
 
-        $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
-
-//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-//
-//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
-
         $followers = userFollow($userIds);//重新获取当前登录用户信息
 
         $posts->each(function ($item, $key) use ($followers) {
-//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
+
             $item->owner->user_follow_state = in_array($item->user_id , $followers);
         });
 
@@ -398,8 +332,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function find($id)
     {
         $post = $this->allWithBuilder();
-        $post = $post->with('owner')->find($id);
-        return $post;
+        return $post->with('owner')->find($id);
     }
 
     public function findOrFailById($id)
@@ -417,41 +350,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
     }
 
-//    public function getFinePosts($posts)
-//    {
-//        $appends =array();
-//        $request = request();
-//        $perPage = $this->perPage;
-//        $redis = new RedisList();
-//        $pageName = $this->pageName;
-//        $page = $request->input( $pageName, 1);
-//        $index = $request->input('index' , mt_rand(1 , 5));
-//        $appends['index'] = $index;
-//        $key = 'post_index_'.$index;
-//        $offset = ($page-1)*$perPage;
-//        if($redis->existsKey($key))
-//        {
-//            $total = $redis->zSize($key);
-//            $postIds = $redis->zRangByScore($key , '-inf' , '+inf' , true , array($offset , $perPage));
-//            $postIds = array_keys($postIds);
-//        }else{
-//            $total = 0;
-//            $postIds = array();
-//        }
-//        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
-//        $appends['order'] = $order;
-//        $orderBy = $request->get('order_by' , 'rate');
-//        $appends['order_by'] = $orderBy;
-//        $posts = $posts->with('viewCount');
-//        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-//        $posts = $this->removeHidePost($posts);
-//        $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();
-//        $posts = $this->paginator($posts, $total, $perPage, $page, [
-//            'path' => Paginator::resolveCurrentPath(),
-//            'pageName' => $pageName,
-//        ]);
-//        return $posts->appends($appends);
-//    }
     public function getTmpPosts($posts)
     {
         $appends =array();
@@ -472,28 +370,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $appends =array();
         $request = request();
-//        $perPage = $this->perPage;
-//        $redis = new RedisList();
-//        $pageName = $this->pageName;
-//        $page = $request->input( $pageName, 1);
-//        $index = $request->input('index' , mt_rand(1 , 5));
-//        $appends['index'] = $index;
-//        $key = 'post_index_'.$index;
-//        $offset = ($page-1)*$perPage;
-//        if($redis->existsKey($key))
-//        {
-//            $total = $redis->zSize($key);
-//            $postIds = $redis->zRangByScore($key , '-inf' , '+inf' , true , array($offset , $perPage));
-//            $postIds = array_keys($postIds);
-//        }else{
-//            $total = 0;
-//            $postIds = array();
-//        }
         $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
         $appends['order'] = $order;
         $orderBy = $request->get('order_by' , 'post_created_at');
         $appends['order_by'] = $orderBy;
-//        $posts = $posts->with('viewCount');
+
         $posts = $posts->where('post_hoting' , 1);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $this->removeHidePost($posts);
@@ -505,24 +386,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
         $appends['query_time'] = $queryTime;
-//        $rate_coefficient = config('common.rate_coefficient');
-//        $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
-//        $posts->orderBy('rate' , 'DESC');
+
         $posts->orderBy('post_rate' , 'DESC');
         $posts = $posts->where('post_type' , '!=' , 'tmp');
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
-//        $posts = $this->paginator($posts, $total, $perPage, $page, [
-//            'path' => Paginator::resolveCurrentPath(),
-//            'pageName' => $pageName,
-//        ]);
         return $posts->appends($appends);
-    }
-
-    public function getFinePostIds()
-    {
-        return Cache::rememberForever('fine_post', function() {
-            return $this->model->where('post_topping' , 0)->where('post_fine' , 1)->select('post_id')->pluck('post_id')->all();
-        });
     }
 
     public function generatePostViewRandRank()
@@ -539,26 +407,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $redis->zAdd($postViewVirtualRankKey , post_view($post->post_view_num) , $post->post_id);
             }
         });
-    }
-
-    public function generatePostIdRandRank()
-    {
-        $min = 1;
-        $max = 10;
-        $redis = new RedisList();
-        $postIds = $this->getFinePostIds();
-        $postCount = count($postIds);
-        for ($i=$min ;$i<=$max;$i++)
-        {
-            $postRankKey = 'post_index_'.$i;
-            $redis->delKey($postRankKey);
-            foreach ($postIds as $postId)
-            {
-                $randScore = mt_rand(1 , $postCount*100);
-                $redis->zAdd($postRankKey , $randScore , $postId);
-            }
-
-        }
     }
 
     public function removeHideUser($post)
@@ -619,6 +467,57 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $country;
     }
 
+    public function getCustomEssencePost($posts)
+    {
+        $request = request();
+        $perPage = $this->perPage;
+        $redis = new RedisList();
+        $pageName = $this->pageName;
+        $page = $request->input( $pageName, 1);
+        $key = 'post_index_essence';
+        $offset = ($page-1)*$perPage;
+        if($redis->existsKey($key))
+        {
+            $total = $redis->zSize($key);
+            $postIds = $redis->zRevRangeByScore($key , '+inf' , '-inf' , true , array($offset , $perPage));
+            $postIds = array_keys($postIds);
+        }else{
+            $total = 0;
+            $postIds = array();
+        }
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts = $posts->whereIn('post_id' , $postIds)->get();
+        return $this->paginator($posts, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+    }
+
+    public function customEssencePost()
+    {
+        $redis = new RedisList();
+        $postKey = 'post_index_essence';
+        $redis->delKey($postKey);
+        $i = 0;
+        $posts = $this->model;
+        $now = Carbon::now();
+        $oneMonthsAgo = $now->subMonths(1)->format('Y-m-d 23:59:59');
+        $threeMonthsAgo = $now->subMonths(2)->format('Y-m-d 00:00:00');
+        $posts->where('post_created_at' , '>=' , $threeMonthsAgo)->where('post_created_at' , '<=' , $oneMonthsAgo)->orderBy('post_rate' , 'DESC')->chunk(8 , function($posts) use ($redis , $postKey , &$i){
+            $i++;
+            if($i>10)
+            {
+                return false;
+            }
+            foreach ($posts as $post)
+            {
+                $score = mt_rand(11111 , 99999);
+                $redis->zAdd($postKey , $score , $post->post_id);
+            }
+        });
+    }
+
+
     public function getCustomFinePost()
     {
         $appends =array();
@@ -643,7 +542,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $appends['order'] = $order;
         $orderBy = 'post_comment_num';
         $appends['order_by'] = $orderBy;
-//        $posts = $posts->with('viewCount');
         $posts = $posts->with('owner')->with('likers')->with('dislikers');
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->whereIn('post_id' , $postIds)->orderBy($orderBy , $order)->get();
@@ -651,17 +549,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
         ]);
-        $postIds = $posts->pluck('post_id')->all(); //获取分页post Id
-
-//        $topCountries = $this->topCountries($postIds);//评论国家sql拼接
-//
-//        $topCountryNum = $this->countryNum($postIds);//评论国家总数sql拼接
 
         $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
-
         $posts->each(function ($item, $key) use ($activeUsers) {
-//            $item->countries = $topCountries->where('post_id',$item->post_id)->values()->all();
-//            $item->countryNum = $topCountryNum->where('post_id',$item->post_id)->first();
             $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
         });
         return $posts->appends($appends);
@@ -716,14 +606,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }
         }
     }
-    public function autoStorePost()
-    {
-
-    }
 
     public function generateNewPostRandRank()
     {
-
         $whereIn = false;
         $redis = new RedisList();
         $postKey = 'post_index_new';
@@ -747,81 +632,4 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         });
     }
 
-    public function generateRatePostRandRank()
-    {
-        $index = intval(ceil(date('i')/30));
-        $index = $index!=1?1:2;
-        $whereIn = false;
-        $redis = new RedisList();
-        $postKey = 'post_index_rate_'.$index;
-        $redis->delKey($postKey);
-        $i = 0;
-        $posts = $this->model;
-        $posts->where('post_hoting' , 1)->orderBy('post_rate' , 'DESC')->chunk(10 , function($posts) use ($redis , $postKey , &$i , $whereIn){
-            if(!$whereIn)
-            {
-                $i++;
-                if($i>100)
-                {
-                    return false;
-                }
-            }
-            foreach ($posts as $post)
-            {
-                $redis->zAdd($postKey , $post->post_rate , $post->post_id);
-            }
-        });
-    }
-
-    public function getMixPosts($posts)
-    {
-        $appends =array();
-        $request = request();
-        $newPerPage = config('common.post_new_per');
-        $ratePerPage = config('common.post_rate_per');
-        $perPage = $newPerPage+$ratePerPage;
-        $redis = new RedisList();
-        $pageName = $this->pageName;
-        $page = $request->input( $pageName, 1);
-        $queryTime = $request->input( 'query_time', '');
-        if(empty($queryTime))
-        {
-            $queryTime = Carbon::now()->timestamp;
-        }
-        $appends['query_time'] = $queryTime;
-        $newKey = 'post_index_new';
-
-        $index = intval($request->input( 'index', ceil(date('i' , time())/30)));
-        $index = !in_array($index , array(1 , 2))?ceil(date('i' , time())/30):$index;
-        $appends['index'] = $index;
-
-        $rateKey = 'post_index_rate_'.$index;
-        $rateOffset = ($page-1)*$ratePerPage;
-        $newOffset = ($page-1)*$newPerPage;
-
-        if($redis->existsKey($rateKey))
-        {
-            $rateTotal = $redis->zSize($rateKey);
-            $ratePostIds = $redis->zRevRangeByScore($rateKey , '+inf' , '-inf' , true , array($rateOffset , $ratePerPage));
-            $newTotal = $redis->zSize($newKey);
-            $newPostIds = $redis->zRevRangeByScore($newKey , $queryTime , '-inf' , true , array($newOffset , $newPerPage));
-            $postIds = array_merge(array_keys($ratePostIds) , array_keys($newPostIds));
-            $total = $rateTotal+$newTotal;
-        }else{
-            $total = 0;
-            $postIds = array();
-        }
-//        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
-//        $appends['order'] = $order;
-//        $orderBy = $request->get('order_by' , 'rate');
-//        $appends['order_by'] = $orderBy;
-        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-        $posts = $this->removeHidePost($posts);
-        $posts = $posts->whereIn('post_id' , $postIds)->inRandomOrder()->get();
-        $posts = $this->paginator($posts, $total, $perPage, $page, [
-            'path' => Paginator::resolveCurrentPath(),
-            'pageName' => $pageName,
-        ]);
-        return $posts->appends($appends);
-    }
 }

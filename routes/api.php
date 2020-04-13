@@ -171,6 +171,7 @@ $api->group($V1Params , function ($api){
         $api->post('ry/set/block' , 'RySetController@blockUser')->name('user.ry.set.block');
         $api->post('ry/set/unblock' , 'RySetController@unblockUser')->name('user.ry.set.unblock');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
+        $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
     });
     $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('test/index' , 'TestController@test')->name('test.test');

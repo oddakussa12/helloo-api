@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use Illuminate\Http\Request;
 use App\Events\PostCommentDeleted;
 use App\Repositories\Contracts\UserRepository;
+use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
 
 class BackStageController extends BaseController
@@ -20,10 +21,16 @@ class BackStageController extends BaseController
      */
     private $user;
 
-    public function __construct(PostCommentRepository $postComment , UserRepository $user)
+    /**
+     * @var PostRepository
+     */
+    private $post;
+
+    public function __construct(PostCommentRepository $postComment , UserRepository $user , PostRepository $post)
     {
         $this->postComment = $postComment;
         $this->user = $user;
+        $this->post = $post;
     }
 
     public function index()
@@ -37,6 +44,21 @@ class BackStageController extends BaseController
         $user = $this->user->find($postComment->user_id);
         event(new PostCommentDeleted($user , $postComment));
         $this->postComment->destroy($postComment);
+        return $this->response->noContent();
+    }
+
+    public function destroyPost($uuid)
+    {
+        $post = $this->post->findOrFailByUuid($uuid);
+        $this->post->destroy($post);
+        if($post->post_created_at>config('common.score_date'))
+        {
+            $user = $this->user->find($post->user_id);
+            $user->decrement('user_score' , 2);
+        }
+        $redis = new RedisList();
+        $postKey = 'post_index_new';
+        $redis->zRem($postKey , $post->getKey());
         return $this->response->noContent();
     }
 
