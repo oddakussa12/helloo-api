@@ -170,6 +170,8 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['backAuth']] , function($api){
         $api->post('ry/set/block' , 'RySetController@blockUser')->name('user.ry.set.block');
         $api->post('ry/set/unblock' , 'RySetController@unblockUser')->name('user.ry.set.unblock');
+        $api->get('bk/essence/post' , 'BackStageController@getCustomEssencePost')->name('bk.post.essence.post');
+        $api->patch('bk/essence/post/{post}' , 'BackStageController@setCustomEssencePost')->name('bk.post.essence.post.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
     });
