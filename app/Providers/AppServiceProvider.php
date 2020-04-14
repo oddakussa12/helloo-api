@@ -42,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
         //
         Schema::defaultStringLength(191);
         $this->setLocalesConfigurations();
-        if(!in_array(domain() , config('online_domain')))
+        if(!in_array(domain() , config('common.online_domain')))
         {
             \DB::listen(function ($query) {
                 $tmp = str_replace('?', '"'.'%s'.'"', $query->sql);
@@ -60,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
             });
         }
         $request = $this->app['request'];
-        $isSecure = $this->app['request']->isSecure()||in_array(domain() , config('online_domain'))||env('REDIRECT_HTTPS'  , false);
+        $isSecure = $this->app['request']->isSecure()||in_array(domain() , config('common.online_domain'))||env('REDIRECT_HTTPS'  , false);
         $request->server->set('HTTPS', $isSecure);
 
 
