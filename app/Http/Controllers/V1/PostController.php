@@ -241,12 +241,7 @@ class PostController extends BaseController
             $post->attachTags($tag_slug);
         }
 	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content);
-	    if(domain()!=domain(config('app.url')))
-        {
-            $this->dispatch($job->onQueue('test'));
-        }else{
-            $this->dispatch($job);
-        }
+        $this->dispatch($job);
         return new PostCollection($post);
     }
 
