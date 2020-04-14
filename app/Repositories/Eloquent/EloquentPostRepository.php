@@ -524,7 +524,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $threeMonthsAgo = $now->subMonths(2)->format('Y-m-d 00:00:00');
         $posts->where('post_created_at' , '>=' , $threeMonthsAgo)->where('post_created_at' , '<=' , $oneMonthsAgo)->orderBy('post_rate' , 'DESC')->chunk(8 , function($posts) use ($redis , $postKey , &$i){
             $i++;
-            if($i>10)
+            if($i>70)
             {
                 return false;
             }
