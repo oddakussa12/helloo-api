@@ -666,6 +666,53 @@ if (! function_exists('unblock_user')) {
         return $users;
     }
 }
+if (! function_exists('carousel_post')) {
+
+    function carousel_post($postUuid , $locale , $image)
+    {
+        $posts = array();
+        $filePath = 'carousel/posts.json';
+        if(\Storage::exists($filePath))
+        {
+            $posts = (array)\json_decode(\Storage::get($filePath) , true);
+            $keys = array_keys($posts);
+            if(!in_array($postUuid , $keys))
+            {
+                $posts[$postUuid] = array($locale=>$image);
+            }else{
+                $post = $posts[$postUuid];
+                $post[$locale] = $image;
+                $posts[$postUuid] = $post;
+            }
+        }else{
+            $posts[$postUuid] = array($locale=>$image);
+        }
+        \Storage::put($filePath , \json_encode($posts , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+        return $posts;
+    }
+}
+
+if (! function_exists('carousel_post_list')) {
+
+    function carousel_post_list()
+    {
+        $images = array();
+        $filePath = 'carousel/posts.json';
+        if(\Storage::exists($filePath))
+        {
+            $posts = collect((array)\json_decode(\Storage::get($filePath) , true));
+            $locale = locale();
+            $posts->each(function($item , $key) use ($locale , &$images){
+                $image = isset($item[$locale])?$item[$locale]:(isset($item['en'])?$item['en']:'');
+                if(!empty($image))
+                {
+                    $images[$key] = config('common.qnUploadDomain.thumbnail_domain').$image;
+                }
+            })->all();
+        }
+        return $images;
+    }
+}
 
 
 

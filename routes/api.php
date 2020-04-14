@@ -33,6 +33,7 @@ $api->group($V1Params , function ($api){
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
+        $api->get('post/carousel' , 'PostController@carousel')->name('post.carousel');
         $api->get('post/fine' , 'PostController@fine')->name('post.fine');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
         $api->post('post/autopost' , 'PostController@autoStorePost')->name('post.auto.store.post');
@@ -171,7 +172,8 @@ $api->group($V1Params , function ($api){
         $api->post('ry/set/block' , 'RySetController@blockUser')->name('user.ry.set.block');
         $api->post('ry/set/unblock' , 'RySetController@unblockUser')->name('user.ry.set.unblock');
         $api->get('bk/essence/post' , 'BackStageController@getCustomEssencePost')->name('bk.post.essence.post');
-        $api->patch('bk/essence/post/{post}' , 'BackStageController@setCustomEssencePost')->name('bk.post.essence.post.update');
+        $api->patch('bk/essence/post/{post}' , 'BackStageController@setCustomEssencePost')->name('bk.post.essence.update');
+        $api->patch('bk/carousel/post/{post}' , 'BackStageController@setCarousel')->name('bk.post.carousel.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
     });

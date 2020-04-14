@@ -331,6 +331,13 @@ class PostController extends BaseController
         return $this->response->noContent();
     }
 
+    public function carousel()
+    {
+        return $this->response->array(
+            carousel_post_list()
+        );
+    }
+
     public function top(Request $request)
     {
         return PostPaginateCollection::collection($this->post->top($request));

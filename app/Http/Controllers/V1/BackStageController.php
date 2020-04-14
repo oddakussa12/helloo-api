@@ -70,12 +70,22 @@ class BackStageController extends BaseController
     }
 
 
-    public function setCustomEssencePost()
+    public function setCustomEssencePost(Request $request , $postId)
     {
-        $postId = $this->input('post_id' , '');
-        $score = $this->input('score' , mt_rand(11111 , 99999));
-        $operation = $this->input('operation' , true);
-        $this->post->setCustomEssencePost($postId , $score , $operation);
+        $score = intval($request->input('score' , mt_rand(11111 , 99999)));
+        $operation = (bool)$request->input('operation' , true);
+        $this->post->setCustomEssencePost($postId , $operation , $score);
+        return $this->response->noContent();
+    }
+
+    public function setCarousel(Request $request , $postUuid)
+    {
+        $locale = (string)$request->input('locale' , 'en');
+        $image = (string)$request->input('image' , '');
+        if(!empty($locale)&&!empty($image))
+        {
+            carousel_post($postUuid , $locale , $image);
+        }
         return $this->response->noContent();
     }
 
