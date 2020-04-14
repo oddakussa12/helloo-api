@@ -125,12 +125,7 @@ class PostCommentController extends BaseController
 
             $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
 
-            if(domain()!=domain(config('app.url')))
-            {
-                $this->dispatch($job->onQueue('test'));
-            }else{
-                $this->dispatch($job);
-            }
+            $this->dispatch($job);
         }
         $postComment->post_uuid = $postUuid;
         return new PostCommentCollection($postComment);
