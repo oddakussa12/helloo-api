@@ -48,13 +48,13 @@ class PostCollection extends Resource
 //                ]);
 //            }),
             'post_country'=>$this->countryCount($this->post_id),
-            $this->mergeWhen($request->routeIs('post.show'), function (){
-                return collect([
-                    'postLike' =>$this->likeCount($this->post_id),
-                    'post_like_state'=>$this->post_like_state,
-                    'post_dislike_state'=>$this->post_dislike_state,
-                ]);
-            }),
+//            $this->mergeWhen($request->routeIs('post.show'), function (){
+//                return collect([
+//                    'postLike' =>$this->likeCount($this->post_id),
+//                    'post_like_state'=>$this->post_like_state,
+//                    'post_dislike_state'=>$this->post_dislike_state,
+//                ]);
+//            }),
             'post_owner' =>$this->when(!$request->routeIs('post.hot') , function (){
                 return $this->post_owner;
             }),

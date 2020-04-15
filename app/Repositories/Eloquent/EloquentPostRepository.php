@@ -4,8 +4,6 @@ namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
 use App\Models\Tag;
-use App\Models\Like;
-use App\Models\Dislike;
 use App\Custom\RedisList;
 use App\Models\PostComment;
 use App\Models\PostViewNum;
@@ -37,17 +35,29 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $include = $request->input('include' , '');
         $include = explode(',' ,$include);
         $posts = $this->allWithBuilder();
-        $posts = $posts->with('owner')->with('likers')->with('dislikers');
+        $posts = $posts->with('owner');
         $posts = $posts->where('post_topping' , 1);
         $posts = $posts->orderBy('post_topped_at', 'DESC')
             ->limit(8)
             ->get();
-        $activeUsers = app(UserRepository::class)->getYesterdayUserRank(); //获取活跃用户
+//        $activeUsers = app(UserRepository::class)->getYesterdayUserRank(); //获取活跃用户
+//
+//        $posts->each(function ($item, $key) use ($activeUsers){
+//
+//            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
+//        });
 
-        $posts->each(function ($item, $key) use ($activeUsers){
+        if(auth()->check())
+        {
+            $postIds = $posts->pluck('post_id')->all();
+            $postLikes = userPostLike($postIds);
+            $postDisLikes = userPostDislike($postIds);
 
-            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
-        });
+            $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
+                $post->likeState = in_array($post->post_id , $postLikes);
+                $post->dislikeState = in_array($post->post_id , $postDisLikes);
+            });
+        }
         if(in_array('follow' , $include))
         {
             $userIds = $posts->pluck('user_id')->all();//获取user id
@@ -197,7 +207,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function showByUuid($uuid)
     {
         $post = $this->model;
-        $post = $post->where('post_uuid', $uuid)->with('likers')->with('dislikers');
+        $post = $post->where('post_uuid', $uuid);
         $post = $post->firstOrFail();
         return $post;
     }
