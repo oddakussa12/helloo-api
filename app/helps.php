@@ -306,7 +306,30 @@ if (!function_exists('userFollow')) {
             return $followers;
         }
         return array();
+    }
+}
 
+if (!function_exists('userPostLike')) {
+
+    function userPostLike($postIds)
+    {
+        if(auth()->check()&&!empty($postIds))
+        {
+            return auth()->user()->likes()->WithType("App\Models\Post")->whereIn('common_likes.likable_id' , $postIds)->pluck('likable_id')->all();
+        }
+        return array();
+    }
+}
+
+if (!function_exists('userPostDislike')) {
+
+    function userPostDislike($postIds)
+    {
+        if(auth()->check()&&!empty($postIds))
+        {
+            return auth()->user()->dislikes()->WithType("App\Models\Post")->whereIn('post_dislikes.dislikable_id' , $postIds)->pluck('dislikable_id')->all();
+        }
+        return array();
     }
 }
 
@@ -686,6 +709,26 @@ if (! function_exists('carousel_post')) {
             }
         }else{
             $posts[$postUuid] = array($locale=>$image);
+        }
+        \Storage::put($filePath , \json_encode($posts , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+        return $posts;
+    }
+}
+
+if (! function_exists('non_carousel_post')) {
+
+    function non_carousel_post($postUuid)
+    {
+        $posts = array();
+        $filePath = 'carousel/posts.json';
+        if(\Storage::exists($filePath))
+        {
+            $posts = (array)\json_decode(\Storage::get($filePath) , true);
+            $keys = array_keys($posts);
+            if(in_array($postUuid , $keys))
+            {
+                unset($posts[$postUuid]);
+            }
         }
         \Storage::put($filePath , \json_encode($posts , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
         return $posts;

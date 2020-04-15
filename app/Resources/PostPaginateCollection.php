@@ -41,8 +41,8 @@ class PostPaginateCollection extends Resource
                 return $this->post_owner;
             }),
             'postLike' =>$this->likeCount($this->post_id),
-            'post_like_state'=>$this->post_like_state,
-            'post_dislike_state'=>$this->post_dislike_state,
+            'post_like_state'=>$this->likeState,
+            'post_dislike_state'=>$this->dislikeState,
             'post_event_country'=>$this->post_event_country,
 
         ];

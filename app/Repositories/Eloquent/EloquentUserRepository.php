@@ -374,7 +374,7 @@ DOC;
             $id = \Auth::id();
         }
         if ($value = Redis::hget('user.'.$id.'.data', 'hiddenUsers')) {
-            return json_decode($value);
+            return json_decode($value , true);
         }
         $value = $this->initHiddenUsers($id);
         return $value;
@@ -386,7 +386,7 @@ DOC;
             $id = \Auth::id();
         }
         if ($value = Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
-            return json_decode($value);
+            return json_decode($value , true);
         }
         $value = $this->initHiddenPosts($id);
         return $value;

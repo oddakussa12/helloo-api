@@ -80,11 +80,13 @@ class BackStageController extends BaseController
 
     public function setCarousel(Request $request , $postUuid)
     {
-        $locale = (string)$request->input('locale' , 'en');
+        $locale = (string)$request->input('locale' , '');
         $image = (string)$request->input('image' , '');
         if(!empty($locale)&&!empty($image))
         {
             carousel_post($postUuid , $locale , $image);
+        }else{
+            non_carousel_post($postUuid);
         }
         return $this->response->noContent();
     }
