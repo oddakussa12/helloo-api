@@ -4,6 +4,8 @@ namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
 use App\Models\Tag;
+use App\Models\Like;
+use App\Models\Dislike;
 use App\Custom\RedisList;
 use App\Models\PostComment;
 use App\Models\PostViewNum;
@@ -95,7 +97,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }else{
             $posts = $this->allWithBuilder();
         }
-        $posts = $posts->with('likers')->with('dislikers')->withTrashed()->with('owner');
+        $posts = $posts->withTrashed()->with('owner');
         if ($request->get('home')!== null){
             $appends['home'] = $request->get('home');
             $type = $request->get('type' , 'default');
@@ -114,33 +116,18 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }else if($type=='tmp'&&$follow==null){
                 $posts = $this->getTmpPosts($posts);
             }else{
-                $posts = $this->removeHidePost($posts);
-                $posts = $this->removeHideUser($posts);
-                if($follow!== null&&auth()->check())
-                {
-                    $appends['follow'] = $request->get('follow');
-                    $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
-                    $posts = $posts->whereIn('user_id',$userIds);
-                }
-                if ($request->get('keywords') !== null) {
-                    $keywords = $request->get('keywords');
-                    $appends['keywords'] = $keywords;
-                    $posts->whereHas('translations', function ($query) use ($keywords) {
-                        $query->where('post_title', 'LIKE', "%{$keywords}%");
-                    });
-                }
                 $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-                if(($orderBy=='rate'||$orderBy==null)&&$follow==null)
-                {
-                    $posts = $posts->where('post_fine' , 0);
-                    $posts = $posts->where('post_hoting' , 1);
-//                    $rate_coefficient = config('common.rate_coefficient');
-//                    $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
-//                    $posts->orderBy('rate' , 'DESC');
-                    $posts->orderBy('post_rate' , 'DESC');
-                    $more_than_post_comment_num = config('common.more_than_post_comment_num');
-                    $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
-                }
+//                if(($orderBy=='rate'||$orderBy==null)&&$follow==null)
+//                {
+//                    $posts = $posts->where('post_fine' , 0);
+//                    $posts = $posts->where('post_hotting' , 1);
+////                    $rate_coefficient = config('common.rate_coefficient');
+////                    $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
+////                    $posts->orderBy('rate' , 'DESC');
+//                    $posts->orderBy('post_rate' , 'DESC');
+//                    $more_than_post_comment_num = config('common.more_than_post_comment_num');
+//                    $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
+//                }
                 $posts->orderBy($this->model->getKeyName() , 'DESC');
                 $queryTime = $request->get('query_time' , '');
                 if(empty($queryTime))
@@ -149,16 +136,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 }
                 $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
                 $appends['query_time'] = $queryTime;
-                $posts = $posts->where('post_type' , '!=' , 'tmp');
                 $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             }
 
 
-            $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
+//            $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
+//
+//            $posts->each(function ($item, $key) use ($activeUsers) {
+//                $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
+//            });
 
-            $posts->each(function ($item, $key) use ($activeUsers) {
-                $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
-            });
+
 
             if(in_array('follow' , $include))
             {
@@ -168,7 +156,36 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $item->owner->user_follow_state = in_array($item->user_id , $followers);
                 });
             }
+
+            if(auth()->check())
+            {
+                $user = auth()->user();
+                $hiddenPosts = app(UserRepository::class)->hiddenPosts($user->user_id);
+                $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
+                $keys =  array();
+                $postIds = array();
+                $posts->each(function ($post , $key) use ($hiddenPosts , $hiddenUsers , &$keys , &$postIds) {
+                    if(in_array($post->post_uuid , $hiddenPosts)||in_array($post->user_id , $hiddenUsers))
+                    {
+                        array_push($keys , $key);
+                    }else{
+                        array_push($postIds , $post->post_id);
+                    }
+                });
+                $posts->offsetUnset($keys);
+                $posts = $posts->setCollection($posts->values());
+
+                $postLikes = userPostLike($postIds);
+                $postDisLikes = userPostDislike($postIds);
+
+                $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
+                    $post->likeState = in_array($post->post_id , $postLikes);
+                    $post->dislikeState = in_array($post->post_id , $postDisLikes);
+                });
+
+            }
             return $posts->appends($appends);
+
         }else{
             $posts = $posts->where('post_id' , 0);
         }
@@ -196,7 +213,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $appends = array();
         $user = app(UserRepository::class)->findOrFail($userId);
-        $posts = $user->posts()->with('translations')->with('owner')->with('dislikers');
+        $posts = $user->posts()->with('translations')->with('owner');
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
             $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $orderBy = $request->get('order_by' , 'post_like_num');
@@ -213,13 +230,20 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 
-        $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
+//        $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
 
-        $followers = userFollow($userIds);//重新获取当前登录用户信息
+//        $followers = userFollow($userIds);//重新获取当前登录用户信息
 
-        $posts->each(function ($item, $key) use ($followers) {
+        $postIds = $posts->pluck('post_id');
 
-            $item->owner->user_follow_state = in_array($item->user_id , $followers);
+        $postLikes = userPostLike($postIds);
+
+        $postDisLikes = userPostDislike($postIds);
+
+        $posts->each(function ($item, $key) use ($postLikes , $postDisLikes) {
+//            $item->owner->user_follow_state = in_array($item->user_id , $followers);
+            $item->likeState = in_array($item->post_id , $postLikes);
+            $item->dislikeState = in_array($item->post_id , $postDisLikes);
         });
 
         return $posts->appends($appends);
@@ -370,15 +394,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $appends =array();
         $request = request();
-        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
-        $appends['order'] = $order;
-        $orderBy = $request->get('order_by' , 'post_created_at');
-        $appends['order_by'] = $orderBy;
-
-        $posts = $posts->where('post_hoting' , 1);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-        $posts = $this->removeHidePost($posts);
-        $posts = $this->removeHideUser($posts);
+        $posts = $posts->where('post_hotting' , 1);
         $queryTime = $request->get('query_time' , '');
         if(empty($queryTime))
         {
@@ -386,9 +403,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
         $appends['query_time'] = $queryTime;
-
         $posts->orderBy('post_rate' , 'DESC');
-        $posts = $posts->where('post_type' , '!=' , 'tmp');
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
         return $posts->appends($appends);
     }
