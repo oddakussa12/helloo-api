@@ -31,6 +31,7 @@ class UserCollection extends Resource
             'user_name'=>$this->user_name,
             'user_avatar'=>$this->user_avatar,
             'user_country'=>$this->user_country,
+            'user_level'=>$this->user_level,
             'user_follow_state' => $this->when($request->routeIs('user.show')||$request->routeIs('post.show')||in_array('follow' , $include), function () use ($request){
                 if(isset($this->user_follow_state))
                 {
@@ -47,7 +48,6 @@ class UserCollection extends Resource
 //            }),
             $this->mergeWhen($request->routeIs('user.show'), function (){
                 return collect([
-                    'user_level'=>$this->user_level,
                     'user_gender'=>$this->user_gender,
                     'user_about'=>$this->user_about,
                     'user_score' => $this->user_score,
