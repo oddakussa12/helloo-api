@@ -138,6 +138,12 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //                    $more_than_post_comment_num = config('common.more_than_post_comment_num');
 //                    $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
 //                }
+                if($follow!== null&&auth()->check())
+                {
+                    $appends['follow'] = $request->get('follow');
+                    $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
+                    $posts = $posts->whereIn('user_id',$userIds);
+                }
                 $posts->orderBy($this->model->getKeyName() , 'DESC');
                 $queryTime = $request->get('query_time' , '');
                 if(empty($queryTime))
@@ -605,7 +611,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $appends['order'] = $order;
         $orderBy = 'post_comment_num';
         $appends['order_by'] = $orderBy;
-        $posts = $posts->with('owner')->with('likers')->with('dislikers');
+        $posts = $posts->with('owner');
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->whereIn('post_id' , $postIds)->orderBy($orderBy , $order)->get();
         $posts = $this->paginator($posts, $total, $perPage, $page, [
@@ -613,10 +619,16 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             'pageName' => $pageName,
         ]);
 
-        $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
-        $posts->each(function ($item, $key) use ($activeUsers) {
-            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
-        });
+        if(auth()->check())
+        {
+            $postIds = $posts->pluck('post_id')->all();
+            $postLikes = userPostLike($postIds);
+            $postDisLikes = userPostDislike($postIds);
+            $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
+                $post->likeState = in_array($post->post_id , $postLikes);
+                $post->dislikeState = in_array($post->post_id , $postDisLikes);
+            });
+        }
         return $posts->appends($appends);
     }
 
@@ -651,7 +663,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 }
         });
     }
-    public function generateAutoIncreasePostView()
+    public function autoIncreasePostView()
     {
         $redis = new RedisList();
         $postKey = 'post_view_virtual_rank';

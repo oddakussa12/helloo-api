@@ -196,7 +196,7 @@ class AuthController extends BaseController
             $join->on('common_likes.likable_id' , 'posts_comments.comment_id');
         })->whereNull('posts_comments.comment_deleted_at')->count();
         $postCommentCount = app(PostCommentRepository::class)->getCountByUserId($user->user_id);
-        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
+//        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
         $postCount = app(PostRepository::class)->getCountByUserId($user->user_id);
         $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
         $userFollowMe = auth()->user()->followers()->count();
@@ -207,8 +207,8 @@ class AuthController extends BaseController
         $user->userMyFollow = $userMyFollow;
         $user->likeCount = $likeCount;
         $user->country = $user->user_country;
-        $user->yesterdayScore = optional($yesterday_score_rank)->user_rank_score;
-        $user->yesterdayRank = optional($yesterday_score_rank)->rank;
+        $user->yesterdayScore = null;
+        $user->yesterdayRank = null;
         $user->userRank = $rank;
         $user->userTags = UserTagCollection::collection($user->tags);
         unset($user->tags);

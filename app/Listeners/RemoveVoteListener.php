@@ -8,10 +8,11 @@ use App\Models\Dislike;
 use App\Events\RemoveVote;
 use App\Models\PostComment;
 use App\Traits\CachablePost;
+use App\Traits\CachableUser;
 
 class RemoveVoteListener
 {
-    use CachablePost;
+    use CachablePost,CachableUser;
     /**
      * 失败重试次数
      * @var int
@@ -66,6 +67,7 @@ class RemoveVoteListener
                 $this->updateLikeCount($keyValue , 'revokeDislike');
             }
             $this->updateCountry($keyValue , $user->user_country_id , false);
+            $this->updateUserPostLikeCount($user->getKey() , -1);
         }else if($object instanceof PostComment)
         {
             $object->decrement('comment_like_num' , $event->getType());
@@ -73,10 +75,12 @@ class RemoveVoteListener
             {
                 notify_remove([3] , $object , $user);
             }
+            $this->updateUserPostCommentLikeCount($user->getKey() , -1);
         }
         if($relation->created_at>config('common.score_date'))
         {
             $user->decrement('user_score');
+            $this->updateUserScoreRank($user->user_id , -1);
         }
     }
 

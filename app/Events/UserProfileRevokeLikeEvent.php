@@ -9,19 +9,22 @@ class UserProfileRevokeLikeEvent
 
     private $user;
 
+    private $likeUser;
+
     /**
      * Create a new event instance.
      *
      * @param $user
      */
-    public function __construct($user)
+    public function __construct($likeUser , $user)
     {
+        $this->likeUser = $likeUser;
         $this->user = $user;
     }
 
-    public function getIp()
+    public function getLikeUser()
     {
-        return getRequestIpAddress();
+        return $this->likeUser;
     }
 
 

@@ -2,10 +2,12 @@
 
 namespace App\Listeners;
 
+use App\Traits\CachableUser;
 use App\Events\UserProfileRevokeLikeEvent;
 
 class UserProfileRevokeLikeListener
 {
+    use CachableUser;
     /**
      * Create the event listener.
      *
@@ -24,8 +26,10 @@ class UserProfileRevokeLikeListener
      */
     public function handle(UserProfileRevokeLikeEvent $event)
     {
+        $likeUser = $event->getLikeUser();
         $user = $event->getUser();
         $user->decrement('user_profile_like_num');
+        $this->storeProfileLikeMe($likeUser->user_id , $user->user_id);
     }
 
 }

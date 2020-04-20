@@ -714,31 +714,27 @@ DOC;
 
     public function profileLike($id)
     {
-        $user = $this->findOrFail($id);
-        $likeUserId = auth()->id();
+        $likeUser = auth()->user();
+        $likeUserId = $likeUser->user_id;
         $userProfileLikeKey = 'user.'.$id.'.profile.like';
-        $userProfileLikesKey = 'user.profile.likes';
         if(Redis::zrank($userProfileLikeKey , $likeUserId)===null)
         {
-            $like = auth()->user()->profileLike()->updateOrCreate(array('profile_user_id'=>$user->getKey()));
-            event(new UserProfileLikeEvent($user));
-            Redis::zadd($userProfileLikeKey , $like->created_at->timestamp , $likeUserId);
-            Redis::zIncrBy($userProfileLikesKey , 1 , $id);
+            $user = $this->findOrFail($id);
+            $like = $likeUser->profileLike()->updateOrCreate(array('profile_user_id'=>$user->getKey()));
+            event(new UserProfileLikeEvent($likeUser , $user , $like));
         }
     }
 
     public function profileRevokeLike($id)
     {
-        $user = $this->findOrFail($id);
-        $likeUserId = auth()->id();
+        $likeUser = auth()->user();
+        $likeUserId = $likeUser->user_id;
         $userProfileLikeKey = 'user.'.$id.'.profile.like';
-        $userProfileLikesKey = 'user.profile.likes';
         if(Redis::zrank($userProfileLikeKey , $likeUserId)!==null)
         {
-            auth()->user()->profileLike()->delete();
-            event(new UserProfileRevokeLikeEvent($user));
-            Redis::zrem($userProfileLikeKey , $likeUserId);
-            Redis::zIncrBy($userProfileLikesKey , -1 , $id);
+            $user = $this->findOrFail($id);
+            $likeUser->profileLike()->delete();
+            event(new UserProfileRevokeLikeEvent($likeUser , $user));
         }
     }
 

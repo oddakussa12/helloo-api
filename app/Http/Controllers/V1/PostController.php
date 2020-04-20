@@ -183,11 +183,12 @@ class PostController extends BaseController
             $postContentLang = $this->translate->detectLanguage($post_content);
             $post_content_default_locale = $postContentLang=='und'?'en':$postContentLang;
         }
+        $poster = auth()->user();
         $post_info= array(
-            'user_id'=>auth()->id(),
+            'user_id'=>$poster->user_id,
             'post_uuid'=>Uuid::uuid1(),
             'post_category_id'=>$post_category_id,
-            'post_country_id'=>auth()->user()->user_country_id,
+            'post_country_id'=>$poster->user_country_id,
             'post_default_locale'=>$post_title_default_locale,
             'post_content_default_locale'=>$post_content_default_locale,
             'post_type' =>$post_type,
@@ -240,7 +241,7 @@ class PostController extends BaseController
         {
             $post->attachTags($tag_slug);
         }
-	    $job = new PostTranslation($post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content);
+	    $job = new PostTranslation($poster , $post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content);
         $this->dispatch($job);
         return new PostCollection($post);
     }
@@ -315,12 +316,16 @@ class PostController extends BaseController
             abort(401);
         }
         $this->post->destroy($post);
+        $redis = new RedisList();
         if($post->post_created_at>config('common.score_date'))
         {
             $user = auth()->user();
             $user->decrement('user_score' , 2);
+            $userScoreRankKey = config('redis-key.user.score_rank');
+            $redis->zIncrBy($userScoreRankKey , $user->user_id , -2);
         }
-        $redis = new RedisList();
+        $userPostsKey = config('redis-key.user.posts');
+        $redis->zIncrBy($userPostsKey , $user->user_id , -1);
         $postKey = 'post_index_new';
         $redis->zRem($postKey , $post->getKey());
         return $this->response->noContent();

@@ -15,9 +15,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         //
         \App\Console\Commands\CalculatingRate::class,
-        \App\Console\Commands\GenerateUserRank::class,
-        \App\Console\Commands\GeneratePostCommentNumRank::class,
-        \App\Console\Commands\GenerateAutoIncreasePostView::class,
+        \App\Console\Commands\GenerateYesterdayUserRank::class,
+        \App\Console\Commands\AutoIncreasePostView::class,
         \App\Console\Commands\GeneratePostEssenceRank::class,
         \Torann\GeoIP\Console\Update::class
     ];
@@ -31,13 +30,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('calculating:rate')
-            ->everyThirtyMinutes();
-        $schedule->command('generate:user_rank')
+            ->hourlyAt('30');
+        $schedule->command('generate:yesterday_user_rank')
             ->daily();
-        $schedule->command('generate:post_comment_num_rank')
-            ->daily();
-        $schedule->command('generate:auto_increase_post_view')
-            ->daily();
+        $schedule->command('auto:increase_post_view')
+            ->dailyAt('02:00');
         $schedule->command('generate:post_essence_rank')
             ->mondays();
         $schedule->command('generate:post_essence_rank')

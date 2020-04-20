@@ -6,26 +6,6 @@ use Illuminate\Support\Facades\Redis;
 
 trait CachablePost
 {
-    /**
-     * Fetches all the cachable data for the channel and put it in the cache.
-     *
-     * @param int $id
-     *
-     * @return void
-     */
-    protected function cacheChannelData($id)
-    {
-//        $post = Post::where('post_id', $id)->firstOrFail();
-//
-//        $postData = [
-//            'commentsCount'    => $post->comments()->count(),
-//            'country' => $post->subscriptions()->count(),
-//        ];
-//
-//        Redis::hmset('post.'.$id.'.data', $postData);
-//
-//        return $postData;
-    }
 
     public function likeCount($id)
     {

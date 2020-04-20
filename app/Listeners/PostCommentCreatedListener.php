@@ -3,11 +3,12 @@
 namespace App\Listeners;
 
 use App\Traits\CachablePost;
+use App\Traits\CachableUser;
 use App\Events\PostCommentCreated;
 
 class PostCommentCreatedListener
 {
-    use CachablePost;
+    use CachablePost,CachableUser;
     /**
      * 失败重试次数
      * @var int
@@ -79,8 +80,10 @@ class PostCommentCreatedListener
                 )
             );
         }
+        $this->updateUserPostCommentCount($user->user_id);
         $this->updateCountry($post->post_id , $user->user_country_id);
         $this->updateComment($post->post_id , $user->getKey());
         $user->increment('user_score' , 3);
+        $this->updateUserScoreRank($user->user_id , 3);
     }
 }
