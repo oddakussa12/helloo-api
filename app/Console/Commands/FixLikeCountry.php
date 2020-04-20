@@ -6,21 +6,21 @@ use App\Models\Like;
 use App\Models\User;
 use Illuminate\Console\Command;
 
-class CalculatingCountry extends Command
+class FixLikeCountry extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'calculating:country';
+    protected $signature = 'fix:like_country';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'calculating post country';
+    protected $description = 'fix like country';
 
     /**
      * Create a new command instance.

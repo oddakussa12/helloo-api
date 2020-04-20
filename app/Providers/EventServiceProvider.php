@@ -13,9 +13,9 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'App\Events\Event' => [
-            'App\Listeners\EventListener',
-        ],
+//        'App\Events\Event' => [
+//            'App\Listeners\EventListener',
+//        ],
         'App\Events\SignupEvent' => [
             'App\Listeners\SignupListener',
         ],
@@ -23,9 +23,9 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\PostViewListener',
         ],
 
-        'App\Events\PostViewCreated' => [
-            'App\Listeners\PostViewCreatedListener',
-        ],
+//        'App\Events\PostViewCreated' => [
+//            'App\Listeners\PostViewCreatedListener',
+//        ],
 
         'App\Events\Liked' => [
             'App\Listeners\LikeListener',

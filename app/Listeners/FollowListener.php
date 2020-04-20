@@ -9,9 +9,11 @@
 namespace App\Listeners;
 
 use App\Events\Follow;
+use App\Traits\CachableUser;
 
 class FollowListener
 {
+    use CachableUser;
     /**
      * Create the event listener.
      *
@@ -44,17 +46,8 @@ class FollowListener
                 'url'=>'/notification/user/'.$follower->user_id.'/userFollow/'.$object->getKey(),
             )
         );
+        $this->updateUserFollowMeCount($object->getKey());
+        $this->updateUserMyFollowCount($follower->getKey());
     }
 
-    /**
-     * Handle the event.
-     *
-     * @param Follow $event
-     * @param $exception
-     * @return void
-     */
-    public function failed(Follow $event, $exception)
-    {
-
-    }
 }

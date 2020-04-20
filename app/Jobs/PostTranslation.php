@@ -2,8 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Models\User;
 use App\Models\Post;
 use App\Custom\RedisList;
+use App\Traits\CachableUser;
 use Illuminate\Bus\Queueable;
 use App\Services\TranslateService;
 use App\Services\V3TranslateService;
@@ -16,12 +18,13 @@ use App\Models\PostTranslation as PostTranslationModel;
 
 class PostTranslation implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use CachableUser,Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $languages;
 
     private $translate;
 
+    protected $user;
     protected $post;
     private $post_title;
     private $post_content;
@@ -37,7 +40,8 @@ class PostTranslation implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param Post $post
+     * @param $user
+     * @param $post
      * @param $postTitleLang
      * @param $postContentLang
      * @param $postTitleDefaultLang
@@ -45,9 +49,10 @@ class PostTranslation implements ShouldQueue
      * @param $post_title
      * @param $post_content
      */
-    public function __construct(Post $post , $postTitleLang , $postContentLang , $postTitleDefaultLang , $postContentDefaultLang , $post_title , $post_content)
+    public function __construct(User $user , Post $post , $postTitleLang , $postContentLang , $postTitleDefaultLang , $postContentDefaultLang , $post_title , $post_content)
     {
         $this->languages = config('translatable.locales');
+        $this->user = $user;
         $this->post = $post;
         $this->postTitleLang = $postTitleLang;
         $this->postContentLang = $postContentLang;
@@ -56,10 +61,10 @@ class PostTranslation implements ShouldQueue
         $this->postTitleDefaultLang = $postTitleDefaultLang;
         $this->postContentDefaultLang = $postContentDefaultLang;
 
-        if (auth()->check()) {
-            $user = auth()->user();
-            $user->increment('user_score' , 2);
-        }
+        $user->increment('user_score' , 2);
+        $this->updateUserPostCount($user->user_id);
+        $this->updateUserScoreRank($user->user_id , 2);
+
         $redis = new RedisList();
         $postKey = 'post_index_new';
         $redis->zAdd($postKey , strtotime(optional($this->post->post_created_at)->toDateTimeString()) , $this->post->getKey());

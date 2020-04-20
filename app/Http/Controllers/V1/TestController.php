@@ -54,8 +54,6 @@ class TestController extends BaseController
 
     public function clearCache(Request $request)
     {
-        Cache::forget('fine_post');
-        app(PostRepository::class)->getFinePostIds();
         return $this->response->noContent();
     }
 

@@ -15,14 +15,9 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         //
         \App\Console\Commands\CalculatingRate::class,
-        \App\Console\Commands\GenerateUserRank::class,
-//        \App\Console\Commands\GeneratePostIdRank::class,
-        \App\Console\Commands\GeneratePostCommentNumRank::class,
-//        \App\Console\Commands\GenerateFinePostCache::class,
-        \App\Console\Commands\GeneratePostAuto::class,
-        \App\Console\Commands\GenerateUserFollow::class,
-        \App\Console\Commands\GenerateAutoIncreasePostView::class,
-        \App\Console\Commands\GeneratePostRank::class,
+        \App\Console\Commands\GenerateYesterdayUserRank::class,
+        \App\Console\Commands\AutoIncreasePostView::class,
+        \App\Console\Commands\GeneratePostEssenceRank::class,
         \Torann\GeoIP\Console\Update::class
     ];
 
@@ -34,29 +29,20 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
         $schedule->command('calculating:rate')
-            ->everyThirtyMinutes();
-        $schedule->command('generate:user_rank')
+            ->hourlyAt('30');
+        $schedule->command('generate:yesterday_user_rank')
             ->daily();
-//        $schedule->command('generate:post_id_rank')
-//            ->everyFiveMinutes();
-        $schedule->command('generate:post_comment_num_rank')
-            ->daily();
-//        $schedule->command('generate:fine_post_cache')
-//            ->everyTenMinutes();
-
-//        $schedule->command('generate:auto_store_post')
-//            ->hourly();
-//        $schedule->command('generate:user_follow')
-//            ->everyTenMinutes();
-        $schedule->command('generate:auto_increase_post_view')
-            ->daily();
-        $schedule->command('generate:post_rank')
-            ->hourlyAt(25);
-        $schedule->command('generate:post_rank')
-            ->hourlyAt(55);
+        $schedule->command('auto:increase_post_view')
+            ->dailyAt('02:00');
+        $schedule->command('generate:post_essence_rank')
+            ->mondays();
+        $schedule->command('generate:post_essence_rank')
+            ->wednesdays();
+        $schedule->command('generate:post_essence_rank')
+            ->fridays();
+        $schedule->command('generate:post_essence_rank')
+            ->sundays();
         $schedule->command('geoip:update')
             ->daily();
     }

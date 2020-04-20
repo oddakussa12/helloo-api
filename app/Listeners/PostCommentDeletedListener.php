@@ -3,11 +3,12 @@
 namespace App\Listeners;
 
 use App\Traits\CachablePost;
+use App\Traits\CachableUser;
 use App\Events\PostCommentDeleted;
 
 class PostCommentDeletedListener
 {
-    use CachablePost;
+    use CachablePost,CachableUser;
     /**
      * 失败重试次数
      * @var int
@@ -66,9 +67,11 @@ class PostCommentDeletedListener
         $post->decrement('post_comment_num' , $type , $extra);
         $this->updateCountry($post->post_id , $user->user_country_id , false);
         $this->updateComment($post->post_id , $user->getKey() , false);
+        $this->updateUserPostCommentCount($user->getKey() , -1);
         if($object->comment_created_at>config('common.score_date'))
         {
             $user->decrement('user_score' , 3);
+            $this->updateUserScoreRank($user->user_id , -3);
         }
     }
 }

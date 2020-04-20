@@ -30,49 +30,31 @@ class UserCollection extends Resource
             'user_id'=>$this->user_id,
             'user_name'=>$this->user_name,
             'user_avatar'=>$this->user_avatar,
-            'user_cover'=>$this->when($request->routeIs('my.profile')||$request->routeIs('user.show'),function (){
-                return $this->user_cover;
-            }),
-            'user_gender'=>$this->user_gender,
-            'user_about'=>$this->user_about,
-            'user_score' => $this->user_score,
             'user_country'=>$this->user_country,
-            'user_is_guest'=>$this->user_is_guest,
             'user_level'=>$this->user_level,
-            'user_follow_state' => $this->when(!($request->routeIs('show.more.comment')||
-                                                $request->routeIs('comment.myself')||
-                                                $request->routeIs('user.name.search')||
-                                                $request->routeIs('comment.store')||
-                                                $request->routeIs('post.index')||
-                                                $request->routeIs('post.top')||
-                                                $request->routeIs('comment.mylike')||
-                                                $request->routeIs('show.comment.by.post')||
-                                                $request->routeIs('show.post.by.user')||
-                                                $request->routeIs('notification.index')||
-                                                $request->routeIs('user.ry.online.random')||
-                                                $request->routeIs('user.ry.room.message.index')||
-                                                $request->routeIs('show.locate.comment'))
-                                                ||in_array('follow' , $include), function () use ($request){
-
-                if($request->routeIs('user.rank')||$request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('post.myself')||$request->routeIs('show.post.by.user'))
+            'user_follow_state' => $this->when($request->routeIs('user.show')||$request->routeIs('post.show')||in_array('follow' , $include), function () use ($request){
+                if(isset($this->user_follow_state))
                 {
                     return $this->user_follow_state;
                 }else{
                     return auth()->check()?auth()->user()->isFollowing($this->user_id):false;
                 }
             }),
-            'user_medal' => $this->when($request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('user.show') , function () use ($request){
-                return $this->user_medal;
-            }),
-            'user_rank_score' => $this->when($request->routeIs('user.rank') , function () use ($request){
-                return $this->user_rank_score;
-            })
-            ,$this->mergeWhen($request->routeIs('user.show'), function (){
+//            'user_medal' => $this->when($request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('user.show') , function () use ($request){
+//                return $this->user_medal;
+//            }),
+//            'user_rank_score' => $this->when($request->routeIs('user.rank') , function () use ($request){
+//                return $this->user_rank_score;
+//            }),
+            $this->mergeWhen($request->routeIs('user.show'), function (){
                 return collect([
-                    'user_age'=> $this->user_age,
-                    'userTags'=> UserTagCollection::collection($this->tags),
                     'user_gender'=>$this->user_gender,
-                    'user_like_state'=>$this->isLiked($this->user_id),
+                    'user_about'=>$this->user_about,
+                    'user_score' => $this->user_score,
+                    'user_age'=> $this->user_age,
+                    'user_cover'=> $this->user_cover,
+                    'userTags'=> UserTagCollection::collection($this->tags),
+                    'user_like_state'=>$this->userProfileIsLiked($this->user_id),
                     'user_followme_count'=>$this->followers()->count(),
                     'user_myfollow_count'=>$this->followings()->count(),
                     'user_post_count'=>app(PostRepository::class)->getCountByUserId($this->user_id),

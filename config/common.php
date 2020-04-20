@@ -1,5 +1,9 @@
 <?php
 return [
+    'online_domain'=>[
+        'api.yooul.net',
+        'api.mmantou.cn',
+    ],
 	'qnUploadDomain'=>[
 //		'video_domain' => 'https://qnidvideo.mmantou.cn/',
 //		'subtitle_domain' => 'https://qnidsubtitle.mmantou.cn/',

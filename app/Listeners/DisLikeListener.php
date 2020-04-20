@@ -6,10 +6,11 @@ use App\Models\Post;
 use App\Events\DisLiked;
 use App\Models\PostComment;
 use App\Traits\CachablePost;
+use App\Traits\CachableUser;
 
 class DisLikeListener
 {
-    use CachablePost;
+    use CachablePost,CachableUser;
     /**
      * 失败重试次数
      * @var int
@@ -68,12 +69,14 @@ class DisLikeListener
             );
             $this->updateLikeCount($keyValue , 'dislike' , $tmpDislikeNum);
             $this->updateCountry($keyValue , $user->user_country_id);
+            $this->updateUserPostDislikeCount($user->user_id);
         }else if($object instanceof PostComment)
         {
 //            $object->decrement('comment_like_num' , $event->getType());
 //            notify_remove([3] , $object , $user);
         }
         $user->increment('user_score');
+        $this->updateUserScoreRank($user->user_id);
 
     }
 

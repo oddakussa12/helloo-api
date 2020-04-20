@@ -2,25 +2,24 @@
 
 namespace App\Console\Commands;
 
-
 use Illuminate\Console\Command;
-use App\Repositories\Contracts\PostRepository;
+use App\Repositories\Contracts\UserRepository;
 
-class GenerateAutoIncreasePostView extends Command
+class GenerateYesterdayUserRank extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'generate:auto_increase_post_view';
+    protected $signature = 'generate:yesterday_user_rank';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Generate auto increase post view';
+    protected $description = 'generate yesterday user rank';
 
     /**
      * Create a new command instance.
@@ -39,6 +38,6 @@ class GenerateAutoIncreasePostView extends Command
      */
     public function handle()
     {
-        app(PostRepository::class)->generateAutoIncreasePostView();
+        app(UserRepository::class)->generateYesterdayUserRank();
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Traits\CanFavorite;
 use App\Traits\like\CanLike;
 use App\Traits\follow\CanFollow;
 use App\Traits\dislike\CanDislike;
+use App\Traits\favorite\CanFavorite;
 use App\Traits\follow\CanBeFollowed;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use App\Foundation\Auth\Passwords\CanResetPassword;
