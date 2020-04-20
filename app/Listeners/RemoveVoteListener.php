@@ -61,13 +61,14 @@ class RemoveVoteListener
             {
                 notify_remove([9] , $object , $user);
                 $this->updateLikeCount($keyValue , 'revokeLike');
+                $this->updateUserPostLikeCount($user->getKey() , -1);
             }elseif ($relation instanceof Dislike)
             {
                 notify_remove([10] , $object , $user);
                 $this->updateLikeCount($keyValue , 'revokeDislike');
+                $this->updateUserPostDislikeCount($user->getKey() , -1);
             }
             $this->updateCountry($keyValue , $user->user_country_id , false);
-            $this->updateUserPostLikeCount($user->getKey() , -1);
         }else if($object instanceof PostComment)
         {
             $object->decrement('comment_like_num' , $event->getType());
