@@ -10,9 +10,11 @@ namespace App\Listeners;
 
 
 use App\Events\UnFollow;
+use App\Traits\CachableUser;
 
 class UnFollowListener
 {
+    use CachableUser;
     /**
      * Create the event listener.
      *
@@ -34,17 +36,7 @@ class UnFollowListener
         $object = $event->getObject();
         $follower = $event->getFollower();
         notify_remove(1 , $object , $follower);
-    }
-
-    /**
-     * Handle the event.
-     *
-     * @param UnFollow $event
-     * @param $exception
-     * @return void
-     */
-    public function failed(UnFollow $event, $exception)
-    {
-
+        $this->updateUserFollowMeCount($object->getKey() , -1);
+        $this->updateUserMyFollowCount($follower->getKey() , -1);
     }
 }

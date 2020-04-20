@@ -81,13 +81,9 @@ class UserController extends BaseController
     public function show($id)
     {
         $user = $this->user->findOrFail($id);
-        $activeUser = $this->user->getActiveUserId();
-        $activeUserIds = array_keys($activeUser);
-        if(in_array($id , $activeUserIds))
-        {
-            $user->user_medal = $activeUser[$id];
-        }
-        return new UserCollection($this->user->findOrFail($id));
+        $followerIds = userFollow([$id]);
+        $user->user_follow_state = !empty($followerIds);
+        return new UserCollection($user);
     }
 
 

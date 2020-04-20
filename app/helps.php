@@ -302,8 +302,7 @@ if (!function_exists('userFollow')) {
     {
         if(auth()->check()&&!empty($userIds))
         {
-            $followers = auth()->user()->followings()->whereIn('common_follows.followable_id' , $userIds)->pluck('user_id')->all();
-            return $followers;
+            return auth()->user()->followings()->whereIn('common_follows.followable_id' , $userIds)->pluck('user_id')->all();
         }
         return array();
     }

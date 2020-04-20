@@ -6,10 +6,11 @@ use App\Models\Post;
 use App\Events\Liked;
 use App\Models\PostComment;
 use App\Traits\CachablePost;
+use App\Traits\CachableUser;
 
 class LikeListener
 {
-    use CachablePost;
+    use CachablePost,CachableUser;
     /**
      * 失败重试次数
      * @var int
@@ -67,6 +68,7 @@ class LikeListener
             );
             $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum);
             $this->updateCountry($keyValue , $user->user_country_id);
+            $this->updateUserPostLikeCount($user->user_id);
         }else if($object instanceof PostComment)
         {
             $extra = array();
@@ -90,8 +92,9 @@ class LikeListener
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
                 )
             );
-
+            $this->updateUserPostCommentLikeCount($user->user_id);
         }
         $user->increment('user_score');
+        $this->updateUserScoreRank($user->user_id);
     }
 }
