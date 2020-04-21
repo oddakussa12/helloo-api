@@ -8,6 +8,7 @@ use Ramsey\Uuid\Uuid;
 use App\Models\PostComment;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
+use App\Traits\CachableUser;
 use App\Resources\UserTagCollection;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginUserRequest;
@@ -22,7 +23,7 @@ use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 
 class AuthController extends BaseController
 {
-    use ResetsPasswords, SendsPasswordResetEmails {
+    use CachableUser,ResetsPasswords, SendsPasswordResetEmails {
         ResetsPasswords::broker insteadof SendsPasswordResetEmails;
     }
 
@@ -145,8 +146,9 @@ class AuthController extends BaseController
     protected function respondWithToken($token)
     {
         $user = auth()->user();
-        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
-        $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
+//        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
+//        $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
+        $rank = $this->userScoreRank($user->user_id);
         $referer = request()->input('referer' , 'web');
         if($referer!='web')
         {
@@ -163,12 +165,10 @@ class AuthController extends BaseController
                 'user_id'=>$user->user_id,
                 'user_name'=>$user->user_name,
                 'user_avatar'=>$user->user_avatar,
-                'user_email'=>$user->user_email,
                 'user_country'=>$user->user_country,
-                'user_is_guest'=>$user->user_is_guest,
                 'user_level'=>$user->user_level,
-                'yesterdayScore' => optional($yesterday_score_rank)->user_rank_score,
-                'yesterdayRank' => optional($yesterday_score_rank)->rank,
+                'yesterdayScore' => null,
+                'yesterdayRank' => null,
                 'userRank' => $rank
             )
         ]);
@@ -192,15 +192,21 @@ class AuthController extends BaseController
     public function me(Request $request)
     {
         $user = auth()->user();
-        $likeCount = $user->likes()->where('likable_type' , PostComment::class)->with('likable')->join('posts_comments' , function($join){
-            $join->on('common_likes.likable_id' , 'posts_comments.comment_id');
-        })->whereNull('posts_comments.comment_deleted_at')->count();
-        $postCommentCount = app(PostCommentRepository::class)->getCountByUserId($user->user_id);
+//        $likeCount = $user->likes()->where('likable_type' , PostComment::class)->with('likable')->join('posts_comments' , function($join){
+//            $join->on('common_likes.likable_id' , 'posts_comments.comment_id');
+//        })->whereNull('posts_comments.comment_deleted_at')->count();
+        $likeCount = $this->userPostCommentLike($user->user_id);
+//        $postCommentCount = app(PostCommentRepository::class)->getCountByUserId($user->user_id);
+        $postCommentCount = $this->userPostCommentCount($user->user_id);
 //        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
-        $postCount = app(PostRepository::class)->getCountByUserId($user->user_id);
-        $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
-        $userFollowMe = auth()->user()->followers()->count();
-        $userMyFollow = auth()->user()->followings()->count();
+//        $postCount = app(PostRepository::class)->getCountByUserId($user->user_id);
+        $postCount = $this->userPostCount($user->user_id);
+//        $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
+        $rank = $this->userScoreRank($user->user_id);
+//        $userFollowMe = auth()->user()->followers()->count();
+//        $userMyFollow = auth()->user()->followings()->count();
+        $userFollowMe = $this->userFollowMeCount($user->user_id);
+        $userMyFollow = $this->userMyFollowCount($user->user_id);
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
         $user->userFollowMe = $userFollowMe;
