@@ -176,6 +176,7 @@ $api->group($V1Params , function ($api){
         $api->patch('bk/carousel/post/{post}' , 'BackStageController@setCarousel')->name('bk.post.carousel.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
+        $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
     });
     $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('test/index' , 'TestController@test')->name('test.test');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Custom\RedisList;
+use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Events\PostCommentDeleted;
 use App\Repositories\Contracts\UserRepository;
@@ -11,7 +12,7 @@ use App\Repositories\Contracts\PostCommentRepository;
 
 class BackStageController extends BaseController
 {
-
+    use CachableUser;
     /**
      * @var PostCommentRepository
      */
@@ -96,9 +97,20 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
-    public function setFollowUser()
+    public function setFollowUser(Request $request , $followed)
     {
-
+        $fans = $request->input('fans' , '');
+        $fans = \json_decode($fans , true);
+        $count = count($fans);
+        if(!empty($fans)&&$count>0)
+        {
+            $this->updateUserFollowMeCount($followed , $count);
+            foreach ($fans as $fan)
+            {
+                $this->updateUserMyFollowCount($fan);
+            }
+        }
+        return $this->response->noContent();
     }
 
 
