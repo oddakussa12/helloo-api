@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Custom\RedisList;
+use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Events\PostCommentDeleted;
 use App\Repositories\Contracts\UserRepository;
@@ -10,7 +12,7 @@ use App\Repositories\Contracts\PostCommentRepository;
 
 class BackStageController extends BaseController
 {
-
+    use CachableUser;
     /**
      * @var PostCommentRepository
      */
@@ -51,12 +53,16 @@ class BackStageController extends BaseController
     {
         $post = $this->post->findOrFailByUuid($uuid);
         $this->post->destroy($post);
+        $redis = new RedisList();
+        $user = $this->user->find($post->user_id);
         if($post->post_created_at>config('common.score_date'))
         {
-            $user = $this->user->find($post->user_id);
             $user->decrement('user_score' , 2);
+            $userScoreRankKey = config('redis-key.user.score_rank');
+            $redis->zIncrBy($userScoreRankKey , -2 , $user->user_id);
         }
-        $redis = new RedisList();
+        $userPostsKey = config('redis-key.user.posts');
+        $redis->zIncrBy($userPostsKey , -1 , $user->user_id);
         $postKey = 'post_index_new';
         $redis->zRem($postKey , $post->getKey());
         return $this->response->noContent();
@@ -87,6 +93,22 @@ class BackStageController extends BaseController
             carousel_post($postUuid , $locale , $image);
         }else{
             non_carousel_post($postUuid);
+        }
+        return $this->response->noContent();
+    }
+
+    public function setFollowUser(Request $request , $followed)
+    {
+        $fans = $request->input('fans' , '');
+        $fans = \json_decode($fans , true);
+        $count = count($fans);
+        if(!empty($fans)&&$count>0)
+        {
+            $this->updateUserFollowMeCount($followed , $count);
+            foreach ($fans as $fan)
+            {
+                $this->updateUserMyFollowCount($fan);
+            }
         }
         return $this->response->noContent();
     }

@@ -30,7 +30,8 @@ trait CachableUser
     public function userScoreRank($id)
     {
         $userScoreRankKey = config('redis-key.user.score_rank');
-        return intval(Redis::zrevrank($userScoreRankKey , $id));
+        $rank = intval(Redis::zrevrank($userScoreRankKey , $id));
+        return $rank*config('common.user_rank_coefficient')-config('common.user_rank_add_num');
     }
 
     /**

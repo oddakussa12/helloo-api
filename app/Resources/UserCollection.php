@@ -31,6 +31,7 @@ class UserCollection extends Resource
             'user_name'=>$this->user_name,
             'user_avatar'=>$this->user_avatar,
             'user_country'=>$this->user_country,
+            'user_level'=>$this->user_level,
             'user_follow_state' => $this->when($request->routeIs('user.show')||$request->routeIs('post.show')||in_array('follow' , $include), function () use ($request){
                 if(isset($this->user_follow_state))
                 {
@@ -47,7 +48,6 @@ class UserCollection extends Resource
 //            }),
             $this->mergeWhen($request->routeIs('user.show'), function (){
                 return collect([
-                    'user_level'=>$this->user_level,
                     'user_gender'=>$this->user_gender,
                     'user_about'=>$this->user_about,
                     'user_score' => $this->user_score,
@@ -55,10 +55,16 @@ class UserCollection extends Resource
                     'user_cover'=> $this->user_cover,
                     'userTags'=> UserTagCollection::collection($this->tags),
                     'user_like_state'=>$this->userProfileIsLiked($this->user_id),
-                    'user_followme_count'=>$this->followers()->count(),
-                    'user_myfollow_count'=>$this->followings()->count(),
-                    'user_post_count'=>app(PostRepository::class)->getCountByUserId($this->user_id),
-                    'user_comment_count'=>app(PostCommentRepository::class)->getCountByUserId($this->user_id),
+//                    'user_followme_count'=>$this->followers()->count(),
+//                    'user_myfollow_count'=>$this->followings()->count(),
+//                    'user_post_count'=>app(PostRepository::class)->getCountByUserId($this->user_id),
+//                    'user_comment_count'=>app(PostCommentRepository::class)->getCountByUserId($this->user_id),
+
+                    'user_followme_count'=>$this->userFollowMeCount($this->user_id),
+                    'user_myfollow_count'=>$this->userMyFollowCount($this->user_id),
+                    'user_post_count'=>$this->userPostCount($this->user_id),
+                    'user_comment_count'=>$this->userPostCommentCount($this->user_id),
+                    
                     'user_profile_like_num'=>$this->user_profile_like_num,
                     'user_picture'=>$this->user_picture
                 ]);

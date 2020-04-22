@@ -311,7 +311,8 @@ class PostController extends BaseController
     public function destroy($uuid)
     {
         $post = $this->post->findOrFailByUuid($uuid);
-        if($post->user_id!=auth()->id())
+        $user = auth()->user();
+        if($post->user_id!=$user->user_id)
         {
             abort(401);
         }
@@ -319,13 +320,12 @@ class PostController extends BaseController
         $redis = new RedisList();
         if($post->post_created_at>config('common.score_date'))
         {
-            $user = auth()->user();
             $user->decrement('user_score' , 2);
             $userScoreRankKey = config('redis-key.user.score_rank');
-            $redis->zIncrBy($userScoreRankKey , $user->user_id , -2);
+            $redis->zIncrBy($userScoreRankKey , -2 , $user->user_id);
         }
         $userPostsKey = config('redis-key.user.posts');
-        $redis->zIncrBy($userPostsKey , $user->user_id , -1);
+        $redis->zIncrBy($userPostsKey , -1 , $user->user_id);
         $postKey = 'post_index_new';
         $redis->zRem($postKey , $post->getKey());
         return $this->response->noContent();
