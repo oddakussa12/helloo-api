@@ -375,8 +375,8 @@ class AuthController extends BaseController
                         'regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u',
                         'min:4',
                         'max:32',
-                        'unique:users,user_'.$type
-//                        new UserNameAndEmailUnique()
+//                        'unique:users,user_'.$type
+                        new UserNameAndEmailUnique()
                     ],
                 ];
             }else{
@@ -384,8 +384,8 @@ class AuthController extends BaseController
                     $type => [
                         'required',
                         'email',
-                        'unique:users,user_'.$type
-//                        new UserNameAndEmailUnique()
+//                        'unique:users,user_'.$type
+                        new UserNameAndEmailUnique()
                     ],
                 ];
             }
