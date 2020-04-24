@@ -10,6 +10,29 @@ trait CachableUser
     /**
      * 获取用户profile被点赞数量
      *
+     * @param $userName
+     * @param $userEmail
+     * @param bool $op
+     * @return void
+     */
+
+    public function updateUserLists($userName, $userEmail , $op=true)
+    {
+        $userNameKey = config('redis-key.user.user_name');
+        $userEmailKey = config('redis-key.user.user_email');
+        if($op)
+        {
+            Redis::sadd($userNameKey , $userName);
+            Redis::sadd($userEmailKey , $userEmail);
+        }else{
+            Redis::srem($userNameKey , $userName);
+            Redis::srem($userEmailKey , $userEmail);
+        }
+    }
+
+    /**
+     * 获取用户profile被点赞数量
+     *
      * @param int $id
      * @return int
      */
