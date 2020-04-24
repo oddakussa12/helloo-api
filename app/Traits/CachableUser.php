@@ -22,11 +22,11 @@ trait CachableUser
         $userEmailKey = config('redis-key.user.user_email');
         if($op)
         {
-            Redis::sadd($userNameKey , $userName);
-            Redis::sadd($userEmailKey , $userEmail);
+            Redis::sadd($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
+            Redis::sadd($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
         }else{
-            Redis::srem($userNameKey , $userName);
-            Redis::srem($userEmailKey , $userEmail);
+            Redis::srem($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
+            Redis::srem($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
         }
     }
 
