@@ -164,6 +164,7 @@ $api->group($V1Params , function ($api){
     $api->get('user/{id}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+    $api->get('ry/chat' , 'RyChatController@index')->name('user.ry.message.index');
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
     $api->get('ry/room/chat/translation' , 'RyChatController@roomChatTranslation')->name('user.ry.room.message.translation');
     $api->get('ry/room/chat' , 'RyChatController@showByRoom')->name('user.ry.room.message.index');
@@ -179,6 +180,7 @@ $api->group($V1Params , function ($api){
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
     });
     $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
+    $api->get('google/token' , 'GoogleController@token')->name('google.token');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 
 });

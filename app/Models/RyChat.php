@@ -40,8 +40,5 @@ class RyChat extends Model
 
     public $paginateParamName = 'chat_page';
 
-    public function getChatTimeAttribute($value)
-    {
-        return date('Y-m-d H:i:s' , strtotime($value));
-    }
+
 }
