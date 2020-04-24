@@ -5,19 +5,17 @@ namespace App\Http\Controllers\V1;
 use SmsManager;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
-use App\Models\PostComment;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
 use App\Traits\CachableUser;
 use App\Resources\UserTagCollection;
+use App\Rules\UserNameAndEmailUnique;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use Illuminate\Support\Facades\Password;
 use App\Http\Requests\ForgetPasswordRequest;
 use App\Repositories\Contracts\UserRepository;
-use App\Repositories\Contracts\PostRepository;
 use App\Foundation\Auth\Passwords\ResetsPasswords;
-use App\Repositories\Contracts\PostCommentRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 
@@ -353,7 +351,6 @@ class AuthController extends BaseController
                 default :
                     return $this->response->errorNotFound(__('Service Unavailable'));
                     break;
-                    ;
             }
         }
         return $this->response->noContent();
@@ -379,6 +376,7 @@ class AuthController extends BaseController
                         'min:4',
                         'max:32',
                         'unique:users,user_'.$type
+//                        new UserNameAndEmailUnique()
                     ],
                 ];
             }else{
@@ -387,6 +385,7 @@ class AuthController extends BaseController
                         'required',
                         'email',
                         'unique:users,user_'.$type
+//                        new UserNameAndEmailUnique()
                     ],
                 ];
             }
