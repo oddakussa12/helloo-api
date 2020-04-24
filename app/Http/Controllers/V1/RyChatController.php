@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\V1;
 
+use Carbon\Carbon;
 use App\Jobs\RyChat;
 use Ramsey\Uuid\Uuid;
 use App\Models\RyRoomChat;
 use Illuminate\Http\Request;
 use App\Services\TranslateService;
+use App\Resources\RyChatCollection;
+use App\Models\RyChat as RyChatModel;
 use Illuminate\Support\Facades\Redis;
 use App\Resources\RyRoomChatCollection;
 
@@ -26,14 +29,38 @@ class RyChatController extends BaseController
     {
         $this->translate = $translateService;
     }
+
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function index()
+    public function index(Request $request)
     {
-
+        $appends = array();
+        $fromUserId = $request->input('from_user_id' , 0);
+        $toUserId = $request->input('to_user_id' , 0);
+        $chinaNow = Carbon::now()->addHours(8);
+        $second = $chinaNow->timestamp;
+        $micro = ceil($chinaNow->micro/1000);
+        $ryChatTime = $second.$micro;
+        $chatTime = intval($request->input('chat_time' , $ryChatTime));
+        $appends['from_user_id'] = $fromUserId;
+        $appends['to_user_id'] = $toUserId;
+        $appends['chat_time'] = $chatTime;
+        $chats = RyChatModel::where('chat_channel_type' , 'PERSON')->where('chat_from_id' , $fromUserId)
+            ->where('chat_to_id' , $toUserId)
+            ->where('chat_time' , '<=' , $chatTime)
+            ->orWhere(function ($query ) use ($fromUserId , $toUserId , $chatTime){
+                $query->where('chat_channel_type' , 'PERSON')
+                    ->where('chat_from_id',$toUserId)
+                    ->where('chat_to_id' , $fromUserId)
+                    ->where('chat_time' , '<=' , $chatTime);
+            })->orderBy('chat_time', 'DESC')
+            ->paginate(10 , ['chat_id' , 'chat_from_id' , 'chat_to_id' , 'chat_content' , 'chat_time' , 'chat_msg_type']);
+        $chats = $chats->appends($appends);
+        return RyChatCollection::collection($chats);
     }
 
     /**
