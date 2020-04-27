@@ -25,6 +25,12 @@ class PostCollection extends Resource
                 }
                 return $this->post_decode_title;
             }),
+            $this->mergeWhen(!$request->routeIs('post.show'), function (){
+                return collect([
+                    'post_index_locale' => $this->post_index_locale,
+                    'post_default_title' => $this->post_origin_index_title
+                ]);
+            }),
             'post_media'=>$this->post_mutation_media,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,

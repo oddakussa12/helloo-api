@@ -24,11 +24,12 @@ class RySetController extends BaseController
         }
         $time = Redis::zScore($key, $userId);
         try{
-            $res = \RongCloud::userUnBlock($userId);
+            $res = \RongCloud::getUser()->Block()->remove(array('id'=>$userId));
             Redis::zRem($key, $userId);
             $res['userId'] = $userId;
             $res['message'] = 'ok';
-        }catch (\Exception $e){
+            throw_if($res['code']!=200 , $res['msg']);
+        }catch (\Throwable $e){
             if($time!==null)
             {
                 Redis::zadd($key,$time , $userId);
@@ -53,12 +54,13 @@ class RySetController extends BaseController
             return $this->response->errorNotFound();
         }
         try{
-            $res = \RongCloud::userBlock($userId,$minute);
+            $res = \RongCloud::getUser()->Block()->add(array('id'=>$userId , 'minute'=>43200));
             Redis::zadd($key,time() , $userId);
             $res['userId'] = $userId;
             $res['minute'] = $minute;
             $res['message'] = 'ok';
-        }catch (\Exception $e)
+            throw_if($res['code']!=200 , $res['msg']);
+        }catch (\Throwable $e)
         {
             Redis::zRem($key, $userId);
             $res = array(
@@ -88,13 +90,14 @@ class RySetController extends BaseController
             $userName = $user->user_name;
         }
         try{
-            $res = \RongCloud::userBlock($userId,$minute);
+            $res = \RongCloud::getUser()->Block()->add(array('id'=>$userId , 'minute'=>$minute));
             Redis::zadd($key,time() , $userId);
             block_user($userName);
             $res['userId'] = $userId;
             $res['minute'] = $minute;
             $res['message'] = 'ok';
-        }catch (\Exception $e)
+            throw_if($res['code']!=200 , $res['msg']);
+        }catch (\Throwable $e)
         {
             Redis::zRem($key, $userId);
             unblock_user($userName);
@@ -125,12 +128,13 @@ class RySetController extends BaseController
         }
         $time = Redis::zScore($key, $userId);
         try{
-            $res = \RongCloud::userUnBlock($userId);
+            $res = \RongCloud::getUser()->Block()->remove(array('id'=>$userId));
             Redis::zRem($key, $userId);
             unblock_user($userName);
             $res['userId'] = $userId;
             $res['message'] = 'ok';
-        }catch (\Exception $e){
+            throw_if($res['code']!=200 , $res['msg']);
+        }catch (\Throwable $e){
             if($time!==null)
             {
                 Redis::zadd($key,$time , $userId);
@@ -149,8 +153,9 @@ class RySetController extends BaseController
     public function userCheckOnline($userId)
     {
         try{
-            $ret = \RongCloud::userCheckOnline($userId);
-        }catch (\Exception $e)
+            $ret = \RongCloud::getUser()->Onlinestatus()->check(array('id'=>$userId));
+            throw_if($ret['code']!=200 , $ret['msg']);
+        }catch (\Throwable $e)
         {
             $ret = array('code'=>500 , 'message'=>$e->getMessage());
         }

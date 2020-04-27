@@ -156,7 +156,7 @@ $api->group($V1Params , function ($api){
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
-    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
+    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('ry.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');
     $api->get('set/dx/switch' , 'SetController@dxSwitch')->name('set.dx.switch');
     $api->post('set/dx/clearDxCache' , 'SetController@clearDxCache')->name('set.dx.switch.clear.cache');
@@ -179,7 +179,6 @@ $api->group($V1Params , function ($api){
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
     });
-    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
     $api->get('google/token' , 'GoogleController@token')->name('google.token');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 
