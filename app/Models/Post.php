@@ -261,6 +261,36 @@ class Post extends Model
 
     }
 
+    public function getPostOriginIndexTitleAttribute()
+    {
+        $title = $this->post_origin_title;
+        if(empty($title))
+        {
+            return str_limit(strip_tags($this->post_origin_content) , 120 , '...');
+        }
+        return $title;
+    }
+
+    public function getPostOriginTitleAttribute()
+    {
+        $post_title = optional($this->translate($this->post_default_locale))->post_title;
+        return htmlspecialchars_decode(htmlspecialchars_decode($post_title , ENT_QUOTES) , ENT_QUOTES);
+    }
+
+    public function getPostOriginContentAttribute()
+    {
+        $post_content = optional($this->translate($this->post_content_default_locale))->post_content;
+        $post_content = htmlspecialchars_decode(htmlspecialchars_decode($post_content , ENT_QUOTES) , ENT_QUOTES);
+        $agent = new Agent();
+        if($agent->match('YoouliOS')||$agent->match('YooulAndroid'))
+        {
+            $post_content = str_replace(
+                array("<br>" , "<br/>" , "<br />" , "<br  />" , "<br >" , "< br>" , "<  br>" , "<br  >" , "<br/ >" , "<br/  >") ,
+                "\n" , $post_content);
+        }
+        return $post_content;
+    }
+
     public function getPostRealRateAttribute()
     {
 //        $top_rate = rate_comment(500 , '2019-10-31 23:59:59');

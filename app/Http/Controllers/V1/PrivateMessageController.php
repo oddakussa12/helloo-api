@@ -66,11 +66,16 @@ class PrivateMessageController extends BaseController
         {
             $user = auth()->user();
             $userId = $user->user_id;
+            $name = $user->user_name;
+            $avatar = $user->user_avatar;
             try{
-                $name = $user->user_name;
-                $avatar = $user->user_avatar;
-                $token = \RongCloud::getToken($userId, $name, $avatar);
-            }catch (\Exception $e)
+                $token = \RongCloud::getUser()->register(array(
+                    'id'=> $userId,
+                    'name'=> $name,
+                    'portrait'=> $avatar
+                ));
+                throw_if($token['code']!=200 , $token['msg']);
+            }catch (\Throwable $e)
             {
                 $token = array(
                     'code'=>500,
@@ -83,17 +88,4 @@ class PrivateMessageController extends BaseController
         }
         return $this->response->noContent();
     }
-
-    public function userCheckOnline($userId)
-    {
-        try{
-            $ret = \RongCloud::userCheckOnline($userId);
-        }catch (\Exception $e)
-        {
-            $ret = array('code'=>500 , 'message'=>$e->getMessage());
-        }
-        return $this->response->array($ret);
-    }
-
-    
 }

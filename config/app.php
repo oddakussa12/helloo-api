@@ -241,7 +241,7 @@ return [
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
         'GeoIP' => Torann\GeoIP\GeoIPFacade::class,
         'Notifynder' => Fenos\Notifynder\Facades\Notifynder::class,
-        'RongCloud' => Latrell\RongCloud\Facades\RongCloud::class,
+        'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class,
         'PhpSms' => Toplan\PhpSms\Facades\Sms::class,
         'SmsManager' => Toplan\Sms\Facades\SmsManager::class,
 
