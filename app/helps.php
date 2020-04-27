@@ -756,6 +756,27 @@ if (! function_exists('carousel_post_list')) {
     }
 }
 
+if (!function_exists('ry_server'))
+{
+    function ry_server($flag = false)
+    {
+        $key = 'ry_server';
+        $serverUrl = config('latrell-rcloud.server_url');
+        if($flag)
+        {
+            $k = array_search(Cache::get($key) , $serverUrl);
+            Cache::forget($key);
+            if($k!==false)
+            {
+                unset($serverUrl[$k]);
+            }
+        }
+        return Cache::rememberForever($key , function() use ($serverUrl){
+            return array_random($serverUrl);
+        });
+    }
+}
+
 
 
 

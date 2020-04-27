@@ -28,7 +28,7 @@ class RySetController extends BaseController
             Redis::zRem($key, $userId);
             $res['userId'] = $userId;
             $res['message'] = 'ok';
-            throw_if($res['code']!=200 , $res['msg']);
+            throw_if($res['code']!=200 , new \Exception('internal error'));
         }catch (\Throwable $e){
             if($time!==null)
             {
@@ -59,7 +59,7 @@ class RySetController extends BaseController
             $res['userId'] = $userId;
             $res['minute'] = $minute;
             $res['message'] = 'ok';
-            throw_if($res['code']!=200 , $res['msg']);
+            throw_if($res['code']!=200 , new \Exception('internal error'));
         }catch (\Throwable $e)
         {
             Redis::zRem($key, $userId);
@@ -96,7 +96,7 @@ class RySetController extends BaseController
             $res['userId'] = $userId;
             $res['minute'] = $minute;
             $res['message'] = 'ok';
-            throw_if($res['code']!=200 , $res['msg']);
+            throw_if($res['code']!=200 , new \Exception('internal error'));
         }catch (\Throwable $e)
         {
             Redis::zRem($key, $userId);
@@ -133,7 +133,7 @@ class RySetController extends BaseController
             unblock_user($userName);
             $res['userId'] = $userId;
             $res['message'] = 'ok';
-            throw_if($res['code']!=200 , $res['msg']);
+            throw_if($res['code']!=200 , new \Exception('internal error'));
         }catch (\Throwable $e){
             if($time!==null)
             {
@@ -154,7 +154,7 @@ class RySetController extends BaseController
     {
         try{
             $ret = \RongCloud::getUser()->Onlinestatus()->check(array('id'=>$userId));
-            throw_if($ret['code']!=200 , $ret['msg']);
+            throw_if($ret['code']!=200 , new \Exception('internal error'));
         }catch (\Throwable $e)
         {
             $ret = array('code'=>500 , 'message'=>$e->getMessage());

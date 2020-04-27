@@ -23,9 +23,9 @@ class RongCloudServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('rcloud', function ($app) {
+        $this->app->bind('rcloud', function ($app) {
             $config = $app->config->get('latrell-rcloud');
-            return new RongCloud($config['app_key'] , $config['app_secret']);
+            return new RongCloud($config['app_key'] , $config['app_secret'] , ry_server());
         });
     }
 
