@@ -96,12 +96,16 @@ class RyChatController extends BaseController
             );
             RyChatFailed::create($data);
         }else{
-            $msgUID = $request->input('msgUID' , '');
-            $lock_key = 'ry_room_chat_'.$msgUID;
-            if(Redis::set($lock_key, 1, "nx", "ex", 15))
+            $objectName = $request->input('objectName' , '');
+            if(in_array($objectName , array('RC:TxtMsg' , 'RC:ImgMsg')))
             {
-                $device = new RyChat($all);
-                $this->dispatch($device->onQueue('store_ry_msg'));
+                $msgUID = $request->input('msgUID' , '');
+                $lock_key = 'ry_room_chat_'.$msgUID;
+                if(Redis::set($lock_key, 1, "nx", "ex", 15))
+                {
+                    $device = new RyChat($all);
+                    $this->dispatch($device->onQueue('store_ry_msg'));
+                }
             }
         }
         return $response->setStatusCode(200);

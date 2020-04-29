@@ -97,6 +97,7 @@ class AuthController extends BaseController
         $user_gender = $request->input('user_gender');
         $user_picture = (array)$request->input('user_picture' , array());
         $tag_slug = array_diff($request->input('tag_slug' , array()),array(null , ''));
+        $region_slug = array_diff($request->input('region_slug' , array()),array(null , ''));
         $user_picture = \array_filter($user_picture , function($v , $k){
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
@@ -138,6 +139,10 @@ class AuthController extends BaseController
         if($request->has('tag_slug'))
         {
             $this->user->attachTags($user , $tag_slug);
+        }
+        if($request->has('region_slug'))
+        {
+            $this->user->attachRegions($user , $region_slug);
         }
         return $user;
     }
