@@ -410,14 +410,19 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $appends =array();
         $request = request();
+        $now = Carbon::now();
+        $today = Carbon::today();
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->where('post_hotting' , 1);
         $queryTime = $request->get('query_time' , '');
         if(empty($queryTime))
         {
-            $queryTime = Carbon::now()->timestamp;
+            $queryTime = $now->timestamp;
         }
-        $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
+        $startTime = $today->subDays(15)->timestamp;
+        $startTime = $startTime>$queryTime?$queryTime:$startTime;
+        $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString())
+            ->where($this->model->getCreatedAtColumn() , '>=' , Carbon::createFromTimestamp($startTime)->toDateTimeString());
         $appends['query_time'] = $queryTime;
         $posts->orderBy('post_rate' , 'DESC');
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
