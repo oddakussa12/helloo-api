@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use App\Models\Post;
 use Illuminate\Console\Command;
 
@@ -38,7 +39,13 @@ class CalculatingRate extends Command
      */
     public function handle()
     {
-        Post::withTrashed()->chunk(10, function ($posts){
+        $now = Carbon::now();
+        $today = Carbon::today();
+        $startTime = $today->subDays(15)->toDateTimeString();
+        $endTime = $now->toDateTimeString();
+        Post::withTrashed()
+            ->where('post_created_at' , '<=' , $endTime)
+            ->where('post_created_at' , '>=' , $startTime)->chunk(10, function ($posts){
             foreach ($posts as $post) {
                 $post->calculatingRate();
             }
