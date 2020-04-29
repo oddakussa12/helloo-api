@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\UserNameAndEmailUnique;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
@@ -26,12 +25,9 @@ class StoreUserRequest extends FormRequest
     {
         return [
             //UTF-8正则匹配汉字、字母、数字、横杠、下划线、空格，如下：(不要空格可以去掉\s)
-//            'name'=>'required|regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u|min:4|max:32|unique:users,user_name',
-//            'email'=>'required|email|unique:users,user_email',
-//            'password'=>'required|min:4|max:16',
-            'name'=>['required','regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u','min:4','max:32' , new UserNameAndEmailUnique()],
-            'email'=>['required','email','max:256',new UserNameAndEmailUnique()],
-            'password'=>['required' , 'min:4', 'max:16'],
+            'name'=>'required|regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u|min:4|max:32|unique:users,user_name',
+            'email'=>'required|email|unique:users,user_email',
+            'password'=>'required|min:4|max:16',
         ];
     }
 

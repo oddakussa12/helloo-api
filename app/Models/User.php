@@ -232,6 +232,11 @@ class User extends Authenticatable implements JWTSubject
             ->orderBy('tag_sort');
     }
 
+    public function regions()
+    {
+        return $this->belongsToMany(Region::class,'users_regions' , 'user_id' , 'region_id');
+    }
+
     public function setUserGenderAttribute($value)
     {
         $value = intval($value);

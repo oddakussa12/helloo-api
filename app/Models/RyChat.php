@@ -28,6 +28,7 @@ class RyChat extends Model
         'chat_from_extra',
         'chat_to_id',
         'chat_content',
+        'chat_image',
         'chat_msg_type',
         'chat_channel_type',
         'chat_time',

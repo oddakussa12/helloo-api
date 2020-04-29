@@ -280,4 +280,10 @@ class UserController extends BaseController
         }
         return $this->response->noContent();
     }
+
+    public function referFriend()
+    {
+        $users = $this->user->referFriend();
+        return UserCollection::collection($users);
+    }
 }
