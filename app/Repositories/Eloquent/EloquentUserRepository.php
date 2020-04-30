@@ -620,10 +620,10 @@ DOC;
                 {
                     array_push($referFriends , array_random($referFriendFile[$region]));
                 }
-                $referFriends = array_diff($referFriends , array(auth()->id()));
             }
         }
         $userIds = array_unique(array_merge($userIds , $referFriends));
+        $userIds = array_diff($userIds , array(auth()->id()));
         $query = $this->model->query();
         return $query->whereIn("user_id", $userIds)->with('tags')->get();
     }
