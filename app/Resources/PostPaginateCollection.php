@@ -20,6 +20,7 @@ class PostPaginateCollection extends Resource
             'post_default_locale' => $this->post_default_locale,
             'post_index_locale' => $this->post_index_locale,
             'post_title' => $this->post_index_title,
+            'post_default_title' => $this->post_origin_index_title,
             'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
             'post_view_num' => $this->when($request->routeIs('post.myself') , function (){

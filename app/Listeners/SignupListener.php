@@ -3,36 +3,25 @@
 namespace App\Listeners;
 
 use App\Events\SignupEvent;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Traits\CachableUser;
+
 
 class SignupListener
 {
-    /**
-     * 失败重试次数
-     * @var int
-     */
-    public $tries = 1;
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //
-    }
+    use CachableUser;
+
 
     /**
      * Handle the event.
      *
-     * @param  object  $event
+     * @param SignupEvent $event
      * @return void
      */
     public function handle(SignupEvent $event)
     {
         //获取事件中保存的信息
         $user = $event->getUser();
+        $this->updateUserLists($user->user_name , $user->user_email);
         $agent = $event->getAgent();
         $addresses = $event->getAddresses();
         $ip = $addresses->ip;

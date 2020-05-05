@@ -5,19 +5,17 @@ namespace App\Http\Controllers\V1;
 use SmsManager;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
-use App\Models\PostComment;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
 use App\Traits\CachableUser;
 use App\Resources\UserTagCollection;
+use App\Rules\UserNameAndEmailUnique;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use Illuminate\Support\Facades\Password;
 use App\Http\Requests\ForgetPasswordRequest;
 use App\Repositories\Contracts\UserRepository;
-use App\Repositories\Contracts\PostRepository;
 use App\Foundation\Auth\Passwords\ResetsPasswords;
-use App\Repositories\Contracts\PostCommentRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 
@@ -99,6 +97,7 @@ class AuthController extends BaseController
         $user_gender = $request->input('user_gender');
         $user_picture = (array)$request->input('user_picture' , array());
         $tag_slug = array_diff($request->input('tag_slug' , array()),array(null , ''));
+        $region_slug = array_diff($request->input('region_slug' , array()),array(null , ''));
         $user_picture = \array_filter($user_picture , function($v , $k){
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
@@ -140,6 +139,10 @@ class AuthController extends BaseController
         if($request->has('tag_slug'))
         {
             $this->user->attachTags($user , $tag_slug);
+        }
+        if($request->has('region_slug'))
+        {
+            $this->user->attachRegions($user , $region_slug);
         }
         return $user;
     }
@@ -353,7 +356,6 @@ class AuthController extends BaseController
                 default :
                     return $this->response->errorNotFound(__('Service Unavailable'));
                     break;
-                    ;
             }
         }
         return $this->response->noContent();
@@ -378,7 +380,8 @@ class AuthController extends BaseController
                         'regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u',
                         'min:4',
                         'max:32',
-                        'unique:users,user_'.$type
+//                        'unique:users,user_'.$type
+                        new UserNameAndEmailUnique()
                     ],
                 ];
             }else{
@@ -386,7 +389,8 @@ class AuthController extends BaseController
                     $type => [
                         'required',
                         'email',
-                        'unique:users,user_'.$type
+//                        'unique:users,user_'.$type
+                        new UserNameAndEmailUnique()
                     ],
                 ];
             }

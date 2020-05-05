@@ -10,6 +10,29 @@ trait CachableUser
     /**
      * 获取用户profile被点赞数量
      *
+     * @param $userName
+     * @param $userEmail
+     * @param bool $op
+     * @return void
+     */
+
+    public function updateUserLists($userName, $userEmail , $op=true)
+    {
+        $userNameKey = config('redis-key.user.user_name');
+        $userEmailKey = config('redis-key.user.user_email');
+        if($op)
+        {
+            Redis::sadd($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
+            Redis::sadd($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
+        }else{
+            Redis::srem($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
+            Redis::srem($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
+        }
+    }
+
+    /**
+     * 获取用户profile被点赞数量
+     *
      * @param int $id
      * @return int
      */
@@ -31,6 +54,10 @@ trait CachableUser
     {
         $userScoreRankKey = config('redis-key.user.score_rank');
         $rank = intval(Redis::zrevrank($userScoreRankKey , $id));
+        if($rank===0)
+        {
+            $rank = $id;
+        }
         return $rank*config('common.user_rank_coefficient')-config('common.user_rank_add_num');
     }
 

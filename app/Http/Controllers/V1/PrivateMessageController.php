@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Jobs\Jpush;
 use Illuminate\Http\Request;
 use App\Services\TranslateService;
+use Dingo\Api\Exception\InternalHttpException;
 
 class PrivateMessageController extends BaseController
 {
@@ -62,15 +63,30 @@ class PrivateMessageController extends BaseController
     }
     public function token()
     {
+        $response = $this->response;
         if(auth()->check())
         {
             $user = auth()->user();
             $userId = $user->user_id;
+            $name = $user->user_name;
+            $avatar = $user->user_avatar;
             try{
-                $name = $user->user_name;
-                $avatar = $user->user_avatar;
-                $token = \RongCloud::getToken($userId, $name, $avatar);
-            }catch (\Exception $e)
+                $token = app('rcloud')->getUser()->register(array(
+                    'id'=> $userId,
+                    'name'=> $name,
+                    'portrait'=> $avatar
+                ));
+                if(empty($token))
+                {
+                    ry_server(true);
+                    $token = app('rcloud')->getUser()->register(array(
+                        'id'=> $userId,
+                        'name'=> $name,
+                        'portrait'=> $avatar
+                    ));
+                }
+                throw_if($token['code']!=200 , new \Exception('internal error'));
+            }catch (\Throwable $e)
             {
                 $token = array(
                     'code'=>500,
@@ -79,21 +95,8 @@ class PrivateMessageController extends BaseController
                 );
                 \Log::error(\json_encode($token));
             }
-            return $this->response->array($token);
+            return $response->array($token);
         }
-        return $this->response->noContent();
+        return $response->noContent();
     }
-
-    public function userCheckOnline($userId)
-    {
-        try{
-            $ret = \RongCloud::userCheckOnline($userId);
-        }catch (\Exception $e)
-        {
-            $ret = array('code'=>500 , 'message'=>$e->getMessage());
-        }
-        return $this->response->array($ret);
-    }
-
-    
 }

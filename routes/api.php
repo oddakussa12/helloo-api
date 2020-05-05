@@ -156,7 +156,7 @@ $api->group($V1Params , function ($api){
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
-    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
+    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('ry.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');
     $api->get('set/dx/switch' , 'SetController@dxSwitch')->name('set.dx.switch');
     $api->post('set/dx/clearDxCache' , 'SetController@clearDxCache')->name('set.dx.switch.clear.cache');
@@ -164,6 +164,8 @@ $api->group($V1Params , function ($api){
     $api->get('user/{id}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+    $api->get('user/ry/refer' , 'UserController@referFriend')->name('user.ry.online.refer');
+    $api->get('ry/chat' , 'RyChatController@index')->name('user.ry.message.index');
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
     $api->get('ry/room/chat/translation' , 'RyChatController@roomChatTranslation')->name('user.ry.room.message.translation');
     $api->get('ry/room/chat' , 'RyChatController@showByRoom')->name('user.ry.room.message.index');
@@ -176,8 +178,9 @@ $api->group($V1Params , function ($api){
         $api->patch('bk/carousel/post/{post}' , 'BackStageController@setCarousel')->name('bk.post.carousel.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
+        $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
     });
-    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('rong.user.is_online');
+    $api->get('google/token' , 'GoogleController@token')->name('google.token');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 
 });

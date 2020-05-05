@@ -32,7 +32,7 @@ class PostViewListener
         {
             $todayViewLastListKey = 'post_view_'.$now->toDateString();
             Redis::zadd($postViewLastListKey , $timestamp , $field);
-            Redis::rpush($todayViewLastListKey , \json_encode(array('ip'=>$ip , 'user_id'=>$user_id , 'post_id'=>$post_id)));
+            Redis::rpush($todayViewLastListKey , \json_encode(array('ip'=>$ip , 'user_id'=>$user_id , 'post_id'=>$post_id , 'timestamp'=>$timestamp)));
             $this->updateViewVirtualCount($post_id);
             $this->updateViewCount($post_id);
 //            $addresses = geoip($ip);

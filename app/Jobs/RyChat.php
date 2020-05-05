@@ -39,7 +39,21 @@ class RyChat implements ShouldQueue
             ],
             'objectName' => [
                 'required',
-                Rule::in(['RC:TxtMsg', 'RC:VcMsg', 'RC:HQVCMsg', 'RC:ImgMsg', 'RC:GIFMsg', 'RC:ImgTextMsg', 'RC:FileMsg', 'RC:LBSMsg', 'RC:SightMsg', 'RC:CombineMsg', 'RC:PSImgTxtMsg', 'RC:PSMultiImgTxtMsg']),
+                Rule::in([
+                    'RC:TxtMsg',
+                    'RC:VcMsg',
+                    'RC:HQVCMsg',
+                    'RC:ImgMsg',
+                    'RC:GIFMsg',
+                    'RC:ImgTextMsg',
+                    'RC:FileMsg',
+                    'RC:LBSMsg',
+                    'RC:SightMsg',
+                    'RC:CombineMsg',
+                    'RC:PSImgTxtMsg',
+                    'RC:PSMultiImgTxtMsg',
+                    'RC:SRSMsg',
+                ]),
             ],
             'content' => [
                 'required',
@@ -97,6 +111,10 @@ class RyChat implements ShouldQueue
                 if(isset($content['content']))
                 {
                     $data['chat_content'] = $content['content'];
+                }
+                if(isset($content['imageUri']))
+                {
+                    $data['chat_image'] = $content['imageUri'];
                 }
                 if(isset($content['user']))
                 {
