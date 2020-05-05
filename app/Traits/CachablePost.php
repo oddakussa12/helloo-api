@@ -301,7 +301,7 @@ trait CachablePost
         return $num;
     }
 
-    public function updateComment($id, $user , $add=true)
+    public function updateCommenter($id, $user , $add=true)
     {
         // we need to make sure the cached data exists
         $postKey = 'post.'.$id.'.data';
@@ -336,5 +336,25 @@ trait CachablePost
             }
         }
         Redis::hset($postKey , $field , $commentData);
+    }
+
+    public function commentCount($id)
+    {
+        $postKey = 'post.'.$id.'.data';
+        $field = 'comment_num';
+        $count = 0;
+        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+        {
+            $count = intval(Redis::hget($postKey, $field));
+        }
+        return $count;
+    }
+
+    public function updateCommentCount($id, $add=true)
+    {
+        $postKey = 'post.'.$id.'.data';
+        $field = 'comment_num';
+        $number = (bool)$add?1:-1;
+        return Redis::hincrby($postKey , $field , $number);
     }
 }
