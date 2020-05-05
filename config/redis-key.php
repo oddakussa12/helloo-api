@@ -12,5 +12,8 @@ return [
         'post_likes'=>'user.post.likes',//用户贴子点赞数
         'post_dislikes'=>'user.post.dislikes',//用户贴子踩数
         'post_comment_likes'=>'user.post.comment.likes',//用户评论点赞数
+    ],
+    "post"=>[
+        "post_index_new"=>'post_index_new',//最新贴子
     ]
 ];
