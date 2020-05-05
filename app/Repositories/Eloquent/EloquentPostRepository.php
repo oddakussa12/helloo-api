@@ -686,18 +686,4 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }
         }
     }
-
-    public function generateNewPostRandRank()
-    {
-        $redis = new RedisList();
-        $postKey = config('redis-key.post.post_index_new');
-        $redis->delKey($postKey);
-        $posts = $this->model;
-        $posts->orderBy('post_created_at' , 'DESC')->chunk(50 , function($posts) use ($redis , $postKey){
-            foreach ($posts as $post)
-            {
-                $redis->zAdd($postKey , strtotime(optional($post->post_created_at)->toDateTimeString()) , $post->post_id);
-            }
-        });
-    }
 }
