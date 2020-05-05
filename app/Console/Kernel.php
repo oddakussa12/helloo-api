@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('calculating:rate')
             ->hourlyAt('30');
-        $schedule->command('auto:increase_post_view')
+        $schedule->command('generate:post_view')
             ->dailyAt('01:00');
         $schedule->command('generate:yesterday_user_rank')
             ->daily();
