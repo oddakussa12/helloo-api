@@ -66,10 +66,8 @@ class PostTranslation implements ShouldQueue
         $this->updateUserScoreRank($user->user_id , 2);
 
         $redis = new RedisList();
-        $postKey = 'post_index_new';
+        $postKey = config('redis-key.post.post_index_new');
         $redis->zAdd($postKey , strtotime(optional($this->post->post_created_at)->toDateTimeString()) , $this->post->getKey());
-        $redis->remZsetList($postKey , 1000);
-
     }
     /**
      * Execute the job.

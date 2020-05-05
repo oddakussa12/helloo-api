@@ -38,6 +38,6 @@ class GeneratePostNewRank extends Command
      */
     public function handle()
     {
-        app(PostRepository::class)->generateNewPostRandRank();
+//        app(PostRepository::class)->generateNewPostRandRank();
     }
 }

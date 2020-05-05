@@ -326,7 +326,7 @@ class PostController extends BaseController
         }
         $userPostsKey = config('redis-key.user.posts');
         $redis->zIncrBy($userPostsKey , -1 , $user->user_id);
-        $postKey = 'post_index_new';
+        $postKey = config('redis-key.post.post_index_new');
         $redis->zRem($postKey , $post->getKey());
         return $this->response->noContent();
     }
