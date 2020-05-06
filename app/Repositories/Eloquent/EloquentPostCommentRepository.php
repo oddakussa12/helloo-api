@@ -152,11 +152,16 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             });
             return PostCommentCollection::collection($comments);
         }else{
+            $topComment = $this->allWithBuilder()->with('likers')->with('owner')->where('comment_id' , $comment->comment_top_id)->first();
+            if(empty($topComment))
+            {
+                abort(404);
+            }
             $locateCommentCount = $model->where('comment_top_id' , $comment->comment_top_id)->where('comment_id' , '<' ,$commentId)->count();
             $currentPage = $request->input($this->pageName , ceil($locateCommentCount/$model->perPage));
             $currentPage = $currentPage<1?1:$currentPage;
-            $queryTime = $request->get('query_time' , '');
-            $queryTime = empty($queryTime)?$queryTime:date('Y-m-d H:i:s' , strtotime($queryTime));
+//            $queryTime = $request->get('query_time' , '');
+//            $queryTime = empty($queryTime)?$queryTime:date('Y-m-d H:i:s' , strtotime($queryTime));
             $comments = $model->where('comment_top_id' , $comment->comment_top_id)
                 ->with('translations')
                 ->with('likers')
@@ -169,7 +174,6 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $comments->each(function($item , $key) use ($postUuid){
                 $item->post_uuid  = $postUuid;
             });
-            $topComment = $this->allWithBuilder()->with('likers')->with('owner')->where('comment_id' , $comment->comment_top_id)->first();
             $topComment->post_uuid = $postUuid;
             $topComment->topTwoComments = $comments;
             return new PostCommentCollection($topComment);

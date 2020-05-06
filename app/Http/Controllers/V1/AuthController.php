@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Traits\CachableUser;
 use App\Resources\UserTagCollection;
 use App\Rules\UserNameAndEmailUnique;
+use App\Resources\UserRegionCollection;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use Illuminate\Support\Facades\Password;
@@ -170,6 +171,7 @@ class AuthController extends BaseController
                 'user_avatar'=>$user->user_avatar,
                 'user_country'=>$user->user_country,
                 'user_level'=>$user->user_level,
+                'user_gender'=>$user->user_gender,
                 'yesterdayScore' => null,
                 'yesterdayRank' => null,
                 'userRank' => $rank
@@ -220,7 +222,9 @@ class AuthController extends BaseController
         $user->yesterdayRank = null;
         $user->userRank = $rank;
         $user->userTags = UserTagCollection::collection($user->tags);
+        $user->userRegions = UserRegionCollection::collection($user->regions);
         unset($user->tags);
+        unset($user->regions);
         unset($user->user_country);
         return $this->response->array($user);
     }

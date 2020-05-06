@@ -46,11 +46,6 @@ class UserCollection extends Resource
 //            'user_rank_score' => $this->when($request->routeIs('user.rank') , function () use ($request){
 //                return $this->user_rank_score;
 //            }),
-            $this->mergeWhen($request->routeIs('user.show')||$request->routeIs('user.ry.online.refer'), function (){
-                return collect([
-                    'userTags'=> UserTagCollection::collection($this->tags),
-                ]);
-            }),
             $this->mergeWhen($request->routeIs('user.show'), function (){
                 return collect([
                     'user_gender'=>$this->user_gender,
@@ -70,7 +65,8 @@ class UserCollection extends Resource
                     'user_comment_count'=>$this->userPostCommentCount($this->user_id),
                     
                     'user_profile_like_num'=>$this->user_profile_like_num,
-                    'user_picture'=>$this->user_picture
+                    'user_picture'=>$this->user_picture,
+                    'userTags'=> UserTagCollection::collection($this->tags),
                 ]);
             }),
         ];
