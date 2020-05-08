@@ -88,11 +88,13 @@ class BackStageController extends BaseController
     {
         $locale = (string)$request->input('locale' , '');
         $image = (string)$request->input('image' , '');
+        $postId = (int)$request->input('post_id' , '');
         if(!empty($locale)&&!empty($image))
         {
             carousel_post($postUuid , $locale , $image);
         }else{
             non_carousel_post($postUuid);
+            $this->post->setNonFinePost($postId , true);
         }
         return $this->response->noContent();
     }
@@ -110,6 +112,12 @@ class BackStageController extends BaseController
                 $this->updateUserMyFollowCount($fan);
             }
         }
+        return $this->response->noContent();
+    }
+
+    public function setNonFinePost($postId)
+    {
+        $this->post->setNonFinePost($postId);
         return $this->response->noContent();
     }
 
