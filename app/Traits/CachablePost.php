@@ -23,10 +23,24 @@ trait CachablePost
             'post_media'=>\json_encode(empty($post->post_media)?[]:$post->post_media , JSON_UNESCAPED_UNICODE),
         );
         Redis::hmset($postKey , $data);
-        $key = config('redis-key.post.post_index_new');
-        Redis::zadd($key , strtotime(optional($post->post_created_at)->toDateTimeString()) , $post->getKey());
-
+        $newKey = config('redis-key.post.post_index_new');
+        Redis::zadd($newKey , strtotime(optional($post->post_created_at)->toDateTimeString()) , $post->getKey());
     }
+
+    public function getPost($id , array $fields=array())
+    {
+        $postKey = 'post.'.$id.'.data';
+        if(Redis::exists($postKey))
+        {
+            if(!empty($fields))
+            {
+                return array_combine($fields , Redis::hmget($postKey , $fields));
+            }
+            return Redis::hgetall($postKey);
+        }
+        return array();
+    }
+
     public function likeCount($id)
     {
         $postKey = 'post.'.$id.'.data';
@@ -283,9 +297,10 @@ trait CachablePost
         }
         return collect(array('data'=>$country , 'total'=>$count));
     }
+
+
     public function updateCountry($id, $country , $add=true)
     {
-        // we need to make sure the cached data exists
         $postKey = 'post.'.$id.'.data';
         $field = 'country';
         $countryData = collect();
@@ -350,7 +365,6 @@ trait CachablePost
 
     public function updateCommenter($id, $user , $add=true)
     {
-        // we need to make sure the cached data exists
         $postKey = 'post.'.$id.'.data';
         $field = 'commenter';
         $commentData = collect();
@@ -389,12 +403,7 @@ trait CachablePost
     {
         $postKey = 'post.'.$id.'.data';
         $field = 'comment_num';
-        $count = 0;
-        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
-        {
-            $count = intval(Redis::hget($postKey, $field));
-        }
-        return $count;
+        return intval(Redis::hget($postKey, $field));
     }
 
     public function updateCommentCount($id, $add=true)

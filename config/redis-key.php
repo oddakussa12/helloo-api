@@ -15,5 +15,6 @@ return [
     ],
     "post"=>[
         "post_index_new"=>'post_index_new',//最新贴子
+        "post_index_rate"=>'post_index_rate',//最热贴子
     ]
 ];

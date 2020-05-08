@@ -226,10 +226,10 @@ if (!function_exists('rate_comment_v3')) {
      *
      * @param $comments
      * @param $create_time
-     * @param int $likes
-     * @param int $commenters
-     * @param int $countries
-     * @param float $gravity
+     * @param $likes
+     * @param $commenters
+     * @param $countries
+     * @param $gravity
      * @return float
      */
     function rate_comment_v3($comments, $create_time, $likes=0 , $commenters=0 , $countries=0 , $gravity = 0)

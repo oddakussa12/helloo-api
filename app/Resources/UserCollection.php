@@ -46,9 +46,13 @@ class UserCollection extends Resource
 //            'user_rank_score' => $this->when($request->routeIs('user.rank') , function () use ($request){
 //                return $this->user_rank_score;
 //            }),
+            $this->mergeWhen($request->routeIs('user.show')||$request->routeIs('user.ry.online.refer'), function (){
+                return collect([
+                    'user_gender'=>$this->user_gender
+                ]);
+            }),
             $this->mergeWhen($request->routeIs('user.show'), function (){
                 return collect([
-                    'user_gender'=>$this->user_gender,
                     'user_about'=>$this->user_about,
                     'user_score' => $this->user_score,
                     'user_age'=> $this->user_age,
