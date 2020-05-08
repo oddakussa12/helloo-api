@@ -33,9 +33,9 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('calculating:rate')
             ->hourlyAt('30');
-        $schedule->command('calculating:rate')
+        $schedule->command('calculating:rate_limit')
             ->hourlyAt('15');
-        $schedule->command('calculating:rate')
+        $schedule->command('calculating:rate_limit')
             ->hourlyAt('45');
         $schedule->command('generate:post_view')
             ->dailyAt('01:00');
