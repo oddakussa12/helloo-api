@@ -631,7 +631,7 @@ DOC;
     public function randReferFriend()
     {
         $key = 'ry_user_online_state';
-        return Redis::srandmember($key , 2);
+        return Redis::srandmember($key , config('common.refer_friend_num'));
     }
 
     public function attachRegions(Model $user  , $region_slug)
