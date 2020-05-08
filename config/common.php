@@ -62,5 +62,6 @@ return [
     'google_glossary_name'=>env('GOOGLE_GLOSSARY_NAME', 'glossary.csv'),
     'google_glossary_id'=>env('GOOGLE_GLOSSARY_id', 'yooul_v3_glossary_20200325'),
     'google_location'=>env('GOOGLE_LOCATION', 'us-central1'),
-    'google_translation_version'=>env('GOOGLE_TRANSLATION_VERSION', 'v3')
+    'google_translation_version'=>env('GOOGLE_TRANSLATION_VERSION', 'v3'),
+    'refer_friend_num'=>env('REFER_FRIEND_NUM', 3)
 ];
