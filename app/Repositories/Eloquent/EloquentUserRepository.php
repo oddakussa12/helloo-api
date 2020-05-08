@@ -625,7 +625,7 @@ DOC;
         $userIds = array_unique(array_merge($userIds , $referFriends));
         $userIds = array_diff($userIds , array(auth()->id()));
         $query = $this->model->query();
-        return $query->whereIn("user_id", $userIds)->with('tags')->get();
+        return $query->whereIn("user_id", $userIds)->get();
     }
 
     public function randReferFriend()
