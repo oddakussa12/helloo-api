@@ -616,9 +616,16 @@ DOC;
             if(getType($referFriendFile)=='array'&&auth()->check())
             {
                 $regions = auth()->user()->regions->pluck('region_slug')->all();
-                foreach ($regions as $region)
+                $regions = array_slice($regions , 0 , 2);
+                $regions = empty($regions)?array_rand($referFriendFile , 2):$regions;
+                if(count($regions)==1)
                 {
-                    array_push($referFriends , array_random($referFriendFile[$region]));
+                    $referFriends = array_random($referFriendFile[array_pop($regions)] , 2);
+                }else{
+                    foreach ($regions as $region)
+                    {
+                        array_push($referFriends , array_random($referFriendFile[$region]));
+                    }
                 }
             }
         }

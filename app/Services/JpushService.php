@@ -147,7 +147,7 @@ class JpushService
                         $data['content'] = $title;
                     }else{
                         $data['title'] = $title;
-                        $data['content'] = $title;
+                        $data['content'] = '';
                     }
                     self::androidOrIosPush($data);
                 }
