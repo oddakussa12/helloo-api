@@ -181,6 +181,9 @@ $api->group($V1Params , function ($api){
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
         $api->patch('bk/non_fine/{post}/post' , 'BackStageController@setNonFinePost')->name('bk.post.non_fine.update');
     });
+    $api->group(['middleware'=>['appAuth']] , function($api){
+        $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
+    });
     $api->get('google/token' , 'GoogleController@token')->name('google.token');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 
