@@ -127,7 +127,7 @@ class RyChat implements ShouldQueue
             }
             $ryChat = RyChats::create($data);
 
-            RyChatRaw::create(array('chat_id'=>$ryChat->chat_id , 'chat_raw'=>\json_encode($raw , JSON_UNESCAPED_UNICODE),'chat_time'=>$raw['msgTimestamp']));
+            RyChatRaw::create(array('chat_id'=>$ryChat->chat_id , 'raw'=>\json_encode($raw , JSON_UNESCAPED_UNICODE),'chat_time'=>$raw['msgTimestamp']));
 
         }
 
