@@ -34,8 +34,7 @@ class RyChat extends Model
         'chat_time',
         'chat_sensitive_type',
         'chat_source',
-        'chat_group_to_id',
-        'chat_raw'
+        'chat_group_to_id'
     ];
 
 
