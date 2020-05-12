@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 
 class SetController extends BaseController
@@ -82,6 +83,43 @@ class SetController extends BaseController
         dx_switch($key , $switch);
         dx_uuid($post_uuid);
         return $this->response->noContent();
+    }
+
+    public function commonSwitch(Request $request)
+    {
+        $agent = new Agent();
+        $key = 'commonSwitch';
+        Redis::hmset($key , array('free_translator'=>1,'refer_friend'=>1 , 'carousel'=>0));
+        $fieldStr = (string)$request->input('include' , '');
+        $fields = explode(',' , $fieldStr);
+        $values = Redis::hmget($key , $fields);
+        $switches = array_combine($fields , $values);
+        $switches = array_filter ($switches , function($v , $k) {
+            return !empty($k)&&$v!==null;
+        } , ARRAY_FILTER_USE_BOTH );
+        if($agent->match('YooulAndroid'))
+        {
+            $appVersion = 1;
+            $dxSwitchKey = 'dxSwitchAndroid';
+        }else{
+            $appVersion = 0;
+            $dxSwitchKey = 'dxSwitchIos';
+        }
+
+        if(in_array('dx_switch' , $fields))
+        {
+            $switches['dx_switch']=array_merge(dx_uuid(), dx_switch($key) , array('type'=>$dxSwitchKey));
+        }
+
+        if(strpos($fieldStr ,'app_version'))
+        {
+            $version = (string)$request->input('version' , $agent->getHttpHeader('YooulVersion'));
+            $app = app(AppController::class)->getFirstApp();
+            $platform = $app[$appVersion];
+            $platform->isUpgrade = version_compare($version , $platform['version'] , '<');
+            $switches['app_version'] = $platform;
+        }
+        return $this->response->array($switches);
     }
 
 }

@@ -28,7 +28,7 @@ class AppController extends BaseController
         return $this->response->noContent();
     }
 
-    protected function getFirstApp()
+    public function getFirstApp()
     {
         $ios = 0;
         $android = 1;

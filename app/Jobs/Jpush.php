@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Jenssegers\Agent\Agent;
 use Illuminate\Bus\Queueable;
 use App\Services\JpushService;
 use Illuminate\Queue\SerializesModels;
@@ -17,6 +18,8 @@ class Jpush implements ShouldQueue
     public $formName;
     public $userId;
     public $content;
+    public $version=0;
+    public $app='web';
 
     public function __construct($type , $formName , $userId , $content='')
     {
@@ -24,6 +27,20 @@ class Jpush implements ShouldQueue
         $this->formName = $formName;
         $this->userId = $userId;
         $this->content = $content;
+        $agent = new Agent();
+        if($agent->match('Yooul'))
+        {
+            $this->version = (string)$agent->getHttpHeader('YooulVersion');
+            if($agent->match('YooulAndroid'))
+            {
+                $this->app = 'android';
+            }elseif ($agent->match('YoouliOS'))
+            {
+                $this->app = 'ios';
+            }else{
+                $this->app = 'web';
+            }
+        }
     }
 
     /**
@@ -33,7 +50,7 @@ class Jpush implements ShouldQueue
      */
     public function handle()
     {
-        JpushService::commonPush($this->formName ,$this->userId ,$this->type , $this->content);
+        JpushService::commonPush($this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
     }
 
 }
