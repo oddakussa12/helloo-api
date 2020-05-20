@@ -268,17 +268,11 @@ class UserController extends BaseController
 
     public function updateRyUserOnlineState(Request $request)
     {
-        $user = $request->input('0');
-        if(!empty($user))
-        {
-            $id = array_get($user , 'userid');
-            $status = array_get($user , 'status');
-            if($id!=null&&$status!==null)
-            {
-                $this->user->updateUserOnlineState($id , $status);
-            }
-        }
-        return $this->response->noContent();
+        $response = $this->response->noContent();
+        $users = $request->post();
+        $users = array_pluck($users , 'status' , 'userid');
+        $this->user->updateUserOnlineState($users);
+        return $response->setStatusCode(200);
     }
 
     public function referFriend()

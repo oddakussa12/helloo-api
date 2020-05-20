@@ -6,6 +6,7 @@
     "type": "project",
     "require": {
         "php": ">=7.0.0",
+        "baopham/dynamodb": "^6.0",
         "barryvdh/laravel-cors": "^0.11.3",
         "dimsav/laravel-translatable": "8.1",
         "dingo/api": "2.2.3",
