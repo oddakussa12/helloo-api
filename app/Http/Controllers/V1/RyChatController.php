@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Jobs\RyChat;
 use Ramsey\Uuid\Uuid;
 use App\Models\RyRoomChat;
+use App\Models\RyChatFailed;
 use Illuminate\Http\Request;
 use App\Services\TranslateService;
 use App\Resources\RyChatCollection;

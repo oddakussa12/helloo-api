@@ -460,18 +460,25 @@ DOC;
         }
     }
 
-    public function updateUserOnlineState($id , $status)
+    public function updateUserOnlineState($users)
     {
-        $key = 'ry_user_online_state';
-        $bitKey = 'ry_user_online_state_bit';
-        $status = intval($status)>0?1:0;
-        Redis::setBit($bitKey , $id , $status);
-        if($status==0)
-        {
-            Redis::sadd($key , $id);
-        }else{
-            Redis::srem($key , $id);
-        }
+        $key = 'ry_user_online_status';
+        $bitKey = 'ry_user_online_status_bit';
+        $users = \array_filter($users , function($v , $k){
+            return in_array($v , array(0 , 1 , 2))&&!empty($k);
+        } , ARRAY_FILTER_USE_BOTH );
+        $offlineUsers = array_where($users, function ($value, $key) {
+            return intval($value)>0;
+        });
+        $onlineUsers = array_where($users, function ($value, $key) {
+            return intval($value)===0;
+        });
+        !blank($onlineUsers)&&Redis::sadd($key , array_keys($onlineUsers));
+        !blank($offlineUsers)&&Redis::srem($key , array_keys($offlineUsers));
+        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey){
+            $v = intval($v)>0?0:1;
+            Redis::setBit($bitKey , intval($k) , intval($v));
+        });
     }
 
     public function isOnline($id)
