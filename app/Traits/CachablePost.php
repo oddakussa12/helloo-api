@@ -2,30 +2,72 @@
 
 namespace App\Traits;
 
+use App\Models\Post;
 use Illuminate\Support\Facades\Redis;
 
 trait CachablePost
 {
+    public function initPost(Post $post)
+    {
+        $postKey = 'post.'.$post->getKey().'.data';
+        $post_hotting = $post->post_hotting;
+        $data = array(
+            'post_uuid'=>$post->post_uuid,
+            'user_id'=>$post->user_id,
+            'post_type'=>$post->post_type,
+            'post_hotting'=>in_array($post_hotting , array(0 , 1) , true)?$post_hotting:1,
+            'post_created_at'=>$post->post_created_at,
+            'post_default_locale'=>$post->post_default_locale,
+            'post_content_default_locale'=>$post->post_content_default_locale,
+            'post_event_country_id'=>$post->post_event_country_id,
+            'post_media'=>\json_encode(empty($post->post_media)?[]:$post->post_media , JSON_UNESCAPED_UNICODE),
+        );
+        Redis::hmset($postKey , $data);
+        $newKey = config('redis-key.post.post_index_new');
+        Redis::zadd($newKey , strtotime(optional($post->post_created_at)->toDateTimeString()) , $post->getKey());
+    }
+
+    public function getPost($id , array $fields=array())
+    {
+        $postKey = 'post.'.$id.'.data';
+        if(Redis::exists($postKey))
+        {
+            if(!empty($fields))
+            {
+                return array_combine($fields , Redis::hmget($postKey , $fields));
+            }
+            return Redis::hgetall($postKey);
+        }
+        return array();
+    }
 
     public function likeCount($id)
     {
         $postKey = 'post.'.$id.'.data';
-        $field = 'like';
-        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
-        {
-            $likeData = \json_decode(Redis::hget($postKey, $field) , true);
-        }else{
-            $likeData = $this->initLikeCount($id);
-        }
-        if(!isset($likeData['tmp_like']))
-        {
-            $likeData['tmp_like'] = 0;
-        }
-        if(!isset($likeData['tmp_dislike']))
-        {
-            $likeData['tmp_dislike'] = 0;
-        }
-        return $likeData;
+        $field = array('real_like' , 'real_dislike' , 'tmp_like' , 'tmp_dislike');
+        $viewField = array('like' , 'dislike' , 'tmp_like' , 'tmp_dislike');
+        $likeData = Redis::hmget($postKey, $field);
+        return array_map(function ($v){
+            return intval($v);
+        },array_combine($viewField , $likeData));
+
+//        $postKey = 'post.'.$id.'.data';
+//        $field = 'like';
+//        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+//        {
+//            $likeData = \json_decode(Redis::hget($postKey, $field) , true);
+//        }else{
+//            $likeData = $this->initLikeCount($id);
+//        }
+//        if(!isset($likeData['tmp_like']))
+//        {
+//            $likeData['tmp_like'] = 0;
+//        }
+//        if(!isset($likeData['tmp_dislike']))
+//        {
+//            $likeData['tmp_dislike'] = 0;
+//        }
+//        return $likeData;
     }
 
     public function viewCount($id)
@@ -166,39 +208,58 @@ trait CachablePost
     public function updateLikeCount($id , $type='like' , $tmpNum=0)
     {
         $postKey = 'post.'.$id.'.data';
-        $field = 'like';
-        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
-        {
-            $likeData = \json_decode(Redis::hget($postKey, $field) , true);
+        if($type=='revokeLike'){
+            $likeType = 'real_like';
+            Redis::hincrby($postKey , $likeType , -1);
+        }else if($type=='revokeDislike'){
+            $likeType = 'real_dislike';
+            Redis::hincrby($postKey , $likeType , -1);
         }else{
-            $likeData = $this->initLikeCount($id);
-        }
-        if(in_array($type , array('like' , 'dislike')))
-        {
-            $likeType = $type;
-            $likeCount = $likeData[$likeType]+1;
-            if($tmpNum>0)
+            if(in_array($type , array('like' , 'dislike')))
             {
-                if(isset($likeData['tmp_'.$type]))
+                $likeType = 'real_'.$type;
+                Redis::hincrby($postKey , $likeType , 1);
+                if($tmpNum>0)
                 {
-                    $likeData['tmp_'.$type] = $likeData['tmp_'.$type]+$tmpNum;
-                }else{
-                    $likeData['tmp_'.$type] = $tmpNum;
+                    Redis::hincrby($postKey , 'tmp_'.$type , $tmpNum);
                 }
             }
-        }else if($type=='revokeLike'){
-            $likeType = 'like';
-            $likeCount = $likeData[$likeType]-1;
-        }else if($type=='revokeDislike'){
-            $likeType = 'dislike';
-            $likeCount = $likeData[$likeType]-1;
-        }else{
-            $likeType = 'like';
-            $likeCount = $likeData[$likeType];
         }
-        $likeData[$likeType] = $likeCount<0?0:$likeCount;
-        $likeData = collect($likeData);
-        Redis::hset($postKey , $field , $likeData);
+
+//        $postKey = 'post.'.$id.'.data';
+//        $field = 'like';
+//        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
+//        {
+//            $likeData = \json_decode(Redis::hget($postKey, $field) , true);
+//        }else{
+//            $likeData = $this->initLikeCount($id);
+//        }
+//        if(in_array($type , array('like' , 'dislike')))
+//        {
+//            $likeType = $type;
+//            $likeCount = $likeData[$likeType]+1;
+//            if($tmpNum>0)
+//            {
+//                if(isset($likeData['tmp_'.$type]))
+//                {
+//                    $likeData['tmp_'.$type] = $likeData['tmp_'.$type]+$tmpNum;
+//                }else{
+//                    $likeData['tmp_'.$type] = $tmpNum;
+//                }
+//            }
+//        }else if($type=='revokeLike'){
+//            $likeType = 'like';
+//            $likeCount = $likeData[$likeType]-1;
+//        }else if($type=='revokeDislike'){
+//            $likeType = 'dislike';
+//            $likeCount = $likeData[$likeType]-1;
+//        }else{
+//            $likeType = 'like';
+//            $likeCount = $likeData[$likeType];
+//        }
+//        $likeData[$likeType] = $likeCount<0?0:$likeCount;
+//        $likeData = collect($likeData);
+//        Redis::hset($postKey , $field , $likeData);
     }
 
     public function countryNum($id)
@@ -236,9 +297,10 @@ trait CachablePost
         }
         return collect(array('data'=>$country , 'total'=>$count));
     }
+
+
     public function updateCountry($id, $country , $add=true)
     {
-        // we need to make sure the cached data exists
         $postKey = 'post.'.$id.'.data';
         $field = 'country';
         $countryData = collect();
@@ -303,7 +365,6 @@ trait CachablePost
 
     public function updateCommenter($id, $user , $add=true)
     {
-        // we need to make sure the cached data exists
         $postKey = 'post.'.$id.'.data';
         $field = 'commenter';
         $commentData = collect();
@@ -342,12 +403,7 @@ trait CachablePost
     {
         $postKey = 'post.'.$id.'.data';
         $field = 'comment_num';
-        $count = 0;
-        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
-        {
-            $count = intval(Redis::hget($postKey, $field));
-        }
-        return $count;
+        return intval(Redis::hget($postKey, $field));
     }
 
     public function updateCommentCount($id, $add=true)

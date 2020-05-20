@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         //
         \App\Console\Commands\CalculatingRate::class,
+        \App\Console\Commands\CalculatingRateLimit::class,
         \App\Console\Commands\GeneratePostView::class,
         \App\Console\Commands\GenerateYesterdayUserRank::class,
         \App\Console\Commands\AutoIncreasePostView::class,
@@ -32,6 +33,10 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('calculating:rate')
             ->hourlyAt('30');
+        $schedule->command('calculating:rate_limit')
+            ->hourlyAt('15');
+        $schedule->command('calculating:rate_limit')
+            ->hourlyAt('45');
         $schedule->command('generate:post_view')
             ->dailyAt('01:00');
         $schedule->command('generate:yesterday_user_rank')

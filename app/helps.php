@@ -1,5 +1,6 @@
 <?php
 use Illuminate\Support\Str;
+use Jenssegers\Agent\Agent;
 use Illuminate\Support\Facades\Cache;
 
 if (! function_exists('locale')) {
@@ -226,10 +227,10 @@ if (!function_exists('rate_comment_v3')) {
      *
      * @param $comments
      * @param $create_time
-     * @param int $likes
-     * @param int $commenters
-     * @param int $countries
-     * @param float $gravity
+     * @param $likes
+     * @param $commenters
+     * @param $countries
+     * @param $gravity
      * @return float
      */
     function rate_comment_v3($comments, $create_time, $likes=0 , $commenters=0 , $countries=0 , $gravity = 0)
@@ -550,7 +551,17 @@ if (! function_exists('common_signature')) {
             }
         }
         // 3. 拼接app_key
-        $str .= 'app_key=' . config('common.common_secret');
+        $agent = new Agent();
+        if($agent->match('YooulAndroid'))
+        {
+            $app_key = config('common.android_secret');
+        }elseif($agent->match('YooulAndroid')){
+            $app_key = config('common.ios_secret');
+        }else{
+            $app_key = config('common.common_secret');
+        }
+
+        $str .= 'app_key=' . $app_key;
         // 4. MD5运算+转换大写，得到请求签名
 
         $sign = strtolower(md5($str));
@@ -700,7 +711,8 @@ if (! function_exists('carousel_post')) {
             $keys = array_keys($posts);
             if(!in_array($postUuid , $keys))
             {
-                $posts[$postUuid] = array($locale=>$image);
+                $tmp[$postUuid] = array($locale=>$image);
+                $posts = $tmp+$posts;
             }else{
                 $post = $posts[$postUuid];
                 $post[$locale] = $image;

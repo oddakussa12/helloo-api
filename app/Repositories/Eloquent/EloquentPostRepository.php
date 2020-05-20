@@ -553,24 +553,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $redis = new RedisList();
         $postKey = 'post_index_essence';
         $redis->delKey($postKey);
-        $i = 0;
         $posts = $this->model;
         $now = Carbon::now();
         $oneMonthsAgo = $now->subMonths(1)->format('Y-m-d 23:59:59');
         $threeMonthsAgo = $now->subMonths(2)->format('Y-m-d 00:00:00');
-        $posts->where('post_created_at' , '>=' , $threeMonthsAgo)->where('post_created_at' , '<=' , $oneMonthsAgo)->orderBy('post_rate' , 'DESC')->chunk(8 , function($posts) use ($redis , $postKey , &$i){
-            $i++;
-            if($i>70)
-            {
-                return false;
-            }
+        $posts->where('post_created_at' , '>=' , $threeMonthsAgo)->where('post_created_at' , '<=' , $oneMonthsAgo)->where('post_comment_num' , '>' , 50)->orderBy('post_created_at' , 'DESC')->chunk(20 , function($posts) use ($redis , $postKey){
             foreach ($posts as $post)
             {
                 $score = mt_rand(11111 , 99999);
                 $redis->zAdd($postKey , $score , $post->post_id);
             }
         });
-
         $key = 'post_index_essence_manual';
         if($redis->existsKey($key))
         {
@@ -668,6 +661,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 }
         });
     }
+
+
     public function autoIncreasePostView()
     {
         $redis = new RedisList();
@@ -684,6 +679,21 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $add = mt_rand(50 , 150);
                 $redis->zIncrBy($postKey , $add , $postId);
             }
+        }
+    }
+
+    public function setNonFinePost($postId , $op=false)
+    {
+        $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
+        $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
+        $nonRateKey = config('redis-key.post.post_index_non_rate');
+        if(!$op)
+        {
+            Redis::sadd($nonRateKey , $postId);
+            Redis::zrem($rateKeyOne , $postId);
+            Redis::zrem($rateKeyTwo , $postId);
+        }else{
+            Redis::srem($nonRateKey , $postId);
         }
     }
 }

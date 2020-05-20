@@ -4,8 +4,8 @@ namespace App\Jobs;
 
 use App\Models\User;
 use App\Models\Post;
-use App\Custom\RedisList;
 use App\Traits\CachableUser;
+use App\Traits\CachablePost;
 use Illuminate\Bus\Queueable;
 use App\Services\TranslateService;
 use App\Services\V3TranslateService;
@@ -18,7 +18,7 @@ use App\Models\PostTranslation as PostTranslationModel;
 
 class PostTranslation implements ShouldQueue
 {
-    use CachableUser,Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use CachablePost,CachableUser,Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $languages;
 
@@ -64,10 +64,7 @@ class PostTranslation implements ShouldQueue
         $user->increment('user_score' , 2);
         $this->updateUserPostCount($user->user_id);
         $this->updateUserScoreRank($user->user_id , 2);
-
-        $redis = new RedisList();
-        $postKey = config('redis-key.post.post_index_new');
-        $redis->zAdd($postKey , strtotime(optional($this->post->post_created_at)->toDateTimeString()) , $this->post->getKey());
+        $this->initPost($post);
     }
     /**
      * Execute the job.

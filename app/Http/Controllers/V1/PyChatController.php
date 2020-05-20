@@ -89,6 +89,7 @@ class PyChatController extends BaseController
             $chat_id = $chat['chat_id'];
             $chatTime = optional($chat['chat_created_at'])->toDateTimeString();
         }else{
+            $contentDefaultLang = 'en';
             $translation = $content;
             $chat_id = '';
             $chatTime = $created_at;

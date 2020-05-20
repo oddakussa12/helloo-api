@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\RyChatRaw;
 use App\Models\RyChatFailed;
 use Illuminate\Bus\Queueable;
 use Illuminate\Validation\Rule;
@@ -94,8 +95,7 @@ class RyChat implements ShouldQueue
                 'chat_msg_type'=>$raw['objectName'],
                 'chat_channel_type'=>$raw['channelType'],
                 'chat_time'=>$raw['msgTimestamp'],
-                'chat_sensitive_type'=>$raw['sensitiveType'],
-                'chat_raw'=>\json_encode($raw , JSON_UNESCAPED_UNICODE),
+                'chat_sensitive_type'=>$raw['sensitiveType']
             );
             if(isset($raw['source']))
             {
@@ -125,7 +125,10 @@ class RyChat implements ShouldQueue
                     $data['chat_from_extra'] = \json_encode($content['user']['extra'] , JSON_UNESCAPED_UNICODE);
                 }
             }
-            RyChats::create($data);
+            $ryChat = RyChats::create($data);
+
+            RyChatRaw::create(array('chat_id'=>$ryChat->chat_id , 'raw'=>\json_encode($raw , JSON_UNESCAPED_UNICODE),'chat_time'=>$raw['msgTimestamp']));
+
         }
 
     }

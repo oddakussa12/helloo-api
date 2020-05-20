@@ -123,7 +123,7 @@ class JpushService
         }
     }
 
-    public static function commonPush($fromName  , $toId , $type = 'like' ,$content='')
+    public static function commonPush($fromName  , $toId , $type = 'like' ,$content='' , $app='web' , $version = 0)
     {
         if(!empty($toId))
         {
@@ -138,7 +138,7 @@ class JpushService
                     $data = array(
                         'platform'=>$device->device_type,
                         'builderId'=>1,
-                        'extras'=>array('type'=>$type , 'url'=>self::getPushUrl($type)),
+                        'extras'=>array('type'=>$type , 'url'=>self::getPushUrl($type) , 'title'=>$title),
                         'type'=>2,
                         'registrationId'=>$device->device_registration_id
                     );
@@ -148,6 +148,7 @@ class JpushService
                     }else{
                         $data['title'] = $title;
                         $data['content'] = $title;
+//                        $data['content'] = version_compare($version , '1.4.8' , '>=')?'':$title;
                     }
                     self::androidOrIosPush($data);
                 }
