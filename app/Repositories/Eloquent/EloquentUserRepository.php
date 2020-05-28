@@ -429,11 +429,11 @@ DOC;
             $user_gender = intval(request()->input('user_gender' , 2));
             $userTags = intval(request()->input('userTags'));
             $country = strval(request()->input('country' , 0));
-            $county_op = intval(request()->input('county_op' , 0));
+            $country_op = intval(request()->input('country_op' , 0));
             $user_country = array_search(strtoupper($country) , config('countries'));
             $user_country_id = $user_country===false?0:$user_country+1;
             $threeDayAgo = Carbon::now()->subDays(2)->startOfDay()->toDateTimeString();
-            $operator = $county_op===0?'!=':'=';
+            $operator = $country_op===0?'!=':'=';
             $usedUser = (array)request()->input('used' , array());
             $usedUser = array_slice($usedUser , 0 , 5);
             array_push($usedUser , $selfUser);
@@ -477,9 +477,10 @@ DOC;
             $user = collect(\DB::select($sql))->first();
             if(blank($user))
             {
-                abort(404);
+                return $this->findOrFail($this->randRyOnlineUser());
             }
-            $user->user_country = strtolower($country_code[$user->user_country_id]);
+            $country_id = intval($user->user_country_id-1);
+            $user->user_country = strtolower($country_code[$country_id]);
             $user->user_avatar = config('common.qnUploadDomain.avatar_domain').$user->user_avatar;
             return $user;
         }else{
