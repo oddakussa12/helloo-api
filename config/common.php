@@ -54,8 +54,8 @@ return [
     'ios_secret'=>'LDKEIJLAKXL',
     'android_secret'=>'PEPVLKASDMW',
     'common_secret'=>'EIKANMECJ',
-    'post_new_per'=>config('POST_NEW_PER' , 3),
-    'post_rate_per'=>config('POST_RATE_PER' , 7),
+    'post_new_per'=>env('POST_NEW_PER' , 3),
+    'post_rate_per'=>env('POST_RATE_PER' , 7),
     'google_application_credentials'=>env('GOOGLE_APPLICATION_CREDENTIALS' , storage_path().'/app/google/application_default_credentials.json'),
     'google_project_id'=>env('GOOGLE_PROJECT_ID', 'speachregins'),
     'google_project_bucket_mame'=>env('GOOGLE_PROJECT_BUCKET_NAME', 'translation_v3_glossary_2020324'),
@@ -63,5 +63,5 @@ return [
     'google_glossary_id'=>env('GOOGLE_GLOSSARY_id', 'yooul_v3_glossary_20200325'),
     'google_location'=>env('GOOGLE_LOCATION', 'us-central1'),
     'google_translation_version'=>env('GOOGLE_TRANSLATION_VERSION', 'v3'),
-    'refer_friend_num'=>env('REFER_FRIEND_NUM', 3)
+    'refer_friend_num'=>env('REFER_FRIEND_NUM', 3),
 ];

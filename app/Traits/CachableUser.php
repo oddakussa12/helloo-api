@@ -2,11 +2,36 @@
 
 namespace App\Traits;
 
-
+use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Support\Facades\Redis;
 
 trait CachableUser
 {
+
+    public function initUser(User $user , array $extend=array())
+    {
+        $userKey = 'user.'.$user->getKey().'.data';
+        $data = array(
+            'user_id'=>$user->user_id,
+            'user_uuid'=>$user->user_uuid,
+            'user_email'=>$user->user_email,
+            'user_first_name'=>$user->user_first_name,
+            'user_gender'=>$user->user_gender,
+            'user_avatar'=>$user->user_avatar,
+            'user_cover'=>$user->user_cover,
+            'user_country_id'=>$user->user_country_id,
+            'user_age'=>$user->user_age,
+            'user_about'=>$user->user_about,
+            'user_is_guest'=>$user->user_is_guest,
+            'user_picture'=>$user->user_picture,
+            'user_level'=>$user->user_level,
+            'user_created_at'=>$user->user_created_at,
+            'user_last_active_at'=>Carbon::now()->toDateTimeString()
+        );
+        $data = $data+$extend;
+        Redis::hmset($userKey , $data);
+    }
     /**
      * 获取用户profile被点赞数量
      *

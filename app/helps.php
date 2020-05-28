@@ -288,7 +288,7 @@ if (!function_exists('first_rate_comment_v2')) {
     /**
      * Calculates the rate for sorting by hot.
      *
-     * @param float $gravity
+     * @param mixed $gravity
      * @return float
      */
     function first_rate_comment_v2($gravity = 0)

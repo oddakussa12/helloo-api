@@ -126,44 +126,28 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }else if($type=='tmp'&&$follow==null){
                 $posts = $this->getTmpPosts($posts);
             }else{
-                $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-//                if(($orderBy=='rate'||$orderBy==null)&&$follow==null)
-//                {
-//                    $posts = $posts->where('post_fine' , 0);
-//                    $posts = $posts->where('post_hotting' , 1);
-////                    $rate_coefficient = config('common.rate_coefficient');
-////                    $posts->select(DB::raw("*,((`post_comment_num` + 1) / pow(floor((unix_timestamp(NOW()) - unix_timestamp(`post_created_at`)) / 3600) + 2,{$rate_coefficient})) AS `rate`"));
-////                    $posts->orderBy('rate' , 'DESC');
-//                    $posts->orderBy('post_rate' , 'DESC');
-//                    $more_than_post_comment_num = config('common.more_than_post_comment_num');
-//                    $posts = $posts->where('post_comment_num' , '>' , $more_than_post_comment_num);
-//                }
                 if($follow!== null&&auth()->check())
                 {
-                    $appends['follow'] = $request->get('follow');
-                    $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
-                    $posts = $posts->whereIn('user_id',$userIds);
+                    $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+                    if($follow!== null&&auth()->check())
+                    {
+                        $appends['follow'] = $request->get('follow');
+                        $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
+                        $posts = $posts->whereIn('user_id',$userIds);
+                    }
+                    $posts->orderBy($this->model->getKeyName() , 'DESC');
+                    $queryTime = $request->get('query_time' , '');
+                    if(empty($queryTime))
+                    {
+                        $queryTime = Carbon::now()->timestamp;
+                    }
+//                    $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
+                    $appends['query_time'] = $queryTime;
+                    $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+                }else{
+                    $posts = $this->getNewPost($posts);
                 }
-                $posts->orderBy($this->model->getKeyName() , 'DESC');
-                $queryTime = $request->get('query_time' , '');
-                if(empty($queryTime))
-                {
-                    $queryTime = Carbon::now()->timestamp;
-                }
-                $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString());
-                $appends['query_time'] = $queryTime;
-                $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
             }
-
-
-//            $activeUsers = app(UserRepository::class)->getYesterdayUserRank();
-//
-//            $posts->each(function ($item, $key) use ($activeUsers) {
-//                $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
-//            });
-
-
-
             if(in_array('follow' , $include))
             {
                 $userIds = $posts->pluck('user_id')->all();//获取user id
@@ -405,28 +389,68 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $posts->appends($appends);
     }
 
-
-    public function getFinePosts($posts)
+    public function getNewPost($posts)
     {
-        $appends =array();
         $request = request();
-        $now = Carbon::now();
-        $today = Carbon::today();
-        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-        $posts = $posts->where('post_hotting' , 1);
+        $perPage = $this->perPage;
+        $redis = new RedisList();
+        $pageName = $this->pageName;
+        $page = $request->input( $pageName, 1);
+        $key = config('redis-key.post.post_index_new');
+        $offset = ($page-1)*$perPage;
         $queryTime = $request->get('query_time' , '');
         if(empty($queryTime))
         {
-            $queryTime = $now->timestamp;
+            $queryTime = Carbon::now()->timestamp;
         }
-        $startTime = $today->subDays(15)->timestamp;
-        $startTime = $startTime>$queryTime?$queryTime:$startTime;
-        $posts = $posts->where($this->model->getCreatedAtColumn() , '<=' , Carbon::createFromTimestamp($queryTime)->toDateTimeString())
-            ->where($this->model->getCreatedAtColumn() , '>=' , Carbon::createFromTimestamp($startTime)->toDateTimeString());
         $appends['query_time'] = $queryTime;
-        $posts->orderBy('post_rate' , 'DESC');
-        $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
+        if($redis->existsKey($key))
+        {
+            $total = $redis->zSize($key);
+            $postIds = $redis->zRevRangeByScore($key , $queryTime , '-inf' , true , array($offset , $perPage));
+            $postIds = array_keys($postIds);
+        }else{
+            $total = 0;
+            $postIds = array();
+        }
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts = $posts->whereIn('post_id' , $postIds)->orderBy($this->model->getCreatedAtColumn() , 'DESC')->get();
+        $posts = $this->paginator($posts, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
         return $posts->appends($appends);
+    }
+
+
+    public function getFinePosts($posts)
+    {
+        $now = Carbon::now();
+        $i = intval($now->format('i'));
+        $i = $i<=0?1:$i;
+        $index = ceil($i/30);
+        $request = request();
+        $perPage = $this->perPage;
+        $redis = new RedisList();
+        $pageName = $this->pageName;
+        $page = $request->input( $pageName, 1);
+        $key = 'post_index_rate_'.$index;
+        $offset = ($page-1)*$perPage;
+        if($redis->existsKey($key))
+        {
+            $total = $redis->zSize($key);
+            $postIds = $redis->zRevRangeByScore($key , '+inf' , '-inf' , true , array($offset , $perPage));
+            $postIds = array_keys($postIds);
+        }else{
+            $total = 0;
+            $postIds = array();
+        }
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts = $posts->whereIn('post_id' , $postIds)->get();
+        return $this->paginator($posts, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
     }
 
     public function generatePostViewRandRank()
@@ -510,7 +534,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $redis = new RedisList();
         $pageName = $this->pageName;
         $page = $request->input( $pageName, 1);
-        $key = 'post_index_essence';
+        $key = config('redis-key.post.post_index_essence');
         $offset = ($page-1)*$perPage;
         if($redis->existsKey($key))
         {
@@ -551,7 +575,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function customEssencePost()
     {
         $redis = new RedisList();
-        $postKey = 'post_index_essence';
+        $postKey = config('redis-key.post.post_index_essence');
         $redis->delKey($postKey);
         $posts = $this->model;
         $now = Carbon::now();
@@ -564,7 +588,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $redis->zAdd($postKey , $score , $post->post_id);
             }
         });
-        $key = 'post_index_essence_manual';
+        $key = config('redis-key.post.post_index_essence_customize');
         if($redis->existsKey($key))
         {
             $total = $redis->zSize($key);
@@ -687,11 +711,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
         $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
         $nonRateKey = config('redis-key.post.post_index_non_rate');
+        $essencePostKey = config('redis-key.post.post_index_essence');
+        $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
         if(!$op)
         {
             Redis::sadd($nonRateKey , $postId);
             Redis::zrem($rateKeyOne , $postId);
             Redis::zrem($rateKeyTwo , $postId);
+            Redis::zrem($essencePostKey , $postId);
+            Redis::zrem($essenceManualPostKey , $postId);
         }else{
             Redis::srem($nonRateKey , $postId);
         }

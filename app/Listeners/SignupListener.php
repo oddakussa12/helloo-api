@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Jobs\Signup;
 use App\Events\SignupEvent;
 use App\Traits\CachableUser;
 
@@ -15,12 +16,13 @@ class SignupListener
      * Handle the event.
      *
      * @param SignupEvent $event
-     * @return void
+     * @return mixed
      */
     public function handle(SignupEvent $event)
     {
         //获取事件中保存的信息
         $user = $event->getUser();
+//        $this->initUser($user);
         $this->updateUserLists($user->user_name , $user->user_email);
         $agent = $event->getAgent();
         $addresses = $event->getAddresses();
