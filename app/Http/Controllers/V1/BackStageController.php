@@ -125,7 +125,8 @@ class BackStageController extends BaseController
 
     public function setNonFinePost($postId)
     {
-        $this->post->setNonFinePost($postId);
+        $flag = (bool)request()->input('flag' , 0);
+        $this->post->setNonFinePost($postId , $flag);
         return $this->response->noContent();
     }
 

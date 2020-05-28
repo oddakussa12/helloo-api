@@ -556,8 +556,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function setCustomEssencePost(string $postId , bool $operation=true , int $score=0)
     {
         $redis = new RedisList();
-        $postKey = 'post_index_essence';
-        $key = 'post_index_essence_manual';
+        $postKey = config('redis-key.post.post_index_essence');
+        $key = config('redis-key.post.post_index_essence_customize');
         if(!empty($postId))
         {
             if($operation)
