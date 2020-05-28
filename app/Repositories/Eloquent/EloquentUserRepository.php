@@ -419,9 +419,77 @@ DOC;
         return Redis::srandmember($key);
     }
 
+    public function randDiffRyOnlineUserV2()
+    {
+        $selfUser = intval(request()->input('self'));
+        if($selfUser>0)
+        {
+            $where = '';
+            $country_code = config('countries');
+            $user_gender = intval(request()->input('user_gender' , 2));
+            $userTags = intval(request()->input('userTags'));
+            $country = strval(request()->input('country' , 0));
+            $county_op = intval(request()->input('county_op' , 0));
+            $user_country = array_search(strtoupper($country) , config('countries'));
+            $user_country_id = $user_country===false?0:$user_country+1;
+            $threeDayAgo = Carbon::now()->subDays(2)->startOfDay()->toDateTimeString();
+            $operator = $county_op===0?'!=':'=';
+            $usedUser = (array)request()->input('used' , array());
+            $usedUser = array_slice($usedUser , 0 , 5);
+            array_push($usedUser , $selfUser);
+            $usedUser = array_unique($usedUser);
+            $userIds = join(',' , $usedUser);
+            if($user_gender!==2)
+            {
+                $where .= " AND f_users.user_gender = {$user_gender}";
+            }
+            if(!blank($userIds))
+            {
+                $where .= " AND f_users_taggables.taggable_id not in ({$userIds})";
+            }
+            if(!blank($userTags))
+            {
+                $tag_id = array_search($userTags , config('user-tag'));
+                if($tag_id!==false)
+                {
+                    $where .= " AND f_users_taggables.tag_id = {$tag_id}";
+                }
+            }
+
+            $sql = <<<DOC
+SELECT DISTINCT
+	f_users.user_id,
+	f_users.user_name,
+	f_users.user_avatar,
+	f_users.user_country_id,
+	f_users.user_level
+FROM
+	f_users_taggables
+LEFT JOIN f_users ON f_users_taggables.taggable_id = f_users.user_id
+WHERE
+	f_users.user_country_id {$operator} {$user_country_id}
+AND f_users.user_created_at >= '{$threeDayAgo}'
+{$where}
+ORDER BY
+	f_users.user_id DESC
+LIMIT 1;
+DOC;
+            $user = collect(\DB::select($sql))->first();
+            if(blank($user))
+            {
+                abort(404);
+            }
+            $user->user_country = strtolower($country_code[$user->user_country_id]);
+            $user->user_avatar = config('common.qnUploadDomain.avatar_domain').$user->user_avatar;
+            return $user;
+        }else{
+            return $this->findOrFail($this->randRyOnlineUser());
+        }
+    }
+
     public function randDiffRyOnlineUser()
     {
-        $key = 'ry_user_online_state';
+        $key = 'ry_user_online_status';
         $selfUser = intval(request()->input('self'));
         if($selfUser>0)
         {

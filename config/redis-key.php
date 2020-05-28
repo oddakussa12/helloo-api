@@ -14,6 +14,8 @@ return [
         'post_comment_likes'=>'user.post.comment.likes',//用户评论点赞数
     ],
     "post"=>[
+        "post_index_essence"=>'post_index_essence',//精华贴子(下拉)
+        "post_index_essence_customize"=>'post_index_essence_manual',//自定义精华贴子(下拉)
         "post_index_top"=>'post_index_top',//置顶贴子
         "post_index_new"=>'post_index_new',//最新贴子
         "post_index_rate"=>'post_index_rate',//最热贴子

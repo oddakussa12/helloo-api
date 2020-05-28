@@ -8,10 +8,10 @@ use App\Events\UserProfileLikeEvent;
 class UserProfileLikeListener
 {
     use CachableUser;
+
     /**
      * Create the event listener.
      *
-     * @param $event
      */
     public function __construct()
     {

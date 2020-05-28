@@ -249,7 +249,13 @@ class UserController extends BaseController
 
     public function randRyOnlineUser(Request $request)
     {
-        $userId = intval($this->user->randDiffRyOnlineUser());
+        if($request->has('country'))
+        {
+            $user = $this->user->randDiffRyOnlineUserV2();
+            return new UserCollection($user);
+        }else{
+            $userId = intval($this->user->randDiffRyOnlineUser());
+        }
         if($userId>0)
         {
             $user = $this->user->findOrFail($userId);
@@ -257,6 +263,7 @@ class UserController extends BaseController
         }else{
             return $this->response->errorNotFound();
         }
+
     }
 
     public function isRyOnline($id)

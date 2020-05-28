@@ -2,18 +2,11 @@
 
 namespace App\Events;
 
+use App\Models\User;
 use Jenssegers\Agent\Agent;
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class SignupEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * @var User 用户模型
@@ -60,16 +53,5 @@ class SignupEvent
     public function getAddresses()
     {
         return $this->addresses;
-    }
-
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return \Illuminate\Broadcasting\Channel|array
-     */
-    public function broadcastOn()
-    {
-        return new PrivateChannel('channel-name');
     }
 }

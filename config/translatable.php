@@ -132,7 +132,7 @@ return [
 	 *
 	 * google config
 	 */
-	'google_translate_key' => 'AIzaSyCTYJF0QNu3rnLSFMHVwWfBT3lhM283TDU',
+	'google_translate_key' => env('GOOGLE_TRANSLATE_KEY', ''),
 
 	'translate_default_lang' => 'id',
 
