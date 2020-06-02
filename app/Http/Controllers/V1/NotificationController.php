@@ -5,10 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Resources\PostCollection;
 use App\Resources\PostCommentCollection;
 use Carbon\Carbon;
-use App\Models\User;
-use App\Models\PostComment;
 use Illuminate\Http\Request;
-use App\Notifications\CommentLiked;
 use App\Resources\NotificationCollection;
 use Fenos\Notifynder\Models\Notification;
 use App\Repositories\Contracts\PostCommentRepository;
@@ -312,7 +309,5 @@ class NotificationController extends BaseController
     public function test()
     {
 
-        //\Notification::send(User::find(2), new CommentLiked(PostComment::find(40897)));
-        User::find(2)->notify(new CommentLiked(PostComment::find(40897)));
     }
 }

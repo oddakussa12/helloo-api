@@ -12,6 +12,7 @@ use App\Custom\Notifynder\Senders\JpushNotificationSender;
 
 class NotificationServiceProvider extends NotifynderServiceProvider
 {
+    protected $migrations = [];
 
     public function registerSenders()
     {
