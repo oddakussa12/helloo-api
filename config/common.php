@@ -16,6 +16,10 @@ return [
         'avatar_domain' => 'https://qnwebothersia.mmantou.cn/',
         'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
 	],
+    'awsUploadDomain'=>[
+        'video_domain' => 'https://media.yooul.com/',
+        'thumbnail_domain' => 'https://media.yooul.com/',
+    ],
     'front_domain'=> [
         'h5'=>'yooul.com',
         'h5_test'=>'h5.mmantou.cn',

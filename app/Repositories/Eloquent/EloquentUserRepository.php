@@ -438,6 +438,9 @@ DOC;
             $usedUser = array_slice($usedUser , 0 , 5);
             array_push($usedUser , $selfUser);
             $usedUser = array_unique($usedUser);
+            $usedUser = array_filter($usedUser , function($v){
+                return !empty($v);
+            });
             $userIds = join(',' , $usedUser);
             if($user_gender!==2)
             {

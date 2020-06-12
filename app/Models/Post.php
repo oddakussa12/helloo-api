@@ -112,8 +112,8 @@ class Post extends Model
         $value = $this->post_media;
         if($this->post_type=='video')
         {
-            $value[$this->post_type]['video_url'] = config('common.qnUploadDomain.video_domain').$value[$this->post_type]['video_url'];
-            $value[$this->post_type]['video_thumbnail_url'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['video_thumbnail_url'].'?imageView2/0/w/400/h/300|imageslim';
+            $value[$this->post_type]['video_url'] = config('common.awsUploadDomain.video_domain').$value[$this->post_type]['video_url'];
+            $value[$this->post_type]['video_thumbnail_url'] = config('common.awsUploadDomain.thumbnail_domain').$value[$this->post_type]['video_thumbnail_url'];
             $video_subtitle = (array)$value[$this->post_type]['video_subtitle_url'];
             $video_subtitle = \array_filter($video_subtitle , function($v , $k){
                 return !empty($v)&&!empty($k);

@@ -187,9 +187,6 @@ return [
         App\Providers\LaravelLocalizationServiceProvider::class,
         App\Providers\RongCloudServiceProvider::class,
         App\Providers\NotificationServiceProvider::class,
-        Toplan\PhpSms\PhpSmsServiceProvider::class,
-        App\Providers\SmsManagerServiceProvider::class,
-
     ],
 
     /*
@@ -242,9 +239,6 @@ return [
         'GeoIP' => Torann\GeoIP\GeoIPFacade::class,
         'Notifynder' => Fenos\Notifynder\Facades\Notifynder::class,
         'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class,
-        'PhpSms' => Toplan\PhpSms\Facades\Sms::class,
-        'SmsManager' => Toplan\Sms\Facades\SmsManager::class,
-
     ],
 
 ];
