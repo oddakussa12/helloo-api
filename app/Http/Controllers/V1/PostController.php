@@ -212,7 +212,7 @@ class PostController extends BaseController
         if($post_category_id==3&&!empty($post_video))
         {
             $video_url = isset($post_video['video_url'])?$post_video['video_url']:'';
-            $video_subtitle_locale = isset($post_video['video_subtitle_locale'])?$post_video['video_subtitle_locale']:'en';
+            $video_subtitle_locale = isset($post_video['video_subtitle_locale'])?$post_video['video_subtitle_locale']:'';
             $video_thumbnail_url = isset($post_video['video_thumbnail_url'])?$post_video['video_thumbnail_url']:'';
             $video_time = isset($post_video['video_time'])?$post_video['video_time']:0;
             $video_size = isset($post_video['video_size'])?$post_video['video_size']:0;

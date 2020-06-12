@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1;
 
-use SmsManager;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
 use App\Events\SignupEvent;
@@ -408,7 +407,7 @@ class AuthController extends BaseController
 
     public function signInSmsSend($mobile)
     {
-        $result = SmsManager::requestVerifySms();
+//        $result = SmsManager::requestVerifySms();
         return $this->response->noContent();
     }
 
