@@ -46,16 +46,15 @@ $api->group($V1Params , function ($api){
 //        $api->resource('category' , 'CategoryController');
 
 //        $api->resource('pychat', 'PyChatController', ['only' => ['store']]);
-        $api->post('pychat/translation', 'PyChatController@store');
-
-        $api->post('pychat/listtranslation', 'PyChatTranslationController@store');
-        $api->post('pychat/chatimageinsert', 'PyChatController@chatImageStore');
+//        $api->post('pychat/translation', 'PyChatController@store');
+//
+//        $api->post('pychat/chatimageinsert', 'PyChatController@chatImageStore');
         //聊天房间添加
 //        $api->resource('pychatroom', 'PyChatRoomController',['only' => ['store']]);
 //
 //        $api->post('pychat/showmessage/user', 'PyChatController@showMessageByUserId')->name('show.message.by.userid');
         //获取房间内聊天记录
-        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
+//        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
 
     });
     $api->group(['middleware'=>'throttle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
@@ -66,25 +65,29 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
     //游客模式生成用户
-    $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');
+//    $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');
     $api->post('user/signIn' , 'AuthController@signIn')->name('sign.in');
     $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
-    $api->get('auth/smsCode' , 'AuthController@smsSend')->name('auth.sms.send');
+//    $api->get('auth/smsCode' , 'AuthController@smsSend')->name('auth.sms.send');
 
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
         $api->resource('report', 'ReportController',['only' => ['store']]);
 
         //聊天信息写入删除
-        $api->resource('pychat', 'PyChatController',['only' => ['store','destroy']]);
+//        $api->resource('pychat', 'PyChatController',['only' => ['store','destroy']]);
         $api->get('postComment/myself' , 'PostCommentController@myself')->name('comment.myself');
         $api->get('postComment/like' , 'PostCommentController@mylike')->name('comment.mylike');
+        $api->post('my/friend/{friend}' , 'UserFriendController@store')->name('my.friend.store');
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
         $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken')->name('qn.token');
         $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo')->name('follow.two');
+
+        $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');
+
 
         $api->post('user/{user}/block', 'UserController@block')->name('user.block');
         $api->post('post/{uuid}/block', 'PostController@block')->name('post.block');
@@ -143,7 +146,6 @@ $api->group($V1Params , function ($api){
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);
         $api->get('tag/hot' , 'TagController@hot')->name('tag.hot');
         $api->get('event' , 'EventController@index')->name('event.index');
-        $api->get('roomtopic' , 'EventController@roomTopic')->name('event.roomtopic');
         $api->resource('user' , 'UserController' , ['only' => ['show']]);
     });
     $api->post('message/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
@@ -151,6 +153,7 @@ $api->group($V1Params , function ($api){
     $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
+    $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend');
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name')->name('user.account.exists');
     $api->get('user' , 'UserController@index')->name('user.name.search');
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
@@ -165,6 +168,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
     $api->get('user/ry/refer' , 'UserController@referFriend')->name('user.ry.online.refer');
+    $api->get('ry/user' , 'RyChatController@user')->name('user.ry.user');
     $api->get('ry/chat' , 'RyChatController@index')->name('user.ry.message.index');
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
     $api->get('ry/room/chat/translation' , 'RyChatController@roomChatTranslation')->name('user.ry.room.message.translation');

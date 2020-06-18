@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers\V1;
 
+
 use Carbon\Carbon;
 use App\Jobs\RyChat;
 use Ramsey\Uuid\Uuid;
 use App\Models\RyRoomChat;
 use App\Models\RyChatFailed;
 use Illuminate\Http\Request;
+use App\Resources\UserCollection;
 use App\Services\TranslateService;
 use App\Resources\RyChatCollection;
 use App\Models\RyChat as RyChatModel;
 use Illuminate\Support\Facades\Redis;
 use App\Resources\RyRoomChatCollection;
+use App\Repositories\Contracts\UserRepository;
 
 class RyChatController extends BaseController
 {
@@ -258,5 +261,15 @@ class RyChatController extends BaseController
         $chatData = collect(array($room_chat_default_locale));
         Redis::hset($chatKey , $field , $chatData);
         return $this->response->noContent();
+    }
+
+
+    public function user()
+    {
+        $userIds = request()->input('user_ids' , '');
+        $userIds = explode(',' , $userIds);
+        $userIds = array_slice($userIds , 0 , 50);
+        $users = app(UserRepository::class)->findByMany($userIds);
+        return UserCollection::collection($users);
     }
 }

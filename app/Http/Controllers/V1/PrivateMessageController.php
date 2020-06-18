@@ -85,7 +85,7 @@ class PrivateMessageController extends BaseController
                         'portrait'=> $avatar
                     ));
                 }
-                throw_if($token['code']!=200 , new \Exception('internal error'));
+                throw_if($token['code']!=200 , new \Exception($token['code'].'===>'.$token['msg']));
             }catch (\Throwable $e)
             {
                 $token = array(
