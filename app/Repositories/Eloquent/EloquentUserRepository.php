@@ -349,11 +349,6 @@ DOC;
     public function findByMany(array $ids)
     {
         $query = $this->model->query();
-
-        if (method_exists($this->model, 'translations')) {
-            $query = $query->with('translations');
-        }
-
         return $query->whereIn("user_id", $ids)->get();
     }
 
