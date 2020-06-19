@@ -242,7 +242,7 @@ class PostCommentController extends BaseController
         $user = auth()->user();
         if($postComment->user_id!=$user->user_id)
         {
-            abort(401);
+            abort(403);
         }
         event(new PostCommentDeleted($user , $postComment));
         $this->postComment->destroy($postComment);
