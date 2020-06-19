@@ -2,31 +2,17 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Pool;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Response;
-use Illuminate\Support\Facades\Log;
-use Google\Cloud\Translate\V2\TranslateClient;
 use Google\Cloud\Translate\V3\TranslationServiceClient;
 use Google\Cloud\Translate\V3\TranslateTextGlossaryConfig;
 
 class V3TranslateService
 {
-    private $database;
-    /**
-     * @var TranslateClient
-     */
-    private $text;
 
     public $translate;
 
     protected $languages;
 
     private $formattedParent;
-
-    private $glossaryPath;
-
-    private $glossaryConfig;
 
     protected $translations=array();
 
@@ -120,100 +106,4 @@ class V3TranslateService
         $options = $option+$options;
         return $this->translate->translateBatch($str , $options);
     }
-
-    public function customizeTrans($str , $contentLang)
-    {
-        $translations = array();
-        $languages = config('translatable.locales');
-        if($contentLang=='und')
-        {
-            foreach ($languages as $v)
-            {
-                $translations[$v] = array('comment_content'=>$str);
-            }
-        }else{
-            $index = array_search($contentLang , $languages);
-            if($index!==false)
-            {
-                unset($languages[$index]);
-            }
-            unset($languages[array_search('zh-HK' , $languages)]);
-            $translations = $this->handle($str , $languages);
-            $translations[$contentLang] = array('comment_content'=>$str);
-        }
-        return $translations;
-    }
-
-
-    private function handle($text , $languages)
-    {
-        sort($languages);
-        $this->languages = $languages;
-        $this->text = $text;
-        $client = new Client();
-        $apiKey = array(
-            'AIzaSyCTYJF0QNu3rnLSFMHVwWfBT3lhM283TDU',
-            'AIzaSyDKvJLifK80YtNUmMcZwchhTKjF8RQTORw',
-            'AIzaSyAGbnluKfnUf61fV5zL1FE3p8u8XDQiaUE',
-        );
-        Log::error("文本《{$text}》翻译开始");
-        $requests = function ($language) use ($client , $text , $apiKey) {
-            foreach ($language as $locale) {
-                $data = array(
-                    'q'=>$text,
-                    'target'=>$locale,
-                    'key'=>$apiKey[array_rand($apiKey)],
-                );
-                $url = 'https://translation.googleapis.com/language/translate/v2';
-                $uri = 'https://www.googleapis.com/language/translate/v2?key=' . $apiKey[array_rand($apiKey)] . '&q=' . rawurlencode($text) . '&target=' . $locale;
-                try {
-                    yield function() use ($client, $url , $data) {
-                        return $client->requestAsync('POST' , $url , ['form_params'=>$data]);
-                    };
-                }catch (\Exception $e)
-                {
-                    Log::error('获取异常:'.$e->getMessage());
-                }
-            }
-        };
-
-        $pool = new Pool($client, $requests($this->languages), [
-            'concurrency' => 6 ,
-            'fulfilled'   => function (Response $response, $index){
-                $lang = $this->languages[$index];
-                Log::error("文本《{$this->text}》翻译{$lang}完成");
-                $res = $response->getBody()->getContents();
-                $res = json_decode($res, true);
-                $this->translations[$lang] = array('comment_content'=>$res['data']['translations'][0]['translatedText']);
-            },
-            'rejected' => function (\Exception $reason, $index){
-                $this->countedAndCheckEnded($reason , $index);
-            },
-        ]);
-        $promise = $pool->promise();
-        $promise->wait();
-        if(array_key_exists('zh-TW' , $this->translations))
-        {
-            $this->translations['zh-HK'] = $this->translations['zh-TW'];
-        }
-        return $this->translations;
-
-    }
-
-
-    public function countedAndCheckEnded($reason ,$index , $g='')
-    {
-        $text = $this->text;
-        $reason = \json_encode($reason);
-        $g = \json_encode($g);
-        $lang = $this->languages[$index];
-        Log::error("文本《{$text}》翻译{$lang}出错，原因:"."---------{$reason}--------{$g}");
-    }
-
-
-
-
-
-
-
 }

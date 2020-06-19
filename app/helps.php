@@ -555,7 +555,7 @@ if (! function_exists('common_signature')) {
         if($agent->match('YooulAndroid'))
         {
             $app_key = config('common.android_secret');
-        }elseif($agent->match('YooulAndroid')){
+        }elseif($agent->match('YoouliOS')){
             $app_key = config('common.ios_secret');
         }else{
             $app_key = config('common.common_secret');
@@ -789,6 +789,96 @@ if (!function_exists('ry_server'))
     }
 }
 
+if (!function_exists('fromAzureToNiu'))
+{
+    function fromAzureToNiu($language)
+    {
+        $support = true;
+        $languagesFile = 'niu/languages.json';
+        if(\Storage::exists($languagesFile))
+        {
+            $languages = \Storage::get($languagesFile);
+            $languages = \json_decode($languages , true);
+            if(in_array($language , $languages))
+            {
+                return array('language'=>$language , 'support'=>$support);
+            }
+            switch ($language)
+            {
+                case 'nb':
+                    $language = 'no';
+                    break;
+                case 'pt-pt':
+                    $language = 'pt';
+                    break;
+                case 'sr-Cyrl':
+                case 'sr-Latn':
+                    $language = 'sr';
+                    break;
+                case 'zh-Hans':
+                    $language = 'zh';
+                    break;
+                case 'zh-Hant':
+                    $language = 'cht';
+                    break;
+                default:
+                    $support = false;
+                    break;
+            }
+        }
+        return array('language'=>$language , 'support'=>$support);
+
+    }
+}
+if (!function_exists('SupportToNiu'))
+{
+    function SupportToNiu($language)
+    {
+        switch ($language)
+        {
+            case 'nb':
+                $language = 'no';
+                break;
+            case 'pt-pt':
+                $language = 'pt';
+                break;
+            case 'sr-Cyrl':
+            case 'sr-Latn':
+                $language = 'sr';
+                break;
+            case 'zh-Hans':
+            case 'zh-TW':
+            case 'zh-HK':
+                $language = 'cht';
+                break;
+            case 'zh-Hant':
+            case 'zh-CN':
+                $language = 'zh';
+                break;
+        }
+        return $language;
+
+    }
+}
+if (!function_exists('niuAzureToGoogle'))
+{
+    function niuAzureToGoogle($language)
+    {
+        switch ($language)
+        {
+            case 'cht':
+            case 'zh-Hant':
+            case 'yue':
+                $language = 'zh-TW';
+                break;
+            case 'zh':
+            case 'zh-Hans':
+                $language = 'zh-CN';
+                break;
+        }
+        return $language;
+    }
+}
 
 
 

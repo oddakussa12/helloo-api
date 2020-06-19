@@ -188,6 +188,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['appAuth']] , function($api){
         $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
     });
+    $api->get('translation' , 'TranslationController@index')->name('translation.index');
     $api->get('google/token' , 'GoogleController@token')->name('google.token');
     $api->get('test/index' , 'TestController@test')->name('test.test');
 

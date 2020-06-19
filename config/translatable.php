@@ -133,6 +133,8 @@ return [
 	 * google config
 	 */
 	'google_translate_key' => env('GOOGLE_TRANSLATE_KEY', ''),
+	'niu_translate_key' => env('NIU_TRANSLATE_KEY', ''),
+	'azure_translate_key' => env('AZURE_TRANSLATE_KEY', ''),
 
 	'translate_default_lang' => 'id',
 

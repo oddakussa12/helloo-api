@@ -314,7 +314,7 @@ class PostController extends BaseController
         $user = auth()->user();
         if($post->user_id!=$user->user_id)
         {
-            abort(401);
+            abort(403);
         }
         $this->post->destroy($post);
         $redis = new RedisList();

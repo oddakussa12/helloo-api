@@ -89,7 +89,10 @@ class SetController extends BaseController
     {
         $agent = new Agent();
         $key = 'commonSwitch';
-        Redis::hmset($key , array('free_translator'=>1,'refer_friend'=>1 , 'carousel'=>0));
+        if(!Redis::exists($key))
+        {
+            Redis::hmset($key , array('free_translator'=>1,'refer_friend'=>1 , 'carousel'=>0 , 'test_translator'=>0));
+        }
         $fieldStr = (string)$request->input('include' , '');
         $fields = explode(',' , $fieldStr);
         $values = Redis::hmget($key , $fields);
