@@ -38,7 +38,7 @@ class AzureTranslateService
      */
     public function __construct()
     {
-        $this->api_key = config('translatable.niu_translate_key');
+        $this->api_key = config('translatable.azure_translate_key');
         $this->client = new Client([
             // Base URI is used with relative requests
             'base_uri' => $this->host,
