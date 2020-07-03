@@ -166,7 +166,7 @@ class NiuTranslateService
             return array('source'=>$options['from'] , 'translate'=>$str , 'target'=>$options['to']);
         }
         $options['from'] = $verification['language'];
-        $options['to'] = SupportToNiu($option['to']);
+        $options['to'] = SupportToNiu($options['to']);
         $options['src_text'] = $str;
         $params = $options+$this->params;
         $params = array_filter($params , function ($v , $k){
@@ -179,7 +179,7 @@ class NiuTranslateService
         if(isset($result['error_code']))
         {
             \Log::error('Niu translation error：'.\json_encode($result));
-            return array('source'=>$option['from'] , 'translate'=>$str , 'target'=>$option['to']);
+            return array('source'=>$options['from'] , 'translate'=>$str , 'target'=>$options['to']);
         }
         return array('source'=>niuAzureToGoogle($result['from']) , 'translate'=>$result['tgt_text'] , 'target'=>niuAzureToGoogle($result['to']));
     }

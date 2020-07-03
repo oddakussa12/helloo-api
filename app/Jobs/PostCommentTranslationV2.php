@@ -47,7 +47,7 @@ class PostCommentTranslationV2 implements ShouldQueue
      */
     public function handle()
     {
-        $language = $this->contentLang=='und'?'en':$this->contentLang;
+        $language = niuAzureToGoogle($this->contentLang=='und'?'en':$this->contentLang);
         $postComment = $this->postComment;
         $commentContent = $this->commentContent;
         $translate = app(NiuTranslateService::class);

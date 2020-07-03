@@ -70,4 +70,5 @@ return [
     'google_location'=>env('GOOGLE_LOCATION', 'us-central1'),
     'google_translation_version'=>env('GOOGLE_TRANSLATION_VERSION', 'v3'),
     'refer_friend_num'=>env('REFER_FRIEND_NUM', 3),
+    'translation_version'=>env('TRANSLATION_VERSION', 'niu'),
 ];
