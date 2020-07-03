@@ -436,7 +436,7 @@ DOC;
             $threeDayAgo = Carbon::now()->subDays(2)->startOfDay()->toDateTimeString();
             $operator = $country_op===0?'!=':'=';
             $usedUser = (array)request()->input('used' , array());
-            $usedUser = array_slice($usedUser , 0 , 5);
+            $usedUser = array_slice($usedUser , 0 , 29);
             array_push($usedUser , $selfUser);
             $usedUser = array_unique($usedUser);
             $usedUser = array_filter($usedUser , function($v){
@@ -486,6 +486,7 @@ DOC;
             $country_id = intval($user->user_country_id-1);
             $user->user_country = strtolower($country_code[$country_id]);
             $user->user_avatar = config('common.qnUploadDomain.avatar_domain').$user->user_avatar;
+            $user->user_continent = getContinentByCountry($user->user_country);
             return $user;
         }else{
             return $this->findOrFail($this->randRyOnlineUser());

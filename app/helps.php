@@ -823,6 +823,15 @@ if (!function_exists('fromAzureGoogleToNiu'))
                 case 'zh-TW':
                     $language = 'cht';
                     break;
+                case 'jw':
+                    $language = 'jv';
+                    break;
+                case 'tl':
+                    $language = 'fil';
+                    break;
+                case 'hmn':
+                    $language = 'mww';
+                    break;
                 default:
                     $support = false;
                     break;
@@ -848,12 +857,13 @@ if (!function_exists('SupportToNiu'))
             case 'sr-Latn':
                 $language = 'sr';
                 break;
-            case 'zh-Hans':
+            case 'zh-Hant':
             case 'zh-TW':
             case 'zh-HK':
                 $language = 'cht';
                 break;
-            case 'zh-Hant':
+            case 'yue':
+            case 'zh-Hans':
             case 'zh-CN':
                 $language = 'zh';
                 break;
@@ -864,21 +874,69 @@ if (!function_exists('SupportToNiu'))
 }
 if (!function_exists('niuAzureToGoogle'))
 {
+    //ty 微软检测语言大溪地语只有小牛支持翻译谷歌暂时不支持
     function niuAzureToGoogle($language)
     {
         switch ($language)
         {
+            case 'nb':
+                $lang = 'no';
+                break;
+            case 'he':
+                $lang = 'iw';
+                break;
+            case 'pt-pt':
+                $lang = 'pt';
+                break;
+            case 'sr-Cyrl':
+            case 'sr-Latn':
+                $lang = 'sr';
+                break;
+            case 'yue':
             case 'cht':
             case 'zh-Hant':
-                $language = 'zh-TW';
+                $lang = 'zh-TW';
                 break;
             case 'zh':
-            case 'yue':
             case 'zh-Hans':
-                $language = 'zh-CN';
+                $lang = 'zh-CN';
+                break;
+            default:
+                $lang = $language;
                 break;
         }
-        return $language;
+        return $lang;
+    }
+}
+
+if(!function_exists('azureToNiu'))
+{
+    function azureToNiu($language)
+    {
+        switch ($language)
+        {
+            case 'nb':
+                $lang = 'no';
+                break;
+            case 'pt-pt':
+                $lang = 'pt';
+                break;
+            case 'sr-Cyrl':
+            case 'sr-Latn':
+                $lang = 'sr';
+                break;
+            case 'yue':
+            case 'zh-Hans':
+                $lang = 'zh';
+                break;
+            case 'zh-Hant':
+                $lang = 'cht';
+                break;
+            default:
+                $lang = $language;
+                break;
+        }
+        return $lang;
     }
 }
 

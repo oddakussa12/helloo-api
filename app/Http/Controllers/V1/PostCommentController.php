@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\CommentCollection;
+use App\Models\PostComment;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Resources\LikeCollection;
 use App\Events\PostCommentCreated;
 use App\Events\PostCommentDeleted;
 use App\Services\TranslateService;
+use App\Jobs\PostCommentTranslation;
+use App\Jobs\PostCommentTranslationV2;
+use App\Services\AzureTranslateService;
+use App\Resources\PostCommentCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
-use Illuminate\Http\Request;
-use App\Models\PostComment;
-use App\Repositories\Contracts\PostCommentRepository;
-use App\Resources\PostCommentCollection;
-use Illuminate\Http\Response;
-use App\Jobs\PostCommentTranslation;
 use App\Http\Requests\StorePostCommentRequest;
+use App\Repositories\Contracts\PostCommentRepository;
 
 class PostCommentController extends BaseController
 {
@@ -24,7 +25,7 @@ class PostCommentController extends BaseController
      */
     private $postComment;
     /**
-     * @var TranslateService
+     * @var AzureTranslateService
      */
     private $translate;
 
@@ -32,13 +33,19 @@ class PostCommentController extends BaseController
      * Display a listing of the resource.
      *
      * @param PostCommentRepository $postComment
-     * @param TranslateService $translate
+     * @param AzureTranslateService $azureTranslateService
+     * @param TranslateService $translateService
      */
 
-    public function __construct(PostCommentRepository $postComment , TranslateService $translate)
+    public function __construct(PostCommentRepository $postComment , AzureTranslateService $azureTranslateService , TranslateService $translateService)
     {
         $this->postComment = $postComment;
-        $this->translate = $translate;
+        if(config('common.translation_version')==='niu')
+        {
+            $this->translate = $azureTranslateService;
+        }else{
+            $this->translate = $translateService;
+        }
     }
     public function index()
     {
@@ -89,13 +96,19 @@ class PostCommentController extends BaseController
             $comment_to_id =$post->user_id;
             $comment_top_id =0;
         }
-        if(empty($commentContent))
-        {
-            $contentDefaultLang = $contentLang = 'en';
-        }else{
-            $contentLang = $this->translate->detectLanguage($commentContent);
-            $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
+        try {
+            if(empty($commentContent))
+            {
+                $contentDefaultLang = $contentLang = 'en';
+            }else{
+                $contentLang = $this->translate->detectLanguage($commentContent);
+                $contentDefaultLang = $contentLang=='und'?'en':$contentLang;
+            }
+        }catch (\Exception $e){
+            \Log::error(\json_encode($e->getMessage() , JSON_UNESCAPED_UNICODE));
+            abort(424 , 'Sorry guys! We are updating our services in the next 24 hours. We apologize for the inconvenience !');
         }
+        $locale = niuAzureToGoogle($contentDefaultLang);
         $user = auth()->user();
         $comment = array(
             'post_id'=>$post->post_id,
@@ -103,7 +116,7 @@ class PostCommentController extends BaseController
             'comment_country_id'=>$user->user_country_id,
             'comment_comment_p_id'=>$commentPId,
             'comment_top_id'=>$comment_top_id,
-            'comment_default_locale'=>$contentDefaultLang,
+            'comment_default_locale'=>$locale,
             'comment_verify'=>1,
             'comment_verified_at'=>date('Y-m-d H:i:s'),
             'comment_to_id'=>$comment_to_id,
@@ -115,16 +128,20 @@ class PostCommentController extends BaseController
             $postComment = $this->postComment->store($comment);
             event(new PostCommentCreated($post , $postComment , $user));
         }else{
-            dynamicSetLocales(array($contentDefaultLang));
+            dynamicSetLocales(array($locale));
 
-            $comment[$contentDefaultLang] = array('comment_content'=>$commentContent);
+            $comment[$locale] = array('comment_content'=>$commentContent);
 
             $postComment = $this->postComment->store($comment);
 
             event(new PostCommentCreated($post , $postComment , $user));
 
-            $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
-
+            if(config('common.translation_version')==='niu')
+            {
+                $job = new PostCommentTranslationV2($postComment , $contentLang , $commentContent);
+            }else{
+                $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
+            }
             $this->dispatch($job);
         }
         $postComment->post_uuid = $postUuid;

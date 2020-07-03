@@ -8,10 +8,11 @@ use App\Custom\RedisList;
 use Illuminate\Http\Request;
 use App\Events\PostViewEvent;
 use App\Jobs\PostTranslation;
+use App\Jobs\PostTranslationV2;
 use App\Resources\PostCollection;
 use App\Services\TranslateService;
-use App\Services\V3TranslateService;
 use App\Http\Requests\StorePostRequest;
+use App\Services\AzureTranslateService;
 use App\Resources\PostPaginateCollection;
 use App\Repositories\Contracts\PostRepository;
 
@@ -30,18 +31,18 @@ class PostController extends BaseController
      * Display a listing of the resource.
      *
      * @param PostRepository $post
+     * @param AzureTranslateService $azureTranslateService
      * @param TranslateService $translateService
-     * @param V3TranslateService $v3TranslateService
      */
 
-    public function __construct(PostRepository $post,TranslateService $translateService ,V3TranslateService $v3TranslateService)
+    public function __construct(PostRepository $post,AzureTranslateService $azureTranslateService , TranslateService $translateService)
     {
         $this->post = $post;
-        if(config('common.google_translation_version')=='v2')
+        if(config('common.translation_version')==='niu')
         {
-            $this->translate = $translateService;
+            $this->translate = $azureTranslateService;
         }else{
-            $this->translate = $v3TranslateService;
+            $this->translate = $translateService;
         }
     }
 
@@ -173,24 +174,32 @@ class PostController extends BaseController
             $post_category_id = 3;
             $post_type = 'video';
         }
-        $postTitleLang = empty($post_title)?'en':$this->translate->detectLanguage($post_title);
-        $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
-        if(empty($post_content))
+        try {
+            $postTitleLang = empty($post_title)?'en':$this->translate->detectLanguage($post_title);
+            $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
+            if(empty($post_content))
+            {
+                $postContentLang = 'und';
+                $post_content_default_locale = 'en';
+            }else{
+                $postContentLang = $this->translate->detectLanguage($post_content);
+                $post_content_default_locale = $postContentLang=='und'?'en':$postContentLang;
+            }
+        }catch (\Exception $e)
         {
-            $postContentLang = 'und';
-            $post_content_default_locale = 'en';
-        }else{
-            $postContentLang = $this->translate->detectLanguage($post_content);
-            $post_content_default_locale = $postContentLang=='und'?'en':$postContentLang;
+            \Log::error(\json_encode($e->getMessage() , JSON_UNESCAPED_UNICODE));
+            abort(424 , 'Sorry guys! We are updating our services in the next 24 hours. We apologize for the inconvenience !');
         }
         $poster = auth()->user();
+        $titleLocale = niuAzureToGoogle($post_title_default_locale);
+        $contentLocale = niuAzureToGoogle($post_content_default_locale);
         $post_info= array(
             'user_id'=>$poster->user_id,
             'post_uuid'=>Uuid::uuid1(),
             'post_category_id'=>$post_category_id,
             'post_country_id'=>$poster->user_country_id,
-            'post_default_locale'=>$post_title_default_locale,
-            'post_content_default_locale'=>$post_content_default_locale,
+            'post_default_locale'=>$titleLocale,
+            'post_content_default_locale'=>$contentLocale,
             'post_type' =>$post_type,
             'post_rate'=>first_rate_comment_v2()
         );
@@ -228,20 +237,25 @@ class PostController extends BaseController
             ));
             $post_info['post_media'] = $post_media_json;
         }
-        dynamicSetLocales(array($post_title_default_locale , $post_content_default_locale));
-        if($post_title_default_locale!=$post_content_default_locale)
+        dynamicSetLocales(array($titleLocale , $contentLocale));
+        if($titleLocale!=$contentLocale)
         {
-            $post_info[$post_title_default_locale] = array('post_title'=>$post_title,'post_content'=>'');
-            $post_info[$post_content_default_locale] = array('post_title'=>'','post_content'=>$post_content);
+            $post_info[$titleLocale] = array('post_title'=>$post_title,'post_content'=>'');
+            $post_info[$contentLocale] = array('post_title'=>'','post_content'=>$post_content);
         }else{
-            $post_info[$post_title_default_locale] = array('post_title'=>$post_title,'post_content'=>$post_content);
+            $post_info[$titleLocale] = array('post_title'=>$post_title,'post_content'=>$post_content);
         }
         $post = $this->post->store($post_info);
 	    if(!empty($tag_slug))
         {
             $post->attachTags($tag_slug);
         }
-	    $job = new PostTranslation($poster , $post , $post_title_default_locale , $post_content_default_locale , $postTitleLang , $postContentLang , $post_title , $post_content);
+        if(config('common.translation_version')==='niu')
+        {
+            $job = new PostTranslationV2($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
+        }else{
+            $job = new PostTranslation($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
+        }
         $this->dispatch($job);
         return new PostCollection($post);
     }
