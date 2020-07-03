@@ -21,7 +21,7 @@ class AzureTranslateService
 
     private $path = '/detect?api-version=3.0';
 
-    private $api_key = "";
+    private $api_key;
 
     private $client;
 
@@ -94,48 +94,6 @@ class AzureTranslateService
         ));
         return \json_decode($response->getBody()->getContents() , true);
     }
-
-    /**
-     * @param array $str
-     * @param array $option
-     * @return array
-     */
-    public function translateBatch(array $str , $option=array())
-    {
-
-    }
-
-    /**
-     * @param $str
-     * @param array $option
-     * @return mixed
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    public function translate()
-    {
-
-    }
-
-    /**
-     * @param $str
-     * @param array $option
-     * @return mixed
-     */
-    public function pyChatTranslate($str , $option=array())
-    {
-
-    }
-
-    /**
-     * @param array $str
-     * @param array $option
-     * @return array
-     */
-    public function onlyTranslate(array $str , $option=array())
-    {
-
-    }
-
 
     protected function retryDecider()
     {

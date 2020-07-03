@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Post;
 use App\Models\UserFriend;
 use App\Models\PostComment;
+use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\TagRepository;
@@ -18,7 +19,9 @@ use App\Repositories\Eloquent\EloquentTagRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentPostRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRepository;
+use App\Repositories\Contracts\UserFriendRequestRepository;
 use App\Repositories\Eloquent\EloquentPostCommentRepository;
+use App\Repositories\Eloquent\EloquentUserFriendRequestRepository;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -64,24 +67,22 @@ class AppServiceProvider extends ServiceProvider
     {
         //
         $this->app->bind(UserRepository::class, function () {
-            $repository = new EloquentUserRepository(new User());
-            return $repository;
+            return new EloquentUserRepository(new User());
         });
         $this->app->bind(PostRepository::class, function () {
-            $repository = new EloquentPostRepository(new Post());
-            return $repository;
+            return new EloquentPostRepository(new Post());
         });
         $this->app->bind(PostCommentRepository::class, function () {
-            $repository = new EloquentPostCommentRepository(new PostComment());
-            return $repository;
+            return new EloquentPostCommentRepository(new PostComment());
         });
         $this->app->bind(TagRepository::class, function () {
-            $repository = new EloquentTagRepository(new Tag());
-            return $repository;
+            return new EloquentTagRepository(new Tag());
         });
         $this->app->bind(UserFriendRepository::class, function () {
-            $repository = new EloquentUserFriendRepository(new UserFriend());
-            return $repository;
+            return new EloquentUserFriendRepository(new UserFriend());
+        });
+        $this->app->bind(UserFriendRequestRepository::class, function () {
+            return new EloquentUserFriendRequestRepository(new UserFriendRequest());
         });
     }
 

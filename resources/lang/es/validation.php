@@ -134,6 +134,9 @@ return [
         'email'    => [
             'unique' => 'El :attribute ya ha sido registrado.',
         ],
+        'name' => [
+            'regex' => 'Por favor use letras y números, ej. abcdef123',
+        ],
     ],
 
     /*

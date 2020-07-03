@@ -143,23 +143,23 @@ class UserController extends BaseController
 
     public function myFollow()
     {
-        return FollowCollection::collection($this->user->findMyFollow(auth()->user()));
+        return FollowCollection::collection($this->user->findMyFollow(auth()->id()));
     }
 
     public function followMe()
     {
-        return FollowCollection::collection($this->user->findFollowMe(auth()->user()));
+        return FollowCollection::collection($this->user->findFollowMe(auth()->id()));
     }
     public function otherMyFollow($user_id)
     {
-        $user = $this->user->findOrFail($user_id);
-        return FollowCollection::collection($this->user->findMyFollow($user));
+//        $user = $this->user->findOrFail($user_id);
+        return FollowCollection::collection($this->user->findMyFollow($user_id));
     }
 
     public function otherFollowMe($user_id)
     {
-        $user = $this->user->findOrFail($user_id);
-        return FollowCollection::collection($this->user->findFollowMe($user));
+//        $user = $this->user->findOrFail($user_id);
+        return FollowCollection::collection($this->user->findFollowMe($user_id));
     }
     public function myFollowRandTwo()
     {

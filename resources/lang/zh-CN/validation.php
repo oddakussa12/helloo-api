@@ -130,6 +130,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'name' => [
+            'regex' => '请使用字母和数字，例如：abcdef123',
+        ],
     ],
 
     /*

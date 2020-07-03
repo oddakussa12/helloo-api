@@ -789,9 +789,9 @@ if (!function_exists('ry_server'))
     }
 }
 
-if (!function_exists('fromAzureToNiu'))
+if (!function_exists('fromAzureGoogleToNiu'))
 {
-    function fromAzureToNiu($language)
+    function fromAzureGoogleToNiu($language)
     {
         $support = true;
         $languagesFile = 'niu/languages.json';
@@ -815,10 +815,12 @@ if (!function_exists('fromAzureToNiu'))
                 case 'sr-Latn':
                     $language = 'sr';
                     break;
+                case 'zh-CN':
                 case 'zh-Hans':
                     $language = 'zh';
                     break;
                 case 'zh-Hant':
+                case 'zh-TW':
                     $language = 'cht';
                     break;
                 default:
@@ -868,10 +870,10 @@ if (!function_exists('niuAzureToGoogle'))
         {
             case 'cht':
             case 'zh-Hant':
-            case 'yue':
                 $language = 'zh-TW';
                 break;
             case 'zh':
+            case 'yue':
             case 'zh-Hans':
                 $language = 'zh-CN';
                 break;
@@ -880,6 +882,45 @@ if (!function_exists('niuAzureToGoogle'))
     }
 }
 
+if (!function_exists('getContinent'))
+{
+    function getContinent()
+    {
+        static $continents = array();
+        if(blank($continents))
+        {
+            $continents = \json_decode(\Storage::get('area/continents.json') , true);
+        }
+        return $continents;
+    }
+}
+
+if (!function_exists('getContinentCountry'))
+{
+    function getContinentCountry()
+    {
+        static $countryContinent = array();
+        if(blank($countryContinent))
+        {
+            $countryContinent = \json_decode(\Storage::get('area/country_continent.json') , true);
+        }
+        return $countryContinent;
+    }
+}
+
+if (!function_exists('getContinentByCountry'))
+{
+    function getContinentByCountry($country)
+    {
+        $country = strtolower($country);
+        $continentCountry = getContinentCountry();
+        if(array_key_exists($country , $continentCountry))
+        {
+            return $continentCountry[$country]['continent'];
+        }
+        return 'other';
+    }
+}
 
 
 

@@ -38,6 +38,8 @@ return [
     'commenter_weight'=>env('COMMENTER_WEIGHT', 0),
     'post_country_weight'=>env('POST_COUNTRY_WEIGHT', 0),
 
+    'sign_up_throttle_num' =>env('SIGN_UP_THROTTLE_NUM', 2),
+    'sign_up_throttle_expired' =>env('SIGN_UP_THROTTLE_EXPIRED', 3600),
     'forget_password_throttle_num' =>env('FORGET_PASSWORD_THROTTLE_NUM', 1),
     'forget_password_throttle_expired' =>env('FORGET_PASSWORD_THROTTLE_EXPIRED', 1),
     'post_throttle_num' =>env('POST_THROTTLE_NUM', 1),

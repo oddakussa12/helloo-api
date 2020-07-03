@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserFriend extends Model
 {
+    public $timestamps = false;
+
     protected $table = "users_friends";
 
     const CREATED_AT = 'created_at';
@@ -29,5 +31,10 @@ class UserFriend extends Model
     public function setUpdatedAt($value)
     {
 
+    }
+
+    public function getFormatCreatedAtAttribute()
+    {
+        return date('Y-m-d H:i:s' , $this->created_at);
     }
 }

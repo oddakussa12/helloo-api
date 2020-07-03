@@ -131,6 +131,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'name' => [
+            'regex' => 'Bitte verwenden Sie Buchstaben und Zahlen, z. abcdef123',
+        ],
     ],
 
     /*

@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+
 use GuzzleHttp\Client;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Handler\CurlHandler;
-use Psr\Http\Message\RequestInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 
@@ -46,24 +46,6 @@ class NiuTranslateService
         );
         // 创建 Handler
         $handlerStack = HandlerStack::create(new CurlHandler());
-//        $handlerStack->push(Middleware::mapRequest(function (RequestInterface $request) {
-//            \Log::error($request->getBody()->getContents());
-//            return new Request(
-//                $request->getMethod(),
-//                $request->getUri(),
-//                $request->getHeaders(),
-//                $request->getBody()
-//            );
-//        }) , 'addHeader');
-
-//        $handlerStack->after('addHeader', Middleware::mapRequest(function (RequestInterface $request) {
-//            return new Request(
-//                $request->getMethod(),
-//                $request->getUri(),
-//                $request->getHeaders(),
-//                $request->getBody()
-//            );
-//        }));
         // 创建重试中间件，指定决策者为 $this->retryDecider(),指定重试延迟为 $this->retryDelay()
         $handlerStack->push(Middleware::retry($this->retryDecider(), $this->retryDelay()));
 
@@ -91,31 +73,47 @@ class NiuTranslateService
     }
 
     /**
-     * @param $str
-     * @return mixed
-     */
-    public function detectLanguage($str)
-    {
-
-    }
-
-    /**
-     * @param array $str
-     * @return array
-     */
-    public function detectLanguageBatch(array $str)
-    {
-
-    }
-
-    /**
      * @param array $str
      * @param array $option
      * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function translateBatch(array $str , $option=array())
     {
-
+        $options['to'] = isset($option['target'])?$option['target']:'en';
+        $options['from'] = isset($option['source'])?$option['source']:'auto';
+        $verification= fromAzureGoogleToNiu($options['from']);
+        if(!$verification['support'])
+        {
+            abort(417 , 'This language is not supported by NiuTrans：'.$options['from']);
+        }
+        $options['from'] = $verification['language'];
+        $options['to'] = SupportToNiu($options['to']);
+        $options['src_text'] = join("\n" , $str);
+        $params = $options+$this->params;
+        $params = array_filter($params , function ($v , $k){
+            return !blank($k)&&!blank($v);
+        } , ARRAY_FILTER_USE_BOTH );
+        $response = $this->client->request('POST', $this->path, [
+            'form_params' => $params
+        ]);
+        $result = \json_decode($response->getBody()->getContents() , true);
+        if(isset($result['error_code']))
+        {
+            abort(417 , \json_encode($result , JSON_UNESCAPED_UNICODE));
+        }
+        $i = 0;
+        $tgt_text = explode("\n" , $result['tgt_text']);
+        return array_map(function ($v) use ($str, $result , &$i){
+            $translate = array(
+                "source"=>$result['from'],
+                "input"=>$str[$i],
+                "text"=>$v,
+                "model"=>null
+            );
+            $i++;
+            return $translate;
+        } , $tgt_text);
     }
 
     /**
@@ -126,23 +124,51 @@ class NiuTranslateService
      */
     public function translate(string $str , $option=array())
     {
-        if(!isset($option['to']))
-        {
-            $option['to']='en';
-        }
-        if(!isset($option['from']))
-        {
-            $option['from'] = app(AzureTranslateService::class)->detectLanguage($str);
-        }
-        $verification= fromAzureToNiu($option['from']);
+        $options['to'] = isset($option['target'])?$option['target']:'en';
+        $options['from'] = isset($option['source'])?$option['source']:app(AzureTranslateService::class)->detectLanguage($str);
+        $verification= fromAzureGoogleToNiu($options['from']);
         if(!$verification['support'])
         {
-            return array('source'=>$option['from'] , 'translate'=>$str , 'target'=>$option['to']);
+            abort(417 , 'This language is not supported by NiuTrans：'.$options['from']);
         }
-        $option['from'] = $verification['language'];
-        $option['to'] = SupportToNiu($option['to']);
-        $option['src_text'] = $str;
-        $params = $option+$this->params;
+        $options['from'] = $verification['language'];
+        $options['to'] = SupportToNiu($options['to']);
+        $options['src_text'] = $str;
+        $params = $options+$this->params;
+        $params = array_filter($params , function ($v , $k){
+            return !blank($k)&&!blank($v);
+        } , ARRAY_FILTER_USE_BOTH );
+        $response = $this->client->request('POST', $this->path, [
+            'form_params' => $params
+        ]);
+        $result = \json_decode($response->getBody()->getContents() , true);
+        if(isset($result['error_code']))
+        {
+            abort(417 , \json_encode($result , JSON_UNESCAPED_UNICODE));
+        }
+        return $result['tgt_text'];
+    }
+
+
+    /**
+     * @param string $str
+     * @param array $option
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function onlyTranslate(string $str , $option=array())
+    {
+        $options['to'] = isset($option['target'])?$option['target']:'en';
+        $options['from'] = isset($option['source'])?$option['source']:app(AzureTranslateService::class)->detectLanguage($str);
+        $verification= fromAzureGoogleToNiu($options['from']);
+        if(!$verification['support'])
+        {
+            return array('source'=>$options['from'] , 'translate'=>$str , 'target'=>$options['to']);
+        }
+        $options['from'] = $verification['language'];
+        $options['to'] = SupportToNiu($option['to']);
+        $options['src_text'] = $str;
+        $params = $options+$this->params;
         $params = array_filter($params , function ($v , $k){
             return !blank($k)&&!blank($v);
         } , ARRAY_FILTER_USE_BOTH );
@@ -156,26 +182,6 @@ class NiuTranslateService
             return array('source'=>$option['from'] , 'translate'=>$str , 'target'=>$option['to']);
         }
         return array('source'=>niuAzureToGoogle($result['from']) , 'translate'=>$result['tgt_text'] , 'target'=>niuAzureToGoogle($result['to']));
-    }
-
-    /**
-     * @param $str
-     * @param array $option
-     * @return mixed
-     */
-    public function pyChatTranslate($str , $option=array())
-    {
-
-    }
-
-    /**
-     * @param array $str
-     * @param array $option
-     * @return array
-     */
-    public function onlyTranslate(array $str , $option=array())
-    {
-
     }
 
 
