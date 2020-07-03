@@ -20,7 +20,7 @@ class OperationLog extends BaseMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if(auth()->check())
+        if(auth()->check()&&$request->routeIs('post.index'))
         {
             $chinaNow = Carbon::now('Asia/Shanghai');
             $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125

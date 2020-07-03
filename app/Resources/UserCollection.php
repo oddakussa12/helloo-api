@@ -31,6 +31,7 @@ class UserCollection extends Resource
             'user_name'=>$this->user_name,
             'user_avatar'=>$this->user_avatar,
             'user_country'=>$this->user_country,
+            'user_continent'=>$this->user_continent,
             'user_level'=>$this->user_level,
             'user_follow_state' => $this->when($request->routeIs('user.show')||$request->routeIs('post.show')||in_array('follow' , $include), function () use ($request){
                 if(isset($this->user_follow_state))
@@ -39,6 +40,9 @@ class UserCollection extends Resource
                 }else{
                     return auth()->check()?auth()->user()->isFollowing($this->user_id):false;
                 }
+            }),
+            'make_friend_created_at'=>$this->when(isset($this->make_friend_created_at) , function (){
+               return $this->make_friend_created_at;
             }),
 //            'user_medal' => $this->when($request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('user.show') , function () use ($request){
 //                return $this->user_medal;

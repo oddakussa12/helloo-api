@@ -130,6 +130,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'name' => [
+            'regex' => 'Silakan gunakan huruf dan angka, mis. abcdef123',
+        ],
     ],
 
     /*

@@ -132,6 +132,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'name' => [
+            'regex' => 'Vui lòng sử dụng chữ cái và số, vd. abcdef123',
+        ],
     ],
 
     /*

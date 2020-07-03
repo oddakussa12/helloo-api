@@ -244,6 +244,11 @@ class User extends Authenticatable implements JWTSubject
         $this->attributes['user_gender'] = $value;
     }
 
+    public function getUserContinentAttribute()
+    {
+        return getContinentByCountry($this->user_country);
+    }
+
 
 
 

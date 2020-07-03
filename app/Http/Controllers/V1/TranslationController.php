@@ -20,7 +20,7 @@ class TranslationController extends BaseController
         switch ($type)
         {
             case 'n':
-                $result = app(NiuTranslateService::class)->translate($content , array('to'=>$target));
+                $result = app(NiuTranslateService::class)->onlyTranslate($content , array('target'=>$target));
                 break;
             case 'f':
             case 'w':

@@ -36,9 +36,9 @@ $api->group($V1Params , function ($api){
         $api->get('post/carousel' , 'PostController@carousel')->name('post.carousel');
         $api->get('post/fine' , 'PostController@fine')->name('post.fine');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
-        $api->post('post/autopost' , 'PostController@autoStorePost')->name('post.auto.store.post');
+//        $api->post('post/autopost' , 'PostController@autoStorePost')->name('post.auto.store.post');
 
-        $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
+//        $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
         $api->get('postComment/more/{commentTopId}' , 'PostCommentController@moreComment')->name('show.more.comment');
         $api->get('postComment/locate/{commentId}' , 'PostCommentController@locateComment')->name('show.locate.comment');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
@@ -63,7 +63,9 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
 
-    $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
+    $api->group(['middleware'=>'throttle:'.config('common.sign_up_throttle_num').','.config('common.sign_up_throttle_expired')] , function ($api){
+        $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
+    });
     //游客模式生成用户
 //    $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');
     $api->post('user/signIn' , 'AuthController@signIn')->name('sign.in');
@@ -72,13 +74,27 @@ $api->group($V1Params , function ($api){
 
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
-        $api->resource('report', 'ReportController',['only' => ['store']]);
 
-        //聊天信息写入删除
-//        $api->resource('pychat', 'PyChatController',['only' => ['store','destroy']]);
-        $api->get('postComment/myself' , 'PostCommentController@myself')->name('comment.myself');
-        $api->get('postComment/like' , 'PostCommentController@mylike')->name('comment.mylike');
-        $api->post('my/friend/{friend}' , 'UserFriendController@store')->name('my.friend.store');
+        /*****报告 开始*****/
+        $api->resource('report', 'ReportController',['only' => ['store']]);
+        /*****报告 结束*****/
+
+        /*****好友 开始*****/
+        $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');//我的好友
+        $api->delete('my/friend/{friend}' , 'UserFriendController@destroy')->name('my.friend.destroy');//删除我的好友
+        /*****好友 结束*****/
+
+        /*****好友请求 开始*****/
+        $api->post('friend/request' , 'UserFriendRequestController@store')->name('user.friend.request.store');//发起好友请求
+        $api->patch('friend/{friend}/accept' , 'UserFriendRequestController@accept')->name('user.friend.request.accept');//好友请求响应接受
+        $api->patch('friend/{friend}/refuse' , 'UserFriendRequestController@refuse')->name('user.friend.request.refuse');//好友请求响应拒绝
+        $api->get('my/friend/request' , 'UserFriendRequestController@my')->name('my.friend.request');//我的好友请求
+        /*****好友请求 结束*****/
+
+        /*****评论 开始*****/
+        $api->get('postComment/myself' , 'PostCommentController@myself')->name('comment.myself');//我的评论
+        $api->get('postComment/like' , 'PostCommentController@mylike')->name('comment.mylike');//我的点赞的评论
+        /*****评论 结束*****/
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
@@ -86,7 +102,7 @@ $api->group($V1Params , function ($api){
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken')->name('qn.token');
         $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo')->name('follow.two');
 
-        $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');
+
 
 
         $api->post('user/{user}/block', 'UserController@block')->name('user.block');
@@ -129,7 +145,9 @@ $api->group($V1Params , function ($api){
             $api->post('postComment' , 'PostCommentController@store')->name('comment.store');
         });
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
-        $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
+        $api->group(['middleware'=>['throttle:5,1']] , function ($api){
+            $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
+        });
         $api->put('notification/type/{type}' , 'NotificationController@readAll')->name('notice.readAll');
         $api->put('notification/{id}' , 'NotificationController@read')->name('notice.read');
         $api->get('notification/{id}' , 'NotificationController@detail')->name('notice.detail');
@@ -153,7 +171,7 @@ $api->group($V1Params , function ($api){
     $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
-    $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend');
+//    $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend');
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name')->name('user.account.exists');
     $api->get('user' , 'UserController@index')->name('user.name.search');
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
@@ -190,7 +208,7 @@ $api->group($V1Params , function ($api){
     });
     $api->get('translation' , 'TranslationController@index')->name('translation.index');
     $api->get('google/token' , 'GoogleController@token')->name('google.token');
-    $api->get('test/index' , 'TestController@test')->name('test.test');
+    $api->post('test/index' , 'TestController@test')->name('test.test');
 
 });
 

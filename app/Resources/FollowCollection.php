@@ -15,16 +15,17 @@ class FollowCollection extends Resource
 {
     public function toArray($request)
     {
+        $user = $this->user;
         return [
-        	'user_id'=>$this->user_id,
+        	'user_id'=>$user->user_id,
 //        	'user_uuid'=>$this->user_uuid,
-        	'user_name'=>$this->user_name,
+        	'user_name'=>$user->user_name,
 //        	'user_email'=>$this->user_email,
-        	'user_avatar'=>$this->user_avatar,
+        	'user_avatar'=>$user->user_avatar,
 //        	'user_country_id'=>$this->user_country_id,
-        	'user_country'=>$this->user_country,
+        	'user_country'=>$user->user_country,
 //        	'user_follow_time'=>$this->pivot->created_at,
-        	'user_follow_state'=>$this->user_follow_state
+        	'user_follow_state'=>$user->user_follow_state
         ];
 
     }

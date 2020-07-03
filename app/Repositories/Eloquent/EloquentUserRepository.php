@@ -10,6 +10,7 @@ namespace App\Repositories\Eloquent;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
+use App\Models\User;
 use App\Models\Region;
 use App\Models\UserTag;
 use App\Models\PostComment;
@@ -60,18 +61,19 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where(array('user_'.$oauth=>$id))->first();
     }
 
-    public function findMyFollow($object)
+    public function findMyFollow($userId)
     {
-        $followers = $object->followings()->orderByDesc('common_follows.created_at')->paginate(12,['*'],'follow_page');
+        $followerIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->paginate(15 , ['followable_id'] , 'follow_page');
 
-        $userIds = $followers->pluck('user_id')->all(); //获取分页user id
+        $userIds = $followerIds->pluck('followable_id')->all(); //获取分页user id
 
-        $followerIds = userFollow($userIds);//重新获取当前登录用户信息
+        $followers = $this->findByMany($userIds);
 
-        $followers->each(function ($item, $key) use ($followerIds) {
-            $item->user_follow_state = in_array($item->user_id , $followerIds);
+        $followerIds->each(function ($item, $key) use ($followers) {
+            $item->user = $followers->where('user_id' , $item->followable_id)->first();
+            $item->user->user_follow_state = true;
         });
-        return $followers;
+        return $followerIds;
     }
 
     public function findByWhere($where)
@@ -79,19 +81,23 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where($where)->first();
     }
 
-    public function findFollowMe($object)
+    public function findFollowMe($userId)
     {
-        $followers = $object->followers()->orderByDesc('common_follows.created_at')->paginate(12 ,['*'],'follow_page');
+        $followerIds = DB::table('common_follows')->where('followable_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->paginate(15 , ['user_id'] , 'follow_page');
 
-        $userIds = $followers->pluck('user_id')->all(); //获取分页user id
+        $userIds = $followerIds->pluck('user_id')->all(); //获取分页user id
 
-        $followerIds = userFollow($userIds);//重新获取当前登录用户信息
+        $followers = $this->findByMany($userIds);
 
-        $followers->each(function ($item, $key) use ($followerIds) {
-            $item->user_follow_state = in_array($item->user_id , $followerIds);
+        $followerIds->each(function ($item, $key) use ($followers) {
+            $item->user = $followers->where('user_id' , $item->user_id)->first();
         });
-        
-        return $followers;
+        //$followerIds = userFollow($userIds);//重新获取当前登录用户信息
+        $followedIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->whereIn('followable_id' , $userIds)->select('followable_id')->pluck('followable_id')->all();
+        $followerIds->each(function ($item, $key) use ($followedIds) {
+            $item->user->user_follow_state = in_array($item->user_id , $followedIds);
+        });
+        return $followerIds;
     }
 
     public function getUserRank()
