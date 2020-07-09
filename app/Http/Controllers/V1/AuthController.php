@@ -18,6 +18,7 @@ use App\Repositories\Contracts\UserRepository;
 use App\Foundation\Auth\Passwords\ResetsPasswords;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
+use function GuzzleHttp\Psr7\str;
 
 class AuthController extends BaseController
 {
@@ -95,6 +96,7 @@ class AuthController extends BaseController
         $user_avatar = $request->input('user_avatar');
         $user_cover = $request->input('user_cover');
         $user_gender = $request->input('user_gender');
+        $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
         $user_picture = (array)$request->input('user_picture' , array());
         $tag_slug = array_diff($request->input('tag_slug' , array()),array(null , ''));
         $region_slug = array_diff($request->input('region_slug' , array()),array(null , ''));
@@ -131,6 +133,10 @@ class AuthController extends BaseController
         if($user_gender!==null)
         {
             $fields['user_gender'] = intval($user_gender);
+        }
+        if(!blank($user_nick_name))
+        {
+            $fields['user_nick_name'] = strval($user_nick_name);
         }
         if(!empty($fields))
         {

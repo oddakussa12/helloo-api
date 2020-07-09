@@ -29,6 +29,7 @@ class UserCollection extends Resource
         return [
             'user_id'=>$this->user_id,
             'user_name'=>$this->user_name,
+            'user_nick_name'=>$this->user_nick_name,
             'user_avatar'=>$this->user_avatar,
             'user_country'=>$this->user_country,
             'user_continent'=>$this->user_continent,
