@@ -37,8 +37,9 @@ class User extends Authenticatable implements JWTSubject
         'user_uuid' ,
         'user_email' ,
         'user_pwd',
-        'user_first_name' ,
-        'user_last_name' ,
+        'user_nick_name',
+//        'user_first_name' ,
+//        'user_last_name' ,
         'user_gender' ,
         'user_email_code' ,
         'user_device_id' ,
@@ -80,8 +81,8 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $hidden = [
         'user_pwd',
-        'user_first_name' ,
-        'user_last_name' ,
+//        'user_first_name' ,
+//        'user_last_name' ,
         'user_email_code' ,
         'user_device_id' ,
         'user_language' ,
