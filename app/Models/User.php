@@ -103,16 +103,18 @@ class User extends Authenticatable implements JWTSubject
         'user_deleted_at',
     ];
 
-    public function getUserAvatarAttribute($value)
+    public function getUserAvatarLinkAttribute()
     {
+        $value = $this->user_avatar;
         $value = empty($value)?'userdefalutavatar.jpg':$value;
         if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
             return $value;
         }
         return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
     }
-    public function getUserCoverAttribute($value)
+    public function getUserCoverLinkAttribute()
     {
+        $value = $this->user_cover;
         $value = empty($value)?'userdefalutcover.jpg':$value;
         if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
             return $value;
@@ -120,8 +122,9 @@ class User extends Authenticatable implements JWTSubject
         return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
     }
 
-    public function getUserPictureAttribute($value)
+    public function getUserPictureLinkAttribute($value)
     {
+        $value = $this->user_picture;
         $value = \json_decode($value , true);
         $value = $value===null?array():$value;
         return \array_map(function($v){

@@ -44,13 +44,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('auto:increase_post_view')
             ->dailyAt('02:00');
         $schedule->command('generate:post_essence_rank')
-            ->mondays();
+            ->mondays()->dailyAt('20:00');
         $schedule->command('generate:post_essence_rank')
-            ->wednesdays();
+            ->wednesdays()->dailyAt('20:00');
         $schedule->command('generate:post_essence_rank')
-            ->fridays();
+            ->fridays()->dailyAt('20:00');
         $schedule->command('generate:post_essence_rank')
-            ->sundays();
+            ->sundays()->dailyAt('20:00');
         $schedule->command('geoip:update')
             ->daily();
     }
