@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
+use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
@@ -13,6 +14,8 @@ use App\Repositories\Contracts\UserRepository;
 
 class UserController extends BaseController
 {
+
+    use CachableUser;
 
     /**
      * @var UserRepository
@@ -163,8 +166,9 @@ class UserController extends BaseController
     }
     public function myFollowRandTwo()
     {
-        $userfollowrandtwo['user_myfollowcount'] = auth()->user()->followings()->count();
-        $userfollowrandtwo['user_myfollowrandtwo'] = auth()->user()->followings()->inRandomOrder()->take(2)->pluck('user_avatar');
+        $user = auth()->user();
+        $userfollowrandtwo['user_myfollowcount'] = $this->userMyFollowCount($user->user_id);
+        $userfollowrandtwo['user_myfollowrandtwo'] = $user->followings()->inRandomOrder()->take(2)->pluck('user_avatar_link');
         return $userfollowrandtwo;
     }
 

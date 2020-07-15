@@ -395,7 +395,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $perPage = $this->perPage;
         $redis = new RedisList();
         $pageName = $this->pageName;
-        $page = $request->input( $pageName, 1);
+        $page = intval($request->input($pageName, 1));
         $key = config('redis-key.post.post_index_new');
         $offset = ($page-1)*$perPage;
         $queryTime = $request->get('query_time' , '');
@@ -433,7 +433,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $perPage = $this->perPage;
         $redis = new RedisList();
         $pageName = $this->pageName;
-        $page = $request->input( $pageName, 1);
+        $page = intval($request->input($pageName, 1));
         $key = 'post_index_rate_'.$index;
         $offset = ($page-1)*$perPage;
         if($redis->existsKey($key))
@@ -533,7 +533,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $perPage = $this->perPage;
         $redis = new RedisList();
         $pageName = $this->pageName;
-        $page = $request->input( $pageName, 1);
+        $page = intval($request->input($pageName, 1));
         $key = config('redis-key.post.post_index_essence');
         $offset = ($page-1)*$perPage;
         if($redis->existsKey($key))
@@ -581,7 +581,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $now = Carbon::now();
         $oneMonthsAgo = $now->subMonths(1)->format('Y-m-d 23:59:59');
         $threeMonthsAgo = $now->subMonths(2)->format('Y-m-d 00:00:00');
-        $posts->where('post_created_at' , '>=' , $threeMonthsAgo)->where('post_created_at' , '<=' , $oneMonthsAgo)->where('post_comment_num' , '>' , 50)->orderBy('post_created_at' , 'DESC')->chunk(20 , function($posts) use ($redis , $postKey){
+        $posts->where('post_hotting' , 1)->where('post_created_at' , '>=' , $threeMonthsAgo)->where('post_created_at' , '<=' , $oneMonthsAgo)->where('post_comment_num' , '>' , 50)->orderBy('post_created_at' , 'DESC')->chunk(20 , function($posts) use ($redis , $postKey){
             foreach ($posts as $post)
             {
                 $score = mt_rand(11111 , 99999);
@@ -617,7 +617,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $perPage = $this->perPage;
         $redis = new RedisList();
         $pageName = $this->pageName;
-        $page = $request->input( $pageName, 1);
+        $page = intval($request->input($pageName, 1));
         $key = 'post_index_fine';
         $offset = ($page-1)*$perPage;
         if($redis->existsKey($key))

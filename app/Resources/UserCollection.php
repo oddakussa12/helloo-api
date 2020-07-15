@@ -30,7 +30,7 @@ class UserCollection extends Resource
             'user_id'=>$this->user_id,
             'user_name'=>$this->user_name,
             'user_nick_name'=>$this->user_nick_name,
-            'user_avatar'=>$this->user_avatar,
+            'user_avatar'=>$this->user_avatar_link,
             'user_country'=>$this->user_country,
             'user_continent'=>$this->user_continent,
             'user_level'=>$this->user_level,

@@ -173,7 +173,7 @@ class AuthController extends BaseController
             'user'=>array(
                 'user_id'=>$user->user_id,
                 'user_name'=>$user->user_name,
-                'user_avatar'=>$user->user_avatar,
+                'user_avatar'=>$user->user_avatar_link,
                 'user_country'=>$user->user_country,
                 'user_level'=>$user->user_level,
                 'user_gender'=>$user->user_gender,
@@ -228,6 +228,9 @@ class AuthController extends BaseController
         $user->userRank = $rank;
         $user->userTags = UserTagCollection::collection($user->tags);
         $user->userRegions = UserRegionCollection::collection($user->regions);
+        $user->user_avatar = $user->user_avatar_link;
+        $user->user_cover = $user->user_cover_link;
+        $user->user_picture = $user->user_picture_link;
         unset($user->tags);
         unset($user->regions);
         unset($user->user_country);

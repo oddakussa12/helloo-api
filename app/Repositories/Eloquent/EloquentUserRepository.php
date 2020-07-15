@@ -94,6 +94,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         });
         //$followerIds = userFollow($userIds);//重新获取当前登录用户信息
         $followedIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->whereIn('followable_id' , $userIds)->select('followable_id')->pluck('followable_id')->all();
+
         $followerIds->each(function ($item, $key) use ($followedIds) {
             $item->user->user_follow_state = in_array($item->user_id , $followedIds);
         });

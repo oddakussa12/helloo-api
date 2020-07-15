@@ -21,7 +21,7 @@ class FollowCollection extends Resource
 //        	'user_uuid'=>$this->user_uuid,
         	'user_name'=>$user->user_name,
 //        	'user_email'=>$this->user_email,
-        	'user_avatar'=>$user->user_avatar,
+        	'user_avatar'=>$user->user_avatar_link,
 //        	'user_country_id'=>$this->user_country_id,
         	'user_country'=>$user->user_country,
 //        	'user_follow_time'=>$this->pivot->created_at,
