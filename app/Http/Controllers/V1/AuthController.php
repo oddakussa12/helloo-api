@@ -7,6 +7,7 @@ use Ramsey\Uuid\Uuid;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
 use App\Traits\CachableUser;
+use App\Events\UserUpdatedEvent;
 use App\Resources\UserTagCollection;
 use App\Rules\UserNameAndEmailUnique;
 use App\Resources\UserRegionCollection;
@@ -141,6 +142,7 @@ class AuthController extends BaseController
         if(!empty($fields))
         {
             $user = $this->user->update($user,$fields);
+            event(new UserUpdatedEvent($user));
         }
         if($request->has('tag_slug'))
         {
@@ -150,6 +152,9 @@ class AuthController extends BaseController
         {
             $this->user->attachRegions($user , $region_slug);
         }
+        $user->user_avatar = $user->user_avatar_link;
+        $user->user_cover = $user->user_cover_link;
+        $user->user_picture = $user->user_picture_link;
         return $user;
     }
     protected function respondWithToken($token)

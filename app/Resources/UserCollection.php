@@ -61,7 +61,7 @@ class UserCollection extends Resource
                     'user_about'=>$this->user_about,
                     'user_score' => $this->user_score,
                     'user_age'=> $this->user_age,
-                    'user_cover'=> $this->user_cover,
+                    'user_cover'=> $this->user_cover_link,
                     'user_like_state'=>$this->userProfileIsLiked($this->user_id),
 //                    'user_followme_count'=>$this->followers()->count(),
 //                    'user_myfollow_count'=>$this->followings()->count(),
@@ -74,7 +74,7 @@ class UserCollection extends Resource
                     'user_comment_count'=>$this->userPostCommentCount($this->user_id),
                     
                     'user_profile_like_num'=>$this->user_profile_like_num,
-                    'user_picture'=>$this->user_picture,
+                    'user_picture'=>$this->user_picture_link,
                     'userTags'=> UserTagCollection::collection($this->tags),
                 ]);
             }),

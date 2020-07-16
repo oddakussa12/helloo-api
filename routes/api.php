@@ -185,6 +185,7 @@ $api->group($V1Params , function ($api){
     $api->get('user/{id}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+    $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
     $api->get('user/ry/refer' , 'UserController@referFriend')->name('user.ry.online.refer');
     $api->get('ry/user' , 'RyChatController@user')->name('user.ry.user');
     $api->get('ry/chat' , 'RyChatController@index')->name('user.ry.message.index');
