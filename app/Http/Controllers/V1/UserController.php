@@ -292,4 +292,20 @@ class UserController extends BaseController
         $users = $this->user->referFriend();
         return UserCollection::collection($users);
     }
+
+    public function planet(Request $request)
+    {
+        $num = intval($request->input('num' , 20));
+        $num = $num<10||$num>30?10:$num;
+        $data = array();
+        for($i=1;$i<=50;$i++)
+        {
+            $rand = mt_rand(10000,39146);
+            array_push($data , $rand);
+        }
+        $data = array_unique($data);
+        $data = array_slice($data , 0 , $num);
+        $users = $this->user->findByMany($data);
+        return UserCollection::collection($users);
+    }
 }

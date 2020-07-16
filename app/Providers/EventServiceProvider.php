@@ -56,6 +56,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\UserProfileRevokeLikeEvent' => [
             'App\Listeners\UserProfileRevokeLikeListener',
         ],
+        'App\Events\UserUpdatedEvent' => [
+            'App\Listeners\UserUpdatedListener',
+        ],
     ];
 
     /**

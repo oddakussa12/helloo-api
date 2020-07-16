@@ -17,17 +17,33 @@ trait CachableUser
             'user_name'=>$user->user_name,
             'user_nick_name'=>$user->user_nick_name,
             'user_gender'=>-1,
-//            'user_avatar'=>$user->user_avatar,
+            'user_avatar'=>'userdefalutavatar.jpg', //默认头像
 //            'user_cover'=>$user->user_cover,
             'user_country_id'=>$user->user_country_id,
-//            'user_age'=>$user->user_age,
-//            'user_about'=>$user->user_about,
-//            'user_level'=>$user->user_level,
+            'user_age'=>0,
+            'user_level'=>0,
             'user_created_at'=>optional($user->user_created_at)->timestamp
         );
         $data = $data+$extend;
         Redis::hmset($userKey , $data);
     }
+
+    public function updateUser(User $user , array $extend=array())
+    {
+        $userKey = 'user.'.$user->getKey().'.data';
+        $data = array(
+            'user_nick_name'=>$user->user_nick_name,
+            'user_gender'=>$user->user_gender,
+            'user_avatar'=>$user->user_avatar, //默认头像
+            'user_country_id'=>$user->user_country_id,
+            'user_age'=>$user->user_age,
+            'user_level'=>$user->user_level,
+        );
+        $data = $data+$extend;
+        Redis::hmset($userKey , $data);
+    }
+
+
     /**
      * 获取用户profile被点赞数量
      *
