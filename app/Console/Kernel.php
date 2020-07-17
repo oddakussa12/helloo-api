@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GenerateYesterdayUserRank::class,
         \App\Console\Commands\AutoIncreasePostView::class,
         \App\Console\Commands\GeneratePostEssenceRank::class,
+        \App\Console\Commands\AutoUpdateOnlineUser::class,
         \Torann\GeoIP\Console\Update::class
     ];
 
@@ -51,6 +52,8 @@ class Kernel extends ConsoleKernel
             ->fridays()->dailyAt('20:00');
         $schedule->command('generate:post_essence_rank')
             ->sundays()->dailyAt('20:00');
+        $schedule->command('auto:update_online_user')
+            ->everyFiveMinutes();
         $schedule->command('geoip:update')
             ->daily();
     }
