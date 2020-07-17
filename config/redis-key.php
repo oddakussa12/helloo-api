@@ -12,6 +12,7 @@ return [
         'post_likes'=>'user.post.likes',//用户贴子点赞数
         'post_dislikes'=>'user.post.dislikes',//用户贴子踩数
         'post_comment_likes'=>'user.post.comment.likes',//用户评论点赞数
+        'ry_update_online_status'=>'ry.update.online.status',//融云回调用户状态用户
     ],
     "post"=>[
         "post_index_essence"=>'post_index_essence',//精华贴子(下拉)

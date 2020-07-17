@@ -101,7 +101,7 @@ class RyChatController extends BaseController
             RyChatFailed::create($data);
         }else{
             $objectName = $request->input('objectName' , '');
-            if(in_array($objectName , array('RC:TxtMsg' , 'RC:ImgMsg')))
+            if(in_array($objectName , array('RC:TxtMsg' , 'RC:ImgMsg' , 'RC:VcMsg')))
             {
                 $msgUID = $request->input('msgUID' , '');
                 $lock_key = 'ry_room_chat_'.$msgUID;
