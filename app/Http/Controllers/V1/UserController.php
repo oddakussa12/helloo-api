@@ -253,14 +253,14 @@ class UserController extends BaseController
 
     public function randRyOnlineUser(Request $request)
     {
-//        if($request->has('country'))
-//        {
-//            $user = $this->user->randDiffRyOnlineUserV2();
-//            return new UserCollection($user);
-//        }else{
-//            $userId = intval($this->user->randDiffRyOnlineUser());
-//        }
-        $userId = intval($this->user->randDiffRyOnlineUser());
+        $user_gender = $request->input('user_gender');
+        if($request->has('country')&&$user_gender!==null)
+        {
+            $user = $this->user->randDiffRyOnlineUserV2();
+            return new UserCollection($user);
+        }else{
+            $userId = intval($this->user->randDiffRyOnlineUser());
+        }
         if($userId>0)
         {
             $user = $this->user->findOrFail($userId);
