@@ -133,6 +133,10 @@ return [
         ],
         'name' => [
             'regex' => 'Veuillez utiliser des lettres et des chiffres, par exemple. abcdef123',
+            'unique' => 'Ce compte a été enregistré, veuillez vous connecter!',
+        ],
+        'email' => [
+            'unique' => 'Cette boîte aux lettres a été enregistrée, veuillez vous connecter!',
         ],
     ],
 

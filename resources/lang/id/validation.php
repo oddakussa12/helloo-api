@@ -132,6 +132,10 @@ return [
         ],
         'name' => [
             'regex' => 'Silakan gunakan huruf dan angka, mis. abcdef123',
+            'unique' => 'Akun ini telah terdaftar, silakan masuk!',
+        ],
+        'email' => [
+            'unique' => 'Kotak surat ini telah terdaftar, silakan masuk!',
         ],
     ],
 

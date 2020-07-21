@@ -131,11 +131,12 @@ return [
         'password' => [
             'min' => 'La :attribute debe contener más de :min caracteres',
         ],
-        'email'    => [
-            'unique' => 'El :attribute ya ha sido registrado.',
-        ],
         'name' => [
             'regex' => 'Por favor use letras y números, ej. abcdef123',
+            'unique' => 'Esta cuenta ha sido registrada, por favor inicie sesión!',
+        ],
+        'email' => [
+            'unique' => 'Este buzón ha sido registrado, ¡inicia sesión!',
         ],
     ],
 

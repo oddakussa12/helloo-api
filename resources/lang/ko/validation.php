@@ -131,8 +131,11 @@ return [
             'rule-name' => 'custom-message',
         ],
         'name' => [
-            'unique' => '이 계정은 사용 중입니다.',
             'regex' => '예를 들어 문자와 숫자를 사용하십시오. abcdef123',
+            'unique' => '이 계정은 등록되었습니다 로그인하십시오!',
+        ],
+        'email' => [
+            'unique' => '이 사서함은 등록되었습니다. 로그인하십시오!',
         ],
     ],
 

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Validation\Rule;
 
 class UserNameAndEmailUnique implements Rule
 {
+    private $attribute;
     /**
      * 判断验证规则是否通过。
      *
@@ -15,6 +16,7 @@ class UserNameAndEmailUnique implements Rule
      */
     public function passes($attribute, $value)
     {
+        $this->attribute = $attribute;
         $userUniqueKey = config('redis-key.user.user_'.$attribute);
         return !(bool)Redis::SISMEMBER($userUniqueKey , mb_convert_case($value, MB_CASE_LOWER, "UTF-8"));
     }
@@ -26,7 +28,7 @@ class UserNameAndEmailUnique implements Rule
      */
     public function message()
     {
-        return trans('validation.unique');
+        return trans('validation.custom.'.$this->attribute.'.unique');
     }
 
 
