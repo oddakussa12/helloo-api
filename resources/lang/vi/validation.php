@@ -134,6 +134,10 @@ return [
         ],
         'name' => [
             'regex' => 'Vui lòng sử dụng chữ cái và số, vd. abcdef123',
+            'unique' => 'Tài khoản này đã được đăng ký, vui lòng đăng nhập!',
+        ],
+        'email' => [
+            'unique' => 'Hộp thư này đã được đăng ký, xin vui lòng đăng nhập!',
         ],
     ],
 

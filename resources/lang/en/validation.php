@@ -105,6 +105,10 @@ return [
         ],
         'name' => [
             'regex' => 'Please use letters and numbers, eg. abcdef123',
+            'unique' => 'This account has been registered, please log in!',
+        ],
+        'email' => [
+            'unique' => 'This mailbox has been registered, please log in!',
         ],
     ],
 

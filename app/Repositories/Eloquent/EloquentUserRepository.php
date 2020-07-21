@@ -723,4 +723,12 @@ DOC;
         });
         $user->regions()->sync($regions_id);
     }
+
+    public function planet()
+    {
+        $num = intval(request()->input('num' , 20));
+        $num = $num<10||$num>30?10:$num;
+        $key = 'ry_user_online_status';
+        return Redis::srandmember($key , $num);
+    }
 }
