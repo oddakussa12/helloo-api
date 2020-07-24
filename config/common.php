@@ -18,6 +18,7 @@ return [
 	],
     'awsUploadDomain'=>[
         'video_domain' => 'https://media.yooul.com/',
+        'video_domain_cn' => 'https://media.mmantou.cn/',
         'thumbnail_domain' => 'https://media.yooul.com/',
     ],
     'front_domain'=> [
