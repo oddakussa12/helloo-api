@@ -298,6 +298,10 @@ class UserController extends BaseController
         $data = $this->user->planet();
         $data = array_unique($data);
         $users = $this->user->findByMany($data);
-        return UserCollection::collection($users);
+        $total = $this->user->onlineUsersCount();
+        $users = UserCollection::collection($users)->additional(array(
+            'total'=>$total
+        ));
+        return $users;
     }
 }

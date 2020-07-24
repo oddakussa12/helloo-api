@@ -724,6 +724,12 @@ DOC;
         $user->regions()->sync($regions_id);
     }
 
+    public function onlineUsersCount()
+    {
+        $key = 'ry_user_online_status';
+        return Redis::scard($key);
+    }
+
     public function planet()
     {
         $num = intval(request()->input('num' , 20));
