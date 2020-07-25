@@ -112,8 +112,7 @@ class Post extends Model
         $value = $this->post_media;
         if($this->post_type=='video')
         {
-//            $domain = domain()=='api.mmantou.cn'?config('common.awsUploadDomain.video_domain_cn'):config('common.awsUploadDomain.video_domain');
-            $domain = config('common.awsUploadDomain.video_domain_cn');
+            $domain = domain()=='api.mmantou.cn'?config('common.awsUploadDomain.video_domain_cn'):config('common.awsUploadDomain.video_domain');
             $value[$this->post_type]['video_url'] = $domain.$value[$this->post_type]['video_url'];
             $value[$this->post_type]['video_thumbnail_url'] = config('common.awsUploadDomain.thumbnail_domain').$value[$this->post_type]['video_thumbnail_url'];
             $video_subtitle = (array)$value[$this->post_type]['video_subtitle_url'];

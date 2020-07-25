@@ -297,6 +297,8 @@ class UserController extends BaseController
     {
         $data = $this->user->planet();
         $data = array_unique($data);
+        $userId = intval(auth()->id());
+        $data = array_diff($data , [$userId, 35525, 219367, 28583, 28527, 69684, 97623, 28761]);
         $users = $this->user->findByMany($data);
         $total = $this->user->onlineUsersCount();
         $users = UserCollection::collection($users)->additional(array(
