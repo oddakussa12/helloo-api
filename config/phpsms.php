@@ -22,7 +22,7 @@ return [
      *
      */
     'scheme' => [
-        'Log',
+        'Aliyun'=>100,
     ],
 
     /*
@@ -196,10 +196,14 @@ return [
          * support template sms.
          */
         'Aliyun' => [
-            'accessKeyId'       => 'your_access_key_id',
-            'accessKeySecret'   => 'your_access_key_secret',
-            'signName'          => 'your_sms_sign_name',
-            'regionId'          => 'cn-shenzhen',
+            'accessKeyId'       => env('ALI_KEY' , ''),
+            'accessKeySecret'   => env('ALI_SECRET' , ''),
+            'signName'          => env('ALI_SMS_SIGN_NAME' , ''),
+            'regionId'          => env('ALI_SMS_REGION_ID' , ''),
         ],
     ],
+    'aws'=>[
+        'key'=>env('AWS_KEY' , ''),
+        'secret'=>env('AWS_SECRET' , ''),
+    ]
 ];

@@ -15,6 +15,13 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 class PasswordBroker implements PasswordBrokerContract
 {
     /**
+     * Constant representing an invalid code.
+     *
+     * @var string
+     */
+    const INVALID_CODE = 'passwords.code';
+
+    /**
      * The password token repository.
      *
      * @var \Illuminate\Auth\Passwords\TokenRepositoryInterface
@@ -72,9 +79,9 @@ class PasswordBroker implements PasswordBrokerContract
 //        $user->sendPasswordResetNotification(
 //            $this->tokens->create($user)
 //        );
-        $token = $this->tokens->create($user);
+        $reset = (array)$this->tokens->create($user);
 
-        Mail::to($user->getEmailForPasswordReset())->queue((new ResetPassword($user,$token , $credentials['referer']))
+        Mail::to($user->getEmailForPasswordReset())->queue((new ResetPassword($user, $reset['token'], $reset['code'] , $credentials['referer']))
             ->onQueue('reset_password_emails'));
         return static::RESET_LINK_SENT;
     }
@@ -126,11 +133,18 @@ class PasswordBroker implements PasswordBrokerContract
         if (! $this->validateNewPassword($credentials)) {
             return static::INVALID_PASSWORD;
         }
-
-        if (! $this->tokens->exists($user, $credentials['token'])) {
-            return static::INVALID_TOKEN;
+        if(isset($credentials['token']))
+        {
+            if (! $this->tokens->exists($user, $credentials['token'])) {
+                return static::INVALID_TOKEN;
+            }
+        }elseif(isset($credentials['code'])){
+            if (! $this->tokens->existsCode($user, $credentials['code'])) {
+                return static::INVALID_CODE;
+            }
+        }else{
+            return static::INVALID_USER;
         }
-
         return $user;
     }
 
@@ -193,7 +207,7 @@ class PasswordBroker implements PasswordBrokerContract
      */
     public function getUser(array $credentials)
     {
-        $credentials = Arr::except($credentials, ['token' , 'referer']);
+        $credentials = Arr::except($credentials, ['code' , 'token' , 'referer' , 'password_confirmation']);
 
         $user = $this->users->retrieveByCredentials($credentials);
 

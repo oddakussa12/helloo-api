@@ -80,8 +80,10 @@ return [
     |
     */
     'content' => Toplan\Sms\SmsManager::closure(function ($code, $minutes, $input) {
-        return '【signature】您的验证码是' . $code . '，有效期为' . $minutes . '分钟，请尽快验证。';
+        return "【Yooul】Your Yooul security code is {$code}. You are trying to change the login password. Please keep your account information in a safe place.";
     }),
+
+    'global_content' => "【Yooul】Your Yooul security code is %s. You are trying to change the login password. Please keep your account information in a safe place.",
 
     /*
     |--------------------------------------------------------------------------
@@ -105,6 +107,7 @@ return [
     |
     */
     'templates' => [
+        'Aliyun' => env('SMS_TEMPLATE_ID' , ''),
     ],
 
     /*
@@ -158,8 +161,8 @@ return [
     |
     */
     'storage' => [
-        'driver' => '',
-        'prefix' => 'laravel_sms',
+        'driver' => App\Custom\Toplan\Sms\Cache\CacheStorage::class,
+        'prefix' => 'yooul_sms',
     ],
 
     /*

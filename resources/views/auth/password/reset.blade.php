@@ -99,7 +99,19 @@
                                             </tr>
                                             <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                                                 <td class="content-block" itemprop="handler" itemscope="itemscope" itemtype="http://schema.org/HttpActionHandler" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                                                    <a href="{{ $url }}" class="btn-primary" itemprop="url" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #D17C21; margin: 0; border-color: #D17C21; border-style: solid; border-width: 10px 20px;" rel="noopener" target="_blank">Click this link to reset your password</a>
+                                                    <a id="token" href="{{ $url }}" class="btn-primary" itemprop="url" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #D17C21; margin: 0; border-color: #D17C21; border-style: solid; border-width: 10px 20px;" rel="noopener" target="_blank">Click this link to reset your password</a>
+                                                </td>
+                                            </tr>
+                                            <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
+                                                <td class="content-block" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
+                                                    If you use a verification code, you can click to copy the verification code below, and then go to the reset password page to proceed.
+                                                </td>
+                                            </tr>
+                                            <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
+                                                <td class="content-block" itemprop="handler" itemscope="itemscope" itemtype="http://schema.org/HttpActionHandler" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
+                                                    <div class="wrapper">
+                                                        <a id="copy" href="javascript:void(0);" class="btn-primary" itemprop="url" style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; color: #FFF; text-decoration: none; line-height: 2em; font-weight: bold; text-align: center; cursor: pointer; display: inline-block; border-radius: 5px; text-transform: capitalize; background-color: #0dcde2; margin: 0; border-color: #0dcde2; border-style: solid; border-width: 3px 6px;" >{{ $code }}</a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             <tr style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
@@ -128,5 +140,29 @@
 
 
 
-            <style type="text/css">.qmbox style, .qmbox script, .qmbox head, .qmbox link, .qmbox meta {display: none !important;}</style></div></div><!-- --><style>#mailContentContainer .txt {height:auto;}</style>  </div>
+            <style type="text/css">
+                .qmbox style,
+                .qmbox script,
+                .qmbox head,
+                .qmbox link,
+                .qmbox meta {display: none !important;}
+                #mailContentContainer .txt {height:auto;}
+            </style>
+        </div>
+    </div>
+    <script>
+        let code = document.getElementById("code");
+        let copy = document.getElementById("copy");
+        code.oncontextmenu = customizeCopy;
+        copy.oncontextmenu = customizeCopy;
+        code.onclick = customizeCopy;
+        copy.onclick = customizeCopy;
+        function customizeCopy(e) {
+            e.preventDefault();
+            code.select(); // 选中文本
+            document.execCommand("copy"); // 执行浏览器复制命令
+            alert("Copy successfully!");
+        }
+    </script>
+</div>
 </body>

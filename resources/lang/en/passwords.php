@@ -14,6 +14,8 @@ return [
     */
 
     'password' => 'Passwords must be at least six characters and match the confirmation.',
+    'phone'    => 'Could not find the user corresponding to the mobile number',
+    'code'     => 'Invalid verification code',
     'reset' => 'Your password has been reset!',
     'sent' => 'We have e-mailed your password reset link!',
     'token' => 'This password reset token is invalid.',

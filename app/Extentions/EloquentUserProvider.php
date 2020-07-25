@@ -40,4 +40,5 @@ class EloquentUserProvider extends BaseUserProvider
         }
         return $query->first();
     }
+
 }

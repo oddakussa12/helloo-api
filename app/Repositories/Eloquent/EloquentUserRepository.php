@@ -710,7 +710,7 @@ DOC;
 
     public function randReferFriend()
     {
-        $key = 'ry_user_online_state';
+        $key = 'ry_user_online_status';
         return Redis::srandmember($key , config('common.refer_friend_num'));
     }
 
@@ -722,6 +722,12 @@ DOC;
             return is_int($v);
         });
         $user->regions()->sync($regions_id);
+    }
+
+    public function onlineUsersCount()
+    {
+        $key = 'ry_user_online_status';
+        return Redis::scard($key);
     }
 
     public function planet()
