@@ -37,7 +37,7 @@ class SignupEvent
 
     public function getUser()
     {
-        return $this->user;
+        return $this->user->makeVisible('user_ip_address');
     }
 
     public function getAgent()

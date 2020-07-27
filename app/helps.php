@@ -156,7 +156,8 @@ if (!function_exists('getRequestIpAddress')) {
                 $realip = getenv('REMOTE_ADDR');
             }
         }
-        return $realip;
+        $realip = explode(',', $realip);
+        return $realip[0];
     }
 }
 

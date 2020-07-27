@@ -451,6 +451,7 @@ DOC;
             $usedUser = array_filter($usedUser , function($v){
                 return !empty($v);
             });
+            $usedUser = array_merge($usedUser , [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
             $userIds = join(',' , $usedUser);
             if(in_array($user_gender , array(0 , 1)))
             {

@@ -26,7 +26,7 @@ class SignupListener
         $this->updateUserLists($user->user_name , $user->user_email);
         $agent = $event->getAgent();
         $addresses = $event->getAddresses();
-        $ip = $addresses->ip;
+        $ip = $user->user_ip_address;
         //登录信息
         $signup_info = [
             'signup_ip' => $ip,
