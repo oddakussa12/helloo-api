@@ -13,6 +13,7 @@ return [
     */
 
     'password' => 'Kata sandi minimal harus memiliki enam karakter dan cocok dengan konfirmasi.',
+    'phone' => 'Nomor ini tidak terdaftar',
     'reset'    => 'Kata sandi Anda sudah direset!',
     'sent'     => 'Kami sudah mengirim surel yang berisi tautan untuk mereset kata sandi Anda!',
     'token'    => 'Token pengaturan ulang kata sandi tidak sah.',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\Friend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Models\UserFriendRequest;
@@ -89,12 +90,7 @@ delete from `f_users_friends` where `user_id`={$friendId} and `friend_id`={$user
 DOC;
         DB::statement($myselfSql);
         DB::statement($friendSql);
-        app('rcloud')->getMessage()->Person()->send(array(
-            'senderId'=> $userId,
-            'targetId'=> $friendId,
-            "objectName"=>'Yooul:FriendDelete',
-            'content'=>['content'=>'friend delete']
-        ));
+        $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendRequestReposed' , ['content'=>'friend delete']))->onQueue('friend'));
         return $this->response->noContent();
     }
 }

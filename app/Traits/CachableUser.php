@@ -14,6 +14,7 @@ trait CachableUser
         $userKey = 'user.'.$user->getKey().'.data';
         $data = array(
             'user_id'=>$user->user_id,
+            'user_email'=>$user->user_email,
             'user_name'=>$user->user_name,
             'user_nick_name'=>$user->user_nick_name,
             'user_gender'=>-1,
@@ -28,6 +29,23 @@ trait CachableUser
         Redis::hmset($userKey , $data);
     }
 
+    public function getUser(int $id , $fields=array())
+    {
+        $userKey = 'user.'.$id.'.data';
+        if(!empty($fields))
+        {
+            return array_combine($fields , Redis::hmget($userKey , $fields));
+        }
+        return Redis::hgetall($userKey);
+    }
+
+    public function isCanUpdateName(int $id)
+    {
+        $lastUpdateAt = $this->getUser($id , array('user_name_updated_at'));
+        $data = empty($lastUpdateAt['user_name_updated_at'])?'1546272000':$lastUpdateAt['user_name_updated_at'];
+        return (int)(Carbon::createFromTimestamp($data)->addDay(config('common.user_name_update_time'))->isPast());
+    }
+
     public function updateUser(User $user , array $extend=array())
     {
         $userKey = 'user.'.$user->getKey().'.data';
@@ -37,6 +55,7 @@ trait CachableUser
             'user_avatar'=>$user->user_avatar, //默认头像
             'user_country_id'=>$user->user_country_id,
             'user_age'=>$user->user_age,
+            'user_birthday'=>$user->user_birthday,
             'user_level'=>$user->user_level,
         );
         $data = $data+$extend;
@@ -53,17 +72,17 @@ trait CachableUser
      * @return void
      */
 
-    public function updateUserLists($userName, $userEmail , $op=true)
+    public function updateUserLists($userName, $userEmail='' , $op=true)
     {
         $userNameKey = config('redis-key.user.user_name');
         $userEmailKey = config('redis-key.user.user_email');
         if($op)
         {
-            Redis::sadd($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
-            Redis::sadd($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
+            !blank($userName)&&Redis::sadd($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
+            !blank($userEmail)&&Redis::sadd($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
         }else{
-            Redis::srem($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
-            Redis::srem($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
+            !blank($userName)&&Redis::srem($userNameKey , mb_convert_case($userName, MB_CASE_LOWER, "UTF-8"));
+            !blank($userEmail)&&Redis::srem($userEmailKey , mb_convert_case($userEmail, MB_CASE_LOWER, "UTF-8"));
         }
     }
 
@@ -330,5 +349,11 @@ trait CachableUser
         $likeUserId = $likeUserId===null?auth()->id():$likeUserId;
         $userProfileLikeKey = 'user.'.$id.'.profile.like';
         return (bool)($likeUserId&&Redis::zrank($userProfileLikeKey , $likeUserId)!==null);
+    }
+
+    public function isBlock($userId)
+    {
+        $key = 'block_user';
+        return (bool)Redis::zscore($key , $userId);
     }
 }

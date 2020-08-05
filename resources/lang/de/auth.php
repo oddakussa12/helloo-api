@@ -12,7 +12,10 @@ return [
     |
     */
 
-    'failed'   => 'Diese Kombination aus Zugangsdaten wurde nicht in unserer Datenbank gefunden.',
+    'failed'   => 'Diese Kombination aus Zugangsdaten wurde nicht in unserer Datenbank gefunden!',
+    'password_error' =>'Falsches Passwort!',
+    'phone_failed'   => 'Falsche Telefonnummer oder falsches Passwort!',
+    'email_failed'   => 'falsche Email oder Passwort!',
     'throttle' => 'Zu viele Loginversuche. Versuchen Sie es bitte in :seconds Sekunden nochmal.',
     'throttle_remain' => 'Zu viele Versuche. Versuchen Sie es bitte in :seconds Sekunden nochmal.',
     'throttle_limit' => 'Die Operation ist zu häufig, bitte versuchen Sie es später noch einmal!',

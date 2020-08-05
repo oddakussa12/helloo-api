@@ -13,17 +13,19 @@ class ResetPassword extends Mailable implements ShouldQueue
 
     public $user;
     public $token;
+    public $code;
     public $referer;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($user , $token , $referer)
+    public function __construct($user , $token , $code , $referer)
     {
         //
         $this->user = $user;
         $this->token = $token;
+        $this->code = $code;
         $this->referer = $referer;
     }
 
@@ -36,6 +38,7 @@ class ResetPassword extends Mailable implements ShouldQueue
     {
         return $this->view('auth.password.reset')->with([
             'url' => 'http://'.$this->referer.'/reset/index.html?token='.$this->token.'&email='.$this->user->getEmailForPasswordReset(),
+            'code'=>$this->code
         ]);
     }
 }

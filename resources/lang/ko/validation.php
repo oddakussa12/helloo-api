@@ -130,6 +130,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => '유효한 전화 번호를 사용하십시오',
+            'unique' => '이 전화 번호는 등록되었습니다.',
+        ],
         'name' => [
             'regex' => '예를 들어 문자와 숫자를 사용하십시오. abcdef123',
             'unique' => '이 계정은 등록되었습니다 로그인하십시오!',
@@ -152,6 +156,7 @@ return [
 
     'attributes' => [
         'name'                  => '계좌 번호',
+        'nick_name'             => '별명',
         'username'              => '아이디',
         'email'                 => '우편함',
         'first_name'            => '이름',
@@ -183,6 +188,7 @@ return [
         'post_title'            => '게시물 제목',
         'post_content'          => '컨텐츠 게시',
         'tag_slug'              => '포스트 태그',
-        'comment_content'       => '내용은 비워 둘 수 없습니다',
+        'comment_content'       => '코멘트',
+        'user_birthday'         => '생신',
     ],
 ];

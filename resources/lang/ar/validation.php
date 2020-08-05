@@ -130,6 +130,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => 'يرجى استخدام رقم هاتف صالح',
+            'unique' => 'تم تسجيل رقم الهاتف هذا. ',
+        ],
         'name' => [
             'regex' => 'رجى استخدام الحروف والأرقام ، على سبيل المثال. abcdef123',
             'unique' => 'تم تسجيل هذا الحساب ، يرجى تسجيل الدخول!',
@@ -152,6 +156,7 @@ return [
 
     'attributes' => [
         'name'                  => 'الاسم',
+        'nick_name'             => 'كنية',
         'username'              => 'اسم المُستخدم',
         'email'                 => 'البريد الالكتروني',
         'first_name'            => 'الاسم الأول',
@@ -183,6 +188,7 @@ return [
         'post_title'            => 'عنوان الوظيفة',
         'post_content'          => 'نشر المحتوى',
         'tag_slug'              => 'علامة المشاركة',
-        'comment_content'       => 'لا يمكن أن يكون المحتوى فارغًا',
+        'comment_content'       => 'تعليقات',
+        'user_birthday'         => 'عيد الميلاد',
     ],
 ];

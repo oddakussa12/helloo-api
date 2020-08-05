@@ -67,7 +67,7 @@ class PostCommentDeletedListener
         $post->decrement('post_comment_num' , $type , $extra);
         $this->updateCountry($post->post_id , $user->user_country_id , false);
         $this->updateCommenter($post->post_id , $user->getKey() , false);
-        $this->updateCommentCount($post->post_id , $user->getKey() , false);
+        $this->updateCommentCount($post->post_id , false);
         $this->updateUserPostCommentCount($user->getKey() , -1);
         if($object->comment_created_at>config('common.score_date'))
         {

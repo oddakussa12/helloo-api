@@ -62,13 +62,16 @@ $api->group($V1Params , function ($api){
     });
 
     $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
+    $api->post('user/phone/resetPwd' , 'AuthController@resetPwdByPhone')->name('user.phone.reset.pwd');
 
     $api->group(['middleware'=>'throttle:'.config('common.sign_up_throttle_num').','.config('common.sign_up_throttle_expired')] , function ($api){
         $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
+        $api->post('user/phone/signUp' , 'AuthController@handleSignUp')->name('user.phone.sign.up');
     });
     //游客模式生成用户
 //    $api->post('user/guestSignUp' , 'AuthController@guestSignUp')->name('guest.signin');
     $api->post('user/signIn' , 'AuthController@signIn')->name('sign.in');
+    $api->post('user/phone/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
     $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
 //    $api->get('auth/smsCode' , 'AuthController@smsSend')->name('auth.sms.send');
 
@@ -99,6 +102,17 @@ $api->group($V1Params , function ($api){
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
         $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
+        $api->post('user/update/myself/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
+        $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
+        $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
+        $api->post('user/update/myself/email' , 'AuthController@updateUserEmail')->name('myself.update.email');
+        $api->group(['middleware'=>['throttle:'.config('common.user_update_send_phone_code_throttle_num').','.config('common.user_update_send_phone_code_throttle_expired') , 'blacklist']] , function ($api){
+            $api->post('user/update/phone/code' , 'AuthController@sendUpdatePhoneCode')->name('myself.update.send.phone.code');
+        });
+        $api->group(['middleware'=>['throttle:'.config('common.user_update_send_email_code_throttle_num').','.config('common.user_update_send_email_code_throttle_expired') , 'blacklist']] , function ($api){
+            $api->post('user/update/email/code' , 'AuthController@sendUpdateEmailCode')->name('myself.update.send.email.code');
+        });
+        $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken')->name('qn.token');
         $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo')->name('follow.two');
 
@@ -172,7 +186,7 @@ $api->group($V1Params , function ($api){
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
 //    $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend');
-    $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name')->name('user.account.exists');
+    $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name|phone|nick_name')->name('user.account.exists');
     $api->get('user' , 'UserController@index')->name('user.name.search');
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
@@ -209,7 +223,7 @@ $api->group($V1Params , function ($api){
     });
     $api->get('translation' , 'TranslationController@index')->name('translation.index');
     $api->get('google/token' , 'GoogleController@token')->name('google.token');
-    $api->post('test/index' , 'TestController@test')->name('test.test');
+    $api->get('test/index' , 'TestController@test')->name('test.test');
 
 });
 

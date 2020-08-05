@@ -41,8 +41,10 @@ return [
 
     'sign_up_throttle_num' =>env('SIGN_UP_THROTTLE_NUM', 2),
     'sign_up_throttle_expired' =>env('SIGN_UP_THROTTLE_EXPIRED', 60),
-    'forget_password_throttle_num' =>env('FORGET_PASSWORD_THROTTLE_NUM', 1),
-    'forget_password_throttle_expired' =>env('FORGET_PASSWORD_THROTTLE_EXPIRED', 1),
+    'forget_password_throttle_num' =>env('FORGET_PASSWORD_THROTTLE_NUM', 2),
+    'forget_password_throttle_expired' =>env('FORGET_PASSWORD_THROTTLE_EXPIRED', 10),
+    'forget_password_phone_throttle_num' =>env('FORGET_PASSWORD_PHONE_THROTTLE_NUM', 2),
+    'forget_password_phone_throttle_expired' =>env('FORGET_PASSWORD_PHONE_THROTTLE_EXPIRED', 10),
     'post_throttle_num' =>env('POST_THROTTLE_NUM', 1),
     'post_throttle_expired' =>env('POST_THROTTLE_EXPIRED', 1),
     'post_comment_throttle_num' =>env('POST_COMMENT_THROTTLE_NUM', 2),
@@ -53,6 +55,10 @@ return [
     'post_dislike_throttle_expired' =>env('POST_DISLike_THROTTLE_EXPIRED', 1),
     'post_comment_like_throttle_num' =>env('POST_COMMENT_Like_THROTTLE_NUM', 6),
     'post_comment_like_throttle_expired' =>env('POST_COMMENT_Like_THROTTLE_EXPIRED', 1),
+    'user_update_send_phone_code_throttle_num' =>env('USER_UPDATE_SEND_PHONE_CODE_THROTTLE_NUM', 2),
+    'user_update_send_phone_code_throttle_expired' =>env('USER_UPDATE_SEND_PHONE_CODE_THROTTLE_EXPIRED', 10),
+    'user_update_send_email_code_throttle_num' =>env('USER_UPDATE_SEND_EMAIL_CODE_THROTTLE_NUM', 2),
+    'user_update_send_email_code_throttle_expired' =>env('USER_UPDATE_SEND_EMAIL_CODE_THROTTLE_EXPIRED', 10),
 
     'authorization'=>[
         'create_post'=>env('AUTHORIZATION_CREATE_POST' , true),
@@ -72,4 +78,11 @@ return [
     'google_translation_version'=>env('GOOGLE_TRANSLATION_VERSION', 'v3'),
     'refer_friend_num'=>env('REFER_FRIEND_NUM', 3),
     'translation_version'=>env('TRANSLATION_VERSION', 'niu'),
+    'report_user_num'=>env('REPORT_USER_NUM' , 5),
+    'report_post_num'=>env('REPORT_POST_NUM' , 5),
+    'report_limit_num'=>env('REPORT_POST_NUM' , 3),
+    'email_code_wait_time'=>env('EMAIL_CODE_WAIT_TIME' , 600),
+    'phone_code_wait_time'=>env('EMAIL_CODE_WAIT_TIME' , 600),
+    'user_name_update_time'=>env('USER_NAME_UPDATE_TIME' , 1),
+    'emoji_md5'=>env('EMOJI_MD5' , ''),
 ];

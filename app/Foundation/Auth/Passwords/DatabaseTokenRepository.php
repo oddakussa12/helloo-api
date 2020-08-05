@@ -4,6 +4,7 @@ namespace App\Foundation\Auth\Passwords;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use App\Custom\Uuid\RandomStringGenerator;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Auth\Passwords\TokenRepositoryInterface;
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
@@ -70,7 +71,7 @@ class DatabaseTokenRepository implements TokenRepositoryInterface
      * Create a new token record.
      *
      * @param  \Illuminate\Contracts\Auth\CanResetPassword  $user
-     * @return string
+     * @return array
      */
     public function create(CanResetPasswordContract $user)
     {
@@ -82,10 +83,11 @@ class DatabaseTokenRepository implements TokenRepositoryInterface
         // a safe link to the password reset form. Then we will insert a record in
         // the database so that we can verify the token within the actual reset.
         $token = $this->createNewToken();
+        $code = $this->createNewCode();
 
-        $this->getTable()->insert($this->getPayload($email, $token));
+        $this->getTable()->insert($this->getPayload($email, $token , $code));
 
-        return $token;
+        return array('token'=>$token , 'code'=>$code);
     }
 
     /**
@@ -104,11 +106,36 @@ class DatabaseTokenRepository implements TokenRepositoryInterface
      *
      * @param  string  $email
      * @param  string  $token
+     * @param  string  $code
      * @return array
      */
-    protected function getPayload($email, $token)
+    protected function getPayload($email, $token , $code)
     {
-        return ['email' => $email, 'token' => $this->hasher->make($token), 'created_at' => new Carbon];
+        return ['email' => $email, 'token' => $this->hasher->make($token), 'code' => $code, 'created_at' => new Carbon];
+    }
+
+    /**
+     * Determine if a token record exists and is valid.
+     *
+     * @param  \Illuminate\Contracts\Auth\CanResetPassword  $user
+     * @param  string  $code
+     * @return bool
+     */
+    public function existsCode(CanResetPasswordContract $user, $code)
+    {
+        $record = (array) $this->getTable()->where(
+            'email', $user->getEmailForPasswordReset()
+        )->first();
+        return $record &&
+            ! $this->tokenExpired($record['created_at']) &&
+            $code === strval($record['code']);
+    }
+
+    public function existsPhoneCode($record , $code)
+    {
+        return $record &&
+            ! $this->tokenExpired($record->created_at) &&
+            $code === strval($record->code);
     }
 
     /**
@@ -171,6 +198,16 @@ class DatabaseTokenRepository implements TokenRepositoryInterface
     public function createNewToken()
     {
         return hash_hmac('sha256', Str::random(40), $this->hashKey);
+    }
+
+    /**
+     * Create a new token for the user.
+     *
+     * @return string
+     */
+    public function createNewCode()
+    {
+        return (new RandomStringGenerator('1234567890'))->generate(6);
     }
 
     /**

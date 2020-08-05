@@ -13,7 +13,10 @@ return [
     |
     */
 
-    'failed' => 'These credentials do not match our records.',
+    'failed' => 'These credentials do not match our records!',
+    'password_error' =>'Incorrect password!',
+    'phone_failed' => 'Incorrect phone number or password!',
+    'email_failed'=>'Incorrect email or password',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
     'throttle_remain' => 'Too many attempts. Please try again in :seconds seconds.',
     'throttle_limit' => 'The operation is too frequent, please try again later!',

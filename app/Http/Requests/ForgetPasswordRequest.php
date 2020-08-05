@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\UserPhone;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ForgetPasswordRequest extends FormRequest
@@ -24,8 +25,8 @@ class ForgetPasswordRequest extends FormRequest
     public function rules()
     {
         return [
-//            //
-            'email'=>'required|email',
+            'email'=>'bail|required_without:user_phone|email',
+            'user_phone'=>'bail|required_without:email|string',
         ];
     }
 

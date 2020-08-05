@@ -91,7 +91,7 @@ class SetController extends BaseController
         $key = 'commonSwitch';
         if(!Redis::exists($key))
         {
-            Redis::hmset($key , array('free_translator'=>1,'refer_friend'=>1 , 'carousel'=>0 , 'test_translator'=>0));
+            Redis::hmset($key , array('free_translator'=>1,'refer_friend'=>1 , 'carousel'=>0 , 'test_translator'=>0 , 'emoji_md5'=>config('common.emoji_md5')));
         }
         $fieldStr = (string)$request->input('include' , '');
         $fields = explode(',' , $fieldStr);
@@ -112,6 +112,10 @@ class SetController extends BaseController
         if(in_array('dx_switch' , $fields))
         {
             $switches['dx_switch']=array_merge(dx_uuid(), dx_switch($key) , array('type'=>$dxSwitchKey));
+        }
+        if(strpos($fieldStr ,'emoji_md5'))
+        {
+            $switches['emoji_md5'] = config('common.emoji_md5');
         }
 
         if(strpos($fieldStr ,'app_version'))

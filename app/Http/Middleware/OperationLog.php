@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Auth;
 use Closure;
 use Carbon\Carbon;
+use Jenssegers\Agent\Agent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
@@ -20,22 +21,31 @@ class OperationLog extends BaseMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if(auth()->check()&&$request->routeIs('post.index'))
+        if(auth()->check()&&($request->routeIs('post.index')||$request->routeIs('myself.update')))
         {
             $chinaNow = Carbon::now('Asia/Shanghai');
             $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
             $user_id = (int) auth()->id();
-            if(!Redis::setbit($key , $user_id , 1))
+            if(Redis::setbit($key , $user_id , 1))
             {
-                $count = DB::table('views_logs')->where('user_id' , $user_id)
-                    ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-                    ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
-                    ->count();
-                if ($count <= 0) {
+                $view = DB::table('views_logs')->where('user_id' , $user_id)->orderBy('id' , 'DESC')->first();
+                if(empty($view)||Carbon::parse($view->created_at , 'Asia/Shanghai')->endOfDay()->timestamp<$chinaNow->endOfDay()->timestamp)
+                {
+                    $agent = new Agent();
+                    if($agent->match('YooulAndroid'))
+                    {
+                        $referer = 'android';
+                    }elseif ($agent->match('YoouliOS'))
+                    {
+                        $referer = 'ios';
+                    }else{
+                        $referer = $request->server('HTTP_REFERER');
+                        $referer = empty($referer)?'web':$referer;
+                    }
                     DB::table('views_logs')->insert(array(
                         'user_id'=>$user_id,
                         'ip'=>getRequestIpAddress(),
-                        'referer'=>$request->server('HTTP_REFERER'),
+                        'referer'=>$referer,
                         'created_at'=>$chinaNow,
                     ));
                 }

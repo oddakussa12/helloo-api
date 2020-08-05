@@ -131,6 +131,10 @@ return [
         'password' => [
             'min' => 'La :attribute debe contener más de :min caracteres',
         ],
+        'phone' => [
+            'wrong_format' => 'Por favor use un número de teléfono válido',
+            'unique' => 'Este número de teléfono ha sido registrado.',
+        ],
         'name' => [
             'regex' => 'Por favor use letras y números, ej. abcdef123',
             'unique' => 'Esta cuenta ha sido registrada, por favor inicie sesión!',
@@ -153,6 +157,7 @@ return [
 
     'attributes' => [
         'name'                  => 'nombre',
+        'nick_name'             => 'apodo',
         'username'              => 'usuario',
         'email'                 => 'correo electrónico',
         'first_name'            => 'nombre',
@@ -186,6 +191,7 @@ return [
         'post_title'            => 'Título de la publicación',
         'post_content'          => 'Publicar contenido',
         'tag_slug'              => 'Etiqueta de publicación',
-        'comment_content'       => 'El contenido no puede estar vacío.',
+        'comment_content'       => 'comentarios',
+        'user_birthday'         => 'cumpleaños',
     ],
 ];

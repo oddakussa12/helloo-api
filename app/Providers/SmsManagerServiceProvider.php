@@ -8,7 +8,6 @@ use App\Custom\Toplan\Sms\SmsManager;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Toplan\Sms\SmsManagerServiceProvider as ServiceProvider;
 
-
 class SmsManagerServiceProvider extends ServiceProvider
 {
     use DispatchesJobs;
@@ -26,8 +25,6 @@ class SmsManagerServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../../config/laravel-sms.php', 'laravel-sms');
-
         $this->app->singleton('Toplan\\Sms\\SmsManager', function ($app) {
             $token = $app->request->header('access-token', null);
             if (empty($token)) {

@@ -12,7 +12,10 @@ return [
     |
     */
 
-    'failed'   => '用户名或密码错误。',
+    'password_error'   => '密码错误!',
+    'failed'   => '用户名或密码错误!',
+    'phone_failed'   => '手机号或密码错误!',
+    'email_failed'   => '邮箱或密码错误!',
     'throttle' => '您的尝试登录次数过多，请 :seconds 秒后再试。',
     'throttle_remain' => '您尝试次数过多，请 :seconds 秒后再试。',
     'throttle_limit' => '操作过于频繁，请稍后重试！',

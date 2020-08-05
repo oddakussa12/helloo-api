@@ -130,6 +130,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => 'Silakan gunakan nomor telepon yang valid',
+            'unique' => 'Nomor telepon ini sudah terdaftar.',
+        ],
         'name' => [
             'regex' => 'Silakan gunakan huruf dan angka, mis. abcdef123',
             'unique' => 'Akun ini telah terdaftar, silakan masuk!',
@@ -152,6 +156,7 @@ return [
 
     'attributes' => [
         'name' => 'name',
+        'nick_name' => 'nama panggilan',
         'username' => 'username',
         'email' => 'kotak surat',
         'first_name' => 'name',
@@ -183,6 +188,7 @@ return [
         'post_title'            => 'Judul posting',
         'post_content'          => 'Posting konten',
         'tag_slug'              => 'Tag pos',
-        'comment_content'       => 'Konten tidak boleh kosong',
+        'comment_content'       => 'komentar',
+        'user_birthday'         => 'ulang tahun',
     ],
 ];

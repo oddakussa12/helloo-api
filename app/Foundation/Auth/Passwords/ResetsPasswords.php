@@ -2,6 +2,7 @@
 
 namespace App\Foundation\Auth\Passwords;
 
+use App\Rules\UserPhone;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,55 @@ trait ResetsPasswords
         return view('auth.passwords.reset')->with(
             ['token' => $token, 'email' => $request->email]
         );
+    }
+
+    /**
+     * Reset the given user's password.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return mixed
+     */
+
+    public function resetByPhone(Request $request)
+    {
+        $user_phone = strval($request->input('user_phone' , ""));
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $code = strval($request->input('code'));
+        $password = strval($request->input('password'));
+        $password_confirmation = strval($request->input('password_confirmation'));
+        $rules = [
+            'code' => 'bail|required|string|size:6',
+            'user_phone' => [
+                'bail',
+                'required',
+                'string',
+                new UserPhone()
+            ],
+            'password' => 'bail|required|string|confirmed|min:6|max:16',
+            'password_confirmation' => 'bail|required|string|same:password',
+        ];
+        $validationField = array(
+            'code' => $code,
+            'user_phone'=>$user_phone_country.$user_phone,
+            'password'=>$password,
+            'password_confirmation'=>$password_confirmation,
+        );
+        \Validator::make($validationField, $rules)->validate();
+        $user = \DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+        if(blank($user))
+        {
+            return 'passwords.phone';
+        }
+        $phone = \DB::table('phone_password_resets')->where('phone_country', $user_phone_country)->where('phone', $user_phone)->first();
+        if(!$this->broker()->validatePhoneCode($phone , $code))
+        {
+            return 'passwords.code';
+        }
+        \DB::table('users')->where('user_id' , $user->user_id)->update(array(
+            'user_pwd'=>bcrypt($password)
+        ));
+        \DB::table('phone_password_resets')->where('phone_country', $user_phone_country)->where('phone', $user_phone)->delete();
+        return true;
     }
 
     /**
@@ -65,9 +115,10 @@ trait ResetsPasswords
     protected function rules()
     {
         return [
-            'token' => 'required',
+            'token' => 'required_without:code',
+            'code' => 'required_without:token',
             'email' => 'required|email',
-            'password' => 'required|confirmed|min:4|max:16',
+            'password' => 'required|confirmed|min:6|max:16',
         ];
     }
 
@@ -90,10 +141,12 @@ trait ResetsPasswords
     protected function credential(Request $request)
     {
         $params = $request->only(
-            'email', 'password', 'password_confirmation', 'token'
+            'email', 'password', 'password_confirmation', 'token' , 'code'
         );
-        return array('user_email'=>$params['email'],'password'=>$params['password'],'password_confirmation'=>$params['password_confirmation'],'token'=>$params['token']);
-
+        $credential = array('user_email'=>$params['email'],'password'=>$params['password'],'password_confirmation'=>$params['password_confirmation']);
+        isset($params['token'])&&$credential['token'] = $params['token'];
+        isset($params['code'])&&$credential['code'] = $params['code'];
+        return $credential;
     }
 
     /**

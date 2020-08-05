@@ -25,9 +25,11 @@ class StoreUserRequest extends FormRequest
     {
         return [
             //UTF-8正则匹配汉字、字母、数字、横杠、下划线、空格，如下：(不要空格可以去掉\s)
-            'name'=>'required|regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u|min:4|max:32|unique:users,user_name',
+//            'name'=>'required|regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u|min:4|max:32|unique:users,user_name',
+            'name'=>'required|regex:/^[0-9a-zA-Z]+$/u|min:4|max:32|unique:users,user_name',
             'email'=>'required|email|unique:users,user_email',
-            'password'=>'required|min:4|max:16',
+            'password'=>'required|string|min:6|max:16',
+            'user_nick_name'=>'filled|string|min:4|max:13',
         ];
     }
 

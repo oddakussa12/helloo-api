@@ -980,6 +980,21 @@ if (!function_exists('getContinentByCountry'))
         return 'other';
     }
 }
+if (!function_exists('getUserCountryId'))
+{
+    function getUserCountryId($value)
+    {
+        $index = array_search(strtoupper($value) , config('countries'));
+        if($index===false)
+        {
+            $index = 236;
+        }else{
+            $index = $index+1;
+        }
+        return $index;
+    }
+}
+
 
 
 

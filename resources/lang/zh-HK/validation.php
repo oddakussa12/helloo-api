@@ -130,6 +130,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => '請使用有效的電話號碼',
+            'unique' => '該電話號碼已被註冊。',
+        ],
         'name' => [
             'regex' => '請使用字母和數字，例如。 abcdef123',
             'unique' => '此賬號已存在，請直接登錄！',
@@ -152,6 +156,7 @@ return [
 
     'attributes' => [
         'name'                  => '名稱',
+        'nick_name'             => '暱稱',
         'username'              => '使用者名',
         'email'                 => '電郵',
         'first_name'            => '名',
@@ -183,6 +188,7 @@ return [
         'post_title'            => '貼子標題',
         'post_content'          => '貼子內容',
         'tag_slug'              => '貼子標籤',
-        'comment_content'       => '內容不能為空',
+        'comment_content'       => '評論內容',
+        'user_birthday'         => '生日',
     ],
 ];

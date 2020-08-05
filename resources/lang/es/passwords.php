@@ -13,6 +13,7 @@ return [
     */
 
     'password' => 'Las contraseñas deben coincidir y contener al menos 8 caracteres',
+    'phone' => 'Este número no está registrado',
     'reset'    => '¡Tu contraseña ha sido restablecida!',
     'sent'     => '¡Te hemos enviado por correo el enlace para restablecer tu contraseña!',
     'token'    => 'El token de recuperación de contraseña es inválido.',
