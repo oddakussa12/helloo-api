@@ -257,12 +257,20 @@ class PostCommentController extends BaseController
     {
         $postComment = $this->postComment->findOrFail($id);
         $user = auth()->user();
-        if($postComment->user_id!=$user->user_id)
+        if($postComment->user_id==$user->user_id)
         {
-            abort(403);
+            event(new PostCommentDeleted($user , $postComment));
+            $this->postComment->destroy($postComment);
+        }else{
+            $post = app(PostRepository::class)->findOrFailById($postComment->post_id);
+            if($post->user_id==$user->user_id)
+            {
+                $this->postComment->destroy($postComment);
+            }else{
+                abort(403);
+            }
         }
-        event(new PostCommentDeleted($user , $postComment));
-        $this->postComment->destroy($postComment);
+
         return $this->response->noContent();
     }
 

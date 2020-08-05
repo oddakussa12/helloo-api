@@ -131,6 +131,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => 'Bitte verwenden Sie eine gültige Telefonnummer',
+            'unique' => 'Diese Telefonnummer wurde registriert. ',
+        ],
         'name' => [
             'regex' => 'Bitte verwenden Sie Buchstaben und Zahlen, z. abcdef123',
             'unique' => 'Dieses Konto wurde registriert, bitte einloggen!',
@@ -153,6 +157,7 @@ return [
 
     'attributes' => [
         'name'                  => 'Name',
+        'nick_name'             => 'Spitzname',
         'username'              => 'Benutzername',
         'email'                 => 'E-Mail-Adresse',
         'first_name'            => 'Vorname',
@@ -184,6 +189,7 @@ return [
         'post_title'            => 'Post-Titel',
         'post_content'          => 'Inhalt posten',
         'tag_slug'              => 'Post-Tag',
-        'comment_content'       => 'Der Inhalt darf nicht leer sein',
+        'comment_content'       => 'Bemerkungen',
+        'user_birthday'         => 'Geburtstag',
     ],
 ];

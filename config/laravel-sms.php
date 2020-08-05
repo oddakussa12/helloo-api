@@ -83,7 +83,9 @@ return [
         return "【Yooul】Your Yooul security code is {$code}. You are trying to change the login password. Please keep your account information in a safe place.";
     }),
 
-    'global_content' => "【Yooul】Your Yooul security code is %s. You are trying to change the login password. Please keep your account information in a safe place.",
+    'forget_password' => "【Yooul】Your Yooul security code is %s. You are trying to change the login password. Please keep your account information in a safe place.",
+
+    'update_phone' => "【Yooul】Your Yooul security code is %s. You are trying to change the phone. Please keep your account information in a safe place.",
 
     /*
     |--------------------------------------------------------------------------
@@ -108,6 +110,9 @@ return [
     */
     'templates' => [
         'Aliyun' => env('SMS_TEMPLATE_ID' , ''),
+    ],
+    'other_templates' => [
+        'Aliyun' => env('SMS_UPDATE_PHONE_TEMPLATE_ID' , 'SMS_183445108'),
     ],
 
     /*
@@ -161,7 +166,7 @@ return [
     |
     */
     'storage' => [
-        'driver' => App\Custom\Toplan\Sms\Cache\CacheStorage::class,
+        'driver' => '',
         'prefix' => 'yooul_sms',
     ],
 

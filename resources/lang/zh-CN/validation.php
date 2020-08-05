@@ -130,6 +130,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => '请填写正确的手机号',
+            'unique' => '该手机号已被注册，请直接去登录吧～',
+        ],
         'name' => [
             'regex' => '请使用字母和数字，例如：abcdef123',
             'unique' => '此账号已存在，请直接登录！',
@@ -152,6 +156,7 @@ return [
 
     'attributes' => [
         'name'                  => '账号',
+        'nick_name'             => '昵称',
         'username'              => '用户名',
         'email'                 => '邮箱',
         'first_name'            => '名',
@@ -183,6 +188,7 @@ return [
         'post_title'            => '贴子标题',
         'post_content'          => '贴子内容',
         'tag_slug'              => '贴子标签',
-        'comment_content'       => '内容不能为空',
+        'comment_content'       => '评论内容',
+        'user_birthday'         => '生日',
     ],
 ];

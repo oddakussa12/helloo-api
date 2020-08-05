@@ -132,6 +132,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => 'Vui lòng sử dụng số điện thoại hợp lệ',
+            'unique' => 'Số điện thoại này đã được đăng ký.',
+        ],
         'name' => [
             'regex' => 'Vui lòng sử dụng chữ cái và số, vd. abcdef123',
             'unique' => 'Tài khoản này đã được đăng ký, vui lòng đăng nhập!',
@@ -154,6 +158,7 @@ return [
 
     'attributes' => [
         'name'                  => 'tên',
+        'nick_name'             => 'tên nick',
         'username'              => 'tên đăng nhập',
         'email'                 => 'email',
         'first_name'            => 'tên',
@@ -188,7 +193,8 @@ return [
         'post_title'            => 'Tiêu đề bài',
         'post_content'          => 'Đăng nội dung',
         'tag_slug'              => 'Thẻ bài',
-        'comment_content'       => 'Nội dung không thể để trống',
+        'comment_content'       => 'bình luận',
+        'user_birthday'         => 'sinh nhật',
     ],
 
 ];

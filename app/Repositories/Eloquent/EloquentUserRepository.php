@@ -451,6 +451,7 @@ DOC;
             $usedUser = array_filter($usedUser , function($v){
                 return !empty($v);
             });
+            $usedUser = array_merge($usedUser , [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
             $userIds = join(',' , $usedUser);
             if(in_array($user_gender , array(0 , 1)))
             {
@@ -639,7 +640,12 @@ DOC;
 
     public function findByLikeName($name)
     {
-        return $this->model->where('user_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id' , 'user_name' , 'user_level' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
+        return $this->model->where('user_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id' , 'user_name' ,'user_nick_name' , 'user_level' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
+    }
+
+    public function findByLikeNickName($name)
+    {
+        return $this->model->where('user_nick_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_nick_name,'{$name}','')")->select('user_id' , 'user_name' , 'user_nick_name' , 'user_level' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
     }
 
     public function profileLike($id)

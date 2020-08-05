@@ -34,7 +34,7 @@ class UserPhone implements Rule
      */
     public function message()
     {
-        return 'Wrong format of phone number';
+        return trans('validation.custom.phone.wrong_format');
     }
 
 

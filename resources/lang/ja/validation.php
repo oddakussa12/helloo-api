@@ -130,6 +130,10 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'phone' => [
+            'wrong_format' => '有効な電話番号を使用してください',
+            'unique' => 'この電話番号は登録されています。',
+        ],
         'name' => [
             'regex' => '文字と数字を使用してください。 abcdef123',
             'unique' => 'このアカウントは登録されています。ログインしてください！',
@@ -153,6 +157,7 @@ return [
     'attributes' => [
 
         'name' => '口座番号',
+        'nick_name' => 'ニックネーム',
         'username'=>'ユーザー名',
         'email' => 'メールボックス',
         'first_name' => 'お名前',
@@ -184,6 +189,7 @@ return [
         'post_title'            => '役職',
         'post_content'          => '投稿内容',
         'tag_slug'              => '投稿タグ',
-        'comment_content'       => 'コンテンツを空にすることはできません',
+        'comment_content'       => 'コメント',
+        'user_birthday'         => 'お誕生日',
     ],
 ];

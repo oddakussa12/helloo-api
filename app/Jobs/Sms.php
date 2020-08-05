@@ -29,35 +29,39 @@ class Sms implements ShouldQueue
      * @var string
      */
     private $user_phone_country;
-    /**
-     * @var Credentials
-     */
-    private $credentials;
-    /**
-     * @var SnsClient
-     */
-    private $smsClient;
 
-    public function __construct($phone=null , $code=null , $user_phone_country="86")
+    /**
+     * @var string
+     */
+    private $type;
+
+    public function __construct($phone=null , $code=123456 , $user_phone_country="86" , $type='')
     {
         $this->phone = $phone;
         $this->code = $code;
         $this->user_phone_country = $user_phone_country;
+        $this->type = $type;
     }
 
     /**
      * Execute the job.
      *
-     * @return void
+     * @return mixed
      */
     public function handle()
     {
-
         $phone = "+".$this->user_phone_country.$this->phone;
         if($this->user_phone_country=='86')
         {
-            SmsManager::requestVerifySms($phone , $this->code);
+            $type = $this->type;
+            SmsManager::requestVerifySms($phone , $this->code , $type);
         }else{
+            if($this->type=='update_phone')
+            {
+                $message = config('laravel-sms.verifySmsContent') ?: config('laravel-sms.update_phone');
+            }else{
+                $message = config('laravel-sms.verifySmsContent') ?: config('laravel-sms.forget_password');
+            }
             $awsKey = config('phpsms.aws.key');
             $awsSecret = config('phpsms.aws.secret');
             $credentials = new Credentials($awsKey, $awsSecret);
@@ -66,18 +70,15 @@ class Sms implements ShouldQueue
                 'version' => '2010-03-31',
                 'credentials' => $credentials
             ]);
-            $message = config('laravel-sms.verifySmsContent') ?: config('laravel-sms.global_content');
             $content = sprintf($message, $this->code);
             try {
                 $result = $smsClient->publish([
                     'Message' => $content,
                     'PhoneNumber' => $phone,
                 ]);
-                \Log::error(\json_encode($result , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
             } catch (AwsException $e) {
                 \Log::error($e->getMessage());
             }
-
         }
     }
 }

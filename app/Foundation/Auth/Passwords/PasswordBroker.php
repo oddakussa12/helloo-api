@@ -117,6 +117,11 @@ class PasswordBroker implements PasswordBrokerContract
         return static::PASSWORD_RESET;
     }
 
+    public function validatePhoneCode($phone, $code)
+    {
+        return $this->tokens->existsPhoneCode($phone, $code);
+    }
+
     /**
      * Validate a password reset for the given credentials.
      *

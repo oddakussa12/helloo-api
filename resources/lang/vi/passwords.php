@@ -13,6 +13,7 @@ return [
     */
 
     'password' => 'Mật khẩu phải gồm 8 ký tự và khớp với phần xác nhận.',
+    'phone' => 'Số này chưa được đăng ký',
     'reset'    => 'Mật khẩu mới đã được cập nhật!',
     'sent'     => 'Hướng dẫn cấp lại mật khẩu đã được gửi!',
     'token'    => 'Mã khôi phục mật khẩu không hợp lệ.',

@@ -23,16 +23,30 @@ class SignupEvent
      */
     protected $ip;
 
+    /**
+     * @var string IP地址信息
+     */
+    protected $addresses;
+
+    /**
+     * @var string 扩展信息
+     */
+    protected $extend;
+
 
     /**
      * 实例化事件时传递这些信息
+     * @param $user
+     * @param $addresses
+     * @param array $extend
      */
-    public function __construct($user , $addresses)
+    public function __construct($user , $addresses , $extend = array())
     {
         $this->user = $user;
         $this->agent = new Agent;
-        $this->ip = request()->ip();
+        $this->ip = $user->user_ip_address;
         $this->addresses = $addresses;
+        $this->extend = $extend;
     }
 
     public function getUser()
@@ -53,5 +67,10 @@ class SignupEvent
     public function getAddresses()
     {
         return $this->addresses;
+    }
+
+    public function getExtend()
+    {
+        return $this->extend;
     }
 }

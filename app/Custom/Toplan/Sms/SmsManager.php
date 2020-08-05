@@ -7,12 +7,16 @@ use Toplan\Sms\SmsManager as Manager;
 
 class SmsManager extends Manager
 {
-    public function requestVerifySms($for=null , $code=null)
+    public function requestVerifySms($for=null , $code=null , $type='')
     {
         $code = blank($code)?mt_rand(111111 , 999999):$code;
         $for = blank($for)?$this->input(self::getMobileField()):$for;
-        $templates = $this->generateTemplates(self::VERIFY_SMS);
-//        $tplData = $this->generateTemplateData($code, $minutes, self::VERIFY_SMS);
+        if($type=='update_phone')
+        {
+            $templates = config('laravel-sms.other_templates');
+        }else{
+            $templates = $this->generateTemplates(self::VERIFY_SMS);
+        }
         $tplData = array('code'=>$code);
         $result = PhpSms::make($templates)->to($for)->data($tplData)->send();
 //        if ($result === null || $result === true || (isset($result['success']) && $result['success'])) {

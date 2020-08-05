@@ -40,20 +40,21 @@ trait ResetsPasswords
 
     public function resetByPhone(Request $request)
     {
-        $user_phone = $request->input('user_phone' , "");
-        $user_phone_country = $request->input('user_phone_country' , "86");
-        $code = $request->input('code');
-        $password = $request->input('password');
-        $password_confirmation = $request->input('password_confirmation');
+        $user_phone = strval($request->input('user_phone' , ""));
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $code = strval($request->input('code'));
+        $password = strval($request->input('password'));
+        $password_confirmation = strval($request->input('password_confirmation'));
         $rules = [
-            'code' => 'bail|required',
+            'code' => 'bail|required|string|size:6',
             'user_phone' => [
                 'bail',
                 'required',
+                'string',
                 new UserPhone()
             ],
-            'password' => 'bail|required|confirmed|min:4|max:16',
-            'password_confirmation' => 'bail|required|same:password',
+            'password' => 'bail|required|string|confirmed|min:6|max:16',
+            'password_confirmation' => 'bail|required|string|same:password',
         ];
         $validationField = array(
             'code' => $code,
@@ -68,7 +69,7 @@ trait ResetsPasswords
             return 'passwords.phone';
         }
         $phone = \DB::table('phone_password_resets')->where('phone_country', $user_phone_country)->where('phone', $user_phone)->first();
-        if(blank($phone)||$code!==strval($phone->code))
+        if(!$this->broker()->validatePhoneCode($phone , $code))
         {
             return 'passwords.code';
         }
@@ -117,7 +118,7 @@ trait ResetsPasswords
             'token' => 'required_without:code',
             'code' => 'required_without:token',
             'email' => 'required|email',
-            'password' => 'required|confirmed|min:4|max:16',
+            'password' => 'required|confirmed|min:6|max:16',
         ];
     }
 

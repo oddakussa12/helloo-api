@@ -49,7 +49,16 @@ class UserController extends BaseController
         ];
         $validator = \Validator::make(array('name'=>$name), $rule);
         if (!$validator->fails()) {
-            $users = $this->user->findByLikeName($name);
+            $nameUsers = UserCollection::collection($this->user->findByLikeName($name));
+            $nicknameUsers = UserCollection::collection($this->user->findByLikeNickName($name));
+            $users = $nameUsers->merge($nicknameUsers)->unique('user_id');
+            $users = $users->filter(function ($user, $key) {
+                $userId = $user['user_id'];
+                return !$this->isBlock($userId);
+            })->values();
+            return $this->response->array(array(
+                'data'=>$users
+            ));
         }
         return UserCollection::collection($users);
     }
@@ -83,6 +92,10 @@ class UserController extends BaseController
      */
     public function show($id)
     {
+        if($this->isBlock($id))
+        {
+            return $this->response->errorNotFound();
+        }
         $user = $this->user->findOrFail($id);
         $followerIds = userFollow([$id]);
         $user->user_follow_state = !empty($followerIds);

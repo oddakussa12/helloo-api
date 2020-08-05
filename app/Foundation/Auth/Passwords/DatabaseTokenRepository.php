@@ -4,6 +4,7 @@ namespace App\Foundation\Auth\Passwords;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use App\Custom\Uuid\RandomStringGenerator;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Auth\Passwords\TokenRepositoryInterface;
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
@@ -130,6 +131,13 @@ class DatabaseTokenRepository implements TokenRepositoryInterface
             $code === strval($record['code']);
     }
 
+    public function existsPhoneCode($record , $code)
+    {
+        return $record &&
+            ! $this->tokenExpired($record->created_at) &&
+            $code === strval($record->code);
+    }
+
     /**
      * Determine if a token record exists and is valid.
      *
@@ -199,7 +207,7 @@ class DatabaseTokenRepository implements TokenRepositoryInterface
      */
     public function createNewCode()
     {
-        return mt_rand(111111 , 999999);
+        return (new RandomStringGenerator('1234567890'))->generate(6);
     }
 
     /**

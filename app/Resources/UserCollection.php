@@ -65,7 +65,7 @@ class UserCollection extends Resource
                 return collect([
                     'user_about'=>$this->user_about,
                     'user_score' => $this->user_score,
-                    'user_age'=> $this->user_age,
+                    'user_birthday'=> $this->user_birthday,
                     'user_cover'=> $this->user_cover_link,
                     'user_like_state'=>$this->userProfileIsLiked($this->user_id),
 //                    'user_followme_count'=>$this->followers()->count(),

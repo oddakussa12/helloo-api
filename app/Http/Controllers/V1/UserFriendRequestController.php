@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\Friend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Models\UserFriendRequest;
@@ -9,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
-use App\Repositories\Contracts\UserFriendRepository;
 use App\Repositories\Contracts\UserFriendRequestRepository;
 
 class UserFriendRequestController extends BaseController
@@ -64,15 +64,10 @@ class UserFriendRequestController extends BaseController
         $user->extra = array(
             'devicePlatformName'=>'Server'
         );
-        app('rcloud')->getMessage()->Person()->send(array(
-            'senderId'=> $requests->request_from_id,
-            'targetId'=> $requests->request_to_id,
-            "objectName"=>'Yooul:FriendRequest',
-            'content'=>\json_encode([
-                'content'=>'friend request',
-                'user'=> $user
-            ])
-        ));
+        $this->dispatch((new Friend($requests->request_from_id , $requests->request_to_id , 'Yooul:FriendRequest' , [
+            'content'=>'friend request',
+            'user'=> $user
+        ]))->onQueue('friend'));
         return $this->response->created();
     }
 
@@ -95,18 +90,11 @@ DOC;
         $user->extra = array(
             'devicePlatformName'=>'Server'
         );
-        app('rcloud')->getMessage()->Person()->send(array(
-            'senderId'=> $userId,
-            'targetId'=> $friendId,
-            "objectName"=>'Yooul:FriendRequestReposed',
-            'content'=>\json_encode(
-                [
-                    'content'=>'friend response' ,
-                    'reposed'=>$requestState,
-                    'user'=> $user
-                ]
-            )
-        ));
+        $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendRequestReposed' , [
+            'content'=>'friend response' ,
+            'reposed'=>$requestState,
+            'user'=> $user
+        ]))->onQueue('friend'));
         return $this->response->accepted();
     }
 
@@ -129,18 +117,11 @@ DOC;
         $user->extra = array(
             'devicePlatformName'=>'Server'
         );
-        app('rcloud')->getMessage()->Person()->send(array(
-            'senderId'=> $userId,
-            'targetId'=> $friendId,
-            "objectName"=>'Yooul:FriendRequestReposed',
-            'content'=>\json_encode(
-                [
-                    'content'=>'friend response',
-                    'reposed'=>$requestState,
-                    'user'=> $user
-                ]
-            )
-        ));
+        $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendRequestReposed' , [
+            'content'=>'friend response',
+            'reposed'=>$requestState,
+            'user'=> $user
+        ]))->onQueue('friend'));
         return $this->response->accepted();
     }
 }
