@@ -57,6 +57,12 @@ class AuthController extends BaseController
         $user_fields['user_uuid'] = Uuid::uuid1();
         $user_fields['user_src'] = $referer;
         $addresses = geoip($user_fields['user_ip_address']);
+        $version = $request->header('YooulVersion' , 0);
+        if(version_compare($version,'1.6.2','>='))
+        {
+            $user_fields['user_nick_name'] = $user_fields[$this->user->getDefaultNameField()];
+            $user_fields[$this->user->getDefaultNameField()] = $this->randUsername();
+        }
         if($request->has('country_code'))
         {
             $user_fields['user_country_id'] = $request->input('country_code');
