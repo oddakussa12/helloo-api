@@ -14,8 +14,8 @@ trait Update
 {
     public function fillAuth($request)
     {
-        $user_phone = strval($request->input('user_phone' , ''));
-        $user_phone_country = strval($request->input('user_phone_country' , "86"));
+        $user_phone = ltrim(strval($request->input('user_phone' , '')) , "+");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $user_email = strval($request->input('user_email' , ''));
         $validationField = array(
             'email'=>$user_email
@@ -85,7 +85,7 @@ trait Update
     {
         $userId = auth()->id();
         $key = 'user.'.$userId.'.change.phone.code';
-        $user_phone = strval($request->input('user_phone'));
+        $user_phone = ltrim(strval($request->input('user_phone')) , "+");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $validationField = array(
             'phone'=>$user_phone_country.$user_phone,
@@ -174,7 +174,7 @@ trait Update
         $auth = auth()->user();
         $userId = $auth->user_id;
         $key = 'user.'.$userId.'.change.phone.code';
-        $user_phone = strval($request->input('user_phone'));
+        $user_phone = ltrim(strval($request->input('user_phone')) , "+");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $password = strval($request->input('password' , ""));
         $code = strval($request->input('code' , ""));

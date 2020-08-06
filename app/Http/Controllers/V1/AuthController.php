@@ -47,11 +47,12 @@ class AuthController extends BaseController
      */
     public function signUp(StoreUserRequest $request)
     {
-        $request_fields = $request->only(['name' , 'email' , 'password']);
+        $request_fields = $request->only(['name' , 'email' , 'password' , 'user_nick_name']);
         $referer = $request->input('referer' , 'web');
-        $user_fields[$this->user->getDefaultNameField()] = $request_fields['name'];
-        $user_fields[$this->user->getDefaultEmailField()] = $request_fields['email'];
-        $user_fields[$this->user->getDefaultPasswordField()] = $request_fields['password'];
+        $user_fields[$this->user->getDefaultNameField()] = strval(!empty($request_fields['name'])?$request_fields['name']:$this->randUsername());
+        $user_fields[$this->user->getDefaultEmailField()] = strval($request_fields['email']);
+        $user_fields[$this->user->getDefaultPasswordField()] = strval($request_fields['password']);
+        $user_fields['user_nick_name'] = strval(!empty($request_fields['user_nick_name'])?$request_fields['user_nick_name']:'');
         $user_fields['user_ip_address'] = getRequestIpAddress();
         $user_fields['user_uuid'] = Uuid::uuid1();
         $user_fields['user_src'] = $referer;
@@ -267,8 +268,8 @@ class AuthController extends BaseController
     public function handleSignUp(Request $request)
     {
         $user_nick_name = $request->input('user_nick_name');
-        $user_phone = $request->input('user_phone' , "");
-        $user_phone_country = $request->input('user_phone_country' , "86");
+        $user_phone = ltrim(strval($request->input('user_phone' , "")) , "+");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $password = $request->input('password');
         $validationField = array(
             'nick_name'=>$user_nick_name,
@@ -335,7 +336,7 @@ class AuthController extends BaseController
     }
     public function handleSignIn(Request $request)
     {
-        $user_phone = strval($request->input('user_phone' , ""));
+        $user_phone = ltrim(strval($request->input('user_phone' , "")) , "+");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $password = strval($request->input('password' , ''));
         $validationField = array(
@@ -378,7 +379,7 @@ class AuthController extends BaseController
     {
         if($request->has('user_phone')&&$request->has('user_phone_country'))
         {
-            $user_phone = strval($request->input('user_phone' , ''));
+            $user_phone = ltrim(strval($request->input('user_phone' , '')) , "+");
             $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
             $this->forgetPwdByPhone($user_phone , $user_phone_country);
             return $this->response->noContent();
