@@ -71,15 +71,24 @@ class AutoUpdateOnlineUser extends Command
                         $user = Redis::hgetAll($userKey);
                         $user_name = $user['user_name'];
                         $user_nick_name = $user['user_nick_name'];
-                        $user_age = $user['user_age'];
+//                        $user_age = $user['user_age'];
                         $user_gender = $user['user_gender'];
                         $user_country_id = $user['user_country_id'];
                         $user_avatar = $user['user_avatar'];
                         $user_created_at= $user['user_created_at'];
                         $sql = <<<DOC
-INSERT INTO `f_ry_online_users` ( `user_id`, `user_name`, `user_nick_name`, `user_age`, `user_gender`, `user_country_id`, `user_avatar`, `user_created_at`) SELECT {$userId},'{$user_name}','{$user_nick_name}',{$user_age},'{$user_gender}','{$user_country_id}','{$user_avatar}',{$user_created_at}  FROM DUAL WHERE NOT EXISTS ( SELECT `user_id` FROM `f_ry_online_users` WHERE `user_id` = {$userId});
+INSERT INTO `f_ry_online_users` ( `user_id`, `user_name`, `user_nick_name`, `user_gender`, `user_country_id`, `user_avatar`, `user_created_at`) SELECT ?,?,?,?,?,?,?  FROM DUAL WHERE NOT EXISTS ( SELECT `user_id` FROM `f_ry_online_users` WHERE `user_id` = ?)
 DOC;
-                        \DB::statement($sql);
+                        \DB::statement($sql , array(
+                            $userId,
+                            $user_name,
+                            $user_nick_name,
+                            $user_gender,
+                            $user_country_id,
+                            $user_avatar,
+                            $user_created_at,
+                            $userId
+                        ));
                     }
                 }
                 if(!blank($offlineUsers))

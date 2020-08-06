@@ -22,6 +22,8 @@ class UserPhone implements Rule
             $numberProto = $phoneUtil->parse($value);
             return $phoneUtil->isValidNumber($numberProto);
         } catch (\libphonenumber\NumberParseException $e) {
+            \Log::error(request()->route()->getName());
+            \Log::error(\json_encode(request()->all()));
             \Log::error($e->getMessage().":".$value);
             return false;
         }
