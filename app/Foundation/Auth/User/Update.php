@@ -375,7 +375,7 @@ trait Update
                 'bail',
                 'filled',
                 'date',
-                'after:'.date('Y-m-d' , strtotime('-100years')),
+                'after:'.date('Y-m-d' , strtotime('-101years')),
                 'before:'.date('Y-m-d' , strtotime('-1years')),
             ],
             'user_about'=>[

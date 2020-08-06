@@ -24,9 +24,10 @@ class OperationLog extends BaseMiddleware
         if(auth()->check()&&($request->routeIs('post.index')||$request->routeIs('myself.update')))
         {
             $chinaNow = Carbon::now('Asia/Shanghai');
+            $now = $chinaNow->toDateTimeString();
             $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
             $user_id = (int) auth()->id();
-            if(Redis::setbit($key , $user_id , 1))
+            if(!Redis::setbit($key , $user_id , 1))
             {
                 $view = DB::table('views_logs')->where('user_id' , $user_id)->orderBy('id' , 'DESC')->first();
                 if(empty($view)||Carbon::parse($view->created_at , 'Asia/Shanghai')->endOfDay()->timestamp<$chinaNow->endOfDay()->timestamp)
@@ -46,7 +47,7 @@ class OperationLog extends BaseMiddleware
                         'user_id'=>$user_id,
                         'ip'=>getRequestIpAddress(),
                         'referer'=>$referer,
-                        'created_at'=>$chinaNow,
+                        'created_at'=>$now,
                     ));
                 }
             }
