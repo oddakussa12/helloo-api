@@ -22,7 +22,7 @@ class UserPhone implements Rule
             $numberProto = $phoneUtil->parse($value);
             return $phoneUtil->isValidNumber($numberProto);
         } catch (\libphonenumber\NumberParseException $e) {
-            \Log::error($e->getMessage());
+            \Log::error($e->getMessage().":".$value);
             return false;
         }
     }
