@@ -97,11 +97,10 @@ class JpushService
         return $response;
     }
 
-    public static function privateMessagePush($userId , $content)
+    public static function privateMessagePush($device, $userId , $content)
     {
         if(!empty($userId)&&!empty($content))
         {
-            $device = DB::table('devices')->where('user_id' , $userId)->first();
             if(!empty($device)&&!empty($device->device_registration_id))
             {
                 $data = array(
@@ -123,37 +122,30 @@ class JpushService
         }
     }
 
-    public static function commonPush($fromName  , $toId , $type = 'like' ,$content='' , $app='web' , $version = 0)
+    public static function commonPush($device, $fromName , $toId, $type = 'like', $content='', $app='web', $version = 0)
     {
         if(!empty($toId))
         {
             if($type=='privateMessage')
             {
-                self::privateMessagePush($toId , $content);
+                self::privateMessagePush($device, $toId , $content);
             }else{
-                $device = DB::table('devices')->where('user_id' , $toId)->first();
                 if(!empty($device)&&!empty($device->device_registration_id))
                 {
                     $title = $fromName.' '.self::getTitle($type , $device->device_language);
                     $data = array(
-                        'platform'=>$device->device_type,
-                        'builderId'=>1,
-                        'extras'=>array('type'=>$type , 'url'=>self::getPushUrl($type) , 'title'=>$title),
-                        'type'=>2,
-                        'registrationId'=>$device->device_registration_id
+                        'title'     => $title,
+                        'content'   => $title,
+                        'platform'  => $device->device_type,
+                        'builderId' => 1,
+                        'extras'    => ['type'=>$type , 'url'=>self::getPushUrl($type) , 'title'=>$title],
+                        'type'      => 2,
+                        'registrationId'=> $device->device_registration_id
                     );
-                    if($device->device_type==1)
-                    {
-                        $data['content'] = $title;
-                    }else{
-                        $data['title'] = $title;
-                        $data['content'] = $title;
-//                        $data['content'] = version_compare($version , '1.4.8' , '>=')?'':$title;
-                    }
+
                     self::androidOrIosPush($data);
                 }
             }
-
         }
     }
 

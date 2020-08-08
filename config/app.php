@@ -189,6 +189,8 @@ return [
         App\Providers\NotificationServiceProvider::class,
         Toplan\PhpSms\PhpSmsServiceProvider::class,
         App\Providers\SmsManagerServiceProvider::class,
+        LaravelFCM\FCMServiceProvider::class,
+
     ],
 
     /*
@@ -243,6 +245,8 @@ return [
         'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class,
         'PhpSms' => Toplan\PhpSms\Facades\Sms::class,
         'SmsManager' => Toplan\Sms\Facades\SmsManager::class,
+        'FCM'      => LaravelFCM\Facades\FCM::class,
+        'FCMGroup' => LaravelFCM\Facades\FCMGroup::class, // Optional
     ],
 
 ];

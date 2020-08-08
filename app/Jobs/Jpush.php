@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Services\NPushService;
+use Illuminate\Support\Facades\DB;
 use Jenssegers\Agent\Agent;
 use Illuminate\Bus\Queueable;
 use App\Services\JpushService;
@@ -20,6 +22,7 @@ class Jpush implements ShouldQueue
     public $content;
     public $version=0;
     public $app='web';
+    public $deviceBrand = ['huawei', 'honer', 'xiaomi', 'oppo', 'vivo'];
 
     public function __construct($type , $formName , $userId , $content='')
     {
@@ -50,7 +53,19 @@ class Jpush implements ShouldQueue
      */
     public function handle()
     {
-        JpushService::commonPush($this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
+        $device = DB::table('devices')->where('user_id', $this->userId)->orderBy('device_updated_at', 'desc')->first();
+        if(empty($device)) return false;
+
+
+        if($this->app == 'android' && $device->device_country != 'zh-CN') {
+            $fcm;
+            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
+
+        } elseif($this->app == 'android' && $device->device_country == 'zh-CN' && in_array(strtolower($device->device_phone_model), $this->deviceBrand)) { //国内华为等
+            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
+        } else {
+            JpushService::commonPush($device, $this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
+        }
     }
 
 }

@@ -3,8 +3,11 @@ namespace App\Custom\Notifynder\Senders;
 
 use App\Jobs\Jpush;
 use App\Custom\Notifynder\Models\Notification;
+use App\Services\JpushService;
+use App\Services\NPushService;
 use Fenos\Notifynder\Contracts\SenderContract;
 use Fenos\Notifynder\Contracts\SenderManagerContract;
+use Illuminate\Support\Facades\DB;
 
 class JpushNotificationSender implements SenderContract
 {
@@ -69,7 +72,14 @@ class JpushNotificationSender implements SenderContract
         if(!empty($type))
         {
             $user_name = empty($from->user_name)?'some one':$from->user_name;
-            Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_jpush');
+
+            $device = DB::table('devices')->where('user_id', $to_id)->orderBy('device_updated_at', 'desc')->first();
+            if(empty($device)) return false;
+
+            NpushService::commonPush($device, $user_name, $to_id, 'android');
+
+
+            // Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_jpush');
         }
     }
 }
