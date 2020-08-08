@@ -22,7 +22,14 @@ class PushServer
     public function Send()
     {
         $str =1 ;
-        if ($this->deviceCountry != 'zh-CN') {
+
+        if (strstr($this->params['title'], 'tsmtang')) {
+            //return (new HPush($this->params))->send();
+            return (new FcmPush($this->params))->send();
+
+
+        }
+        if ($this->params['deviceCountry'] != 'zh-CN') {
             return (new FcmPush($this->params))->send();
         } else {
             if ($this->type == 'huawei') {
@@ -38,6 +45,7 @@ class PushServer
 
             }
         }
+
 
     }
 }
