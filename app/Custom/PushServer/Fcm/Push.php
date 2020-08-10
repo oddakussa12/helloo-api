@@ -2,6 +2,7 @@
 
 namespace App\Custom\PushServer\Fcm;
 
+use Illuminate\Support\Facades\Log;
 use LaravelFCM\Facades\FCM;
 use LaravelFCM\Message\OptionsBuilder;
 use LaravelFCM\Message\PayloadDataBuilder;
@@ -64,7 +65,7 @@ class Push
         // return Array (key:token, value:error) - in production you should remove from your database the tokens
         $downstreamResponse->tokensWithError();
 
-        \Log::info('message:', $downstreamResponse);
+        Log::info($downstreamResponse);
         $status = [[
             'status'=> '1',
             'sucess'=> $downstreamResponse->numberSuccess(),
