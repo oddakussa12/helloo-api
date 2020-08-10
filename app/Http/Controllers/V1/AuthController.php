@@ -309,7 +309,13 @@ class AuthController extends BaseController
                 'max:16',
             ],
         ];
-        \Validator::make($validationField, $rule)->validate();
+        try{
+            \Validator::make($validationField, $rule)->validate();
+        }catch (\Illuminate\Validation\ValidationException $e)
+        {
+            \Log::error($request->all());
+            throw new \Illuminate\Validation\ValidationException($e->validator);
+        }
         $dateTime = date("Y-m-d H:i:s");
         $referer = $request->input('referer' , 'web');
         $user_fields[$this->user->getDefaultNameField()] = $this->randUsername();
