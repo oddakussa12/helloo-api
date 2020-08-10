@@ -174,6 +174,17 @@ class PostController extends BaseController
             $post_category_id = 3;
             $post_type = 'video';
         }
+        $prohibited_content = config('common.prohibited_content');
+        if(!blank($prohibited_content)&&str_contains($post_content , $prohibited_content))
+        {
+            $uuid = config('common.prohibited_default_uuid');
+            if(blank($uuid))
+            {
+                return $this->response->created();
+            }
+            $post = $this->post->showByUuid($uuid);
+            return new PostCollection($post);
+        }
         try {
             $postTitleLang = empty($post_title)?'en':$this->translate->detectLanguage($post_title);
             $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;

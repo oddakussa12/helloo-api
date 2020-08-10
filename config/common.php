@@ -85,4 +85,6 @@ return [
     'phone_code_wait_time'=>env('EMAIL_CODE_WAIT_TIME' , 600),
     'user_name_update_time'=>env('USER_NAME_UPDATE_TIME' , 1),
     'emoji_md5'=>env('EMOJI_MD5' , ''),
+    'prohibited_content'=>env('PROHIBITED_CONTENT' , ''),
+    'prohibited_default_uuid'=>env('PROHIBITED_DEFAULT_UUID' , ''),
 ];

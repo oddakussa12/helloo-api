@@ -275,7 +275,12 @@ class AuthController extends BaseController
     {
         $user_nick_name = $request->input('user_nick_name');
         $user_phone = ltrim(strval($request->input('user_phone' , "")) , "+");
-        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        if($request->has('user_phone_country：'))
+        {
+            $user_phone_country = ltrim(strval($request->input('user_phone_country：' , "86")) , "+");
+        }else{
+            $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        }
         $password = $request->input('password');
         $validationField = array(
             'nick_name'=>$user_nick_name,
@@ -343,7 +348,12 @@ class AuthController extends BaseController
     public function handleSignIn(Request $request)
     {
         $user_phone = ltrim(strval($request->input('user_phone' , "")) , "+");
-        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        if($request->has('user_phone_country：'))
+        {
+            $user_phone_country = ltrim(strval($request->input('user_phone_country：' , "86")) , "+");
+        }else{
+            $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        }
         $password = strval($request->input('password' , ''));
         $validationField = array(
             'user_phone'=>$user_phone_country.$user_phone,

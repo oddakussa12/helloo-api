@@ -20,7 +20,13 @@ class UserPhone implements Rule
         $phoneUtil = PhoneNumberUtil::getInstance();
         try {
             $numberProto = $phoneUtil->parse($value);
-            return $phoneUtil->isValidNumber($numberProto);
+            $result = $phoneUtil->isValidNumber($numberProto);
+            if($result===false)
+            {
+                \Log::error(request()->route()->getName());
+                \Log::error(\json_encode(request()->all()));
+            }
+            return $result;
         } catch (\libphonenumber\NumberParseException $e) {
             \Log::error(getRequestIpAddress());
             \Log::error(request()->route()->getName());
