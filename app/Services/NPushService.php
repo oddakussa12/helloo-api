@@ -94,7 +94,7 @@ class NPushService
                 'extras' => ['type'=>'privatechat' , 'user_id'=>$toUserId],
             ];
         }
-        self::androidPush($data);
+        return self::androidPush($data);
     }
 
 }

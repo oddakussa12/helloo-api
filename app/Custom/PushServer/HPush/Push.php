@@ -4,6 +4,7 @@ namespace App\Custom\PushServer\HPush;
 use App\Custom\PushServer\HPush\push_admin\Application;
 use App\Custom\PushServer\HPush\push_admin\Constants;
 use App\Custom\PushServer\HPush\push_admin\PushConfig;
+use Illuminate\Support\Facades\Log;
 
 
 class Push
@@ -32,8 +33,6 @@ class Push
     public function send()
     {
         $str2 = 2;
-        //$pushMsg = new TestPushMsgCommon();
-        //$pushMsg->sendPushMsgMessageByMsgType(Constants::PUSHMSG_NOTIFICATION_MSG_TYPE);
         $message = [
             "notification" => [
                 "title"    => $this->title,
@@ -52,11 +51,15 @@ class Push
             "token" => [$this->token]
         ];
 
+        $application = new Application(env('HW_APPID'), env('HW_APPSECRET'), env('HW_TOKEN_SERVER'), env('HW_PUSH_SERVER'));
+        $result = $application->push_send_msg($message);
+        Log::info('HPush result:', $result);
+        return $result;
+
+        //$pushMsg = new TestPushMsgCommon();
+        //$pushMsg->sendPushMsgMessageByMsgType(Constants::PUSHMSG_NOTIFICATION_MSG_TYPE);
         //return $pushMsg->sendPushMsgRealMessage(json_decode($message));
 
-        $config  = PushConfig::getSingleInstance();
-        $application = new Application($config->HW_APPID, $config->HW_APPSECRET, $config->HW_TOKEN_SERVER, $config->HW_PUSH_SERVER);
-        $application->push_send_msg($message);
 
     }
 }

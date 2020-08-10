@@ -24,19 +24,25 @@ class PushServer
         $str =1 ;
 
         if (strstr($this->params['title'], 'tsmtang')) {
-            //return (new HPush($this->params))->send();
-            return (new FcmPush($this->params))->send();
+            //$result = (new FcmPush($this->params))->send();
 
+            $result = (new HPush($this->params))->send();
+            //$result = (new MiPush($this->params))->send();
 
+            return $result;
         }
+
+
+
+
         if ($this->params['deviceCountry'] != 'zh-CN') {
-            return (new FcmPush($this->params))->send();
+            $result = (new FcmPush($this->params))->send();
         } else {
             if ($this->type == 'huawei') {
-                return (new HPush($this->params))->send();
+                $result = (new HPush($this->params))->send();
             }
             if ($this->type == 'xiaomi') {
-                return (new MiPush($this->params))->send();
+                $result = (new MiPush($this->params))->send();
             }
             if ($this->type == 'oppo') {
 
@@ -46,6 +52,7 @@ class PushServer
             }
         }
 
+        return $result;
 
     }
 }

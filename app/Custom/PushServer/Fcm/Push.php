@@ -65,16 +65,18 @@ class Push
         // return Array (key:token, value:error) - in production you should remove from your database the tokens
         //$downstreamResponse->tokensWithError();
 
-        $status = [[
+        $status = [
+            [
             'status'=> '1',
             'sucess'=> $downstreamResponse->numberSuccess(),
             'fail'  => $downstreamResponse->numberFailure(),
-            'msg'   => $downstreamResponse->tokensWithError()],
-            200
+            'msg'   => $downstreamResponse->tokensWithError()
+            ]
         ];
         Log::info('FCM PUSH STATUS:', $status);
         Log::info('FCM PUSH STATUS:', [serialize($downstreamResponse)]);
 
+        return $status;
     }
 
     public function sendTopic()
