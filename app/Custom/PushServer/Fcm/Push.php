@@ -63,9 +63,8 @@ class Push
         $downstreamResponse->tokensToRetry();
 
         // return Array (key:token, value:error) - in production you should remove from your database the tokens
-        $downstreamResponse->tokensWithError();
+        //$downstreamResponse->tokensWithError();
 
-        Log::info($downstreamResponse);
         $status = [[
             'status'=> '1',
             'sucess'=> $downstreamResponse->numberSuccess(),
@@ -73,6 +72,9 @@ class Push
             'msg'   => $downstreamResponse->tokensWithError()],
             200
         ];
+        Log::info('FCM PUSH STATUS:', $status);
+        Log::info('FCM PUSH STATUS:', [serialize($downstreamResponse)]);
+
     }
 
     public function sendTopic()
