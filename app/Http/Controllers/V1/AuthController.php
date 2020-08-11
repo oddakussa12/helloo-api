@@ -467,7 +467,7 @@ class AuthController extends BaseController
                                 $fail(trans('validation.regex'));
                             }
                         },
-                        'regex:/^[\p{Thai}\p{Latin}\p{Hangul}\p{Han}\p{Hiragana}\p{Katakana}\p{Cyrillic}0-9a-zA-Z-_]+$/u',
+                        'regex:/^[0-9a-zA-Z]+$/u',
                         'min:4',
                         'max:32',
 //                        'unique:users,user_'.$type

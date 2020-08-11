@@ -156,6 +156,7 @@ class PostController extends BaseController
             'post_content' => ['bail','required','string','between:1,3000'],
         ])->validate();
 	    $tag_slug = array_diff((array)$request->input('tag_slug' , array()),array(null , ''));
+	    $topics = array_diff((array)$request->input('topics' , array()),array(null , ''));
 	    $post_image = $request->input('post_image' , array());
 	    $post_video = $request->input('post_video' , array());
         $post_category_id = 1;
@@ -260,6 +261,10 @@ class PostController extends BaseController
 	    if(!empty($tag_slug))
         {
             $post->attachTags($tag_slug);
+        }
+        if(!empty($topics))
+        {
+            $post = $this->post->attachTopics($post , $topics);
         }
         if(config('common.translation_version')==='niu')
         {

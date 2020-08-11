@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
 use App\Models\Tag;
+use App\Models\Post;
 use App\Custom\RedisList;
 use App\Models\PostComment;
 use App\Models\PostViewNum;
@@ -684,6 +685,34 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $redis->zAdd($postKey , $post->post_comment_num , $post->post_id);
                 }
         });
+    }
+
+    public function attachTopics(Post $post  , $topics)
+    {
+        if(!blank($topics))
+        {
+            $post->userTopics = $topics;
+            $topicRateKey = config('redis-key.topic.topic_index_rate');
+            $topicNewKey = config('redis-key.topic.topic_index_new');
+            $now = time();
+            $userId = $post->user_id;
+            $postId = $post->getKey();
+            Redis::pipeline(function ($pipe) use ($topics , $topicRateKey , $topicNewKey , $now , $userId , $postId){
+                array_walk($topics , function($item , $index) use ($pipe , $topicRateKey , $topicNewKey , $now , $userId , $postId){
+                    $key = strval($item);
+                    $pipe->zincrby($topicRateKey , 1 , $key);
+                    $pipe->zadd($topicNewKey , $now , $key);
+                    $pipe->zadd($key , $now , $postId);
+                    $userTopicKey = 'user.'.$userId.'.topics';
+                    $pipe->zadd($userTopicKey , $now , $key);
+                });
+                $postKey = 'post.'.$postId.'.data';
+                $pipe->hmset($postKey , array(
+                    "topics" => \json_encode($topics)
+                ));
+            });
+        }
+        return $post;
     }
 
 
