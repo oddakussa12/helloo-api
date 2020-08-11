@@ -29,8 +29,8 @@ class ReportController extends BaseController
 
     public function store(Request $request)
     {
-        $postUuid = strval($request->post('post_uuid' , ''));
-        $userId = strval($request->post('user_id' , ''));
+        $postUuid = strval($request->input('post_uuid' , ''));
+        $userId = strval($request->input('user_id' , ''));
         if(!blank($postUuid))
         {
             $auth = auth()->user();
