@@ -73,7 +73,7 @@ class Push
             ]
         ];
         Log::info('FCM PUSH STATUS:', $status);
-        Log::info('FCM PUSH STATUS:', [serialize($downstreamResponse)]);
+        //Log::info('FCM PUSH STATUS:', [serialize($downstreamResponse)]);
 
         return $status;
     }
