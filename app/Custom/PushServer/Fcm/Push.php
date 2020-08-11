@@ -8,6 +8,7 @@ use LaravelFCM\Message\OptionsBuilder;
 use LaravelFCM\Message\PayloadDataBuilder;
 use LaravelFCM\Message\PayloadNotificationBuilder;
 use LaravelFCM\Message\Topics;
+use LaravelFCM\Sender\FCMGroup;
 
 class Push
 {
@@ -29,6 +30,10 @@ class Push
 
     public function send()
     {
+
+        (new FCMGroup())->createGroup('en', $this->token);
+
+        
         $optionBuilder = new OptionsBuilder();
         $optionBuilder->setTimeToLive(60*20);
 
