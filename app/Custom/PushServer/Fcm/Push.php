@@ -31,6 +31,7 @@ class Push
     {
 
         FCMGroup::createGroup('en', is_array($this->token) ? $this->token : [$this->token]);
+        return $this->sendToGroup();
 
         $optionBuilder = new OptionsBuilder();
         $optionBuilder->setTimeToLive(60*20);
@@ -109,6 +110,23 @@ class Push
             'shouldRetry'=> $topicResponse->shouldRetry(),
             'error'      => $topicResponse->error(),
         ];
+    }
+
+    public function sendToGroup()
+    {
+        $notificationKey = ['en'];
+
+        $notificationBuilder = new PayloadNotificationBuilder($this->title);
+        $notificationBuilder->setBody($this->desc)
+            ->setSound($this->sound);
+
+        $notification = $notificationBuilder->build();
+
+        $groupResponse = FCM::sendToGroup($notificationKey, null, $notification, null);
+
+        $groupResponse->numberSuccess();
+        $groupResponse->numberFailure();
+        $groupResponse->tokensFailed();
     }
 
 }
