@@ -30,7 +30,7 @@ class Push
     public function send()
     {
 
-        FCMGroup::createGroup('en', is_array($this->token) ? $this->token : [$this->token]);
+        //FCMGroup::createGroup('en', is_array($this->token) ? $this->token : [$this->token]);
         return $this->sendToGroup();
 
         $optionBuilder = new OptionsBuilder();
@@ -124,9 +124,12 @@ class Push
 
         $groupResponse = FCM::sendToGroup($notificationKey, null, $notification, null);
 
-        $groupResponse->numberSuccess();
-        $groupResponse->numberFailure();
-        $groupResponse->tokensFailed();
+        $status = [
+        'success'   => $groupResponse->numberSuccess(),
+        'fail'      => $groupResponse->numberFailure(),
+        'tokenFail' => $groupResponse->tokensFailed()
+        ];
+        Log::info('sendToGroup:', $status);
     }
 
 }
