@@ -88,17 +88,18 @@ class NPushService
             'registrationId' => $device->device_registration_id
         ];
 
-       /*if($type =='privateMessage') {
-            $title = trans('notifynder.user.private_message' , [] , $device->device_language);
-            $data = [
-                'title'  => $title,
-                'content'=> $title,
-                'extras' => ['type'=>'privatechat' , 'user_id'=>$toUserId],
-            ];
-        }*/
-        Log::info('commonPush deviceInfo: '.$device->device_registration_id);
+        Log::info('commonPush deviceInfo: '.$device);
         Log::info('commonPush data:', $data);
         return self::androidPush($data);
+    }
+
+    /**
+     * @param $params
+     * 批量 推送
+     */
+    public function batchPush($params)
+    {
+        
     }
 
 }

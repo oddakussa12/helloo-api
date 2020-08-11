@@ -100,6 +100,12 @@ class Push
         $topicResponse->isSuccess();
         $topicResponse->shouldRetry();
         $topicResponse->error();
+
+        return [
+            'success'    => $topicResponse->isSuccess(),
+            'shouldRetry'=> $topicResponse->shouldRetry(),
+            'error'      => $topicResponse->error(),
+        ];
     }
 
 }
