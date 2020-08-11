@@ -31,9 +31,8 @@ class Push
     public function send()
     {
 
-        (new FCMGroup())->createGroup('en', $this->token);
+        (new FCMGroup())->createGroup('en', is_array($this->token) ? $this->token : [$this->token]);
 
-        
         $optionBuilder = new OptionsBuilder();
         $optionBuilder->setTimeToLive(60*20);
 
