@@ -53,6 +53,8 @@ class Push
 
         $application = new Application(env('HW_APPID'), env('HW_APPSECRET'), env('HW_TOKEN_SERVER'), env('HW_PUSH_SERVER'));
         $result = $application->push_send_msg($message);
+
+        $result = is_object($result) ? json_decode(json_encode($result), true) : $result;
         Log::info('HPush result:', $result);
         return $result;
 

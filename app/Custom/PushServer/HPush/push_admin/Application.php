@@ -93,12 +93,11 @@ class Application
 
     private function printLogMethodOperate($dataFlow, $functionName = "", $logLevel = Constants::HW_PUSH_LOG_INFO_LEVEL)
     {
-        $time = microtime() * 1000000;
         if (empty($functionName)) {
+            \Log::info('HPush Log:', ['[' . __CLASS__ . ']' , $dataFlow, $logLevel]);
             //PushLogConfig::getSingleInstance()->LogMessage();
-            Log::info('HPush LogId:'.$time, ['[' . __CLASS__ . ']' , $dataFlow, $logLevel]);
         } else {
-            Log::info('HPush Log:'.$time, ['[' . __CLASS__ . ']' . '[' . $functionName . ']', $dataFlow, $logLevel]);
+            \Log::info('HPush Log:', ['[' . __CLASS__ . ']' . '[' . $functionName . ']', $dataFlow, $logLevel]);
             //PushLogConfig::getSingleInstance()->LogMessage('[' . __CLASS__ . ']' . '[' . $functionName . ']' . $dataFlow, $logLevel);
         }
     }

@@ -67,7 +67,6 @@ class Push
 
         $status = [
             [
-            'status'=> '1',
             'sucess'=> $downstreamResponse->numberSuccess(),
             'fail'  => $downstreamResponse->numberFailure(),
             'msg'   => $downstreamResponse->tokensWithError()
