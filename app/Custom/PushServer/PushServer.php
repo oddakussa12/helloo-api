@@ -54,7 +54,7 @@ class PushServer
     {
         try {
             $result = (new FcmPush($this->params))->send();
-            if ($result['sucess']> 0) {
+            if (!empty($result['success'])) {
                 Log::info('Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
