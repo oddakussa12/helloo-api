@@ -27,7 +27,7 @@ class Push
         $this->title   = array_get($params, 'title', '这是一条mipush推送消息');
         $this->desc    = array_get($params, 'desc', '这是一条mipush推送消息');
         $this->payload = array_get($params, 'payload');
-        $this->extra   = array_get($params, 'extra');
+        $this->extra   = array_get($params, 'extras');
         $this->token   = array_get($params, 'registrationId');
 
         // 常量设置必须在new Sender()方法之前调用

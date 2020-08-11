@@ -71,7 +71,7 @@ class NPushService
         return $response;
     }
 
-    public static function commonPush($device, $fromName, $toUserId, $type='like', $content='')
+    public static function commonPush($device, $fromName, $toUserId, $type='like')
     {
         if(empty($toUserId)) return;
 
@@ -80,10 +80,10 @@ class NPushService
             'deviceCountry'  => $device->device_country,
             'deviceBrand'    => $device->device_phone_model,
             'title'          => $title,
-            'content'        => $content,
+            'content'        => $title,
             'platform'       => $device->device_type,
             'builderId'      => 1,
-            'extras'         => array('type'=>$type, 'url'=>JpushService::getPushUrl($type), 'title'=>$title),
+            'extras'         => ['type'=>$type, 'url'=>JpushService::getPushUrl($type), 'title'=>$title],
             'type'           => 2,
             'registrationId' => $device->device_registration_id
         ];

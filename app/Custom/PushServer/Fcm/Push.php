@@ -15,7 +15,7 @@ class Push
     private $desc;
     private $token;
     private $sound;
-    private $data;
+    private $extras;
 
     public function __construct($params)
     {
@@ -23,7 +23,7 @@ class Push
         $this->desc  = array_get($params, 'title', '这是一条mipush推送消息');
         $this->token = array_get($params, 'registrationId');
         $this->sound = array_get($params, 'sound', 'default');
-        $this->data  = array_get($params, 'data', []);
+        $this->extras= array_get($params, 'extras', []);
     }
 
 
@@ -37,7 +37,7 @@ class Push
             ->setSound($this->sound);
 
         $dataBuilder = new PayloadDataBuilder();
-        $dataBuilder->addData($this->data);
+        $dataBuilder->addData($this->extras);
 
         $option = $optionBuilder->build();
         $notification = $notificationBuilder->build();
