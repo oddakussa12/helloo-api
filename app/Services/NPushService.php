@@ -89,11 +89,14 @@ class NPushService
         ];
 
         if($type =='privateMessage') {
+            $title = trans('notifynder.user.private_message' , [] , $device->device_language);
             $data = [
-                'title'  => trans('notifynder.user.private_message' , [] , $device->device_language),
+                'title'  => $title,
+                'content'=> $title,
                 'extras' => ['type'=>'privatechat' , 'user_id'=>$toUserId],
             ];
         }
+        Log::info('commonPush data:', $data);
         return self::androidPush($data);
     }
 

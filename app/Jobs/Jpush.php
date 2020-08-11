@@ -58,9 +58,7 @@ class Jpush implements ShouldQueue
 
 
         if($this->app == 'android' && $device->device_country != 'zh-CN') {
-            $fcm;
             NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
-
         } elseif($this->app == 'android' && $device->device_country == 'zh-CN' && in_array(strtolower($device->device_phone_model), $this->deviceBrand)) { //国内华为等
             NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
         } else {
