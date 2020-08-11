@@ -30,7 +30,7 @@ class StoreDeviceRequest extends FormRequest
             'appVersion' => 'bail|nullable|string|between:1,64',
             'appBundleIdentifier' => 'bail|nullable|string|between:1,64',
             'vendorUUID' => 'bail|nullable|string|between:1,128',
-            'registrationId' => 'bail|required_if:deviceType,1|string|between:1,64',
+            'registrationId' => 'bail|required_if:deviceType,1|string|between:1,256',
             'systemName' => ['bail','nullable','string',Rule::in(['iOS', 'Android'])],
             'systemVersion' => 'bail|nullable|string|between:1,128',
             'phoneName' => 'bail|nullable|string|max:512',
