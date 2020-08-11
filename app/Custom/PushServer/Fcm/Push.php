@@ -66,11 +66,9 @@ class Push
         //$downstreamResponse->tokensWithError();
 
         $status = [
-            [
             'success'=> $downstreamResponse->numberSuccess(),
             'fail'   => $downstreamResponse->numberFailure(),
             'msg'    => $downstreamResponse->tokensWithError()
-            ]
         ];
         Log::info('FCM PUSH STATUS:', $status);
         //Log::info('FCM PUSH STATUS:', [serialize($downstreamResponse)]);
