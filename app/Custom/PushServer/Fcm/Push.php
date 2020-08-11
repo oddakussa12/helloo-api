@@ -129,7 +129,7 @@ class Push
         'fail'      => $groupResponse->numberFailure(),
         'tokenFail' => $groupResponse->tokensFailed()
         ];
-        Log::info('sendToGroup:', $status);
+        Log::info('sendToGroup:'. json_encode($status, 256));
     }
 
 }
