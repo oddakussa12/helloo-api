@@ -396,7 +396,8 @@ trait Update
             'user_picture'=>[
                 'bail',
                 'filled',
-                'array'
+                'string',
+                'json'
             ]
         );
     }

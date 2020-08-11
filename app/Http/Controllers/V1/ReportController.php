@@ -68,7 +68,7 @@ class ReportController extends BaseController
                 }
             }catch (\Exception $e)
             {
-
+                \Log::error('report post error:'.\json_encode($e->getMessage()));
             }
         }elseif (!blank($userId))
         {
@@ -99,10 +99,10 @@ class ReportController extends BaseController
                     $this->dispatch(new Dispatcher('/api/ry/set/block' , 'post' , $params));
                 }
             }catch (\Dingo\Api\Exception\InternalHttpException $e){
-                \Log::error('report error response:'.$e->getResponse());
+                \Log::error('report user error response:'.$e->getResponse());
             }catch (\Exception $e)
             {
-
+                \Log::error('report user error:'.\json_encode($e->getMessage()));
             }
 
         }
