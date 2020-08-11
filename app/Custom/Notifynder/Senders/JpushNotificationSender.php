@@ -76,7 +76,7 @@ class JpushNotificationSender implements SenderContract
             $device = DB::table('devices')->where('user_id', $to_id)->orderBy('device_updated_at', 'desc')->first();
             if(empty($device)) return false;
 
-            NpushService::commonPush($device, $user_name, $to_id, 'android');
+            NpushService::commonPush($device, $user_name, $to_id, $type);
 
 
             // Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_jpush');
