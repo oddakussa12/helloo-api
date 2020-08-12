@@ -25,7 +25,7 @@ class PushServer
             return $result;
         }*/
 
-        if ($this->params['deviceCountry'] != 'zh-CN') {
+        if ($this->params['deviceCountry'] != 'CN') {
             $result = $this->fcmPush();
         } else {
             if ($this->type == 'huawei') {
@@ -62,7 +62,7 @@ class PushServer
                 return false;
             }
         } catch (\Exception $e) {
-            Log::error('Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
+            Log::error('Push message Exception'.__FUNCTION__, ['code'=>$e->getCode(), 'msg'=> $e->getMessage()]);
         }
     }
 
