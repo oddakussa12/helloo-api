@@ -82,19 +82,25 @@ class JpushService
             'apns_production' => config('jpush.environment') // APNs 是否生产环境 (ios)
         ]);
 
-        $response = $push->send();
-
-        if ($response['http_code'] != 200) {
-            Log::info('push_error',
-                compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
-            );
-        }
+        try {
+            $response = $push->send();
+            if ($response['http_code'] != 200) {
+                Log::info('push_error',
+                    compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
+                );
+            }
 //        else{
 //            Log::info('push_success',
 //                compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
 //            );
 //        }
-        return $response;
+            return $response;
+
+        }catch (\Exception $e){
+            \Log::info('Exception:', [$e->getCode(), $e->getMessage()]);
+        }
+
+
     }
 
     public static function privateMessagePush($device, $userId , $content)

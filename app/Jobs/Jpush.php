@@ -63,6 +63,7 @@ class Jpush implements ShouldQueue
 
         if(empty($device)) return false;
 
+        Log::info('commonPush handle device_type:'.$device->device_type.' device_country:'.strtolower($device->device_country));
         if($device->device_type==2 && (strtolower($device->device_country) != 'cn')) {
             Log::info('commonPush handle NpushService1');
             NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);

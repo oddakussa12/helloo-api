@@ -67,6 +67,7 @@ class Device implements ShouldQueue
                 'device_type'              => $deviceType,
                 'device_vendor_uuid'       => $deviceFields['vendorUUID']          ?? '',
                 'device_country'           => $deviceFields['deviceCountry']       ?? 'default',
+                'device_register_type'     => $deviceFields['deviceRegisterType']  ?? '',
                 'device_created_at'        => $dateTime,
                 'device_updated_at'        => $dateTime,
                 'device_app_bundle_identifier' => $deviceFields['appBundleIdentifier'] ?? '',
