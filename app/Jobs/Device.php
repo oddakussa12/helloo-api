@@ -66,18 +66,20 @@ class Device implements ShouldQueue
                 'device_updated_at'        => $dateTime,
                 'device_app_bundle_identifier' => $deviceFields['appBundleIdentifier'] ?? '',
             ];
+            Log::info('device info', [$type,'signUpOrIn']);
+            Log::info('device info', [$type== 'signUpOrIn']);
             if($type == 'signUpOrIn') {
+                Log::info('device info4444444444444444444:');
                 $userId = $this->userId;
                 $user   = DB::table('devices')->where('user_id', $userId)->where('device_registration_id', $registrationId)->first();
 
-                Log::info('device info4:', json_decode(json_encode($user), true));
                 if(empty($user)) {
                     $deviceData['user_id'] = $userId;
                     Log::info('device info5:', $deviceData);
                     DB::table('devices')->insert($deviceData);
                 } else {
                     $data = ['device_updated_at' => $dateTime];
-                    Log::info('device info6 update:', ['id'=>$user->id, $data]);
+                    Log::info('device info6 update:', $data);
 
                     DB::table('devices')->where('id', $user->id)->update($data);
                 }
