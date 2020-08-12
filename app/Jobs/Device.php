@@ -40,6 +40,8 @@ class Device implements ShouldQueue
         $dateTime     = Carbon::now();
         $type         = $this->type;
         $deviceFields = $this->deviceFields;
+        Log::info('device info2:'.$type);
+        Log::info('device info3:', $deviceFields);
 
         if(!empty($deviceFields['registrationId'])) {
             $registrationId = $deviceFields['registrationId'];
@@ -66,9 +68,11 @@ class Device implements ShouldQueue
             ];
             if($type == 'signUpOrIn') {
                 $userId = $this->userId;
+                Log::info('device info4:', $user ?? []);
                 $user   = DB::table('devices')->where('user_id', $userId)->where('device_registration_id', $registrationId)->first();
                 if(empty($user)) {
                     $deviceData['user_id'] = $userId;
+                    Log::info('device info5:', $deviceData);
                     DB::table('devices')->insert($deviceData);
                 } else {
                     $data = ['device_updated_at' => $dateTime];
