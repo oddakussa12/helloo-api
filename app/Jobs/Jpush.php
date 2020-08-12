@@ -59,7 +59,7 @@ class Jpush implements ShouldQueue
     {
         Log::info('commonPush handle start');
         $device = DB::table('devices')->where('user_id', $this->userId)->orderBy('device_updated_at', 'desc')->first();
-        Log::info('commonPush handle device ');
+        Log::info('commonPush handle device: '. serialize($device));
 
         if(empty($device)) return false;
 
