@@ -68,20 +68,26 @@ class Device implements ShouldQueue
             ];
             if($type == 'signUpOrIn') {
                 $userId = $this->userId;
-                Log::info('device info4:', $user ?? []);
                 $user   = DB::table('devices')->where('user_id', $userId)->where('device_registration_id', $registrationId)->first();
+
+                Log::info('device info4:', json_decode(json_encode($user), true));
                 if(empty($user)) {
                     $deviceData['user_id'] = $userId;
                     Log::info('device info5:', $deviceData);
                     DB::table('devices')->insert($deviceData);
                 } else {
                     $data = ['device_updated_at' => $dateTime];
+                    Log::info('device info6 update:', ['id'=>$user->id, $data]);
+
                     DB::table('devices')->where('id', $user->id)->update($data);
                 }
             } else {
+                Log::info('device info7 type not signUpOrIn');
+
                 $deviceId = $deviceFields['deviceToken'] ?: '';
                 $device   = DB::table('devices_infos')->where('device_registration_id', $registrationId)->first();
                 if(empty($device)) {
+                    Log::info('device info8 devices_infos');
                     unset($deviceData['device_updated_at']);
                     $deviceData['device_created_at'] = time();
                     DB::table('devices_infos')->insert($deviceData);
