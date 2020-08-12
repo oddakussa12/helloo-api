@@ -61,9 +61,11 @@ class Jpush implements ShouldQueue
     {
         Log::info('commonPush handle start');
         $device = DB::table('devices')->where('user_id', $this->userId)->orderBy('device_updated_at', 'desc')->first();
+        Log::info('commonPush handle device ', json_decode(json_encode($device), true));
+
         if(empty($device)) return false;
 
-        if($device->device_type==2 && strtolower($device->device_country) != 'cn') {
+        if($device->device_type==2 && (strtolower($device->device_country) != 'cn')) {
             Log::info('commonPush handle NpushService1');
             NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
         } elseif($device->device_type==2 && (strtolower($device->device_country) == 'CN') && in_array(strtolower($device->device_phone_model), $this->deviceBrand)) { //国内华为等
