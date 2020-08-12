@@ -46,6 +46,8 @@ class Device implements ShouldQueue
         Log::info('device info2:'.$type);
         Log::info('device info3:', $deviceFields);
 
+        $deviceType   = (isset($deviceFields['referer']) && $deviceFields['referer']=='iOS') ? 1 : 2;
+
         if(!empty($deviceFields['registrationId'])) {
             $registrationId = $deviceFields['registrationId'];
             $deviceData     = [
@@ -62,7 +64,7 @@ class Device implements ShouldQueue
                 'device_carrier_name'      => $deviceFields['carrierName']         ?? '',
                 'device_app_short_version' => $deviceFields['appShortVersion']     ?? '',
                 'device_language'          => $deviceFields['deviceLanguage']      ?? 'en',
-                'device_type'              => $deviceFields['deviceType']          ?? '3',
+                'device_type'              => $deviceType,
                 'device_vendor_uuid'       => $deviceFields['vendorUUID']          ?? '',
                 'device_country'           => $deviceFields['deviceCountry']       ?? 'default',
                 'device_created_at'        => $dateTime,
@@ -95,6 +97,7 @@ class Device implements ShouldQueue
                     Log::info('device info8 devices_infos');
                     unset($deviceData['device_updated_at']);
                     $deviceData['device_created_at'] = time();
+                    $deviceData['device_type']       = $deviceFields['deviceType'] ?? '';
                     DB::table('devices_infos')->insert($deviceData);
                 } else {
                     if($device->device_id != $deviceId) {

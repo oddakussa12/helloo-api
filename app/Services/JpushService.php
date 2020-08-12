@@ -124,10 +124,9 @@ class JpushService
 
     public static function commonPush($device, $fromName , $toId, $type = 'like', $content='', $app='web', $version = 0)
     {
-        if(!empty($toId))
-        {
-            if($type=='privateMessage')
-            {
+        $device->device_registration_id = substr($device->device_registration_id,0, 19); //极光超过19位会报错
+        if(!empty($toId)) {
+            if($type=='privateMessage') {
                 self::privateMessagePush($device, $toId , $content);
             }else{
                 if(!empty($device)&&!empty($device->device_registration_id))
