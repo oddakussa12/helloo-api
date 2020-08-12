@@ -48,8 +48,6 @@ class Jpush implements ShouldQueue
             }
         }
         Log::info('commonPush handle __construct end');
-
-        $this->handle();
     }
 
     /**
