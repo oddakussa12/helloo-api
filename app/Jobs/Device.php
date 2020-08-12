@@ -76,13 +76,7 @@ class Device implements ShouldQueue
                     DB::table('devices')->insert($deviceData);
                 } else {
                     $data = ['device_updated_at' => $dateTime];
-                    if(isset($deviceFields['deviceToken'])) {
-                        $data['device_id'] = $deviceFields['deviceToken'];
-                    }
-                    if(isset($deviceFields['vendorUUID'])) {
-                        $data['device_vendor_uuid'] = $deviceFields['vendorUUID'];
-                    }
-                    DB::table('devices')->where('device_registration_id', $registrationId)->update($data);
+                    DB::table('devices')->where('id', $user->id)->update($data);
                 }
             } else {
                 $deviceId = $deviceFields['deviceToken'] ?: '';
