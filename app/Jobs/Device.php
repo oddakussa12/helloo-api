@@ -28,6 +28,9 @@ class Device implements ShouldQueue
         if(auth()->check()) {
             $this->userId = auth()->id();
         }
+        Log::info('device info 00000000', [$type]);
+        Log::info('device info 00000000 deviceFields:', $deviceFields);
+
     }
 
     /**
