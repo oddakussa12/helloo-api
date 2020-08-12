@@ -46,7 +46,7 @@ class Device implements ShouldQueue
             $deviceData     = [
                 'device_registration_id'   => $registrationId,
                 'device_id'                => $deviceFields['deviceToken']         ?? '',
-                'device_app_version'       => $deviceFields['appShortVersion']     ?? '',
+                'device_app_version'       => $deviceFields['appVersion']          ?? '',
                 'device_system_name'       => $deviceFields['systemName']          ?? '',
                 'device_system_version'    => $deviceFields['systemVersion']       ?? '',
                 'device_platform_name'     => $deviceFields['devicePlatformName']  ?? '',
@@ -59,6 +59,7 @@ class Device implements ShouldQueue
                 'device_language'          => $deviceFields['deviceLanguage']      ?? 'en',
                 'device_type'              => $deviceFields['deviceType']          ?? '3',
                 'device_vendor_uuid'       => $deviceFields['vendorUUID']          ?? '',
+                'device_country'           => $deviceFields['deviceCountry']       ?? 'default',
                 'device_created_at'        => $dateTime,
                 'device_updated_at'        => $dateTime,
                 'device_app_bundle_identifier' => $deviceFields['appBundleIdentifier'] ?? '',
