@@ -73,13 +73,13 @@ class JpushNotificationSender implements SenderContract
         {
             $user_name = empty($from->user_name)?'some one':$from->user_name;
 
-            $device = DB::table('devices')->where('user_id', $to_id)->orderBy('device_updated_at', 'desc')->first();
-            if(empty($device)) return false;
+            //$device = DB::table('devices')->where('user_id', $to_id)->orderBy('device_updated_at', 'desc')->first();
+            //if(empty($device)) return false;
 
-             NpushService::commonPush($device, $user_name, $to_id, $type);
+             //NpushService::commonPush($device, $user_name, $to_id, $type);
 
 
-            //Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_jpush');
+            Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_jpush');
         }
     }
 }
