@@ -40,76 +40,57 @@ class Device implements ShouldQueue
         $dateTime     = Carbon::now();
         $type         = $this->type;
         $deviceFields = $this->deviceFields;
+        $deviceType   = (isset($deviceFields['referer']) && $deviceFields['referer']=='iOS') ? 1 : 2;
 
-        if(!empty($deviceFields['registrationId']))
-        {
+        if(!empty($deviceFields['registrationId'])) {
             $registrationId = $deviceFields['registrationId'];
             $deviceLanguage = $deviceFields['deviceLanguage'] ?: 'en';
-            if($type=='signUpOrIn')
-            {
-                $deviceType = (isset($deviceFields['referer']) && $deviceFields['referer']=='iOS') ? 1 : 2;
-                $userId     = $this->userId;
-                $user       = DB::table('devices')->where('user_id', $userId)->where('device_registration_id', $registrationId)->first();
-                if(empty($user))
-                {
-                    $data = [
-                        'device_registration_id' => $registrationId ,
-                        'user_id'           => $userId ,
-                        'device_type'       => $deviceType ,
-                        'device_language'   => $deviceLanguage ,
-                        'device_created_at' => $dateTime ,
-                        'device_updated_at' => $dateTime
-                    ];
-
-                    if(isset($deviceFields['deviceToken']))
-                    {
-                        $data['device_id'] = $deviceFields['deviceToken'];
-                    }
-                    if(isset($deviceFields['vendorUUID']))
-                    {
-                        $data['device_vendor_uuid'] = $deviceFields['vendorUUID'];
-                    }
-                    DB::table('devices')->insert($data);
+            $deviceData     = [
+                'device_registration_id'   => $registrationId,
+                'device_id'                => $deviceFields['deviceToken']         ?: '',
+                'device_app_version'       => $deviceFields['appShortVersion']     ?: '',
+                'device_system_name'       => $deviceFields['systemName']          ?: '',
+                'device_system_version'    => $deviceFields['systemVersion']       ?: '',
+                'device_platform_name'     => $deviceFields['devicePlatformName']  ?: '',
+                'device_phone_name'        => $deviceFields['phoneName']           ?: '',
+                'device_phone_model'       => $deviceFields['phoneModel']          ?: '',
+                'device_localized_model'   => $deviceFields['localizedModel']      ?: '',
+                'device_network_type'      => $deviceFields['networkType']         ?: '',
+                'device_carrier_name'      => $deviceFields['carrierName']         ?: '',
+                'device_app_short_version' => $deviceFields['appShortVersion']     ?: '',
+                'device_type'              => $deviceFields['deviceType'],
+                'device_vendor_uuid'       => $deviceFields['vendorUUID'],
+                'device_language'          => $deviceLanguage,
+                'device_type'              => $deviceType ,
+                'device_created_at'        => $dateTime,
+                'device_updated_at'        => $dateTime,
+                'device_app_bundle_identifier' => $deviceFields['appBundleIdentifier'] ?: '',
+            ];
+            if($type == 'signUpOrIn') {
+                $userId = $this->userId;
+                $user   = DB::table('devices')->where('user_id', $userId)->where('device_registration_id', $registrationId)->first();
+                if(empty($user)) {
+                    $deviceData['user_id'] = $userId;
+                    DB::table('devices')->insert($deviceData);
                 } else {
                     $data = ['device_updated_at' => $dateTime];
-                    if(isset($deviceFields['deviceToken']))
-                    {
+                    if(isset($deviceFields['deviceToken'])) {
                         $data['device_id'] = $deviceFields['deviceToken'];
                     }
-                    if(isset($deviceFields['vendorUUID']))
-                    {
+                    if(isset($deviceFields['vendorUUID'])) {
                         $data['device_vendor_uuid'] = $deviceFields['vendorUUID'];
                     }
-                    DB::table('devices')->where('device_registration_id' , $registrationId)->update($data);
+                    DB::table('devices')->where('device_registration_id', $registrationId)->update($data);
                 }
             } else {
                 $deviceId = $deviceFields['deviceToken'] ?: '';
-                $device   = DB::table('devices')->where('device_registration_id', $registrationId)->first();
-                if(empty($device))
-                {
-                    $deviceData = [
-                        'device_id'                => $deviceId,
-                        'device_registration_id'   => $registrationId,
-                        'device_app_version'       => $deviceFields['appShortVersion']     ?: '',
-                        'device_system_name'       => $deviceFields['systemName']          ?: '',
-                        'device_system_version'    => $deviceFields['systemVersion']       ?: '',
-                        'device_platform_name'     => $deviceFields['devicePlatformName']  ?: '',
-                        'device_phone_name'        => $deviceFields['phoneName']           ?: '',
-                        'device_phone_model'       => $deviceFields['phoneModel']          ?: '',
-                        'device_localized_model'   => $deviceFields['localizedModel']      ?: '',
-                        'device_network_type'      => $deviceFields['networkType']         ?: '',
-                        'device_carrier_name'      => $deviceFields['carrierName']         ?: '',
-                        'device_app_short_version' => $deviceFields['appShortVersion']     ?: '',
-                        'device_type'              => $deviceFields['deviceType'],
-                        'device_vendor_uuid'       => $deviceFields['vendorUUID'],
-                        'device_language'          => $deviceLanguage,
-                        'device_created_at'        => time(),
-                        'device_app_bundle_identifier' => $deviceFields['appBundleIdentifier'] ?: '',
-                    ];
+                $device   = DB::table('devices_infos')->where('device_registration_id', $registrationId)->first();
+                if(empty($device)) {
+                    unset($deviceData['device_updated_at']);
+                    $deviceData['device_created_at'] = time();
                     DB::table('devices_infos')->insert($deviceData);
                 } else {
-                    if($device->device_id != $deviceId)
-                    {
+                    if($device->device_id != $deviceId) {
                         DB::table('devices_infos')->where('id', $device->id)->update(['device_id'=>$deviceId]);
                     }
                 }
