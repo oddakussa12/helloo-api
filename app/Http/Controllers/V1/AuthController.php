@@ -179,7 +179,7 @@ class AuthController extends BaseController
         $referer = request()->input('referer' , 'web');
         if($referer!='web')
         {
-            $deviceFields = request()->only(['vendorUUID' , 'deviceToken' , 'registrationId' , 'deviceLanguage']);
+            $deviceFields = request()->all();
             $deviceFields['referer'] = $referer;
             $device = new Device($deviceFields , 'signUpOrIn');
             $this->dispatch($device->onQueue('registered_plant'));
