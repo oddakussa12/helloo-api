@@ -29,10 +29,6 @@ class Push
 
     public function send()
     {
-
-        //FCMGroup::createGroup('en', is_array($this->token) ? $this->token : [$this->token]);
-        return $this->sendToGroup();
-
         $optionBuilder = new OptionsBuilder();
         $optionBuilder->setTimeToLive(60*20);
 
@@ -88,13 +84,13 @@ class Push
 
         $notification = $notificationBuilder->build();
 
-        $topic = new Topics();
 
+
+        $topic = new Topics();
         // 单个topic
         //$topic->topic('news');
 
         //多个topic
-        $topic = new Topics();
         $topic->topic('news')->andTopic(function($condition) {
             $condition->topic('economic')->orTopic('cultural');
         });
@@ -129,6 +125,8 @@ class Push
         'fail'      => $groupResponse->numberFailure(),
         'tokenFail' => $groupResponse->tokensFailed()
         ];
+        Log::info('sendToGroup:'. json_encode($status, 256));
+        Log::info('sendToGroup:'. json_encode($status, 256));
         Log::info('sendToGroup:'. json_encode($status, 256));
     }
 
