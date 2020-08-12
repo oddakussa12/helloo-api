@@ -40,7 +40,7 @@ class Device implements ShouldQueue
         $dateTime     = Carbon::now();
         $type         = $this->type;
         $deviceFields = $this->deviceFields;
-        $deviceFields['registrationId'] = 123;
+
         if(!empty($deviceFields['registrationId'])) {
             $registrationId = $deviceFields['registrationId'];
             $deviceData     = [
