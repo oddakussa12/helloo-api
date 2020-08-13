@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\V1;
 
+use Illuminate\Http\Request;
+
 use App\Jobs\Device;
 use Carbon\Carbon;
 use Dingo\Api\Http\Response;
@@ -30,7 +32,7 @@ class DeviceController extends BaseController
      * @return Response
      * 修改设备语言
      */
-    public function update(StoreDeviceRequest $request)
+    public function update(Request $request)
     {
         $language = $request->input('deviceLanguage');
         $userId   = auth()->user()->user_id;
