@@ -183,7 +183,7 @@ $api->group($V1Params , function ($api){
     $api->post('message/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
     $api->post('message/push' , 'PrivateMessageController@push')->name('message.push');
     $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
-    $api->resource('device', 'DeviceController', ['only' => ['store']]);
+    $api->resource('device', 'DeviceController', ['only' => ['store', 'update']]);
 
 //    $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend');
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name|phone|nick_name')->name('user.account.exists');
