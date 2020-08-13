@@ -31,6 +31,7 @@
         "qiniu/php-sdk": "^7.2",
         "rongcloud/php-sdk": "^3.0",
         "spatie/laravel-tags": "2.0.0",
+        "tamayo/laravel-scout-elastic": "^5.0",
         "toplan/laravel-sms": "~2.6",
         "torann/geoip": "^1.0",
         "tymon/jwt-auth": "1.0.0-rc.4.1",

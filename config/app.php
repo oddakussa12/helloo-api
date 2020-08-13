@@ -189,6 +189,9 @@ return [
         App\Providers\NotificationServiceProvider::class,
         Toplan\PhpSms\PhpSmsServiceProvider::class,
         App\Providers\SmsManagerServiceProvider::class,
+        Laravel\Scout\ScoutServiceProvider::class,
+        ScoutEngines\Elasticsearch\ElasticsearchProvider::class,
+
     ],
 
     /*
