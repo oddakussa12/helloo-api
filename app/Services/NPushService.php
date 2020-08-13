@@ -23,6 +23,7 @@ class NPushService
         $title = $fromName.' '.self::getTitle($type , $device->device_language);
         $data = [
             'deviceCountry'  => $device->device_country,
+            'registerType'   => $device->device_register_type,
             'deviceBrand'    => $device->device_phone_model,
             'title'          => $title,
             'content'        => $title,

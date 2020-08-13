@@ -26,23 +26,21 @@ class PushServer
         }*/
 
         if ($this->params['deviceCountry'] != 'CN') {
-            $result = $this->fcmPush();
+            $this->fcmPush();
         } else {
             if ($this->type == 'huawei') {
-                $result = $this->huaweiPush();
+                $this->huaweiPush();
             }
             if ($this->type == 'xiaomi') {
-                $result = $this->xiaomiPush();
+                $this->xiaomiPush();
             }
             if ($this->type == 'oppo') {
-                $result = $this->oppoPush();
+                $this->oppoPush();
             }
             if ($this->type == 'vivo') {
 
             }
         }
-
-        return $result;
 
     }
 
