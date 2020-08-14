@@ -37,11 +37,30 @@ class ESinit extends Command
             $this->info('============create template success============');
             $this->createIndex($client);
             $this->info('============create index success============');
+            $this->createData($client);
+            $this->info('============create data success============');
+
         }catch (\Exception $e){
-            ownLogs('test.log', $e->getMessage());
+            \Log::info('test.log', [$e->getCode(), $e->getMessage()]);
         }
 
     }
+
+
+    private function createData($client)
+    {
+        $url = config('scout.elasticsearch.hosts')[0] . '/' . config('scout.elasticsearch.index');
+
+        $client->put($url, [
+            [
+                'index' => config('scout.elasticsearch.index'),
+                'type' => 'keyword',
+                'id' => '1',
+                'body' => ['device_language' => '123213213c'.time(), 'device_phone_model'=>'en']
+            ]
+        ]);
+    }
+
     /**
      * 创建模板 see https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-templates.html
      * @param Client $client
