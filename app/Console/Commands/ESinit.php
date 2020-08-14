@@ -68,7 +68,27 @@ class ESinit extends Command
                                 'raw' => [
                                     'type' => 'keyword',
                                     'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
-                                ]
+                                ],
+                                'user_nick_name' => [
+                                    'type' => 'keyword',
+                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
+                                ],
+                                'user_name' => [
+                                    'type' => 'keyword',
+                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
+                                ],
+                                'email' => [
+                                    'type' => 'keyword',
+                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
+                                ],
+                                'device_phone_model' => [
+                                    'type' => 'keyword',
+                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
+                                ],
+                                'device_language' => [
+                                    'type' => 'keyword',
+                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
+                                ],
                             ],
                         ],
                     ],
