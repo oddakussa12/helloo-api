@@ -38,7 +38,7 @@ class UserController extends BaseController
         $client = ClientBuilder::create()->setHosts(env('ELASTICSEARCH_HOST'))->build();
 
         $params = [
-            'index' => 'device',
+            'index' => 'device222',
             'type' => 'keyword',
             'id' => '1',
             'body' => ['device_language' => '123213213c', 'device_phone_model'=>'en']

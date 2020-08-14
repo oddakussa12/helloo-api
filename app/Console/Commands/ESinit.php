@@ -65,22 +65,6 @@ class ESinit extends Command
                         'mapping' => [ // 字段的处理方式
                             'type' => 'keyword', // 字段类型限定为 string
                             'fields' => [
-                                'raw' => [
-                                    'type' => 'keyword',
-                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
-                                ],
-                                'user_nick_name' => [
-                                    'type' => 'keyword',
-                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
-                                ],
-                                'user_name' => [
-                                    'type' => 'keyword',
-                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
-                                ],
-                                'email' => [
-                                    'type' => 'keyword',
-                                    'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
-                                ],
                                 'device_phone_model' => [
                                     'type' => 'keyword',
                                     'ignore_above' => 256, // 字段是索引时忽略长度超过定义值的字段。
