@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
 use App\Traits\CachableUser;
+use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
@@ -33,6 +34,20 @@ class UserController extends BaseController
      */
     public function index(Request $request)
     {
+
+        $client = ClientBuilder::create()->setHosts(env('ELASTICSEARCH_HOST'))->build();
+
+        $params = [
+            'index' => 'device',
+            'type' => 'keyword',
+            'id' => '1',
+            'body' => ['device_language' => '123213213c', 'device_phone_model'=>'en']
+        ];
+
+        $response = $client->index($params);
+        print_r($response);
+
+        return ;
         //
         $name = $request->input('name' , '');
         $users = collect(array());

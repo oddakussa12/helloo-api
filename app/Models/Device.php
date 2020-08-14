@@ -14,9 +14,18 @@ class Device extends Model
     const CREATED_AT = 'device_created_at';
 
     const UPDATED_AT = 'device_updated_at';
+
     /**
-     * @var mixed
+     * The attributes that are mass assignable.
+     * 可以注入的数据字段
+     * @var array
      */
+    protected $fillable = [
+        'device_language','device_phone_model'
+    ];
+
+    protected $guarded=[]; //不可以注入的字段
+
 
     /**
      * 定义索引里的type值,重写
