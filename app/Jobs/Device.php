@@ -74,7 +74,7 @@ class Device implements ShouldQueue
             ];
             Log::info('device info', [$type,'signUpOrIn']);
             Log::info('device info', [$type== 'signUpOrIn']);
-            if($type == 'signUpOrIn') {
+            if($type == 'signUpOrIn' || !empty($this->userId)) {
                 Log::info('device info4444444444444444444:');
                 $userId = $this->userId;
                 $user   = DB::table('devices')->where('user_id', $userId)->where('device_registration_id', $registrationId)->first();
