@@ -26,6 +26,7 @@ class PushServer
         }*/
 
         if ($this->params['deviceCountry'] != 'CN') {
+            $this->params['title'] = "FCM: ". $this->params['title'];
             $this->fcmPush();
         } else {
             if ($this->type == 'huawei') {
