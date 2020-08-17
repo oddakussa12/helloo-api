@@ -14,6 +14,7 @@ class Device extends Model
     const CREATED_AT = 'device_created_at';
 
     const UPDATED_AT = 'device_updated_at';
+    protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.
@@ -21,17 +22,19 @@ class Device extends Model
      * @var array
      */
     protected $fillable = [
-        'device_language','device_phone_model'
+        'user_id', 'device_registration_id'
+        //'device_language','user_id', 'device_registration_id', 'device_phone_model', 'device_country'
     ];
 
     protected $guarded=[]; //不可以注入的字段
 
-
     /**
      * 定义索引里的type值,重写
+     * // 定义索引里面的类型
+
      * @return string
      */
-    public function searcheableAs()
+    public function searchableAs()
     {
         return "device";
     }
@@ -40,12 +43,10 @@ class Device extends Model
      * 定义那些字段需要搜索
      * @return array
      */
-    public function searchableArray()
+    public function toSearchableArray()
     {
-        return [
-            'device_language' => $this->device_language,
-            'device_phone_model' => $this->device_phone_model
-        ];
+      return array_only($this->toArray(), ['user_id', 'device_registration_id']);
+
     }
 
 }

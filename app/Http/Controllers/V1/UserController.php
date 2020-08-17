@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Device;
 use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
@@ -34,18 +35,41 @@ class UserController extends BaseController
      */
     public function index(Request $request)
     {
+        //$post= (new Device());
+        /*$post = $post->select('id', 'device_registration_id')->where('id', 200)->first();
+        dump($post);
+        $post->id = 3333;
+        dump($post);
+        $post->save();
 
-        $client = ClientBuilder::create()->setHosts(env('ELASTICSEARCH_HOST'))->build();
+        */
+        // 通过 Eloquent 查询添加...
+
+        //$post = Device::select('id', 'device_registration_id')->where('id', 200)->first()->searchable();
+
+        $post = (new Device());
+        $post->select('id', 'device_registration_id')->where('id',201)->first();
+        dump($post);
+
+        $post->searchable();
+        dump($post);
+        exit;
+// 还可以通过集合添加记录...
+        $post->searchable();
+        exit;
+
+
+        /*$client = ClientBuilder::create()->setHosts(config('scout.elasticsearch.hosts'))->build();
 
         $params = [
-            'index' => 'device222',
+            'index' => config('scout.elasticsearch.index'),
             'type' => 'keyword',
             'id' => '1',
-            'body' => ['device_language' => '123213213c', 'device_phone_model'=>'en']
+            'body' => ['device_language' => '123213213c', 'user_id'=>time()]
         ];
 
         $response = $client->index($params);
-        print_r($response);
+        dump($response);*/
 
         return ;
         //

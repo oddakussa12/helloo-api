@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 
 class Report extends Model
 {
+    use Searchable;
 
     protected $table = "reports";
 
