@@ -81,7 +81,7 @@ class ESinit extends Command
     public function indices()
     {
         $indices = [
-            $this->device_init()
+            $this->post_init()
             //$this->index_init(),
         ];
         foreach ($indices as $index) {
@@ -138,19 +138,33 @@ class ESinit extends Command
         ], $this->setting);
     }
 
-    private function device_init()
+    private function post_init()
     {
         return array_merge_recursive([
             //'index' => 'device'.rand(1,100),
             'index' => config('scout.elasticsearch.index'),
             'body' => [
                 'mappings' => [
+                    'en',
+                    'id',
+                    'zh-CN',
+                    'ar',
+                    'hi',
+                    'ko',
+                    'ja',
+                    'es',
+                    'zh-TW',
+                    'zh-HK',
+                    'vi',
+                    'th',
+                    'fr',
+                    'de',
+                    'ru',
                     'properties' => [
-
-                        'user_id' => [
-                            'type' => 'long'
+                        'en' => [
+                            'type' => 'text'
                         ],
-                        'device_type' => [
+                        'hindi' => [
                             'type' => 'long',
                         ],
                         'device_registration_id' => [
