@@ -20,24 +20,19 @@ class PushServer
 
     public function Send()
     {
-      /*  if (strstr($this->params['title'], 'tsmtang')) {
-            $result = $this->xiaomiPush();
-            return $result;
-        }*/
-
-        if ($this->params['deviceCountry'] != 'CN') {
+        if ($this->params['registerType'] == 'fcm') {
             $this->fcmPush();
         } else {
-            if ($this->type == 'huawei') {
+            if ($this->deviceBrand == 'huawei') {
                 $this->huaweiPush();
             }
-            if ($this->type == 'xiaomi') {
+            if ($this->deviceBrand == 'xiaomi') {
                 $this->xiaomiPush();
             }
-            if ($this->type == 'oppo') {
+            if ($this->deviceBrand == 'oppo') {
                 $this->oppoPush();
             }
-            if ($this->type == 'vivo') {
+            if ($this->deviceBrand == 'vivo') {
 
             }
         }

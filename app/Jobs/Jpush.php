@@ -65,21 +65,12 @@ class Jpush implements ShouldQueue
 
         Log::info('commonPush handle device_type:'.$device->device_type.' device_country:'.$device->device_country. " TYPE: ".$device->device_register_type);
 
-        if ($device->device_type==2) {
-            if ($device->device_register_type == 'fcm') {
-                Log::info('commonPush handle NpushService1');
-                NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
+        if ($device->device_type==2 && ($device->device_register_type == 'fcm' || in_array(strtolower($device->device_phone_model), $this->deviceBrand))) {
+            Log::info('commonPush handle NpushService');
+            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
 
-            } else if(in_array(strtolower($device->device_phone_model), $this->deviceBrand)) {
-                Log::info('commonPush handle NpushService2');
-                NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
-
-            } else{
-                Log::info('commonPush handle JpushService2');
-                JpushService::commonPush($device, $this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
-            }
         } else{
-            Log::info('commonPush handle JpushService2');
+            Log::info('commonPush handle JpushService');
             JpushService::commonPush($device, $this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
 
         }
