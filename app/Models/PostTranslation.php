@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class PostTranslation extends Model
 {
+    use Searchable;
 
 	const CREATED_AT = 'post_translation_created_at';
 
