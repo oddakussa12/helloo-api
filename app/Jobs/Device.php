@@ -84,14 +84,10 @@ class Device implements ShouldQueue
                     Log::info('device info5:', $deviceData);
                     DB::table('devices')->insert($deviceData);
                 } else{
-                    Log::info('device info6 device is not empty: '. $user->id);
+                    $data = ['device_updated_at' => $dateTime];
+                    Log::info('device info6 update:', $data);
+                    DB::table('devices')->where('id', $user->id)->update($data);
                 }
-//                else {
-//                    $data = ['device_updated_at' => $dateTime];
-//                    Log::info('device info6 update:', $data);
-//
-//                    DB::table('devices')->where('id', $user->id)->update($data);
-//                }
             } else {
                 Log::info('device info7 type not signUpOrIn');
 
