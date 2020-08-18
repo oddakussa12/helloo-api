@@ -37,36 +37,38 @@ class DeviceController extends BaseController
     {
 
         $sql = "
-        SELECT post_id,
-MAX(CASE `post_locale` WHEN 'en' THEN post_content ELSE '' END) as 'en',
-MAX(CASE `post_locale` WHEN 'id' THEN post_content ELSE '' END) as 'hindi',
-MAX(CASE `post_locale` WHEN 'zh-CN' THEN post_content ELSE '' END) as 'zhCN',
-MAX(CASE `post_locale` WHEN 'ar' THEN post_content ELSE '' END) as 'ar',
-MAX(CASE `post_locale` WHEN 'hi' THEN post_content ELSE '' END) as 'hi',
-MAX(CASE `post_locale` WHEN 'ko' THEN post_content ELSE '' END) as 'ko',
-MAX(CASE `post_locale` WHEN 'ja' THEN post_content ELSE '' END) as 'ja',
-MAX(CASE `post_locale` WHEN 'es' THEN post_content ELSE '' END) as 'es',
-MAX(CASE `post_locale` WHEN 'zh-TW' THEN post_content ELSE '' END) as 'zhTW',
-MAX(CASE `post_locale` WHEN 'zh-HK' THEN post_content ELSE '' END) as 'zhHK',
-MAX(CASE `post_locale` WHEN 'vi' THEN post_content ELSE '' END) as 'vi',
-MAX(CASE `post_locale` WHEN 'th' THEN post_content ELSE '' END) as 'th',
-MAX(CASE `post_locale` WHEN 'fr' THEN post_content ELSE '' END) as 'fr',
-MAX(CASE `post_locale` WHEN 'de' THEN post_content ELSE '' END) as 'de',
-MAX(CASE `post_locale` WHEN 'ru' THEN post_content ELSE '' END) as 'ru',
-post_translation_created_at as create_at
-FROM f_posts_translations 
-where post_translation_created_at > '2020-01-01'
-GROUP BY post_id 
-ORDER BY post_id desc;
+        SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
+MAX(CASE t.`post_locale` WHEN 'en' THEN t.`post_content` ELSE '' END) as 'en',
+MAX(CASE t.`post_locale` WHEN 'id' THEN t.`post_content` ELSE '' END) as 'hindi',
+MAX(CASE t.`post_locale` WHEN 'zh-CN' THEN t.`post_content` ELSE '' END) as 'zhCN',
+MAX(CASE t.`post_locale` WHEN 'ar' THEN t.`post_content` ELSE '' END) as 'ar',
+MAX(CASE t.`post_locale` WHEN 'hi' THEN t.`post_content` ELSE '' END) as 'hi',
+MAX(CASE t.`post_locale` WHEN 'ko' THEN t.`post_content` ELSE '' END) as 'ko',
+MAX(CASE t.`post_locale` WHEN 'ja' THEN t.`post_content` ELSE '' END) as 'ja',
+MAX(CASE t.`post_locale` WHEN 'es' THEN t.`post_content` ELSE '' END) as 'es',
+MAX(CASE t.`post_locale` WHEN 'zh-TW' THEN t.`post_content` ELSE '' END) as 'zhTW',
+MAX(CASE t.`post_locale` WHEN 'zh-HK' THEN t.`post_content` ELSE '' END) as 'zhHK',
+MAX(CASE t.`post_locale` WHEN 'vi' THEN t.`post_content` ELSE '' END) as 'vi',
+MAX(CASE t.`post_locale` WHEN 'th' THEN t.`post_content` ELSE '' END) as 'th',
+MAX(CASE t.`post_locale` WHEN 'fr' THEN t.`post_content` ELSE '' END) as 'fr',
+MAX(CASE t.`post_locale` WHEN 'de' THEN t.`post_content` ELSE '' END) as 'de',
+MAX(CASE t.`post_locale` WHEN 'ru' THEN t.`post_content` ELSE '' END) as 'ru',
+p.post_created_at as create_at
+FROM f_posts_translations t
+inner join f_posts p on p.post_id = t.post_id
+where p.post_created_at > '2020-01-01'
+GROUP BY t.post_id 
+ORDER BY t.post_id desc limit 1;
         ";
 
 
         $result = DB::select($sql);
-        $result = array_map('get_object_vars', $result)[0];
+        $result = array_map('get_object_vars', $result);
         //(new BaseEsService('post'))->create($result);
 
 
-        (new BaseEsService('post'))->create($result);
+        (new BaseEsService('post'))->create($result[0]);
+        dump(123);
         exit;
         (new Es('post'))->generateDoc($result);
 

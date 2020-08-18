@@ -106,14 +106,14 @@ class ESinit extends Command
             'body'  => [
                 'mappings' => [
                     'properties' => [
-                        'user_id' => [
-                            'type' => 'long',
-                        ],
                         'post_id' => [
                             'type' => 'long',
                         ],
                         'post_uuid' => [
                             'type' => 'text',
+                        ],
+                        'user_id' => [
+                            'type' => 'long',
                         ],
                         'post_category_id' => [
                             'type' => 'text',
@@ -125,7 +125,7 @@ class ESinit extends Command
                             'type' => 'text',
                         ],
                         'post_type' => [
-                            'type' => 'tinyint',
+                            'type' => 'text',
                         ],
                         'create_at' => [
                             'type' => 'text',
@@ -204,7 +204,7 @@ class ESinit extends Command
     public function postDataInit()
     {
         $sql = "
-        SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type
+        SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
 MAX(CASE t.`post_locale` WHEN 'en' THEN t.`post_content` ELSE '' END) as 'en',
 MAX(CASE t.`post_locale` WHEN 'id' THEN t.`post_content` ELSE '' END) as 'hindi',
 MAX(CASE t.`post_locale` WHEN 'zh-CN' THEN t.`post_content` ELSE '' END) as 'zhCN',

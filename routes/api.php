@@ -56,6 +56,9 @@ $api->group($V1Params , function ($api){
         //获取房间内聊天记录
 //        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
 
+        $api->post('search', 'SearchController@index');
+
+
     });
     $api->group(['middleware'=>'throttle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
         $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');
