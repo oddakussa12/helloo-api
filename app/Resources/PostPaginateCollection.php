@@ -45,6 +45,10 @@ class PostPaginateCollection extends Resource
             'post_like_state'=>$this->likeState,
             'post_dislike_state'=>$this->dislikeState,
             'post_event_country'=>$this->post_event_country,
+            'topics'=>[
+                '中国',
+                '日本'
+            ],
 
         ];
     }

@@ -31,7 +31,12 @@ class PostCommentCollection extends Resource
                 {
                     return false;
                 }else{
-                    return $this->comment_like_state;
+                    if(isset($this->likeState))
+                    {
+                        return $this->likeState;
+                    }else{
+                        return false;
+                    }
                 }
             }),
             'owner'=>$this->when(true , function () use ($request){

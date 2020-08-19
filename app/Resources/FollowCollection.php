@@ -20,6 +20,7 @@ class FollowCollection extends Resource
         	'user_id'=>$user->user_id,
 //        	'user_uuid'=>$this->user_uuid,
         	'user_name'=>$user->user_name,
+        	'user_nick_name'=>$user->user_nick_name,
 //        	'user_email'=>$this->user_email,
         	'user_avatar'=>$user->user_avatar_link,
 //        	'user_country_id'=>$this->user_country_id,

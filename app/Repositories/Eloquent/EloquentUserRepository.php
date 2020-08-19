@@ -117,7 +117,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
         $userIds = $rankTopTenUser->pluck('user_id')->all();
 
-        $followers = userFollow($userIds);
+        $followers = $this->userFollow($userIds);
 
         $rankTopTenUser->each(function($item , $key)use ($followers){
             $item->user_follow_state = in_array($item->user_id , $followers);
@@ -742,5 +742,14 @@ DOC;
         $num = $num<10||$num>30?10:$num;
         $key = 'ry_user_online_status';
         return Redis::srandmember($key , $num);
+    }
+
+    public function userFollow($userIds)
+    {
+        if(auth()->check()&&!empty($userIds))
+        {
+            return \DB::table('common_follows')->where('user_id' , auth()->id())->where('followable_type' , "App\Models\User")->where('relation' , "follow")->whereIn('followable_id' , $userIds)->pluck('followable_id')->all();
+        }
+        return array();
     }
 }

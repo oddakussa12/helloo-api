@@ -113,4 +113,41 @@ trait CanFollow
                             ->on("pivot_followables.{$foreignKey}", '=', "{$table}.followable_id");
                     });
     }
+
+    public function followUser($user)
+    {
+        $authId = $this->getKey();
+        $follow = \DB::table('common_follows')->where('user_id' , $authId)->where('followable_id' , $user->user_id)->where('followable_type' , "App\Models\User")->where('relation' , "follow")->first();
+        if(empty($follow))
+        {
+            \DB::table('common_follows')->insert(
+                array(
+                    'user_id'=>$authId,
+                    'followable_id'=>$user->user_id,
+                    'followable_type'=>"App\Models\User",
+                    'relation'=>"follow",
+                    'created_at'=>date('Y-m-d H:i:s' , time()),
+                )
+            );
+            return true;
+        }
+        return false;
+    }
+
+    public function unFollowUser($user)
+    {
+        $authId = $this->getKey();
+        return (bool)\DB::table('common_follows')->where('user_id' , $authId)->where('followable_id' , $user->user_id)->where('followable_type' , "App\Models\User")->where('relation' , "follow")->delete();
+    }
+
+    public function isFollowingUser($userId)
+    {
+        $authId = $this->getKey();
+        if($userId==$authId)
+        {
+            return true;
+        }
+        $follow = \DB::table('common_follows')->where('user_id' , $authId)->where('followable_id' , $userId)->where('followable_type' , "App\Models\User")->where('relation' , "follow")->first();
+        return !empty($follow);
+    }
 }

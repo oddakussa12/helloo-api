@@ -9,9 +9,9 @@
 namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
+use App\Models\Like;
 use App\Models\PostComment;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 use App\Resources\PostCommentCollection;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -36,18 +36,21 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         $dateTime = Carbon::createFromTimestamp($queryTime)->toDateTimeString();
         $comments = $comments->where('comment_created_at' , '<=' , $dateTime);
         $appends['query_time'] = $queryTime;
-        if(auth()->check())
-        {
-            $comments = $comments->with(['likers'=>function($query){
-                $query->where('users.user_id' , auth()->id());
-            }]);
-        }
+
         $cache = dx_uuid();
         $orderBy = $uuid==$cache['post_uuid']?'comment_id':'comment_like_num';
         $comments = $comments->with('owner')
             ->orderBy($orderBy, 'DESC')
             ->paginate($this->perPage , ['*'] , $this->pageName);
         $commentIds = $comments->pluck('comment_id')->all();//获取 comment Id
+
+        if(auth()->check())
+        {
+            $postCommentLikes = $this->userPostCommentLike($commentIds);
+            $comments->each(function ($comment , $key) use ($postCommentLikes) {
+                $comment->likeState = in_array($comment->comment_id , $postCommentLikes);
+            });
+        }
 
         $topTwoComments = $this->topTwoComments($commentIds , $uuid , $dateTime);
 
@@ -98,10 +101,18 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         {
             $comments = $comments->where('comment_created_at' , '<=' , $queryTime);
         }
-        $comments = $comments->with('likers');
+//        $comments = $comments->with('likers');
         $order = $cache['post_uuid']==$postUuid?'DESC':'ASC';
         $comments = $comments->orderBy('comment_id' , $order)
             ->limit($this->perPage)->get();
+        if(auth()->check())
+        {
+            $commentIds = $comments->pluck('comment_id')->all();//获取 comment Id
+            $postCommentLikes = $this->userPostCommentLike($commentIds);
+            $comments->each(function ($comment , $key) use ($postCommentLikes) {
+                $comment->likeState = in_array($comment->comment_id , $postCommentLikes);
+            });
+        }
         $userIds = $comments->pluck('user_id')->merge($comments->pluck('comment_to_id'))->unique();
         $users = app(UserRepository::class)->findByMany($userIds->all());
         $comments->each(function($item , $key) use ($postUuid , $users){
@@ -139,12 +150,19 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $comments = $model->where('comment_top_id' , $comment->comment_top_id)
                 ->where('post_id' ,$comment->post_id)
                 ->with('translations')
-                ->with('likers')
+//                ->with('likers')
                 ->with('owner')
                 ->orderBy('comment_like_num' , 'DESC')
                 ->orderBy($this->model->getCreatedAtColumn() , 'DESC')
                 ->paginate($this->perPage , ['*'] , $this->pageName , $currentPage);
-            $commentIds = $comments->pluck('comment_id')->all();//��ȡcomment Id
+            $commentIds = $comments->pluck('comment_id')->all();//获取ȡcomment Id
+            if(auth()->check())
+            {
+                $postCommentLikes = $this->userPostCommentLike($commentIds);
+                $comments->each(function ($comment , $key) use ($postCommentLikes) {
+                    $comment->likeState = in_array($comment->comment_id , $postCommentLikes);
+                });
+            }
             $subCommentsCount = $this->getChildCountByCommentIds($commentIds);
             $comments->each(function ($item, $key) use ($postUuid , $subCommentsCount) {
                 $item->post_uuid = $postUuid;
@@ -152,7 +170,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             });
             return PostCommentCollection::collection($comments);
         }else{
-            $topComment = $this->allWithBuilder()->with('likers')->with('owner')->where('comment_id' , $comment->comment_top_id)->first();
+            $topComment = $this->allWithBuilder()->with('owner')->where('comment_id' , $comment->comment_top_id)->first();
             if(empty($topComment))
             {
                 abort(404);
@@ -164,13 +182,22 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 //            $queryTime = empty($queryTime)?$queryTime:date('Y-m-d H:i:s' , strtotime($queryTime));
             $comments = $model->where('comment_top_id' , $comment->comment_top_id)
                 ->with('translations')
-                ->with('likers')
                 ->with('owner')
                 ->with('to')
                 ->orderBy('comment_id')
                 ->offset(($currentPage-1)*$this->perPage)
                 ->limit($this->perPage)
                 ->get();
+            if(auth()->check())
+            {
+                $topCommentLikes = $this->userPostCommentLike(array($comment->comment_top_id));
+                $topComment->likeState = in_array($comment->comment_top_id , $topCommentLikes);
+                $commentIds = $comments->pluck('comment_id')->all();//获取 comment Id
+                $postCommentLikes = $this->userPostCommentLike($commentIds);
+                $comments->each(function ($comment , $key) use ($postCommentLikes) {
+                    $comment->likeState = in_array($comment->comment_id , $postCommentLikes);
+                });
+            }
             $comments->each(function($item , $key) use ($postUuid){
                 $item->post_uuid  = $postUuid;
             });
@@ -184,8 +211,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     {
         $comments = $this->allWithBuilder();
         $comments = $comments->where('user_id' , $user_id);
-        $comments = $comments->with('likers')
-            ->with('owner')
+        $comments = $comments->with('owner')
             ->with('post')
             ->whereHas('post');
         return $comments
@@ -207,7 +233,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     public function find($id)
     {
         $comment = $this->allWithBuilder();
-        $comment = $comment->with('owner')->with('post')->with('to')->with('likers')->find($id);
+        $comment = $comment->with('owner')->with('post')->with('to')->find($id);
         return $comment;
     }
 
@@ -220,7 +246,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
                     ->with('translations')
                     ->with('likes')
                     ->with(['post'=>function($q){
-                        $q->with('translations');
+                        $q->with('translations')->with('owner');
                     }]);
             }])
             ->join('posts_comments' , function($join){
@@ -235,23 +261,26 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     public function findByCommentIds(array $comment_ids , $type='comment')
     {
         $comments = $this->allWithBuilder();
-        if(auth()->check())
-        {
-            $comments = $comments->with(['likers'=>function($query){
-                $query->where('users.user_id' , auth()->id());
-            }]);
-        }
         if($type=='comment')
         {
             $comments = $comments->with(['parent'=>function($q){
                 $q->with('translations')->with('owner');
             }]);
         }
-        return $comments->whereIn('comment_id' , $comment_ids)
+        $comments = $comments->whereIn('comment_id' , $comment_ids)
             ->with('owner')
             ->with(['post'=>function($q){
                 $q->with('translations')->withTrashed();
             }])->get();
+        if(auth()->check())
+        {
+            $commentIds = $comments->pluck('comment_id')->all();//获取 comment Id
+            $postCommentLikes = $this->userPostCommentLike($commentIds);
+            $comments->each(function ($comment , $key) use ($postCommentLikes) {
+                $comment->likeState = in_array($comment->comment_id , $postCommentLikes);
+            });
+        }
+        return $comments;
     }
 
 
@@ -280,13 +309,15 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
 
         $postComments = PostComment::whereIn('comment_id',$topTwoCommentIds)
             ->with('translations');
+        $postComments = $postComments->get();
         if(auth()->check())
         {
-            $postComments = $postComments->with(['likers'=>function($query){
-                $query->where('users.user_id' , auth()->id());
-            }]);
+            $postCommentLikes = $this->userPostCommentLike($topTwoCommentIds);
+            $postComments->each(function ($comment , $key) use ($postCommentLikes) {
+                $comment->likeState = in_array($comment->comment_id , $postCommentLikes);
+            });
         }
-        return $postComments->get();
+        return $postComments;
     }
 
     public function getChildCountByCommentIds($commentIds , $queryTime=null)
@@ -298,5 +329,14 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $postComment = $postComment->where('comment_created_at' , '<=' , $queryTime);
         }
         return $postComment->groupBy('comment_top_id')->get();
+    }
+
+    public function userPostCommentLike($commentIds)
+    {
+        if(auth()->check()&&!empty($commentIds))
+        {
+            return Like::where('user_id' , auth()->id())->WithType("App\Models\PostComment")->whereIn('common_likes.likable_id' , $commentIds)->pluck('likable_id')->all();
+        }
+        return array();
     }
 }
