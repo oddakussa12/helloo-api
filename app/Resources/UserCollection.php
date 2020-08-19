@@ -39,7 +39,7 @@ class UserCollection extends Resource
                 {
                     return $this->user_follow_state;
                 }else{
-                    return auth()->check()?auth()->user()->isFollowing($this->user_id):false;
+                    return auth()->check()?auth()->user()->isFollowingUser($this->user_id):false;
                 }
             }),
             'make_friend_created_at'=>$this->when(isset($this->make_friend_created_at) , function (){

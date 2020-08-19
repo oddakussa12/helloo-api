@@ -125,11 +125,6 @@ class PostController extends BaseController
         return PostPaginateCollection::collection($this->post->paginateByUser($request , $userId));
     }
 
-    public function showPostByUserSelf(Request $request)
-    {
-        return PostPaginateCollection::collection($this->post->paginateByUser($request , auth()->id()));
-    }
-
     /**
      * Show the form for creating a new resource.
      *
@@ -379,7 +374,7 @@ class PostController extends BaseController
 
     public function myself(Request $request)
     {
-        return PostPaginateCollection::collection($this->post->paginateByUser($request , auth()->user()->user_id));
+        return PostPaginateCollection::collection($this->post->paginateByUser($request , auth()->user()));
     }
 
     public function fine()
