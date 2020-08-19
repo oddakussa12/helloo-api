@@ -85,7 +85,7 @@ ORDER BY t.post_id desc
             if ($data==null) {
                 $data = (new Es('post222'))->batchCreate($result);
             }
-            dump($data);
+            //dump($data);
             flush();
             ob_flush();
         }
