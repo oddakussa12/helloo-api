@@ -3,15 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Http\Controllers\V1\DeviceController;
-use App\Models\Device;
-use App\Models\Es;
-use App\Models\OperationLog;
-use App\Services\BaseEsService;
 use App\Services\EsClient;
-use GuzzleHttp\Client;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ESinit extends Command
 {
@@ -67,6 +60,8 @@ class ESinit extends Command
             $this->indices();
             $this->info('============create index success============');
 
+            $this->postDataInit();
+            $this->info('============create postDataInit success============');
 
             //创建template
             /*
@@ -104,7 +99,7 @@ class ESinit extends Command
     {
         return array_merge_recursive([
             //'index' => 'device'.rand(1,100),
-            'index' => 'post',
+            'index' => 'post222',
             'body'  => [
                 'mappings' => [
                     'properties' => [
@@ -285,7 +280,7 @@ ORDER BY t.post_id desc;
 
 //        $result = DB::select($sql);
 //        $result = array_map('get_object_vars', $result);
-//        (new BaseEsService(env('ELASTICSEARCH_POST_INDEX')))->batchCreate($result);
+//        (new Es(env('ELASTICSEARCH_POST_INDEX')))->batchCreate($result);
 
     }
 }

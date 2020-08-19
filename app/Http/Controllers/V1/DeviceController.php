@@ -5,9 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Jobs\Device;
 use App\Models\Es;
 use App\Repositories\Contracts\DeviceRepository;
-use App\Services\BaseEsService;
 use Elasticsearch\Client;
-use Elasticsearch\ClientBuilder;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreDeviceRequest;
 
@@ -28,15 +26,11 @@ class DeviceController extends BaseController
 
     public function __construct()
     {
-        //$this->esClient = new BaseEsService(config('scout.elasticsearch.index'));
-        //$this->esClient = $clientBuilder;
-        //$this->mIndex = 'device';
     }
 
     public function test()
     {
 
-        exit;
         set_time_limit(0);
 
         $countSql = "SELECT count(1) num
@@ -87,9 +81,9 @@ ORDER BY t.post_id desc
             $result = array_map('get_object_vars', $result);
             echo '-----------'. env('ELASTICSEARCH_POST_INDEX');
 
-            $data = (new BaseEsService('post'))->batchCreate($result);
+            $data = (new Es('post222'))->batchCreate($result);
             if ($data==null) {
-                $data = (new BaseEsService('post'))->batchCreate($result);
+                $data = (new Es('post222'))->batchCreate($result);
             }
             dump($data);
             flush();
