@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\V1\DeviceController;
 use App\Models\Device;
 use App\Models\Es;
 use App\Models\OperationLog;
@@ -64,7 +65,6 @@ class ESinit extends Command
         try{
 
             $this->indices();
-            $this->postDataInit();
             $this->info('============create index success============');
 
 
@@ -91,14 +91,63 @@ class ESinit extends Command
         foreach ($indices as $index) {
             try {
                 (new EsClient())->indices()->create($index);
+                dump($index);
+                echo json_encode($index);
                 echo 'create index: ' . $index['index'] . PHP_EOL;
             } catch (\Exception $e) {
-                echo $e->getMessage() . PHP_EOL;
+                echo env('ELASTICSEARCH_POST_INDEX');
+                echo "Exception::: code: ". $e->getCode(). ' message: '. $e->getMessage() . PHP_EOL;
             }
         }
     }
-
     private function post_init()
+    {
+        return array_merge_recursive([
+            //'index' => 'device'.rand(1,100),
+            'index' => 'post',
+            'body'  => [
+                'mappings' => [
+                    'properties' => [
+                        'post_id' => [
+                            'type' => 'long',
+                        ],
+                        'post_uuid' => [
+                            'type' => 'text',
+                        ],
+                        'user_id' => [
+                            'type' => 'long',
+                        ],
+                        'post_category_id' => [
+                            'type' => 'text',
+                        ],
+                        'post_media' => [
+                            'type' => 'text',
+                        ],
+                        'post_content_default_locale' => [
+                            'type' => 'text',
+                        ],
+                        'post_type' => [
+                            'type' => 'text',
+                        ],
+                        'post_locale' => [
+                            'type' => 'text',
+                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
+                        ],
+                        'post_content' => [
+                            'type' => 'text',
+                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
+                            "analyzer"=>"icu_analyzer",
+                        ],
+                        'create_at' => [
+                            'type' => 'text',
+                        ]
+
+                    ]
+                ]
+            ]
+        ], $this->setting);
+    }
+    private function post_init2()
     {
         return array_merge_recursive([
             //'index' => 'device'.rand(1,100),
@@ -203,9 +252,14 @@ class ESinit extends Command
 
     public function postDataInit()
     {
+        dump('开始插入数据');
+        (new DeviceController())->test();
+        dump('插入数据完成');
+
+        exit;
         $sql = "
         SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
-MAX(CASE t.`post_locale` WHEN 'en' THEN t.`post_content` ELSE '' END) as 'en',
+/*MAX(CASE t.`post_locale` WHEN 'en' THEN t.`post_content` ELSE '' END) as 'en',
 MAX(CASE t.`post_locale` WHEN 'id' THEN t.`post_content` ELSE '' END) as 'hindi',
 MAX(CASE t.`post_locale` WHEN 'zh-CN' THEN t.`post_content` ELSE '' END) as 'zhCN',
 MAX(CASE t.`post_locale` WHEN 'ar' THEN t.`post_content` ELSE '' END) as 'ar',
@@ -219,7 +273,8 @@ MAX(CASE t.`post_locale` WHEN 'vi' THEN t.`post_content` ELSE '' END) as 'vi',
 MAX(CASE t.`post_locale` WHEN 'th' THEN t.`post_content` ELSE '' END) as 'th',
 MAX(CASE t.`post_locale` WHEN 'fr' THEN t.`post_content` ELSE '' END) as 'fr',
 MAX(CASE t.`post_locale` WHEN 'de' THEN t.`post_content` ELSE '' END) as 'de',
-MAX(CASE t.`post_locale` WHEN 'ru' THEN t.`post_content` ELSE '' END) as 'ru',
+MAX(CASE t.`post_locale` WHEN 'ru' THEN t.`post_content` ELSE '' END) as 'ru',*/
+t.post_locale, t.post_content,
 p.post_created_at as create_at
 FROM f_posts_translations t
 inner join f_posts p on p.post_id = t.post_id
@@ -228,9 +283,9 @@ GROUP BY t.post_id
 ORDER BY t.post_id desc;
         ";
 
-        $result = DB::select($sql);
-        $result = array_map('get_object_vars', $result);
-        (new BaseEsService('post'))->batchCreate($result);
+//        $result = DB::select($sql);
+//        $result = array_map('get_object_vars', $result);
+//        (new BaseEsService(env('ELASTICSEARCH_POST_INDEX')))->batchCreate($result);
 
     }
 }
