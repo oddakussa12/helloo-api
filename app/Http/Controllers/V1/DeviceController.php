@@ -23,7 +23,7 @@ class DeviceController extends BaseController
     {
         $deviceFields = $request->all();
         $device = new Device($deviceFields);
-        $this->dispatch($device->onQueue('registered_plant'));
+        $this->dispatch($device->onQueue('registered_plant_tsm'));
         return $this->response->created();
     }
 
