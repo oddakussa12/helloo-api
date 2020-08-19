@@ -50,6 +50,7 @@ class Device implements ShouldQueue
 
         if(!empty($deviceFields['registrationId'])) {
             $registrationId = $deviceFields['registrationId'];
+            $country        = $deviceFields['deviceCountry'] ? strtolower($deviceFields['deviceCountry']) : geoip(getRequestIpAddress())->iso_code;
             $deviceData     = [
                 'device_registration_id'   => $registrationId,
                 'device_id'                => $deviceFields['deviceToken']         ?? '',
@@ -66,7 +67,7 @@ class Device implements ShouldQueue
                 'device_language'          => $deviceFields['deviceLanguage']      ?? 'en',
                 'device_vendor_uuid'       => $deviceFields['vendorUUID']          ?? '',
                 'device_register_type'     => $deviceFields['deviceRegisterType']  ?? '',
-                'device_country'           => $deviceFields['deviceCountry']       ?: geoip(getRequestIpAddress())->iso_code,
+                'device_country'           => $country,
                 'device_type'              => $deviceType,
                 'device_created_at'        => $dateTime,
                 'device_updated_at'        => $dateTime,

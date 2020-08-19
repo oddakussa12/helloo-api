@@ -182,7 +182,7 @@ class AuthController extends BaseController
             $deviceFields = request()->all();
             $deviceFields['referer'] = $referer;
             $device = new Device($deviceFields , 'signUpOrIn');
-            $this->dispatch($device->onQueue('registered_plant_tsm'));
+            $this->dispatch($device->onQueue('registered_plant'));
         }
         $token = array(
             'access_token' => $token,

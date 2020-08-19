@@ -54,7 +54,7 @@ class PrivateMessageController extends BaseController
         switch ($type)
         {
             case 'privatechat':
-                Jpush::dispatch('privateMessage' , '' , $userId , $content)->onQueue('op_npush_tsm');
+                Jpush::dispatch('privateMessage' , '' , $userId , $content)->onQueue('op_npush');
                 break;
             default:
                 break;
