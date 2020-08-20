@@ -50,7 +50,7 @@ class Device implements ShouldQueue
 
         if(!empty($deviceFields['registrationId'])) {
             $registrationId = $deviceFields['registrationId'];
-            $country        = $deviceFields['deviceCountry'] ? strtolower($deviceFields['deviceCountry']) : geoip(getRequestIpAddress())->iso_code;
+            $country        = !empty($deviceFields['deviceCountry']) ? strtolower($deviceFields['deviceCountry']) : geoip(getRequestIpAddress())->iso_code;
             $deviceData     = [
                 'device_registration_id'   => $registrationId,
                 'device_id'                => $deviceFields['deviceToken']         ?? '',
