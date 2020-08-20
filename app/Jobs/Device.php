@@ -23,7 +23,7 @@ class Device implements ShouldQueue
 
     public function __construct($deviceFields , $type='init')
     {
-        $deviceFields['deviceCountry'] = !empty($deviceFields['deviceCountry']) ? strtolower($deviceFields['deviceCountry']) : geoip(getRequestIpAddress())->iso_code;
+        $deviceFields['deviceCountry'] = !empty($deviceFields['deviceCountry']) ? $deviceFields['deviceCountry'] : geoip(getRequestIpAddress())->iso_code;
         $this->deviceFields = $deviceFields;
         $this->type = $type;
         if(auth()->check()) {
@@ -68,7 +68,7 @@ class Device implements ShouldQueue
                 'device_language'          => $deviceFields['deviceLanguage']      ?? 'en',
                 'device_vendor_uuid'       => $deviceFields['vendorUUID']          ?? '',
                 'device_register_type'     => $deviceFields['deviceRegisterType']  ?? 'jpush',
-                'device_country'           => $deviceFields['deviceCountry'],
+                'device_country'           => strtolower($deviceFields['deviceCountry']),
                 'device_type'              => $deviceType,
                 'device_created_at'        => $dateTime,
                 'device_updated_at'        => $dateTime,
