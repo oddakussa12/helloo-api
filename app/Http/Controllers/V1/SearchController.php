@@ -37,7 +37,7 @@ class SearchController extends BaseController
                 break;
             case 4: // 输入中
                 $result = $this->searchTopic($params);
-               $result  = $result->additional(['user'=>$this->searchUser($params)]);
+               $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
                 return $result;
                 break;
             default: // 全部
@@ -59,32 +59,38 @@ class SearchController extends BaseController
      */
     public function hotTopic()
     {
-        for ($i=1; $i<=10; $i++) {
-            $data[] = ['post_content' => '热门话题'.$i];
+
+        $topic = ['这是一个话题', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
+        shuffle($topic);
+        foreach ($topic as $value) {
+            $data['data'][] = ['post_content' => $value];
         }
 
         return $data ?? [];
 
     }
+
     /**
      * @param $params
+     * @param int $limit
      * @return AnonymousResourceCollection
      * 查询用户
      */
-    protected function searchUser($params) {
+    protected function searchUser($params, $limit=10) {
         $likeColumns = ['user_nick_name', 'user_name'];
-        $user = (new Es('user'))->likeQuery($params, $likeColumns);
+        $user        = (new Es('user', ['limit'=>$limit]))->likeQuery($params, $likeColumns);
         return UserSearchCollection::collection($user);
     }
 
     /**
      * @param $params
+     * @param int $limit
      * @return AnonymousResourceCollection
      * 搜索帖子
      */
-    protected function searchPost($params) {
+    protected function searchPost($params, $limit=10) {
         $likeColumns = ['post_content'];
-        $filter      = ['post_content_default_locale'=>locale()];
+        $filter      = ['post_content_default_locale'=>locale(), 'limit'=>$limit];
         $post        = (new Es('post', $filter))->likeQuery($params, $likeColumns);
 
         return PostSearchPaginateCollection::collection($post);
@@ -92,13 +98,14 @@ class SearchController extends BaseController
 
     /**
      * @param $params
+     * @param int $limit
      * @return AnonymousResourceCollection
      * 查询topic
      */
-    protected function searchTopic($params)
+    protected function searchTopic($params, $limit=10)
     {
         $likeColumns = ['topic_content'];
-        $topic = (new Es('topic'))->likeQuery($params, $likeColumns);
+        $topic       = (new Es('topic', ['limit'=>$limit]))->likeQuery($params, $likeColumns);
         return TopicSearchPaginateCollection::collection($topic);
     }
 

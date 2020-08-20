@@ -16,12 +16,12 @@ class Es
     private $offset;
     private $columns;
 
-    public function __construct($mIndex='', $columns=[])
+    public function __construct($mIndex='', $extra=[])
     {
         $this->client = new EsClient();
-        $this->columns= $columns ?? [];
+        $this->columns= $extra['columns'] ?? [];
         $this->mIndex = $mIndex ?: env('ELASTICSEARCH_INDEX');
-        $this->limit  = app('request')->get('limit')  ?: 10;
+        $this->limit  = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
         $this->offset = app('request')->get('page') ?: 0;
     }
 
