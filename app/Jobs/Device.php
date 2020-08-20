@@ -23,12 +23,12 @@ class Device implements ShouldQueue
 
     public function __construct($deviceFields , $type='init')
     {
+        $deviceFields['deviceCountry'] = !empty($deviceFields['deviceCountry']) ? strtolower($deviceFields['deviceCountry']) : geoip(getRequestIpAddress())->iso_code;
         $this->deviceFields = $deviceFields;
         $this->type = $type;
         if(auth()->check()) {
             $this->userId = auth()->id();
         }
-        $deviceFields['deviceCountry'] = !empty($deviceFields['deviceCountry']) ? strtolower($deviceFields['deviceCountry']) : geoip(getRequestIpAddress())->iso_code;
 
         Log::info('device info 00000000', [$type]);
         Log::info('device info 00000000 deviceFields:', $deviceFields);
