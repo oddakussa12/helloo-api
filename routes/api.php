@@ -56,7 +56,10 @@ $api->group($V1Params , function ($api){
         //获取房间内聊天记录
 //        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
 
+        // 搜索功能-ES
         $api->post('search', 'SearchController@index');
+        // 热门话题
+        $api->get('search/topic', 'SearchController@hotTopic');
 
 
     });

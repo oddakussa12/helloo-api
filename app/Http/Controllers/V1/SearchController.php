@@ -19,7 +19,13 @@ class SearchController extends BaseController
     public function index(Request $request)
     {
         $params = $request->all();
-        switch ($params['type']) {
+        $type   = $params['type'] ?? 0;
+
+        if (empty(trim($params['keyword']))) {
+            return [];
+        }
+
+        switch ($type) {
             case 1: // 用户
                 return $this->searchUser($params);
                 break;
@@ -47,6 +53,19 @@ class SearchController extends BaseController
         }
     }
 
+    /**
+     * @return array
+     * 热门话题
+     */
+    public function hotTopic()
+    {
+        for ($i=1; $i<=10; $i++) {
+            $data[] = ['post_content' => '热门话题'.$i];
+        }
+
+        return $data ?? [];
+
+    }
     /**
      * @param $params
      * @return AnonymousResourceCollection
