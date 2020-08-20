@@ -93,7 +93,7 @@ class Device implements ShouldQueue
             } else {
                 Log::info('device info7 type not signUpOrIn');
 
-                $deviceId = $deviceFields['deviceToken'] ?: '';
+                $deviceId = $deviceFields['deviceToken'] ?? '';
                 $device   = DB::table('devices_infos')->where('device_registration_id', $registrationId)->first();
                 if(empty($device)) {
                     Log::info('device info8 devices_infos');

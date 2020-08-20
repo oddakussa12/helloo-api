@@ -23,7 +23,8 @@ class Jpush implements ShouldQueue
     public $content;
     public $version=0;
     public $app='web';
-    public $deviceBrand = ['huawei', 'honer', 'xiaomi', 'oppo', 'vivo'];
+    // public $deviceBrand = ['huawei', 'honer', 'xiaomi', 'oppo', 'vivo'];
+    public $deviceBrand = [];
 
     public function __construct($type , $formName , $userId , $content='')
     {

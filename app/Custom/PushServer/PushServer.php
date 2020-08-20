@@ -23,16 +23,16 @@ class PushServer
         if ($this->params['registerType'] == 'fcm') {
             $this->fcmPush();
         } else {
-            if ($this->deviceBrand == 'huawei') {
+            if ($this->params['deviceBrand'] == 'huawei') {
                 $this->huaweiPush();
             }
-            if ($this->deviceBrand == 'xiaomi') {
+            if ($this->params['deviceBrand'] == 'xiaomi') {
                 $this->xiaomiPush();
             }
-            if ($this->deviceBrand == 'oppo') {
+            if ($this->params['deviceBrand'] == 'oppo') {
                 $this->oppoPush();
             }
-            if ($this->deviceBrand == 'vivo') {
+            if ($this->params['deviceBrand'] == 'vivo') {
 
             }
         }
