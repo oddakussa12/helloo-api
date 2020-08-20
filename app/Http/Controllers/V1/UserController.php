@@ -28,6 +28,42 @@ class UserController extends BaseController
     {
         $this->user = $user;
     }
+
+    public function FCMPush($Title,$Content,$Token) {
+        //hotelB2B
+        define( '', '' );
+
+        $data = $this->getPostData();
+        $registrationIds = $data['Token'];
+
+        $msg = array(
+            'body'  =>  $data['Content'],
+            'title' =>  $data['Title'],
+            'icon'  => 'myicon',/*Default Icon*/
+            'sound' => 'mySound'/*Default sound*/
+        );
+
+        $fields = array(
+            'to' => $registrationIds,
+            'notification' => $msg);
+
+        $headers = array(
+            'Authorization: key=' . API_ACCESS_KEY,
+            'Content-Type: application/json'
+        );
+
+        $ch = curl_init();
+        curl_setopt( $ch,CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send' );
+        curl_setopt( $ch,CURLOPT_POST, true );
+        curl_setopt( $ch,CURLOPT_HTTPHEADER, $headers );
+        curl_setopt( $ch,CURLOPT_RETURNTRANSFER, true );
+        curl_setopt( $ch,CURLOPT_SSL_VERIFYPEER, false );
+        curl_setopt( $ch,CURLOPT_POSTFIELDS, json_encode( $fields ) );
+        $result = curl_exec($ch );
+        curl_close( $ch );
+        return $result;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -136,7 +172,7 @@ class UserController extends BaseController
             return $this->response->errorNotFound();
         }
         $user = $this->user->findOrFail($id);
-        $followerIds = userFollow([$id]);
+        $followerIds = $this->user->userFollow([$id]);
         $user->user_follow_state = !empty($followerIds);
         return new UserCollection($user);
     }
@@ -182,8 +218,11 @@ class UserController extends BaseController
     {
         $user = $this->user->findOrFail($user_id);
         $follower = auth()->user();
-        $follower->follow($user);
-        event(new Follow($follower , $user));
+        $follow = $follower->followUser($user);
+        if($follow===true)
+        {
+            event(new Follow($follower , $user));
+        }
         return $this->response->noContent();
     }
 
@@ -191,8 +230,11 @@ class UserController extends BaseController
     {
         $user = $this->user->findOrFail($user_id);
         $follower = auth()->user();
-        $follower->unfollow($user);
-        event(new UnFollow($follower , $user));
+        $unFollow = $follower->unFollowUser($user);
+        if($unFollow===true)
+        {
+            event(new UnFollow($follower , $user));
+        }
         return $this->response->noContent();
     }
 

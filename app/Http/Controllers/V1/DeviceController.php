@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\V1;
 
+use Illuminate\Http\Request;
 use App\Jobs\Device;
 use App\Models\Es;
 use App\Repositories\Contracts\DeviceRepository;
 use Elasticsearch\Client;
+use Carbon\Carbon;
+use Dingo\Api\Http\Response;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreDeviceRequest;
 
@@ -100,34 +103,11 @@ ORDER BY t.post_id desc
     }
     public function index()
     {
-
-
-
-        $client = new Client(config('scout.elasticsearch'));
-
-#单条插入
-        $params = [
-            'index' => 'device',
-            'type'  => '',
-            'body' => [
-                'device_type' => rand(1,2),
-                'device_registration_id' => time(),
-            ]
-        ];
-// $params['id'] = 'w1231313';
-        return $client->index($params);
-
-
-        $this->esClient->index($params);
-
-       return ($params);
-
-        exit;
-        $device = \App\Models\Device::select('id','device_type', 'device_registration_id')->limit(1)->first();
+        /*$device = \App\Models\Device::select('id','device_type', 'device_registration_id')->limit(1)->first();
         $device->device_type =rand(1,2);
         $device->device_registration_id =time();
         dump($device);
-        $device->create();
+        $device->create();*/
         //return $this->deviceRepository->store($params);
     }
 
@@ -137,6 +117,22 @@ ORDER BY t.post_id desc
         $device = new Device($deviceFields);
         $this->dispatch($device->onQueue('registered_plant'));
         return $this->response->created();
+    }
+
+    /**
+     * @param Request $request
+     * @return Response
+     * 修改设备语言
+     */
+    public function update(Request $request)
+    {
+        $language = $request->input('deviceLanguage');
+        $userId   = auth()->user()->user_id;
+        if (!empty($language) && !empty($userId)) {
+            $data = ['device_language'=>$language, 'device_updated_at'=>Carbon::now()];
+            \DB::table('devices')->where('user_id', $userId)->update($data);
+        }
+        return $this->response->accepted();
     }
     
 }

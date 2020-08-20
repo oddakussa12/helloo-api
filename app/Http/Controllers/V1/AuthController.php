@@ -61,7 +61,7 @@ class AuthController extends BaseController
         $version = $request->header('YooulVersion' , 0);
         if(version_compare($version,'1.6.2','>='))
         {
-            $user_fields['user_nick_name'] = $user_fields[$this->user->getDefaultNameField()];
+            $user_fields['user_nick_name'] = empty($user_fields['user_nick_name'])?$user_fields[$this->user->getDefaultNameField()]:$user_fields['user_nick_name'];
             $user_fields[$this->user->getDefaultNameField()] = $this->randUsername();
         }
         if($request->has('country_code'))
@@ -180,7 +180,7 @@ class AuthController extends BaseController
         $referer = request()->input('referer' , 'web');
         if($referer!='web')
         {
-            $deviceFields = request()->only(['vendorUUID' , 'deviceToken' , 'registrationId' , 'deviceLanguage']);
+            $deviceFields = request()->all();
             $deviceFields['referer'] = $referer;
             $device = new Device($deviceFields , 'signUpOrIn');
             $this->dispatch($device->onQueue('registered_plant'));

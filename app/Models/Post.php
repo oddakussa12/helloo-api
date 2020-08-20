@@ -302,26 +302,7 @@ class Post extends Model
 
     public function getPostFormatCreatedAtAttribute()
     {
-        $locale = locale();
-        if($locale=='zh-CN')
-        {
-            Carbon::setLocale('zh');
-        }elseif ($locale=='zh-TW'||$locale=='zh-HK')
-        {
-            Carbon::setLocale('zh_TW');
-        }else{
-            $locale = 'en';
-            Carbon::setLocale($locale);
-            $translator = \Carbon\Translator::get($locale);
-            $translator->setMessages($locale , [
-                'minute' => ':count m|:count m',
-                'hour' => ':count h|:count h',
-                'day' => ':count d|:count d',
-                'month' => ':count mo|:count mo',
-                'year' => ':count yr|:count yr',
-            ]);
-        }
-        return Carbon::parse($this->post_created_at)->diffForHumans();
+        return dateTrans($this->post_created_at);
     }
 
     public function getFormatRateAttribute()

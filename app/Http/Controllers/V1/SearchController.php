@@ -4,8 +4,10 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\Es;
 use App\Resources\PostPaginateCollection;
+use App\Resources\PostSearchPaginateCollection;
 use App\Resources\SearchPaginateCollection;
 use App\Resources\TopicPaginateCollection;
+use App\Resources\TopicSearchPaginateCollection;
 use App\Resources\UserSearchCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Request;
@@ -18,16 +20,21 @@ class SearchController extends BaseController
     {
         $params = $request->all();
         switch ($params['type']) {
-            case 1:
+            case 1: // 用户
                 return $this->searchUser($params);
                 break;
-            case 2:
+            case 2: // 帖子
                 return $this->searchPost($params);
                 break;
-            case 3:
+            case 3: // 话题
                 return $this->searchTopic($params);
                 break;
-            default:
+            case 4: // 输入中
+                $result = $this->searchTopic($params);
+               $result  = $result->additional(['user'=>$this->searchUser($params)]);
+                return $result;
+                break;
+            default: // 全部
                 $result = $this->searchPost($params);
                 if ((!empty($params['page']) && $params['page']==1) || empty($params['page'])) {
                     $res = [
@@ -36,7 +43,6 @@ class SearchController extends BaseController
                     ];
                     $result = $result->additional($res);
                 }
-
                 return $result;
         }
     }
@@ -59,8 +65,10 @@ class SearchController extends BaseController
      */
     protected function searchPost($params) {
         $likeColumns = ['post_content'];
-        $post = (new Es('post'))->likeQuery($params, $likeColumns);
-        return PostPaginateCollection::collection($post);
+        $filter      = ['post_content_default_locale'=>locale()];
+        $post        = (new Es('post', $filter))->likeQuery($params, $likeColumns);
+
+        return PostSearchPaginateCollection::collection($post);
     }
 
     /**
@@ -72,8 +80,7 @@ class SearchController extends BaseController
     {
         $likeColumns = ['topic_content'];
         $topic = (new Es('topic'))->likeQuery($params, $likeColumns);
-        return TopicPaginateCollection::collection($topic);
+        return TopicSearchPaginateCollection::collection($topic);
     }
-
 
 }

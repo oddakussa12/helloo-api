@@ -14,10 +14,12 @@ class Es
     private $client;
     private $limit;
     private $offset;
+    private $columns;
 
-    public function __construct($mIndex='')
+    public function __construct($mIndex='', $columns=[])
     {
         $this->client = new EsClient();
+        $this->columns= $columns ?? [];
         $this->mIndex = $mIndex ?: env('ELASTICSEARCH_INDEX');
         $this->limit  = app('request')->get('limit')  ?: 10;
         $this->offset = app('request')->get('page') ?: 0;
@@ -152,13 +154,12 @@ class Es
 
     public function likeQuery($request, $likeColumns)
     {
-        $columns = [];
         $keywords = trim($request['keyword']);
         $query = [
             'index' => $this->mIndex,
             'body' => array_merge([
                 'query' => [
-                    'bool' => array_merge_recursive($this->makeTermQuery($columns), $this->makeLikeQuery($likeColumns, $keywords))
+                    'bool' => array_merge_recursive($this->makeTermQuery($this->columns), $this->makeLikeQuery($likeColumns, $keywords))
                 ]
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];

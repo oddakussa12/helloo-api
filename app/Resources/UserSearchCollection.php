@@ -9,6 +9,7 @@
 namespace App\Resources;
 
 use App\Traits\CachableUser;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\Resource;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
@@ -19,7 +20,7 @@ class UserSearchCollection extends Resource
     /**
      * Transform the resource collection into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @return array
      */
     public function toArray($request)

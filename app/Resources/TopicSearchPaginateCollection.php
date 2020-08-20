@@ -6,7 +6,7 @@ namespace App\Resources;
 use App\Traits\CachablePost;
 use Illuminate\Http\Resources\Json\Resource;
 
-class TopicPaginateCollection extends Resource
+class TopicSearchPaginateCollection extends Resource
 {
    // use CachableTopic;
 

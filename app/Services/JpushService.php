@@ -82,26 +82,31 @@ class JpushService
             'apns_production' => config('jpush.environment') // APNs 是否生产环境 (ios)
         ]);
 
-        $response = $push->send();
-
-        if ($response['http_code'] != 200) {
-            Log::info('push_error',
-                compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
-            );
-        }
+        try {
+            $response = $push->send();
+            if ($response['http_code'] != 200) {
+                Log::info('push_error',
+                    compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
+                );
+            }
 //        else{
 //            Log::info('push_success',
 //                compact('response', 'type', 'platform', 'alias', 'registrationId', 'title', 'content')
 //            );
 //        }
-        return $response;
+            return $response;
+
+        }catch (\Exception $e){
+            \Log::info('Exception:', [$e->getCode(), $e->getMessage()]);
+        }
+
+
     }
 
-    public static function privateMessagePush($userId , $content)
+    public static function privateMessagePush($device, $userId , $content)
     {
         if(!empty($userId)&&!empty($content))
         {
-            $device = DB::table('devices')->where('user_id' , $userId)->first();
             if(!empty($device)&&!empty($device->device_registration_id))
             {
                 $data = array(
@@ -123,37 +128,29 @@ class JpushService
         }
     }
 
-    public static function commonPush($fromName  , $toId , $type = 'like' ,$content='' , $app='web' , $version = 0)
+    public static function commonPush($device, $fromName , $toId, $type = 'like', $content='', $app='web', $version = 0)
     {
-        if(!empty($toId))
-        {
-            if($type=='privateMessage')
-            {
-                self::privateMessagePush($toId , $content);
+        $device->device_registration_id = substr($device->device_registration_id,0, 19); //极光超过19位会报错
+        if(!empty($toId)) {
+            if($type=='privateMessage') {
+                self::privateMessagePush($device, $toId , $content);
             }else{
-                $device = DB::table('devices')->where('user_id' , $toId)->first();
                 if(!empty($device)&&!empty($device->device_registration_id))
                 {
                     $title = $fromName.' '.self::getTitle($type , $device->device_language);
                     $data = array(
-                        'platform'=>$device->device_type,
-                        'builderId'=>1,
-                        'extras'=>array('type'=>$type , 'url'=>self::getPushUrl($type) , 'title'=>$title),
-                        'type'=>2,
-                        'registrationId'=>$device->device_registration_id
+                        'title'     => $title,
+                        'content'   => $title,
+                        'platform'  => $device->device_type,
+                        'builderId' => 1,
+                        'extras'    => ['type'=>$type , 'url'=>self::getPushUrl($type) , 'title'=>$title],
+                        'type'      => 2,
+                        'registrationId'=> $device->device_registration_id
                     );
-                    if($device->device_type==1)
-                    {
-                        $data['content'] = $title;
-                    }else{
-                        $data['title'] = $title;
-                        $data['content'] = $title;
-//                        $data['content'] = version_compare($version , '1.4.8' , '>=')?'':$title;
-                    }
+
                     self::androidOrIosPush($data);
                 }
             }
-
         }
     }
 

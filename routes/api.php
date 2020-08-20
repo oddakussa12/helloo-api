@@ -168,6 +168,9 @@ $api->group($V1Params , function ($api){
         $api->put('notification/type/{type}' , 'NotificationController@readAll')->name('notice.readAll');
         $api->put('notification/{id}' , 'NotificationController@read')->name('notice.read');
         $api->get('notification/{id}' , 'NotificationController@detail')->name('notice.detail');
+
+        $api->post('device/update', 'DeviceController@update')->name('device.update');
+
     });
     $api->group(['middleware'=>['guestRefresh' , 'operationLog']] , function($api){
         $api->get('user/userranking' , 'UserController@rank')->name('user.rank');
@@ -186,9 +189,11 @@ $api->group($V1Params , function ($api){
     $api->post('message/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
     $api->post('message/push' , 'PrivateMessageController@push')->name('message.push');
     $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
+
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
     $api->get('device', 'DeviceController@index');
     $api->get('device/test', 'DeviceController@test');
+
 
 //    $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend');
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name|phone|nick_name')->name('user.account.exists');
