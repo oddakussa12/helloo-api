@@ -79,7 +79,7 @@ class JpushNotificationSender implements SenderContract
              //NpushService::commonPush($device, $user_name, $to_id, $type);
 
 
-            Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_npush');
+            Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_jpush');
         }
     }
 }
