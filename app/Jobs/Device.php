@@ -66,7 +66,7 @@ class Device implements ShouldQueue
                 'device_app_short_version' => $deviceFields['appShortVersion']     ?? '',
                 'device_language'          => $deviceFields['deviceLanguage']      ?? 'en',
                 'device_vendor_uuid'       => $deviceFields['vendorUUID']          ?? '',
-                'device_register_type'     => $deviceFields['deviceRegisterType']  ?? '',
+                'device_register_type'     => $deviceFields['deviceRegisterType']  ?? 'jpush',
                 'device_country'           => $country,
                 'device_type'              => $deviceType,
                 'device_created_at'        => $dateTime,
