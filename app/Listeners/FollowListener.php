@@ -34,6 +34,8 @@ class FollowListener
     {
         $object = $event->getObject();
         $follower = $event->getFollower();
+        $this->updateUserFollowMeCount($object->getKey());
+        $this->updateUserMyFollowCount($follower->getKey());
         notify('user.following' ,
             array(
                 'from'=>$follower->user_id ,
@@ -46,8 +48,6 @@ class FollowListener
                 'url'=>'/notification/user/'.$follower->user_id.'/userFollow/'.$object->getKey(),
             )
         );
-        $this->updateUserFollowMeCount($object->getKey());
-        $this->updateUserMyFollowCount($follower->getKey());
     }
 
 }

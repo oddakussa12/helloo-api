@@ -53,8 +53,14 @@ class DisLikeListener
             if($rate!=$object->post_rate)
             {
                 $extra = array('post_rate'=>$rate);
+                $this->updateTopicPostRate($keyValue , $rate);
             }
             $object->increment('post_like_num' , $event->getType() , $extra);
+            $this->updateLikeCount($keyValue , 'dislike' , $tmpDislikeNum);
+            $this->updateCountry($keyValue , $user->user_country_id);
+            $this->updateUserPostDislikeCount($user->user_id);
+            $user->increment('user_score');
+            $this->updateUserScoreRank($user->user_id);
             notify('user.post_dislike' ,
                 array(
                     'from'=>$user->user_id ,
@@ -67,16 +73,13 @@ class DisLikeListener
                 ),
                 false
             );
-            $this->updateLikeCount($keyValue , 'dislike' , $tmpDislikeNum);
-            $this->updateCountry($keyValue , $user->user_country_id);
-            $this->updateUserPostDislikeCount($user->user_id);
+
         }else if($object instanceof PostComment)
         {
 //            $object->decrement('comment_like_num' , $event->getType());
 //            notify_remove([3] , $object , $user);
         }
-        $user->increment('user_score');
-        $this->updateUserScoreRank($user->user_id);
+
 
     }
 

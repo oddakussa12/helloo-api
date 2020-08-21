@@ -63,6 +63,7 @@ class PostCommentDeletedListener
         if($rate!=$post->post_rate)
         {
             $extra = array('post_rate'=>$rate);
+            $this->updateTopicPostRate($keyValue , $rate);
         }
         $post->decrement('post_comment_num' , $type , $extra);
         $this->updateCountry($post->post_id , $user->user_country_id , false);

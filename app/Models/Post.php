@@ -12,11 +12,10 @@ use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\favorite\CanBeFavorited;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Scout\Searchable;
 
 class Post extends Model
 {
-    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags,CachablePost, Searchable;
+    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags,CachablePost;
 
     public $currentLocale = 'en';
 

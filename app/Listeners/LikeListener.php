@@ -38,6 +38,8 @@ class LikeListener
         $extra = array();
         $object = $event->getObject();
         $user = $event->getUser();
+        $user->increment('user_score');
+        $this->updateUserScoreRank($user->user_id);
         if($object instanceof Post)
         {
             $keyName = $object->getKeyName();
@@ -52,8 +54,12 @@ class LikeListener
             if($rate!=$object->post_rate)
             {
                 $extra = array('post_rate'=>$rate);
+                $this->updateTopicPostRate($keyValue , $rate);
             }
             $object->increment('post_like_num' , $event->getType() , $extra);
+            $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum);
+            $this->updateCountry($keyValue , $user->user_country_id);
+            $this->updateUserPostLikeCount($user->user_id);
             notify('user.post_like' ,
                 array(
                     'from'=>$user->user_id ,
@@ -66,9 +72,6 @@ class LikeListener
                 ),
                 false
             );
-            $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum);
-            $this->updateCountry($keyValue , $user->user_country_id);
-            $this->updateUserPostLikeCount($user->user_id);
         }else if($object instanceof PostComment)
         {
             $extra = array();
@@ -80,6 +83,7 @@ class LikeListener
                 $extra = array('comment_like_temp_num'=>\DB::raw('comment_like_temp_num+'.$comment_like_temp_num));
             }
             $object->increment('comment_like_num' , $event->getType() , $extra);
+            $this->updateUserPostCommentLikeCount($user->user_id);
             notify('user.like' ,
                 array(
                     'from'=>$user->user_id ,
@@ -92,9 +96,8 @@ class LikeListener
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
                 )
             );
-            $this->updateUserPostCommentLikeCount($user->user_id);
+
         }
-        $user->increment('user_score');
-        $this->updateUserScoreRank($user->user_id);
+
     }
 }
