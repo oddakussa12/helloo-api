@@ -203,6 +203,52 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $posts->appends($appends);
     }
 
+    public function paginateTopic($topic)
+    {
+        $appends = array();
+        $request = \request();
+        $orderBy = strval($request->input('order_by' , 'time'));
+        $appends['order_by'] = $orderBy;
+        $key = strval($topic);
+        if($orderBy==='time')
+        {
+            $topicKey = $key.'_rate';
+        }else{
+            $topicKey = $key.'_new';
+        }
+        $pageName = 'post_page';
+        $perPage = 8;
+        $page = intval($request->input($pageName, 1));
+        $offset = ($page-1)*$perPage;
+        $redis = new RedisList();
+        if($redis->existsKey($topicKey))
+        {
+            $total = $redis->zSize($topicKey);
+            $postIds = $redis->zRevRangeByScore($topicKey , '+inf' , '-inf' , true , array($offset , $perPage));
+            $postIds = array_keys($postIds);
+        }else{
+            $total = 0;
+            $postIds = array();
+        }
+        $posts = $this->allWithBuilder();
+        $posts = $posts->withTrashed()->with('owner');
+        $posts = $posts->where('post_topping' , 0);
+        $posts = $posts->whereNull($this->model->getDeletedAtColumn());
+        $posts = $posts->whereIn('post_id' , $postIds)->orderBy($this->model->getCreatedAtColumn() , 'DESC')->get();
+        $posts = $this->paginator($posts, $total, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+        $postLikes = $this->userPostLike($postIds);
+        $postDisLikes = $this->userPostDislike($postIds);
+
+        $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
+            $post->likeState = in_array($post->post_id , $postLikes);
+            $post->dislikeState = in_array($post->post_id , $postDisLikes);
+        });
+        return $posts->appends($appends);
+    }
+
     public function showByUuid($uuid)
     {
         $post = $this->model;
@@ -700,6 +746,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function attachTopics(Post $post  , $topics)
     {
+        $topics = array_filter($topics , function($v,$k){
+            $v = str_replace(' ' , '' , $v);
+            return !empty($v);
+        } , ARRAY_FILTER_USE_BOTH );
         if(!blank($topics))
         {
             $post->userTopics = $topics;
@@ -708,12 +758,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $now = time();
             $userId = $post->user_id;
             $postId = $post->getKey();
-            Redis::pipeline(function ($pipe) use ($topics , $topicRateKey , $topicNewKey , $now , $userId , $postId){
-                array_walk($topics , function($item , $index) use ($pipe , $topicRateKey , $topicNewKey , $now , $userId , $postId){
+            $firstRate = first_rate_comment_v2();
+            Redis::pipeline(function ($pipe) use ($topics , $topicRateKey , $topicNewKey , $now , $userId , $postId , $firstRate){
+                array_walk($topics , function($item , $index) use ($pipe , $topicRateKey , $topicNewKey , $now , $userId , $postId , $firstRate){
                     $key = strval($item);
                     $pipe->zincrby($topicRateKey , 1 , $key);
                     $pipe->zadd($topicNewKey , $now , $key);
-                    $pipe->zadd($key , $now , $postId);
+                    $pipe->zadd($key."_new" , $now , $postId);
+                    $pipe->zadd($key."_rate" , $firstRate , $postId);
                     $userTopicKey = 'user.'.$userId.'.topics';
                     $pipe->zadd($userTopicKey , $now , $key);
                 });

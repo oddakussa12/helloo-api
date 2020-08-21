@@ -61,6 +61,14 @@ $api->group($V1Params , function ($api){
         // 热门话题
         $api->get('search/topic', 'SearchController@hotTopic');
 
+        /*****热门话题 开始*****/
+        $api->get('topic/hot', 'TopicController@hot');
+        /*****热门话题 结束*****/
+
+        /*****话题下贴子 开始*****/
+        $api->get('topic/{topic}/post', 'TopicController@post');
+        /*****话题下贴子 结束*****/
+
 
     });
     $api->group(['middleware'=>'throttle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
@@ -83,6 +91,18 @@ $api->group($V1Params , function ($api){
 
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
+
+        /*****我关注的话题 开始*****/
+        $api->get('topic/myFollow', 'TopicController@myFollow');
+        /*****我关注的话题 结束*****/
+
+        /*****关注话题 开始*****/
+        $api->put('topic/{topic}/follow', 'TopicController@follow');
+        /*****关注话题 结束*****/
+
+        /*****取消关注话题 开始*****/
+        $api->put('topic/{topic}/unFollow', 'TopicController@unFollow');
+        /*****取消关注话题 结束*****/
 
         /*****报告 开始*****/
         $api->resource('report', 'ReportController',['only' => ['store']]);

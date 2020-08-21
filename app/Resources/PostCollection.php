@@ -40,10 +40,7 @@ class PostCollection extends Resource
             'tags'=>$this->when($this->relationLoaded('tag') , function (){
                 return TagCollection::collection($this->tags);
             }),
-            'topics'=>[
-                '中国',
-                '日本'
-            ],
+            'topics'=>$this->getPostTopics($this->post_id),
             $this->mergeWhen($request->routeIs('post.show'), function (){
                 return collect([
                     'post_default_title' => $this->post_default_title,

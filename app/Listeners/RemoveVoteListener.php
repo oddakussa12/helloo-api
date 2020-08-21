@@ -54,6 +54,7 @@ class RemoveVoteListener
             if($rate!=$object->post_rate)
             {
                 $extra = array('post_rate'=>$rate);
+                $this->updateTopicPostRate($keyValue , $rate);
             }
             $object->decrement('post_like_num' , $type , $extra);
 

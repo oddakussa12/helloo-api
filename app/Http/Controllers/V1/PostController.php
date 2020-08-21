@@ -255,7 +255,7 @@ class PostController extends BaseController
         $post = $this->post->store($post_info);
 	    if(!empty($tag_slug))
         {
-            $post->attachTags($tag_slug);
+            //$post->attachTags($tag_slug);
         }
         if(!empty($topics))
         {

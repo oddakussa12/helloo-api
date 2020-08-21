@@ -413,4 +413,25 @@ trait CachablePost
         $number = (bool)$add?1:-1;
         return Redis::hincrby($postKey , $field , $number);
     }
+    public function updateTopicPostRate($id , $rate)
+    {
+        $postKey = 'post.'.$id.'.data';
+        $topics = collect(\json_decode(Redis::hget($postKey , 'topics') , true));
+        !empty($topics)&&Redis::pipeline(function ($pipe) use ($id , $topics , $rate){
+            array_walk($topics , function($item , $index) use($id , $pipe , $rate){
+                $key = strval($item);
+                $pipe->zadd($key."_rate" , $rate , $id);
+            });
+        });
+    }
+
+    public function getPostTopics($id)
+    {
+        $posts = $this->getPost($id , array('topics'));
+        if(!empty($posts['topics']))
+        {
+            return \json_decode($posts['topics'] , true);
+        }
+        return array();
+    }
 }
