@@ -10,7 +10,7 @@ class ESinit extends Command
 {
 
     //使用什么命令启动脚本
-    protected $signature = 'es:init';
+    protected $signature = 'es:init {param?}';
     //描述
     protected $description = 'init laravel es for post';
     /**
@@ -54,14 +54,24 @@ class ESinit extends Command
      */
     public function handle()
     {
+        $param = $this->argument('param');
 
-        try{
+        try {
+            if ($param == 'suggest') {
+                $this->suggest_index();
+                $this->info('============create suggest index success============');
 
-            $this->indices();
-            $this->info('============create index success============');
+            } else if ($param == 'post') {
+                $this->postDataInit();
+                $this->info('============create postDataInit success============');
+            } else {
+                $this->indices();
+                $this->info('============create index success============');
+            }
 
-            $this->postDataInit();
-            $this->info('============create postDataInit success============');
+
+
+
 
             //创建template
             /*
@@ -71,35 +81,130 @@ class ESinit extends Command
             $this->createData($client);
             $this->info('============create data success============');*/
 
-        }catch (\Exception $e){
+        }catch (\Exception $e) {
             \Log::info('test.log', [$e->getCode(), $e->getMessage()]);
         }
 
+    }
+    public function suggest_index()
+    {
+            try {
+                $index = $this->suggest_init();
+                (new EsClient())->indices()->create($index);
+                echo 'create index: ' . $index['index'] . PHP_EOL;
+            } catch (\Exception $e) {
+                echo "Exception::: code: ". $e->getCode(). ' message: '. $e->getMessage() . PHP_EOL;
+            }
     }
 
     public function indices()
     {
         $indices = [
             $this->post_init(),
-            //$this->index_init(),
         ];
         foreach ($indices as $index) {
-            try {
-                (new EsClient())->indices()->create($index);
-                dump($index);
-                echo json_encode($index);
-                echo 'create index: ' . $index['index'] . PHP_EOL;
-            } catch (\Exception $e) {
-                echo env('ELASTICSEARCH_POST_INDEX');
-                echo "Exception::: code: ". $e->getCode(). ' message: '. $e->getMessage() . PHP_EOL;
-            }
+             try {
+                 dump(json_encode($index));
+                 (new EsClient())->indices()->create($index);
+                 echo 'create index: ' . $index['index'] . PHP_EOL;
+             } catch (\Exception $e) {
+
+                 dump($e);
+                 echo "Exception::: code: ". $e->getCode(). ' message: '. $e->getMessage() . PHP_EOL;
+             }
         }
     }
+
+    /**
+     * @return array
+     * 联想词
+     */
+    private function suggest_init() {
+        $json = '{
+          "body": {
+          "settings": {
+            "analysis": {
+              "analyzer": {
+                "prefix_pinyin_analyzer": {
+                  "tokenizer": "standard",
+                  "filter": [
+                    "lowercase",
+                    "prefix_pinyin"
+                  ]
+                },
+                "full_pinyin_analyzer": {
+                  "tokenizer": "standard",
+                  "filter": [
+                    "lowercase",
+                    "full_pinyin"
+                  ]
+                }
+              },
+              "filter": {
+                "_pattern": {
+                  "type": "pattern_capture",
+                  "preserve_original": true,
+                  "patterns": [
+                    "([0-9])",
+                    "([a-z])"
+                  ]
+                },
+                "prefix_pinyin": {
+                  "type": "pinyin",
+                  "keep_first_letter": true,
+                  "keep_full_pinyin": false,
+                  "none_chinese_pinyin_tokenize": false,
+                  "keep_original": false
+                },
+                "full_pinyin": {
+                  "type": "pinyin",
+                  "keep_first_letter": false,
+                  "keep_full_pinyin": true,
+                  "keep_original": false,
+                  "keep_none_chinese_in_first_letter": false
+                }
+              }
+            }
+          },
+          "mappings": {
+            "suggest": {
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "suggestText": {
+                  "type": "completion",
+                  "analyzer": "icu_analyzer",
+                  "payloads": true,
+                  "preserve_separators": false,
+                  "preserve_position_increments": true,
+                  "max_input_length": 50
+                },
+                "prefix_pinyin": {
+                  "type": "completion",
+                  "analyzer": "prefix_pinyin_analyzer",
+                  "search_analyzer": "standard",
+                  "preserve_separators": false
+                },
+                "full_pinyin": {
+                  "type": "completion",
+                  "analyzer": "full_pinyin_analyzer",
+                  "search_analyzer": "full_pinyin_analyzer",
+                  "preserve_separators": false
+                }
+              }
+            }
+          }
+        }
+        }';
+
+        return array_merge_recursive(json_decode($json, true), $this->setting);
+    }
+
     private function post_init()
     {
         return array_merge_recursive([
-            //'index' => 'device'.rand(1,100),
-            'index' => 'post222',
+            'index' => env('ELASTICSEARCH_POST_INDEX'),
             'body'  => [
                 'mappings' => [
                     'properties' => [
@@ -129,9 +234,9 @@ class ESinit extends Command
                             'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
                         ],
                         'post_content' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
-                            "analyzer"=>"icu_analyzer",
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
+                            "suggest"  => ["type"=> "completion", "analyzer"=> "icu_analyzer"]
                         ],
                         'create_at' => [
                             'type' => 'text',
@@ -142,103 +247,19 @@ class ESinit extends Command
             ]
         ], $this->setting);
     }
-    private function post_init2()
+
+    private function test_init()
     {
         return array_merge_recursive([
-            //'index' => 'device'.rand(1,100),
-            'index' => 'post',
+            'index' => env('ELASTICSEARCH_POST_INDEX'),
             'body'  => [
                 'mappings' => [
                     'properties' => [
-                        'post_id' => [
-                            'type' => 'long',
-                        ],
-                        'post_uuid' => [
-                            'type' => 'text',
-                        ],
-                        'user_id' => [
-                            'type' => 'long',
-                        ],
-                        'post_category_id' => [
-                            'type' => 'text',
-                        ],
-                        'post_media' => [
-                            'type' => 'text',
-                        ],
-                        'post_content_default_locale' => [
-                            'type' => 'text',
-                        ],
-                        'post_type' => [
-                            'type' => 'text',
-                        ],
-                        'create_at' => [
-                            'type' => 'text',
-                        ],
-                        'en' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'hindi' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'device_registration_id' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'zhCN' => [
-                            'type' => 'text',
-                            'analyzer' => 'ik_max_word',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'ar' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'hi' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'ko' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'ja' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'es' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'zhTW' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'zhHK' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'vi' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'th' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'fr' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'de' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
-                        'ru' => [
-                            'type' => 'text',
-                            'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
-                        ],
+                        'post_content' => [
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
+                            "suggest"  => ["type"=> "completion", "analyzer"=> "icu_analyzer"]
+                        ]
                     ]
                 ]
             ]
@@ -250,37 +271,5 @@ class ESinit extends Command
         dump('开始插入数据');
         (new DeviceController())->test();
         dump('插入数据完成');
-
-        exit;
-        $sql = "
-        SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
-/*MAX(CASE t.`post_locale` WHEN 'en' THEN t.`post_content` ELSE '' END) as 'en',
-MAX(CASE t.`post_locale` WHEN 'id' THEN t.`post_content` ELSE '' END) as 'hindi',
-MAX(CASE t.`post_locale` WHEN 'zh-CN' THEN t.`post_content` ELSE '' END) as 'zhCN',
-MAX(CASE t.`post_locale` WHEN 'ar' THEN t.`post_content` ELSE '' END) as 'ar',
-MAX(CASE t.`post_locale` WHEN 'hi' THEN t.`post_content` ELSE '' END) as 'hi',
-MAX(CASE t.`post_locale` WHEN 'ko' THEN t.`post_content` ELSE '' END) as 'ko',
-MAX(CASE t.`post_locale` WHEN 'ja' THEN t.`post_content` ELSE '' END) as 'ja',
-MAX(CASE t.`post_locale` WHEN 'es' THEN t.`post_content` ELSE '' END) as 'es',
-MAX(CASE t.`post_locale` WHEN 'zh-TW' THEN t.`post_content` ELSE '' END) as 'zhTW',
-MAX(CASE t.`post_locale` WHEN 'zh-HK' THEN t.`post_content` ELSE '' END) as 'zhHK',
-MAX(CASE t.`post_locale` WHEN 'vi' THEN t.`post_content` ELSE '' END) as 'vi',
-MAX(CASE t.`post_locale` WHEN 'th' THEN t.`post_content` ELSE '' END) as 'th',
-MAX(CASE t.`post_locale` WHEN 'fr' THEN t.`post_content` ELSE '' END) as 'fr',
-MAX(CASE t.`post_locale` WHEN 'de' THEN t.`post_content` ELSE '' END) as 'de',
-MAX(CASE t.`post_locale` WHEN 'ru' THEN t.`post_content` ELSE '' END) as 'ru',*/
-t.post_locale, t.post_content,
-p.post_created_at as create_at
-FROM f_posts_translations t
-inner join f_posts p on p.post_id = t.post_id
-where p.post_created_at > '2020-01-01'
-GROUP BY t.post_id 
-ORDER BY t.post_id desc;
-        ";
-
-//        $result = DB::select($sql);
-//        $result = array_map('get_object_vars', $result);
-//        (new Es(env('ELASTICSEARCH_POST_INDEX')))->batchCreate($result);
-
     }
 }

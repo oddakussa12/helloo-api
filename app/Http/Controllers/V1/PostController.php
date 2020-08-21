@@ -267,7 +267,8 @@ class PostController extends BaseController
         }else{
             $job = new PostTranslation($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
         }
-        $this->dispatch($job);
+        $this->dispatchNow($job);
+        //$this->dispatch($job);
         return new PostCollection($post);
     }
 

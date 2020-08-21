@@ -763,7 +763,7 @@ if (! function_exists('carousel_post_list')) {
                 $image = isset($item[$locale])?$item[$locale]:(isset($item['en'])?$item['en']:'');
                 if(!empty($image))
                 {
-                    $images[$key] = config('common.qnUploadDomain.thumbnail_domain').$image;
+                    $images[$key] = $imgDomain.$image;
                 }
             })->all();
         }
@@ -1016,6 +1016,46 @@ if (!function_exists('getUserCountryId'))
             ]);
         }
         return Carbon::parse($time)->diffForHumans();
+    }
+
+    /**
+     * @param $type
+     * @param $value
+     * @return mixed
+     * Post Model中 post_media
+     */
+    function postMedia($type, $value)
+    {
+        $imgDomain     = config('common.qnUploadDomain.thumbnail_domain');
+        $thumbDomain   = config('common.awsUploadDomain.thumbnail_domain');
+        $videoDomain   = config('common.awsUploadDomain.video_domain');
+        $videoDomainCn = config('common.awsUploadDomain.video_domain_cn');
+        if($type=='video') {
+            $domain = domain()=='api.mmantou.cn' ? $videoDomainCn : $videoDomain;
+            $value[$type]['video_url'] = $domain.$value[$type]['video_url'];
+            $value[$type]['video_thumbnail_url'] = $thumbDomain.$value[$type]['video_thumbnail_url'];
+            $video_subtitle = (array)$value[$type]['video_subtitle_url'];
+            $video_subtitle = \array_filter($video_subtitle , function($v , $k){
+                return !empty($v)&&!empty($k);
+            } , ARRAY_FILTER_USE_BOTH );
+
+            $value[$type]['video_subtitle_url'] = \array_map(function($v){
+                return config('common.qnUploadDomain.subtitle_domain').$v;
+            } , $video_subtitle);
+        }else if($type=='news'){
+            $value[$type]['news_cover_image'] = $imgDomain.$value[$type]['news_cover_image'];
+
+        }else if($type=='image'){
+            $value[$type]['image_cover'] = $imgDomain.$value[$type]['image_cover'];
+            $image_url = $value[$type]['image_url'];
+            $value[$type]['image_url'] = \array_map(function($v)use($imgDomain){
+                return $imgDomain.$v.'?imageMogr2/auto-orient/interlace/1|imageslim';
+            } , $image_url);
+            $value[$type]['thumb_image_url'] = \array_map(function($v)use($imgDomain){
+                return $imgDomain.$v.'?imageView2/5/w/192/h/192/interlace/1|imageslim';
+            } , $image_url);
+        }
+        return $value;
     }
 }
 

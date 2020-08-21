@@ -90,6 +90,7 @@ return [
 
     'elasticsearch' => [
         'index' => env('ELASTICSEARCH_INDEX', 'laravel'),//laravel就是索引的名字，可以随便起
+        'post' => env('ELASTICSEARCH_POST_INDEX', 'laravel'),//laravel就是索引的名字，可以随便起
         'hosts' => [
             env('ELASTICSEARCH_HOST', 'http://127.0.0.1:9200'),
         ],

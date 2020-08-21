@@ -15,14 +15,16 @@ class Es
     private $limit;
     private $offset;
     private $columns;
+    private $likeColumns;
 
     public function __construct($mIndex='', $extra=[])
     {
-        $this->client = new EsClient();
-        $this->columns= $extra['columns'] ?? [];
-        $this->mIndex = $mIndex ?: env('ELASTICSEARCH_INDEX');
-        $this->limit  = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
-        $this->offset = app('request')->get('page') ?: 0;
+        $this->client      = new EsClient();
+        $this->columns     = $extra['columns'] ?? [];
+        $this->likeColumns = $extra['likeColumns'] ?? [];
+        $this->mIndex      = $mIndex ?: env('ELASTICSEARCH_INDEX');
+        $this->limit       = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
+        $this->offset      = app('request')->get('page') ?: 0;
     }
 
     public function create(array $request, $flag=false)
@@ -152,17 +154,73 @@ class Es
     {
     }
 
-    public function likeQuery($request, $likeColumns)
+    public function suggest($request)
+    {
+        $keywords = trim($request['keyword']);
+        $query = [
+            'index' => $this->mIndex,
+            'body' => array_merge([
+                'query' => $this->completion($keywords)
+            ], $this->makePaginationCypher())
+        ];
+      //  $query['minimum_should_match'] = 1;
+        dump(json_encode($query));
+        $response = $this->client->search($query);
+        if ($response) {
+            return $this->makeAsGrid($response);
+        }
+    }
+
+    public function completion($keywords)
+    {
+        $suggest = [];
+        foreach ($this->likeColumns as $v) {
+            $suggest = [
+                $v => [
+                    "prefix" => $keywords,
+                    "completion" => [
+                        "field" => $v,
+                        "skip_duplicates"=> true
+                    ]
+                ]
+            ];
+        }
+        return ['suggest'=> $suggest];
+
+    }
+
+
+
+    public function phrase($keywords)
+    {
+        $suggest = [];
+        foreach ($this->likeColumns as $v) {
+            $suggest = [
+                $v    => [
+                    "text" => $keywords,
+                    "phrase" => [
+                        "field" => $v,
+                        "skip_duplicates"=> true
+                    ]
+                ]
+
+            ];
+        }
+        return ['suggest'=> $suggest];
+
+    }
+    public function likeQuery($request)
     {
         $keywords = trim($request['keyword']);
         $query = [
             'index' => $this->mIndex,
             'body' => array_merge([
                 'query' => [
-                    'bool' => array_merge_recursive($this->makeTermQuery($this->columns), $this->makeLikeQuery($likeColumns, $keywords))
+                    'bool' => array_merge_recursive($this->makeTermQuery($this->columns), $this->makeLikeQuery($this->likeColumns, $keywords))
                 ]
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];
+        
         $response = $this->client->search($query);
         if ($response) {
             return $this->makeAsGrid($response);

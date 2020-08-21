@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\Es;
-use App\Resources\PostPaginateCollection;
 use App\Resources\PostSearchPaginateCollection;
-use App\Resources\SearchPaginateCollection;
-use App\Resources\TopicPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
 use App\Resources\UserSearchCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -24,6 +21,10 @@ class SearchController extends BaseController
         if (empty(trim($params['keyword']))) {
             return [];
         }
+
+        //$result = $this->searching($params);
+        //exit;
+        //$result = $this->searchPost($params);
 
         switch ($type) {
             case 1: // 用户
@@ -77,9 +78,24 @@ class SearchController extends BaseController
      * 查询用户
      */
     protected function searchUser($params, $limit=10) {
-        $likeColumns = ['user_nick_name', 'user_name'];
-        $user        = (new Es('user', ['limit'=>$limit]))->likeQuery($params, $likeColumns);
+        $extra = [
+            'limit'      => $limit,
+            'likeColumns'=> ['user_nick_name', 'user_name']
+        ];
+        $user        = (new Es('user', $extra))->likeQuery($params);
         return UserSearchCollection::collection($user);
+    }
+
+    protected function searching($params)
+    {
+        $extra = [
+            'limit'      => 10,
+            'likeColumns'=> ['post_content']
+        ];
+        $user = (new Es('post', $extra))->suggest($params);
+        return $user;
+      //  return UserSearchCollection::collection($user);
+        
     }
 
     /**
@@ -89,9 +105,12 @@ class SearchController extends BaseController
      * 搜索帖子
      */
     protected function searchPost($params, $limit=10) {
-        $likeColumns = ['post_content'];
-        $filter      = ['post_content_default_locale'=>locale(), 'limit'=>$limit];
-        $post        = (new Es('post', $filter))->likeQuery($params, $likeColumns);
+        $extra = [
+            'limit'      => $limit,
+            'likeColumns'=> ['post_content'],
+            'post_content_default_locale' => locale(),
+        ];
+        $post        = (new Es('post', $extra))->likeQuery($params);
 
         return PostSearchPaginateCollection::collection($post);
     }
@@ -104,8 +123,11 @@ class SearchController extends BaseController
      */
     protected function searchTopic($params, $limit=10)
     {
-        $likeColumns = ['topic_content'];
-        $topic       = (new Es('topic', ['limit'=>$limit]))->likeQuery($params, $likeColumns);
+        $extra = [
+            'limit'      => $limit,
+            'likeColumns'=> ['topic_content'],
+        ];
+        $topic       = (new Es('topic', $extra))->likeQuery($params);
         return TopicSearchPaginateCollection::collection($topic);
     }
 

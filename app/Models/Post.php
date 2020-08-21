@@ -12,11 +12,10 @@ use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\favorite\CanBeFavorited;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Scout\Searchable;
 
 class Post extends Model
 {
-    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags,CachablePost, Searchable;
+    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags,CachablePost;
 
     public $currentLocale = 'en';
 
@@ -110,34 +109,7 @@ class Post extends Model
 
     public function getPostMutationMediaAttribute()
     {
-        $value = $this->post_media;
-        if($this->post_type=='video')
-        {
-            $domain = domain()=='api.mmantou.cn'?config('common.awsUploadDomain.video_domain_cn'):config('common.awsUploadDomain.video_domain');
-            $value[$this->post_type]['video_url'] = $domain.$value[$this->post_type]['video_url'];
-            $value[$this->post_type]['video_thumbnail_url'] = config('common.awsUploadDomain.thumbnail_domain').$value[$this->post_type]['video_thumbnail_url'];
-            $video_subtitle = (array)$value[$this->post_type]['video_subtitle_url'];
-            $video_subtitle = \array_filter($video_subtitle , function($v , $k){
-                return !empty($v)&&!empty($k);
-            } , ARRAY_FILTER_USE_BOTH );
-
-            $value[$this->post_type]['video_subtitle_url'] = \array_map(function($v){
-                return config('common.qnUploadDomain.subtitle_domain').$v;
-            } , $video_subtitle);
-        }else if($this->post_type=='news'){
-            $value[$this->post_type]['news_cover_image'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['news_cover_image'];
-
-        }else if($this->post_type=='image'){
-            $value[$this->post_type]['image_cover'] = config('common.qnUploadDomain.thumbnail_domain').$value[$this->post_type]['image_cover'];
-            $image_url = $value[$this->post_type]['image_url'];
-            $value[$this->post_type]['image_url'] = \array_map(function($v){
-                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageMogr2/auto-orient/interlace/1|imageslim';
-            } , $image_url);
-            $value[$this->post_type]['thumb_image_url'] = \array_map(function($v){
-                return config('common.qnUploadDomain.thumbnail_domain').$v.'?imageView2/5/w/192/h/192/interlace/1|imageslim';
-            } , $image_url);
-        }
-        return $value;
+        return postMedia($this->post_type, $this->post_media);
     }
 
 
