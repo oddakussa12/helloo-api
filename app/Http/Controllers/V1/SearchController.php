@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\Es;
-use App\Resources\PostPaginateCollection;
-use App\Resources\PostSearchPaginateCollection;
-use App\Resources\SearchPaginateCollection;
-use App\Resources\TopicPaginateCollection;
-use App\Resources\TopicSearchPaginateCollection;
-use App\Resources\UserSearchCollection;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Request;
+use App\Resources\UserSearchCollection;
+use App\Resources\TopicPaginateCollection;
+use App\Resources\SearchPaginateCollection;
+use App\Repositories\Contracts\UserRepository;
+use App\Resources\PostSearchPaginateCollection;
+use App\Resources\TopicSearchPaginateCollection;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 
 class SearchController extends BaseController
@@ -37,7 +37,7 @@ class SearchController extends BaseController
                 break;
             case 4: // 输入中
                 $result = $this->searchTopic($params);
-               $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
+                $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
                 return $result;
                 break;
             default: // 全部
@@ -91,9 +91,13 @@ class SearchController extends BaseController
     protected function searchPost($params, $limit=10) {
         $likeColumns = ['post_content'];
         $filter      = ['post_content_default_locale'=>locale(), 'limit'=>$limit];
-        $post        = (new Es('post', $filter))->likeQuery($params, $likeColumns);
-
-        return PostSearchPaginateCollection::collection($post);
+        $posts        = (new Es('post', $filter))->likeQuery($params, $likeColumns);
+        $userIds = $posts->pluck('user_id')->all();
+        $users = app(UserRepository::class)->findByMany($userIds);
+        $posts->each(function($post , $index) use ($users){
+            $post->owner = $users->where('user_id' , $post->user_id)->first();
+        });
+        return PostSearchPaginateCollection::collection($posts);
     }
 
     /**

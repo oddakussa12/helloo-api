@@ -100,6 +100,10 @@ $api->group($V1Params , function ($api){
         $api->put('topic/{topic}/follow', 'TopicController@follow');
         /*****关注话题 结束*****/
 
+        /*****取消关注话题 开始*****/
+        $api->put('topic/{topic}/unFollow', 'TopicController@unFollow');
+        /*****取消关注话题 结束*****/
+
         /*****报告 开始*****/
         $api->resource('report', 'ReportController',['only' => ['store']]);
         /*****报告 结束*****/

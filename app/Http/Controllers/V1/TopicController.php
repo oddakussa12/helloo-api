@@ -59,6 +59,17 @@ class TopicController extends BaseController
         return $this->response->noContent();
     }
 
+    public function unFollow($topic)
+    {
+        $user = auth()->user();
+        $key = 'user.'.$user->user_id.'.'.'follow.topics';
+        if(Redis::zscore($key , $topic)!==false)
+        {
+            Redis::zrem($key , $topic);
+        }
+        return $this->response->noContent();
+    }
+
     public function post($topic)
     {
         $posts = app(PostRepository::class)->paginateTopic($topic);
