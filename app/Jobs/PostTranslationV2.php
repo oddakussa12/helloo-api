@@ -149,7 +149,6 @@ class PostTranslationV2 implements ShouldQueue
 
         // 组装数据 插入ES
 
-        $post->post_uuid  = $post->post_uuid->toString();
         $post->create_at  = optional($post->post_created_at)->toDateTimeString();
         $post->post_media = (!empty($post->post_type) && !empty($post->post_media)) ? postMedia($post->post_type, $post->post_media) : null;
 
