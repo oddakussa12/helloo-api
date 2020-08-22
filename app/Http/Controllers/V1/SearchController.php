@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\Es;
+use App\Repositories\Contracts\UserRepository;
 use App\Resources\PostSearchPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
 use App\Resources\UserSearchCollection;
@@ -105,14 +106,19 @@ class SearchController extends BaseController
      * 搜索帖子
      */
     protected function searchPost($params, $limit=10) {
-        $extra = [
-            'limit'      => $limit,
-            'likeColumns'=> ['post_content'],
-            'post_content_default_locale' => locale(),
-        ];
-        $post        = (new Es('post', $extra))->likeQuery($params);
+        $likeColumns = ['post_content'];
+        $filter      = ['post_content_default_locale'=>locale(), 'limit'=>$limit];
+        $posts       = (new Es('post', $filter))->likeQuery($params, $likeColumns);
 
-        return PostSearchPaginateCollection::collection($post);
+        $userIds     = $posts->pluck('user_id')->all();
+        $users       = app(UserRepository::class)->findByMany($userIds);
+
+
+        $posts = $posts->map(function($post , $index) use ($posts,$users){
+            $post['owner'] = $users->where('user_id' , $post['user_id'])->first();
+            return $post;
+        });
+        return PostSearchPaginateCollection::collection($posts);
     }
 
     /**

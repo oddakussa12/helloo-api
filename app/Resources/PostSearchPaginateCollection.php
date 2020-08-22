@@ -17,7 +17,6 @@ class PostSearchPaginateCollection extends Resource
      */
     public function toArray($request)
     {
-        $user = auth()->user();
         return [
             'post_id'            => $this->resource['post_id'],
             'post_uuid'          => $this->resource['post_uuid'],
@@ -30,7 +29,8 @@ class PostSearchPaginateCollection extends Resource
             'post_dislike_state' => $this->resource['dislikeState'] ?? '',
             'post_event_country' => $this->resource['post_event_country'] ?? '',
             'post_created_at'    => $this->resource['create_at'], //optional($this->resource['post_id'])->toDateTimeString(),
-            'owner'              => new UserCollection($user),
+            'owner'              => new UserCollection($this->resource['owner']),
+//            'owner'              => !empty($this->resource['owner']) ? new UserCollection($this->resource['owner']) : [],
 
             'post_country'       => $this->countryCount($this->resource['post_id']),
             'postLike'           => $this->likeCount($this->resource['post_id']),

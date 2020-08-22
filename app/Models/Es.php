@@ -306,11 +306,11 @@ class Es
         $result = $this->makeAsList($response);
         $total = $response['hits']['total']['value'];
 
-        return new LengthAwarePaginator($result, $total, $this->limit, $this->offset, [
+        /*return new LengthAwarePaginator($result, $total, $this->limit, $this->offset, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
-        ]);
-        return $this->paginator($result, $total, $this->limit, $this->offset, [
+        ]);*/
+        return $this->paginator(collect($result), $total, $this->limit, $this->offset, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);
