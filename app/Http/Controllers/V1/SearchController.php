@@ -19,14 +19,10 @@ class SearchController extends BaseController
         $params = $request->all();
         $type   = $params['type'] ?? 0;
 
-        if (empty(trim($params['keyword']))) {
+        if (empty($params['keyword'])) {
             return [];
         }
-
-        //$result = $this->searching($params);
-        //exit;
-        //$result = $this->searchPost($params);
-
+        
         switch ($type) {
             case 1: // 用户
                 return $this->searchUser($params);
@@ -39,8 +35,12 @@ class SearchController extends BaseController
                 break;
             case 4: // 输入中
                 $result = $this->searchTopic($params);
-               $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
+                $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
                 return $result;
+                break;
+            case 5:
+                $result = $this->searching($params);
+                exit;
                 break;
             default: // 全部
                 $result = $this->searchPost($params);
