@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\V1;
 
 use Illuminate\Http\Request;
-
 use App\Jobs\Device;
 use Carbon\Carbon;
 use Dingo\Api\Http\Response;
-use Dingo\Api\Routing\Helpers;
-use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreDeviceRequest;
 
 class DeviceController extends BaseController
