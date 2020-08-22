@@ -25,8 +25,6 @@ class UserSearchCollection extends Resource
      */
     public function toArray($request)
     {
-        $include = $request->input('include');
-        $include = explode(',' ,$include);
         return [
             'user_id'           => $this->resource['user_id'],
             'user_name'         => $this->resource['user_name'],
@@ -37,55 +35,7 @@ class UserSearchCollection extends Resource
             'user_gender'       => $this->resource['user_gender'],
             'user_about'        => $this->resource['user_about'],
             'user_level'        => $this->resource['user_level'],
-            'user_follow_state' => $this->when($request->routeIs('user.show')||$request->routeIs('post.show')||in_array('follow' , $include), function () use ($request){
-                if(isset($this->user_follow_state))
-                {
-                    return $this->user_follow_state;
-                }else{
-                    return auth()->check()?auth()->user()->isFollowing($this->resource['user_id']):false;
-                }
-            }),
-            'make_friend_created_at'=>$this->when(isset($this->make_friend_created_at) , function (){
-               return $this->make_friend_created_at;
-            }),
-//            'user_medal' => $this->when($request->routeIs('post.index')||$request->routeIs('post.top')||$request->routeIs('user.show') , function () use ($request){
-//                return $this->user_medal;
-//            }),
-//            'user_rank_score' => $this->when($request->routeIs('user.rank') , function () use ($request){
-//                return $this->user_rank_score;
-//            }),
-            $this->mergeWhen($request->routeIs('user.show')||$request->routeIs('user.ry.online.refer'), function (){
-                return collect([
-                    'user_gender'=>$this->user_nder
-                ]);
-            }),
-            $this->mergeWhen($request->routeIs('user.ry.online.planet'), function (){
-                return collect([
-                    'user_about'=>$this->user_about
-                ]);
-            }),
-            $this->mergeWhen($request->routeIs('user.show'), function (){
-                return collect([
-                    'user_about'=>$this->user_about,
-                    'user_score' => $this->user_score,
-                    'user_birthday'=> $this->user_birthday,
-                    'user_cover'=> $this->user_cover_link,
-                    'user_like_state'=>$this->userProfileIsLiked($this->user_id),
-//                    'user_followme_count'=>$this->followers()->count(),
-//                    'user_myfollow_count'=>$this->followings()->count(),
-//                    'user_post_count'=>app(PostRepository::class)->getCountByUserId($this->user_id),
-//                    'user_comment_count'=>app(PostCommentRepository::class)->getCountByUserId($this->user_id),
-
-                    'user_followme_count'=>$this->userFollowMeCount($this->user_id),
-                    'user_myfollow_count'=>$this->userMyFollowCount($this->user_id),
-                    'user_post_count'=>$this->userPostCount($this->user_id),
-                    'user_comment_count'=>$this->userPostCommentCount($this->user_id),
-                    
-                    'user_profile_like_num'=>$this->user_profile_like_num,
-                    'user_picture'=>$this->user_picture_link,
-                    'userTags'=> UserTagCollection::collection($this->tags),
-                ]);
-            }),
+            'user_birthday'     => $this->resource['user_birthday']
         ];
     }
 }

@@ -35,22 +35,6 @@ class DeviceController extends BaseController
 
     public function test()
     {
-
-      /* $sql = "SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
-t.post_locale, t.post_content,
-p.post_created_at as create_at
-FROM f_posts_translations t
-inner join f_posts p on p.post_id = t.post_id
-where p.post_created_at > '2020-01-01' and p.post_id = 14567
-ORDER BY t.post_id desc";
-
-       $result = DB::select($sql);
-
-       dd($result);*/
-        //$result = Post::with('translations')->withTrashed()->where('post_id' , 14567)->get();
-        //return $result;
-
-
         set_time_limit(0);
 
         $countSql = "SELECT count(1) num

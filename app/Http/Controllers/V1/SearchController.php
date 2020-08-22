@@ -22,7 +22,7 @@ class SearchController extends BaseController
         if (empty($params['keyword'])) {
             return [];
         }
-        
+
         switch ($type) {
             case 1: // 用户
                 return $this->searchUser($params);
