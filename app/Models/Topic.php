@@ -14,4 +14,10 @@ class Topic extends Model
 
     public $table = 'topics';
 
+    protected $dateFormat = 'U';
+
+    public const CREATED_AT = "topic_created_at";
+
+    public const UPDATED_AT = "topic_updated_at";
+
 }

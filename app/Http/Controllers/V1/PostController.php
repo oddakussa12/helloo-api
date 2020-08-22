@@ -247,7 +247,7 @@ class PostController extends BaseController
         dynamicSetLocales(array($titleLocale , $contentLocale));
         if($titleLocale!=$contentLocale)
         {
-            $post_info[$titleLocale] = array('post_title'=>$post_title,'post_content'=>'');
+            !empty($post_title)&&$post_info[$titleLocale] = array('post_title'=>$post_title,'post_content'=>'');
             $post_info[$contentLocale] = array('post_title'=>'','post_content'=>$post_content);
         }else{
             $post_info[$titleLocale] = array('post_title'=>$post_title,'post_content'=>$post_content);

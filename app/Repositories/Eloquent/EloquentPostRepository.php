@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Post;
 use App\Models\Like;
+use App\Jobs\TopicEs;
 use App\Models\Dislike;
 use App\Custom\RedisList;
 use App\Models\PostComment;
@@ -773,6 +774,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     "topics" => \json_encode($topics)
                 ));
             });
+            TopicEs::dispatch($post , $topics)->onQueue('topic_es');
         }
         return $post;
     }
