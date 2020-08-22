@@ -752,7 +752,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         } , ARRAY_FILTER_USE_BOTH );
         if(!blank($topics))
         {
-            $post->userTopics = $topics;
             $topicRateKey = config('redis-key.topic.topic_index_rate');
             $topicNewKey = config('redis-key.topic.topic_index_new');
             $now = time();
