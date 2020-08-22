@@ -67,7 +67,7 @@ ORDER BY t.post_id desc";
         sleep(1);
         dump($count, $limit, $page);
 
-        for ($i=0;$i<$page;$i++) {
+        for ($i=0;$i<=$page;$i++) {
             $offset = $limit*$i;
             $sql = "SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
                     t.post_locale, t.post_content,
