@@ -108,8 +108,7 @@ class ESinit extends Command
                  (new EsClient())->indices()->create($index);
                  echo 'create index: ' . $index['index'] . PHP_EOL;
              } catch (\Exception $e) {
-
-                 dump($e);
+                 dump(json_encode($index));
                  echo "Exception::: code: ". $e->getCode(). ' message: '. $e->getMessage() . PHP_EOL;
              }
         }
@@ -204,7 +203,7 @@ class ESinit extends Command
     private function post_init()
     {
         return array_merge_recursive([
-            'index' => env('ELASTICSEARCH_POST_INDEX'),
+            'index' => config('scout.elasticsearch.post'),
             'body'  => [
                 'mappings' => [
                     'properties' => [
@@ -236,7 +235,8 @@ class ESinit extends Command
                         'post_content' => [
                             'type'     => 'text',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
-                            "suggest"  => ["type"=> "completion", "analyzer"=> "icu_analyzer"]
+                            "analyzer" => "icu_analyzer"
+                          //  "suggest"  => ["type" => "completion", "analyzer" => "icu_analyzer"]
                         ],
                         'create_at' => [
                             'type' => 'text',
