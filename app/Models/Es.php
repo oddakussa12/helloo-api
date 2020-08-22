@@ -156,19 +156,35 @@ class Es
 
     public function suggest($request)
     {
+
         $keywords = trim($request['keyword']);
         $query = [
             'index' => $this->mIndex,
-            'body' => array_merge([
-                'query' => $this->completion($keywords)
-            ], $this->makePaginationCypher())
+            'body'  => array_merge($this->completion($keywords), $this->makePaginationCypher())
         ];
-      //  $query['minimum_should_match'] = 1;
-        dump(json_encode($query));
+
+//        dump(json_encode($query));
         $response = $this->client->search($query);
         if ($response) {
-            return $this->makeAsGrid($response);
+            return $this->makeAsSuggest($response);
         }
+    }
+
+    public function makeAsSuggest($response)
+    {
+        $suggest = $response['suggest'];
+
+        $result = [];
+        foreach ($suggest as $hit) {
+            foreach ($hit as $item) {
+                foreach ($item['options'] as $it) {
+                    if(!empty($it['_source'])){
+                        $result[] = array_merge($it['_source'], ['id' => $it['_id'], 'text'=>$it['text']]);
+                    }
+                }
+            }
+        }
+        return collect($result);
     }
 
     public function completion($keywords)

@@ -13,6 +13,17 @@ use Illuminate\Http\Request;
 
 class SearchController extends BaseController
 {
+    private $searchPost;
+    private $searchUser;
+    private $searchTopic;
+
+    public function __construct()
+    {
+        $this->searchPost = config('scout.elasticsearch.post');
+        $this->searchUser = config('scout.elasticsearch.user');
+        $this->searchTopic = config('scout.elasticsearch.topic');
+
+    }
 
     public function index(Request $request)
     {
@@ -40,6 +51,7 @@ class SearchController extends BaseController
                 break;
             case 5:
                 $result = $this->searching($params);
+                return $result;
                 exit;
                 break;
             default: // 全部
@@ -61,15 +73,12 @@ class SearchController extends BaseController
      */
     public function hotTopic()
     {
-
         $topic = ['这是一个话题', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
         shuffle($topic);
         foreach ($topic as $value) {
-            $data['data'][] = ['post_content' => $value];
+            $data['data'][] = ['topic_content' => $value];
         }
-
         return $data ?? [];
-
     }
 
     /**
@@ -83,7 +92,7 @@ class SearchController extends BaseController
             'limit'      => $limit,
             'likeColumns'=> ['user_nick_name', 'user_name']
         ];
-        $user        = (new Es('user', $extra))->likeQuery($params);
+        $user = (new Es($this->searchUser, $extra))->likeQuery($params);
         return UserSearchCollection::collection($user);
     }
 
@@ -93,7 +102,7 @@ class SearchController extends BaseController
             'limit'      => 10,
             'likeColumns'=> ['post_content']
         ];
-        $user = (new Es('post', $extra))->suggest($params);
+        $user = (new Es($this->searchPost, $extra))->suggest($params);
         return $user;
       //  return UserSearchCollection::collection($user);
         
@@ -108,11 +117,10 @@ class SearchController extends BaseController
     protected function searchPost($params, $limit=10) {
         $likeColumns = ['post_content'];
         $filter      = ['post_content_default_locale'=>locale(), 'limit'=>$limit];
-        $posts       = (new Es('post', $filter))->likeQuery($params, $likeColumns);
+        $posts       = (new Es($this->searchPost, $filter))->likeQuery($params, $likeColumns);
 
         $userIds     = $posts->pluck('user_id')->all();
         $users       = app(UserRepository::class)->findByMany($userIds);
-
 
         $posts = $posts->map(function($post , $index) use ($posts,$users){
             $post['owner'] = $users->where('user_id' , $post['user_id'])->first();
@@ -133,7 +141,7 @@ class SearchController extends BaseController
             'limit'      => $limit,
             'likeColumns'=> ['topic_content'],
         ];
-        $topic       = (new Es('topic', $extra))->likeQuery($params);
+        $topic = (new Es($this->searchTopic, $extra))->likeQuery($params);
         return TopicSearchPaginateCollection::collection($topic);
     }
 

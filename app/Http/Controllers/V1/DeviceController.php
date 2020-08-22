@@ -30,53 +30,11 @@ class DeviceController extends BaseController
      */
     public function __construct()
     {
-        $this->postIndex = 'post';env('ELASTICSEARCH_POST_INDEX');
+        $this->postIndex = config('scout.elasticsearch.post');
     }
 
     public function test()
     {
-        set_time_limit(0);
-
-        $countSql = "SELECT count(1) num
-                    FROM f_posts_translations t
-                    inner join f_posts p on p.post_id = t.post_id
-                    where p.post_created_at > '2020-01-01'
-                    ORDER BY t.post_id desc";
-
-        $countResult = DB::select($countSql);
-
-        $count  = $countResult[0]->num;
-        $limit  = 1000;
-        $page   = ceil($count/$limit);
-        sleep(1);
-        dump($count, $limit, $page);
-
-        for ($i=0;$i<=$page;$i++) {
-            $offset = $limit*$i;
-            $sql = "SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
-                    t.post_locale, t.post_content,
-                    p.post_created_at as create_at
-                    FROM f_posts_translations t
-                    inner join f_posts p on p.post_id = t.post_id
-                    where p.post_created_at > '2020-01-01'
-                    ORDER BY t.post_id desc ";
-
-            $sql .= "limit $offset, $limit";
-
-            $result = DB::select($sql);
-            $result = array_map('get_object_vars', $result);
-            echo '-----------'. $this->postIndex;
-
-            $data = (new Es($this->postIndex))->batchCreate($result);
-            if ($data==null) {
-               $data = (new Es($this->postIndex))->batchCreate($result);
-            }
-            dump('foreach:: '. $offset);
-            sleep(1);
-
-        }
-
-        return;
 
 
 
