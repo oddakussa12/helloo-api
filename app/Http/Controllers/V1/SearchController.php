@@ -142,7 +142,6 @@ class SearchController extends BaseController
             $post['post_event_country'] = 'en';
             $posts[$index] = $post;
         }
-        dump($posts);
         return PostSearchPaginateCollection::collection($posts);
 
     }
