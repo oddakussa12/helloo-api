@@ -25,14 +25,7 @@ class UserSearchCollection extends Resource
      */
     public function toArray($request)
     {
-        $country_code = config('countries');
-        $country      = ($this->resource['user_country_id']-1);
-        if($country==-1) {
-            $userCountry = 'world';
-        }
-        if(array_key_exists($country , $country_code)) {
-            $userCountry = strtolower($country_code[$country]);
-        }
+        $userCountry = getCountryName($this->resource['user_country_id']);
 
         return [
             'user_id'           => $this->resource['user_id'],

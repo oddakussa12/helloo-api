@@ -298,7 +298,7 @@ class ESinit extends Command
                     ORDER BY t.post_id desc";
 
         $limitSql = "SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
-                    t.post_locale, t.post_content,t.post_content post_content_suggest,
+                    p.post_event_country_id, t.post_locale, t.post_content,t.post_content post_content_suggest,
                     p.post_created_at as create_at
                     FROM f_posts_translations t
                     inner join f_posts p on p.post_id = t.post_id

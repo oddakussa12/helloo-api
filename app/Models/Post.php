@@ -328,17 +328,7 @@ class Post extends Model
 
     public function getPostEventCountryAttribute()
     {
-        $country_code = config('countries');
-        $country = ($this->post_event_country_id-1);
-        if($country==-1)
-        {
-            return 'world';
-        }
-        if(array_key_exists($country , $country_code))
-        {
-            return strtolower($country_code[$country]);
-        }
-        return null;
+        return getCountryName($this->post_event_country_id, false);
     }
 
     public function calculatingRate()
