@@ -195,7 +195,7 @@ class ESinit extends Command
                             'type' => 'long',
                         ],
                         'topic_content' => [
-                            'type'     => 'text',
+                            'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                 "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],
@@ -224,14 +224,14 @@ class ESinit extends Command
                             'type' => 'long',
                         ],
                         'user_name' => [
-                            'type'     => 'text',
+                            'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                            "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],
                             "analyzer" => "icu_analyzer"
                         ],
                         'user_nick_name' => [
-                            'type'     => 'text',
+                            'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                 "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],

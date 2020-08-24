@@ -179,7 +179,11 @@ class Es
             foreach ($hit as $item) {
                 foreach ($item['options'] as $it) {
                     if(!empty($it['_source'])){
-                        $result[] = array_merge($it['_source'], ['id' => $it['_id'], 'text'=>$it['text']]);
+                        if ($this->mIndex != 'user') {
+                            $result[] = ['text'=> $it['text']];
+                        } else {
+                            $result[] = array_merge($it['_source'], ['id' => $it['_id'], 'text'=>$it['text']]);
+                        }
                     }
                 }
             }

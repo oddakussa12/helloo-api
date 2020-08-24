@@ -50,9 +50,9 @@ class SearchController extends BaseController
                 return $result;
                 break;
             case 5:
-                $result = $this->searching($params);
+                $result = $this->searchUserIng($params, 3);
+//                $result = $this->searchPostIng($params, 3);
                 return $result;
-                exit;
                 break;
             default: // 全部
                 $result = $this->searchPost($params);
@@ -96,16 +96,25 @@ class SearchController extends BaseController
         return UserSearchCollection::collection($user);
     }
 
-    protected function searching($params)
+    protected function searchUserIng($params, $limit=10)
     {
         $extra = [
-            'limit'      => 10,
+            'limit'      => $limit,
+            'likeColumns'=> ['user_nick_name']
+        ];
+        $user = (new Es($this->searchUser, $extra))->suggest($params);
+        return $user;
+
+    }
+
+    protected function searchPostIng($params, $limit=10)
+    {
+        $extra = [
+            'limit'      => $limit,
             'likeColumns'=> ['post_content']
         ];
-        $user = (new Es($this->searchPost, $extra))->suggest($params);
-        return $user;
-      //  return UserSearchCollection::collection($user);
-        
+        $result = (new Es($this->searchPost, $extra))->suggest($params);
+        return ['post' => $result];
     }
 
     /**
@@ -120,13 +129,22 @@ class SearchController extends BaseController
         $posts       = (new Es($this->searchPost, $filter))->likeQuery($params, $likeColumns);
 
         $userIds     = $posts->pluck('user_id')->all();
+        $postIds     = $posts->pluck('post_id')->all();
         $users       = app(UserRepository::class)->findByMany($userIds);
+        $postLikes   = app(PostRepository::class)->userPostLike($postIds);
+        $postDisLikes= app(PostRepository::class)->userPostDislike($postIds);
 
-        $posts = $posts->map(function($post , $index) use ($posts,$users){
+        foreach ($posts as $index=>$post) {
             $post['owner'] = $users->where('user_id' , $post['user_id'])->first();
-            return $post;
-        });
+            $post['likeState'] = in_array($post['post_id'] , $postLikes);
+            $post['dislikeState'] = in_array($post['post_id'] , $postDisLikes);
+            $post['post_comment_num'] = $this->commentCount($post['post_id']);
+            $post['post_event_country'] = 'en';
+            $posts[$index] = $post;
+        }
+        dump($posts);
         return PostSearchPaginateCollection::collection($posts);
+
     }
 
     /**
