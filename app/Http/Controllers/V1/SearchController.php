@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\Es;
+use App\Traits\CachablePost;
+use Illuminate\Http\Request;
+use App\Resources\UserSearchCollection;
 use App\Repositories\Contracts\UserRepository;
+use App\Repositories\Contracts\PostRepository;
 use App\Resources\PostSearchPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
-use App\Resources\UserSearchCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Request;
 
 
 class SearchController extends BaseController
 {
+    use CachablePost;
+    
     private $searchPost;
     private $searchUser;
     private $searchTopic;
