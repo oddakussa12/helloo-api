@@ -48,15 +48,14 @@ class SearchController extends BaseController
             case 3: // 话题
                 return $this->searchTopic($params);
                 break;
-            case 4: // 输入中
+            /*case 4: // 输入中
                 $result = $this->searchTopic($params);
                 $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
                 return $result;
-                break;
-            case 5:
-                //$result = $this->searchUserIng($params, 3);
-                //$result = $this->searchTopicIng($params, 3);
-                $result = $this->searchTopicIng($params, 3);
+                break;*/
+            case 4:  // 输入中 ES suggest
+                $result = $this->searchTopicIng($params);
+                $result['user'] = $this->searchUserIng($params, 3);
                 return $result;
                 break;
             default: // 全部
@@ -107,8 +106,9 @@ class SearchController extends BaseController
             'limit'      => $limit,
             'likeColumns'=> ['user_nick_name', 'user_name']
         ];
-        return (new Es($this->searchUser, $extra))->suggest($params);
-
+        $user = (new Es($this->searchUser, $extra))->suggest($params);
+        $user = !empty($user) ? array_slice($user, 0, 3) : [];
+        return UserSearchCollection::collection(collect($user));
     }
 
     protected function searchPostIng($params, $limit=10)
@@ -118,6 +118,7 @@ class SearchController extends BaseController
             'likeColumns'=> ['post_content']
         ];
         $result = (new Es($this->searchPost, $extra))->suggest($params);
+
         return ['post' => $result];
     }
 
@@ -163,7 +164,6 @@ class SearchController extends BaseController
             'likeColumns'=> ['topic_content'],
         ];
         $topic = (new Es($this->searchTopic, $extra))->likeQuery($params);
-        dump($topic);
         return TopicSearchPaginateCollection::collection($topic);
     }
 
@@ -174,8 +174,7 @@ class SearchController extends BaseController
             'likeColumns'=> ['topic_content'],
         ];
         $topic = (new Es($this->searchTopic, $extra))->suggest($params);
-        return $topic;
-        //return TopicSearchPaginateCollection::collection($topic);
+        return ['data' => $topic];
     }
 
 }
