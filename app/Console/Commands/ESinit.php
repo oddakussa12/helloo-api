@@ -146,6 +146,9 @@ class ESinit extends Command
                         'post_category_id' => [
                             'type' => 'text',
                         ],
+                        'post_event_country_id' => [
+                            'type' => 'long',
+                        ],
                         'post_media' => [
                             'type' => 'text',
                         ],
