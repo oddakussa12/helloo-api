@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\V1;
 
 use App\Custom\RedisList;
-use App\Resources\TopicSearchPaginateCollection;
 use Illuminate\Http\Request;
 use App\Resources\PostCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Redis;
 use App\Repositories\Contracts\PostRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
+use App\Resources\TopicSearchPaginateCollection;
 
 class TopicController extends BaseController
 {
@@ -54,7 +55,19 @@ class TopicController extends BaseController
         $key = 'user.'.$user->user_id.'.'.'follow.topics';
         if(Redis::zscore($key , $topic)===false)
         {
-           Redis::zadd($key , time() , $topic);
+            $follow = DB::table('topics_follows')->where('user_id' , $user->user_id)->where('topic_content' , $topic)->first();
+            if(empty($follow))
+            {
+                $time = time();
+                DB::table('topics_follows')->insert(
+                    array(
+                        'user_id'=>$user->user_id,
+                        'topic_content'=>$topic,
+                        'created_at'=>$time,
+                    )
+                );
+                Redis::zadd($key , $time , $topic);
+            }
         }
         return $this->response->noContent();
     }
@@ -72,8 +85,31 @@ class TopicController extends BaseController
 
     public function post($topic)
     {
+
+        $page = intval(request()->input('post_page' , 1));
         $posts = app(PostRepository::class)->paginateTopic($topic);
-        return PostCollection::collection($posts);
+        $posts = PostCollection::collection($posts);
+        $topicPostCountKey = config('redis-key.topic.topic_post_count');
+        $count = Redis::zscore($topicPostCountKey , $topic);
+        $additional = array(
+            'discussCount'=>$count
+        );
+        $user_follow_state = false;
+        if(auth()->check())
+        {
+            $user = auth()->user();
+            $key = 'user.'.$user->user_id.'.'.'follow.topics';
+            if(Redis::zscore($key , $topic)!==null)
+            {
+                $user_follow_state = true;
+            }
+            $additional['user_follow_state'] = $user_follow_state;
+        }
+        if($page==1)
+        {
+            $posts = $posts->additional($additional);
+        }
+        return $posts;
     }
 
     public function hot()

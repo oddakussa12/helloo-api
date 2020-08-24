@@ -16,7 +16,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class SearchController extends BaseController
 {
     use CachablePost;
-    
+
     private $searchPost;
     private $searchUser;
     private $searchTopic;

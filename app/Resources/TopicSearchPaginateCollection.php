@@ -3,12 +3,11 @@
 
 namespace App\Resources;
 
-use App\Traits\CachablePost;
+
 use Illuminate\Http\Resources\Json\Resource;
 
 class TopicSearchPaginateCollection extends Resource
 {
-   // use CachableTopic;
 
     /**
      * @param $request
