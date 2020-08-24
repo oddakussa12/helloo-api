@@ -153,12 +153,19 @@ class PostController extends BaseController
 	    $tag_slug = array_diff((array)$request->input('tag_slug' , array()),array(null , ''));
 	    $topics = array_diff((array)$request->input('topics' , array()),array(null , ''));
 	    $post_image = $request->input('post_image' , array());
+	    $post_image_size = $request->input('post_image_size' , array());
 	    $post_video = $request->input('post_video' , array());
         $post_category_id = 1;
         $post_type = 'text';
-        $post_image = \array_filter($post_image , function($v , $k){
-            return !empty($v);
+        $post_image = \array_filter($post_image , function($v , $k) use ($post_image_size){
+            $flag = !empty($v);
+            if($flag===false)
+            {
+                unset($post_image_size[$k]);
+            }
+            return $flag;
         } , ARRAY_FILTER_USE_BOTH );
+        ksort($post_image_size);
         ksort($post_image);
 	    if(!empty($post_image))
         {
@@ -217,10 +224,12 @@ class PostController extends BaseController
         if($post_category_id==2&&!empty($post_image))
         {
             $post_image = array_slice($post_image,0 , 9);
+            $post_image_size = array_slice($post_image_size,0 , 9);
             $post_media_json = array('image'=>array(
                 'image_from'=>'upload',
                 'image_cover'=>$post_image[0],
                 'image_url'=>$post_image,
+                'image_size'=>$post_image_size,
                 'image_count'=>count($post_image)
                 ));
             $post_info['post_media'] = $post_media_json;
