@@ -23,7 +23,7 @@ return [
         "post_index_non_rate"=>'post_index_non_rate',//非最热贴子
     ],
     'topic'=>[
-        'topic_index_rate'=>'topic_index_rate',
+        'topic_post_count'=>'topic_post_count',
         'topic_index_new'=>'topic_index_new',
     ]
 ];

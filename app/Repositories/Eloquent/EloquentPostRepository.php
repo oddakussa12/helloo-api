@@ -753,16 +753,16 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         } , ARRAY_FILTER_USE_BOTH );
         if(!blank($topics))
         {
-            $topicRateKey = config('redis-key.topic.topic_index_rate');
+            $topicPostCountKey = config('redis-key.topic.topic_post_count');
             $topicNewKey = config('redis-key.topic.topic_index_new');
             $now = time();
             $userId = $post->user_id;
             $postId = $post->getKey();
             $firstRate = first_rate_comment_v2();
-            Redis::pipeline(function ($pipe) use ($topics , $topicRateKey , $topicNewKey , $now , $userId , $postId , $firstRate){
-                array_walk($topics , function($item , $index) use ($pipe , $topicRateKey , $topicNewKey , $now , $userId , $postId , $firstRate){
+            Redis::pipeline(function ($pipe) use ($topics , $topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
+                array_walk($topics , function($item , $index) use ($pipe , $topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
                     $key = strval($item);
-                    $pipe->zincrby($topicRateKey , 1 , $key);
+                    $pipe->zincrby($topicPostCountKey , 1 , $key);
                     $pipe->zadd($topicNewKey , $now , $key);
                     $pipe->zadd($key."_new" , $now , $postId);
                     $pipe->zadd($key."_rate" , $firstRate , $postId);
