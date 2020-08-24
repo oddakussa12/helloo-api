@@ -51,7 +51,8 @@ class Es
         }
         return $this->client->index([
             'index'   => $this->mIndex,
-            'type'     => '_doc',
+            '_id'     => $request[$this->mIndex."_id"],
+            'type'    => '_doc',
             'refresh' => true,
             'body'    => $body
         ]);
@@ -66,6 +67,7 @@ class Es
                 $data['body'][] = [
                     'index' => [
                         '_index' => $this->mIndex,
+                        '_id'    => $param[$this->mIndex.'_id'],
                         '_type'  => '_doc',
                     ],
                 ];

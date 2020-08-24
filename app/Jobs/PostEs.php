@@ -37,12 +37,12 @@ class PostEs implements ShouldQueue
 
         unset($result['post_country_id'], $result['post_rate'], $result['post_event_country_id'], $result['post_created_at'], $result['post_updated_at'], $result['post_default_locale']);
 
-        $postList = array_map(function($v) use ($result){unset($v['post_title']);return array_merge($result, $v);}, $postInfo);
+        $postList = array_map(function($v) use ($result){unset($v['post_title']);return array_merge($result, $v, ['post_content_suggest'=>$v['post_content']]);}, $postInfo);
         $postList = array_column($postList, null);
 
-        $data     = (new Es(config('scout.elasticsearch.post')))->batchCreate($postList);
+        $data     = (new Es(config('scout.elasticsearch.post')))->create($postList);
         if ($data==null) {
-            $data = (new Es(config('scout.elasticsearch.post')))->batchCreate($postList);
+            $data = (new Es(config('scout.elasticsearch.post')))->create($postList);
         }
     }
 }

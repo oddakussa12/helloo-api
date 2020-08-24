@@ -32,24 +32,28 @@ class TopicEs implements ShouldQueue
      */
     public function handle()
     {
-        $post = $this->post;
+        $post   = $this->post;
         $topics = $this->topics;
         $userId = $post->user_id;
         $postId = $post->getKey();
-        $time = time();
+        $time   = time();
+
         $topicData = array_map(function($v) use ($userId , $postId , $time){
             return array(
-                'user_id'=>$userId,
-                'post_id'=>$postId,
-                'topic_content'=>$v,
-                'topic_created_at'=>$time,
-                'topic_updated_at'=>$time
+                'user_id'          => $userId,
+                'post_id'          => $postId,
+                'topic_content'    => $v,
+                'topic_created_at' => $time,
+                'topic_updated_at' => $time,
+                'topic_content_suggest' => $v,
+
             );
         } , $topics);
         \DB::table('topics')->insert($topicData);
-        $data     = (new Es(config('scout.elasticsearch.topic')))->batchCreate($topicData);
+
+        $data     = (new Es(config('scout.elasticsearch.topic')))->create($topicData);
         if ($data==null) {
-            $data = (new Es(config('scout.elasticsearch.topic')))->batchCreate($topicData);
+            $data = (new Es(config('scout.elasticsearch.topic')))->create($topicData);
         }
     }
 }

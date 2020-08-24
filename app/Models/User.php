@@ -105,6 +105,28 @@ class User extends Authenticatable implements JWTSubject
         'user_deleted_at',
     ];
 
+    public function searchableAs()
+    {
+        return '_doc';
+    }
+    //定义有哪些字段需要搜索
+    public function toSearchableArray()
+    {
+        return [
+            'user_id' => $this->user_id,
+            'user_name' => $this->user_name,
+            'user_name_suggest' => $this->user_name,
+            'user_nick_name'=> $this->user_nick_name,
+            'user_nick_name_suggest'=>$this->user_nick_name,
+            'user_avatar'=>$this->user_avatar ?? 'userdefalutavatar.jpg',
+            'user_country_id'=>$this->user_country_id,
+            'user_gender'=>$this->user_gender ?? -1,
+            'user_about'=>$this->user_about,
+            'user_level'=>$this->user_level,
+            'user_birthday'=>$this->user_birthday,
+        ];
+    }
+
     public function getUserAvatarLinkAttribute()
     {
         $value = $this->user_avatar;
@@ -254,6 +276,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return getContinentByCountry($this->user_country);
     }
+
 
 
 
