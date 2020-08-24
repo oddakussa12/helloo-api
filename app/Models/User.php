@@ -7,6 +7,7 @@ use App\Traits\follow\CanFollow;
 use App\Traits\dislike\CanDislike;
 use App\Traits\favorite\CanFavorite;
 use App\Traits\follow\CanBeFollowed;
+use Laravel\Scout\Jobs\MakeSearchable;
 use Laravel\Scout\Searchable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use App\Foundation\Auth\Passwords\CanResetPassword;
@@ -126,6 +127,18 @@ class User extends Authenticatable implements JWTSubject
             'user_birthday'=>$this->user_birthday,
         ];
     }
+
+    //队列相关
+    public function syncWithSearchUsingQueue()
+    {
+        return config('scout.scout_queue');
+    }
+
+    public function syncWithSearchUsing()
+    {
+        return config('scout.connection');
+    }
+
 
     public function getUserAvatarLinkAttribute()
     {
