@@ -50,8 +50,9 @@ class SearchController extends BaseController
                 return $result;
                 break;
             case 5:
-                $result = $this->searchUserIng($params, 3);
-//                $result = $this->searchPostIng($params, 3);
+                //$result = $this->searchUserIng($params, 3);
+                //$result = $this->searchTopicIng($params, 3);
+                $result = $this->searchTopicIng($params, 3);
                 return $result;
                 break;
             default: // 全部
@@ -100,10 +101,9 @@ class SearchController extends BaseController
     {
         $extra = [
             'limit'      => $limit,
-            'likeColumns'=> ['user_nick_name']
+            'likeColumns'=> ['user_nick_name', 'user_name']
         ];
-        $user = (new Es($this->searchUser, $extra))->suggest($params);
-        return $user;
+        return (new Es($this->searchUser, $extra))->suggest($params);
 
     }
 
@@ -159,7 +159,19 @@ class SearchController extends BaseController
             'likeColumns'=> ['topic_content'],
         ];
         $topic = (new Es($this->searchTopic, $extra))->likeQuery($params);
+        dump($topic);
         return TopicSearchPaginateCollection::collection($topic);
+    }
+
+    protected function searchTopicIng($params, $limit=10)
+    {
+        $extra = [
+            'limit'      => $limit,
+            'likeColumns'=> ['topic_content'],
+        ];
+        $topic = (new Es($this->searchTopic, $extra))->suggest($params);
+        return $topic;
+        //return TopicSearchPaginateCollection::collection($topic);
     }
 
 }

@@ -159,11 +159,16 @@ class ESinit extends Command
                             'type' => 'text',
                             'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
                         ],
-                        'post_content' => [
+                        'post_content_suggest' => [
                             'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                            "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],
+                            "analyzer" => "icu_analyzer"
+                        ],
+                        'post_content' => [
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
                             "analyzer" => "icu_analyzer"
                         ],
                         'post_create_at' => [
@@ -194,11 +199,16 @@ class ESinit extends Command
                         'post_id' => [
                             'type' => 'long',
                         ],
-                        'topic_content' => [
-                            'type'     => 'completion',
+                        'topic_content_suggest' => [
+                            'type'     => 'text',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                 "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],
+                            "analyzer" => "icu_analyzer"
+                        ],
+                        'topic_content' => [
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
                             "analyzer" => "icu_analyzer"
                         ],
                         'topic_created_at' => [
@@ -230,7 +240,18 @@ class ESinit extends Command
                             ],
                             "analyzer" => "icu_analyzer"
                         ],
+                        'user_name_suggest' => [
+                            'type'     => 'completion',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
+                                "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]],
+                            "analyzer" => "icu_analyzer"
+                        ],
                         'user_nick_name' => [
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
+                            "analyzer" => "icu_analyzer"
+                        ],
+                        'user_nick_name_suggest' => [
                             'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                 "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
