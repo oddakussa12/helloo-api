@@ -25,20 +25,13 @@ class UserSearchCollection extends Resource
      */
     public function toArray($request)
     {
-        $country_code = config('countries');
-        $country      = ($this->resource['user_country_id']-1);
-        if($country==-1) {
-            $userCountry = 'world';
-        }
-        if(array_key_exists($country , $country_code)) {
-            $userCountry = strtolower($country_code[$country]);
-        }
-
+        $userCountry = getCountryName($this->resource['user_country_id']);
+        $avatar      = !empty($this->resource['user_avatar']) ? $this->resource['user_avatar'] : 'userdefalutavatar.jpg';
         return [
             'user_id'           => $this->resource['user_id'],
             'user_name'         => $this->resource['user_name'],
             'user_nick_name'    => $this->resource['user_nick_name'],
-            'user_avatar'       => config('common.qnUploadDomain.avatar_domain').$this->resource['user_avatar'].'?imageView2/0/w/50/h/50/interlace/1|imageslim',
+            'user_avatar'       => config('common.qnUploadDomain.avatar_domain').$avatar.'?imageView2/0/w/50/h/50/interlace/1|imageslim',
             'user_country'      => $userCountry,
             'user_continent'    => getContinentByCountry($userCountry),
             'user_gender'       => $this->resource['user_gender'],

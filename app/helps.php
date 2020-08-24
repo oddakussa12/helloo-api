@@ -995,19 +995,41 @@ if (!function_exists('getUserCountryId'))
         }
         return $index;
     }
+}
 
+/**
+ * 通过countryId 获取 countryName
+ */
+if (!function_exists('getCountryName')) {
+    function getCountryName($countryId, $default=true)
+    {
+        $country_code = config('countries');
+        $country      = ($countryId - 1);
+        if ($country == -1) {
+            return 'world';
+        }
+        if (array_key_exists($country, $country_code)) {
+            return strtolower($country_code[$country]);
+        }
+        return $default ? strtolower($country_code[235]) : [];
+    }
+}
+/**
+ * 日期转换
+ */
+if (!function_exists('dateTrans')) {
     function dateTrans($time)
     {
         $locale = locale();
-        if($locale=='zh-CN') {
+        if ($locale == 'zh-CN') {
             Carbon::setLocale('zh');
-        } elseif ($locale=='zh-TW'||$locale=='zh-HK') {
+        } elseif ($locale == 'zh-TW' || $locale == 'zh-HK') {
             Carbon::setLocale('zh_TW');
-        }else{
+        } else {
             $locale = 'en';
             Carbon::setLocale($locale);
             $translator = \Carbon\Translator::get($locale);
-            $translator->setMessages($locale , [
+            $translator->setMessages($locale, [
                 'minute' => ':count m|:count m',
                 'hour'   => ':count h|:count h',
                 'day'    => ':count d|:count d',
@@ -1017,49 +1039,54 @@ if (!function_exists('getUserCountryId'))
         }
         return Carbon::parse($time)->diffForHumans();
     }
+}
 
-    /**
-     * @param $type
-     * @param $value
-     * @return mixed
-     * Post Model中 post_media
-     */
+/**
+ * @param $type
+ * @param $value
+ * @return mixed
+ * Post Model中 post_media
+ */
+if (!function_exists('postMedia')) {
     function postMedia($type, $value)
     {
         $imgDomain     = config('common.qnUploadDomain.thumbnail_domain');
         $thumbDomain   = config('common.awsUploadDomain.thumbnail_domain');
         $videoDomain   = config('common.awsUploadDomain.video_domain');
         $videoDomainCn = config('common.awsUploadDomain.video_domain_cn');
-        if($type=='video') {
-            $domain = domain()=='api.mmantou.cn' ? $videoDomainCn : $videoDomain;
-            $value[$type]['video_url'] = $domain.$value[$type]['video_url'];
-            $value[$type]['video_thumbnail_url'] = $thumbDomain.$value[$type]['video_thumbnail_url'];
+
+        if ($type == 'video') {
+            $domain = domain() == 'api.mmantou.cn' ? $videoDomainCn : $videoDomain;
+            $value[$type]['video_url'] = $domain . $value[$type]['video_url'];
+            $value[$type]['video_thumbnail_url'] = $thumbDomain . $value[$type]['video_thumbnail_url'];
+
             $video_subtitle = (array)$value[$type]['video_subtitle_url'];
-            $video_subtitle = \array_filter($video_subtitle , function($v , $k){
-                return !empty($v)&&!empty($k);
-            } , ARRAY_FILTER_USE_BOTH );
+            $video_subtitle = \array_filter($video_subtitle, function ($v, $k) {
+                return !empty($v) && !empty($k);
+            }, ARRAY_FILTER_USE_BOTH);
 
-            $value[$type]['video_subtitle_url'] = \array_map(function($v){
-                return config('common.qnUploadDomain.subtitle_domain').$v;
-            } , $video_subtitle);
-        }else if($type=='news'){
-            $value[$type]['news_cover_image'] = $imgDomain.$value[$type]['news_cover_image'];
+            $value[$type]['video_subtitle_url'] = \array_map(function ($v) {
+                return config('common.qnUploadDomain.subtitle_domain') . $v;
+            }, $video_subtitle);
+        } else if ($type == 'news') {
+            $value[$type]['news_cover_image'] = $imgDomain . $value[$type]['news_cover_image'];
 
-        }else if($type=='image'){
-            $value[$type]['image_cover'] = $imgDomain.$value[$type]['image_cover'];
+        } else if ($type == 'image') {
+            $value[$type]['image_cover'] = $imgDomain . $value[$type]['image_cover'];
             $image_url = $value[$type]['image_url'];
-            $value[$type]['image_url'] = \array_map(function($v)use($imgDomain){
-                return $imgDomain.$v.'?imageMogr2/auto-orient/interlace/1|imageslim';
-            } , $image_url);
-            $value[$type]['thumb_image_url'] = \array_map(function($v)use($imgDomain){
-                return $imgDomain.$v.'?imageView2/5/w/192/h/192/interlace/1|imageslim';
-            } , $image_url);
+
+            $value[$type]['image_url'] = \array_map(function ($v) use ($imgDomain) {
+                return $imgDomain . $v . '?imageMogr2/auto-orient/interlace/1|imageslim';
+            }, $image_url);
+
+            $value[$type]['thumb_image_url'] = \array_map(function ($v) use ($imgDomain) {
+                return $imgDomain . $v . '?imageView2/5/w/192/h/192/interlace/1|imageslim';
+            }, $image_url);
         }
         return $value;
     }
+
 }
-
-
 
 
 

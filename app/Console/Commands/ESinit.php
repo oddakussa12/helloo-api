@@ -146,6 +146,9 @@ class ESinit extends Command
                         'post_category_id' => [
                             'type' => 'text',
                         ],
+                        'post_event_country_id' => [
+                            'type' => 'long',
+                        ],
                         'post_media' => [
                             'type' => 'text',
                         ],
@@ -159,11 +162,16 @@ class ESinit extends Command
                             'type' => 'text',
                             'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]
                         ],
-                        'post_content' => [
+                        'post_content_suggest' => [
                             'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                            "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],
+                            "analyzer" => "icu_analyzer"
+                        ],
+                        'post_content' => [
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
                             "analyzer" => "icu_analyzer"
                         ],
                         'post_create_at' => [
@@ -194,11 +202,16 @@ class ESinit extends Command
                         'post_id' => [
                             'type' => 'long',
                         ],
-                        'topic_content' => [
+                        'topic_content_suggest' => [
                             'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                 "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],
+                            "analyzer" => "icu_analyzer"
+                        ],
+                        'topic_content' => [
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
                             "analyzer" => "icu_analyzer"
                         ],
                         'topic_created_at' => [
@@ -224,13 +237,24 @@ class ESinit extends Command
                             'type' => 'long',
                         ],
                         'user_name' => [
-                            'type'     => 'completion',
+                            'type'     => 'text',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                            "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
                             ],
                             "analyzer" => "icu_analyzer"
                         ],
+                        'user_name_suggest' => [
+                            'type'     => 'completion',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
+                                "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]],
+                            "analyzer" => "icu_analyzer"
+                        ],
                         'user_nick_name' => [
+                            'type'     => 'text',
+                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]],
+                            "analyzer" => "icu_analyzer"
+                        ],
+                        'user_nick_name_suggest' => [
                             'type'     => 'completion',
                             'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
                                 "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
@@ -274,7 +298,7 @@ class ESinit extends Command
                     ORDER BY t.post_id desc";
 
         $limitSql = "SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
-                    t.post_locale, t.post_content,
+                    p.post_event_country_id, t.post_locale, t.post_content,t.post_content post_content_suggest,
                     p.post_created_at as create_at
                     FROM f_posts_translations t
                     inner join f_posts p on p.post_id = t.post_id
@@ -288,7 +312,7 @@ class ESinit extends Command
     public function userDataInit()
     {
         $countSql = "SELECT count(1) num FROM f_users";
-        $limitSql = "SELECT user_id,user_name, user_nick_name,user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users ";
+        $limitSql = "SELECT user_id,user_name, user_name user_name_suggest, user_nick_name, user_nick_name user_nick_name_suggest, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users ";
 
         $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.user'));
     }
@@ -296,7 +320,7 @@ class ESinit extends Command
     public function topicDataInit()
     {
         $countSql = "SELECT count(1) num FROM f_topics";
-        $limitSql = "SELECT * FROM f_topics ";
+        $limitSql = "SELECT *, topic_content topic_content_suggest FROM f_topics ";
 
         $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.topic'));
     }
@@ -309,7 +333,7 @@ class ESinit extends Command
         $countResult = DB::select($countSql);
 
         $count  = $countResult[0]->num;
-        $limit  = 1000;
+        $limit  = 1500;
         $page   = intval(ceil($count/$limit));
         sleep(1);
         dump($count, $limit, $page, "for start:");

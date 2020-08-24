@@ -23,10 +23,9 @@ class SearchController extends BaseController
 
     public function __construct()
     {
-        $this->searchPost = config('scout.elasticsearch.post');
-        $this->searchUser = config('scout.elasticsearch.user');
+        $this->searchPost  = config('scout.elasticsearch.post');
+        $this->searchUser  = config('scout.elasticsearch.user');
         $this->searchTopic = config('scout.elasticsearch.topic');
-
     }
 
     public function index(Request $request)
@@ -48,14 +47,14 @@ class SearchController extends BaseController
             case 3: // 话题
                 return $this->searchTopic($params);
                 break;
-            case 4: // 输入中
+            /*case 4: // 输入中
                 $result = $this->searchTopic($params);
                 $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
                 return $result;
-                break;
-            case 5:
-                $result = $this->searchUserIng($params, 3);
-//                $result = $this->searchPostIng($params, 3);
+                break;*/
+            case 4:  // 输入中 ES suggest
+                $result = $this->searchTopicIng($params);
+                $result['user'] = $this->searchUserIng($params, 3);
                 return $result;
                 break;
             default: // 全部
@@ -91,34 +90,22 @@ class SearchController extends BaseController
      * @return AnonymousResourceCollection
      * 查询用户
      */
-    protected function searchUser($params, $limit=10) {
-        $extra = [
-            'limit'      => $limit,
-            'likeColumns'=> ['user_nick_name', 'user_name']
-        ];
-        $user = (new Es($this->searchUser, $extra))->likeQuery($params);
+    protected function searchUser($params, $limit=10)
+    {
+        $user = (new Es($this->searchUser, ['limit'=>$limit]))->likeQuery($params);
         return UserSearchCollection::collection($user);
     }
 
     protected function searchUserIng($params, $limit=10)
     {
-        $extra = [
-            'limit'      => $limit,
-            'likeColumns'=> ['user_nick_name']
-        ];
-        $user = (new Es($this->searchUser, $extra))->suggest($params);
-        return $user;
-
+        $user = (new Es($this->searchUser, ['limit'=>$limit]))->suggest($params);
+        $user = !empty($user) ? array_slice($user, 0, 3) : [];
+        return UserSearchCollection::collection(collect($user));
     }
 
     protected function searchPostIng($params, $limit=10)
     {
-        $extra = [
-            'limit'      => $limit,
-            'likeColumns'=> ['post_content']
-        ];
-        $result = (new Es($this->searchPost, $extra))->suggest($params);
-        return ['post' => $result];
+        return (new Es($this->searchPost, ['limit'=>$limit]))->suggest($params);
     }
 
     /**
@@ -128,9 +115,9 @@ class SearchController extends BaseController
      * 搜索帖子
      */
     protected function searchPost($params, $limit=10) {
-        $likeColumns = ['post_content'];
         $filter      = ['post_content_default_locale'=>locale(), 'limit'=>$limit];
-        $posts       = (new Es($this->searchPost, $filter))->likeQuery($params, $likeColumns);
+        $posts       = (new Es($this->searchPost, $filter))->likeQuery($params);
+
 
         $userIds     = $posts->pluck('user_id')->all();
         $postIds     = $posts->pluck('post_id')->all();
@@ -146,6 +133,7 @@ class SearchController extends BaseController
             $post['post_event_country'] = 'en';
             $posts[$index] = $post;
         }
+
         return PostSearchPaginateCollection::collection($posts);
 
     }
@@ -158,12 +146,14 @@ class SearchController extends BaseController
      */
     protected function searchTopic($params, $limit=10)
     {
-        $extra = [
-            'limit'      => $limit,
-            'likeColumns'=> ['topic_content'],
-        ];
-        $topic = (new Es($this->searchTopic, $extra))->likeQuery($params);
+        $topic = (new Es($this->searchTopic, ['limit'=>$limit]))->likeQuery($params);
         return TopicSearchPaginateCollection::collection($topic);
+    }
+
+    protected function searchTopicIng($params, $limit=10)
+    {
+        $topic = (new Es($this->searchTopic, ['limit'=>$limit]))->suggest($params);
+        return ['data' => $topic];
     }
 
 }

@@ -21,11 +21,22 @@ class Es
     {
         $this->client      = new EsClient();
         $this->columns     = $extra['columns'] ?? [];
-        $this->likeColumns = $extra['likeColumns'] ?? [];
         $this->mIndex      = $mIndex ?: env('ELASTICSEARCH_INDEX');
         $this->limit       = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
         $this->offset      = app('request')->get('page') ?: 0;
+
+        $this->likeColumns = [
+          config('scout.elasticsearch.post')  => ['post_content'],
+          config('scout.elasticsearch.topic') => ['topic_content'],
+          config('scout.elasticsearch.user')  => ['user_nick_name', 'user_name'],
+        ];
+
+        if (!empty($extra['likeColumns'])) {
+            $this->likeColumns[$this->mIndex] = $extra['likeColumns'];
+        }
+
     }
+
 
     public function create(array $request, $flag=false)
     {
@@ -40,7 +51,8 @@ class Es
         }
         return $this->client->index([
             'index'   => $this->mIndex,
-            'type'     => '_doc',
+            '_id'     => $request[$this->mIndex."_id"],
+            'type'    => '_doc',
             'refresh' => true,
             'body'    => $body
         ]);
@@ -55,6 +67,7 @@ class Es
                 $data['body'][] = [
                     'index' => [
                         '_index' => $this->mIndex,
+                        '_id'    => $param[$this->mIndex.'_id'],
                         '_type'  => '_doc',
                     ],
                 ];
@@ -179,8 +192,13 @@ class Es
             foreach ($hit as $item) {
                 foreach ($item['options'] as $it) {
                     if(!empty($it['_source'])){
-                        if ($this->mIndex != 'user') {
-                            $result[] = ['text'=> $it['text']];
+                        foreach ($it['_source'] as $fk=>$field) {
+                            if (stripos($fk,'_suggest')) {
+                                unset($it['_source'][$fk]);
+                            }
+                        }
+                        if ($this->mIndex == 'topic') {
+                            $result[] = ['topic_content'=> $it['text']];
                         } else {
                             $result[] = array_merge($it['_source'], ['id' => $it['_id'], 'text'=>$it['text']]);
                         }
@@ -188,18 +206,18 @@ class Es
                 }
             }
         }
-        return collect($result);
+        return $result;
     }
 
     public function completion($keywords)
     {
         $suggest = [];
-        foreach ($this->likeColumns as $v) {
+        foreach ($this->likeColumns[$this->mIndex] as $v) {
             $suggest = [
                 $v => [
                     "prefix" => $keywords,
                     "completion" => [
-                        "field" => $v,
+                        "field" => $v."_suggest",
                         "skip_duplicates"=> true
                     ]
                 ]
@@ -214,7 +232,7 @@ class Es
     public function phrase($keywords)
     {
         $suggest = [];
-        foreach ($this->likeColumns as $v) {
+        foreach ($this->likeColumns[$this->mIndex] as $v) {
             $suggest = [
                 $v    => [
                     "text" => $keywords,
@@ -236,7 +254,7 @@ class Es
             'index' => $this->mIndex,
             'body' => array_merge([
                 'query' => [
-                    'bool' => array_merge_recursive($this->makeTermQuery($this->columns), $this->makeLikeQuery($this->likeColumns, $keywords))
+                    'bool' => array_merge_recursive($this->makeTermQuery($this->columns), $this->makeLikeQuery($this->likeColumns[$this->mIndex], $keywords))
                 ]
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];

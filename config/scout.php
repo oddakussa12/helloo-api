@@ -41,7 +41,10 @@ return [
     |
     */
 
-    'queue' => env('SCOUT_QUEUE', false),
+    'queue'       => env('SCOUT_QUEUE', true),
+    'scout_queue' => env('ELASTICSEARCH_SCOUT_QUEUE', 'user_es'),
+    'connection'  => env('ELASTICSEARCH_SCOUT_QUEUE_NAME', 'redis'),
+
 
     /*
     |--------------------------------------------------------------------------

@@ -16,6 +16,7 @@ class TopicSearchPaginateCollection extends Resource
     public function toArray($request)
     {
         return [
+            'post_num' => rand(1000, 100000),
             'topic_content' => $this->resource['topic_content'],
         ];
     }
