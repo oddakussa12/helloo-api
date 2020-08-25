@@ -295,6 +295,10 @@ class PostController extends BaseController
     public function showByUuid($uuid)
     {
         $post = $this->post->showByUuid($uuid);
+        $postLikes = $this->post->userPostLike(array($post->post_id));
+        $postDisLikes = $this->post->userPostDislike(array($post->post_id));
+        $post->likeState = in_array($post->post_id , $postLikes);
+        $post->dislikeState = in_array($post->post_id , $postDisLikes);
         event(new PostViewEvent($post));
         return new PostCollection($post);
     }

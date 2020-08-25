@@ -63,13 +63,17 @@ class Es
     {
         try {
             $data = ['body' => []];
+            $index = [
+                '_index' => $this->mIndex,
+                '_type'  => '_doc',
+            ];
             foreach ($params as $param) {
+                if($this->mIndex=='user')
+                {
+                    $index['_id'] = $param[$this->mIndex.'_id'];
+                }
                 $data['body'][] = [
-                    'index' => [
-                        '_index' => $this->mIndex,
-                        '_id'    => $param[$this->mIndex.'_id'],
-                        '_type'  => '_doc',
-                    ],
+                    'index' => $index,
                 ];
                 $data['body'][] = array_merge([], $param);
             }

@@ -40,9 +40,9 @@ class PostEs implements ShouldQueue
         $postList = array_map(function($v) use ($result){unset($v['post_title']);return array_merge($result, $v);}, $postInfo);
         $postList = array_column($postList, null);
 
-        $data     = (new Es(config('scout.elasticsearch.post')))->create($postList);
+        $data     = (new Es(config('scout.elasticsearch.post')))->batchCreate($postList);
         if ($data==null) {
-            $data = (new Es(config('scout.elasticsearch.post')))->create($postList);
+            $data = (new Es(config('scout.elasticsearch.post')))->batchCreate($postList);
         }
     }
 }

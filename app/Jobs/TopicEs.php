@@ -4,8 +4,8 @@ namespace App\Jobs;
 
 use App\Models\Es;
 use App\Models\Post;
-use App\Models\Topic;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,21 +38,37 @@ class TopicEs implements ShouldQueue
         $postId = $post->getKey();
         $time   = time();
 
-        $topicData = array_map(function($v) use ($userId , $postId , $time){
+        $postTopicData = array_map(function($v) use ($userId , $postId , $time){
             return array(
                 'user_id'          => $userId,
                 'post_id'          => $postId,
                 'topic_content'    => $v,
                 'topic_created_at' => $time,
-                'topic_updated_at' => $time,
-
             );
         } , $topics);
-        \DB::table('topics')->insert($topicData);
-
-        $data     = (new Es(config('scout.elasticsearch.topic')))->create($topicData);
-        if ($data==null) {
-            $data = (new Es(config('scout.elasticsearch.topic')))->create($topicData);
+        \DB::table('posts_topics')->insert($postTopicData);
+        $topicNewKey = config('redis-key.topic.topic_index_new');
+        $topics = array_filter($topics , function($item , $index) use ($topicNewKey , $time){
+            if(Redis::zscore($topicNewKey , $item)===null)
+            {
+                Redis::zadd($topicNewKey , $time , $item);
+                return true;
+            }
+            return false;
+        } , ARRAY_FILTER_USE_BOTH);
+        $topicData = array_map(function($v) use ($time){
+            return array(
+                'topic_content'    => $v,
+                'topic_created_at' => $time,
+            );
+        } , $topics);
+        if(!empty($topicData))
+        {
+            \DB::table('topics')->insert($topicData);
+            $data     = (new Es(config('scout.elasticsearch.topic')))->batchCreate($topicData);
+            if ($data==null) {
+                $data = (new Es(config('scout.elasticsearch.topic')))->batchCreate($topicData);
+            }
         }
     }
 }

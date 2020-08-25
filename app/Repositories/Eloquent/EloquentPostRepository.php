@@ -763,7 +763,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 array_walk($topics , function($item , $index) use ($pipe , $topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
                     $key = strval($item);
                     $pipe->zincrby($topicPostCountKey , 1 , $key);
-                    $pipe->zadd($topicNewKey , $now , $key);
+//                    $pipe->zadd($topicNewKey , $now , $key);
                     $pipe->zadd($key."_new" , $now , $postId);
                     $pipe->zadd($key."_rate" , $firstRate , $postId);
                     $userTopicKey = 'user.'.$userId.'.topics';

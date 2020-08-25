@@ -12,7 +12,7 @@ class Topic extends Model
     public $guarded = [];
     protected $primaryKey = 'topic_id';
 
-    public $table = 'topics';
+    public $table = 'posts_topics';
 
     protected $dateFormat = 'U';
 
