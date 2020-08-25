@@ -37,7 +37,7 @@ class PostSearchPaginateCollection extends Resource
 
             'post_content_default_locale' => $this->resource['post_content_default_locale'],
             'post_format_created_at'      => dateTrans($this->resource['create_at']),
-            'topics'=>$this->getPostTopics($this->post_id),
+            'topics'=>$this->getPostTopics($this->resource['post_id'])
         ];
     }
 
