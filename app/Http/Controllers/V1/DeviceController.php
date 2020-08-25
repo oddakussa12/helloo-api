@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Jobs\Device;
-use App\Models\Es;
 use App\Repositories\Contracts\DeviceRepository;
-use Elasticsearch\Client;
 use Carbon\Carbon;
 use Dingo\Api\Http\Response;
-use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreDeviceRequest;
 
 class DeviceController extends BaseController

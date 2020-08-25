@@ -191,12 +191,6 @@ class ESinit extends Command
                         'topic_id' => [
                             'type' => 'long',
                         ],
-                        'user_id' => [
-                            'type' => 'long',
-                        ],
-                        'post_id' => [
-                            'type' => 'long',
-                        ],
                         'topic_content' => [
                             'type'      => 'text',
                             "analyzer"  => "icu_analyzer",
@@ -205,9 +199,6 @@ class ESinit extends Command
                             ],
                         ],
                         'topic_created_at' => [
-                            'type' => 'text',
-                        ],
-                        'topic_updated_at' => [
                             'type' => 'text',
                         ]
                     ]

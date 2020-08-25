@@ -28,8 +28,6 @@ class Jpush implements ShouldQueue
 
     public function __construct($type , $formName , $userId , $content='')
     {
-        Log::info('commonPush handle __construct start');
-
         $this->type = $type;
         $this->formName = $formName;
         $this->userId = $userId;
@@ -48,7 +46,6 @@ class Jpush implements ShouldQueue
                 $this->app = 'web';
             }
         }
-        Log::info('commonPush handle __construct end');
     }
 
     /**
@@ -58,22 +55,14 @@ class Jpush implements ShouldQueue
      */
     public function handle()
     {
-        Log::info('commonPush handle start');
         $device = DB::table('devices')->where('user_id', $this->userId)->orderBy('device_updated_at', 'desc')->first();
-        Log::info('commonPush handle device: '. serialize($device));
-
         if(empty($device)) return false;
 
-        Log::info('commonPush handle device_type:'.$device->device_type.' device_country:'.$device->device_country. " TYPE: ".$device->device_register_type);
-
         if ($device->device_type==2 && ($device->device_register_type == 'fcm' || in_array(strtolower($device->device_phone_model), $this->deviceBrand))) {
-            Log::info('commonPush handle NpushService');
             NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
 
         } else{
-            Log::info('commonPush handle JpushService');
             JpushService::commonPush($device, $this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
-
         }
     }
 

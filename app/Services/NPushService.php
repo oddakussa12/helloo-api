@@ -34,8 +34,6 @@ class NPushService
             'registrationId' => $device->device_registration_id
         ];
 
-        Log::info('commonPush deviceInfo: '. $device->device_registration_id);
-        Log::info('commonPush data:', $data);
         return self::androidPush($data);
     }
 
