@@ -416,7 +416,7 @@ trait CachablePost
     public function updateTopicPostRate($id , $rate)
     {
         $postKey = 'post.'.$id.'.data';
-        $topics = collect(\json_decode(Redis::hget($postKey , 'topics') , true));
+        $topics = \json_decode(Redis::hget($postKey , 'topics') , true);
         !empty($topics)&&Redis::pipeline(function ($pipe) use ($id , $topics , $rate){
             array_walk($topics , function($item , $index) use($id , $pipe , $rate){
                 $key = strval($item);
