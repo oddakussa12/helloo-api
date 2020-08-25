@@ -265,7 +265,7 @@ class ESinit extends Command
      */
     public function postDataInit()
     {
-        $where = " WHERE p.post_created_at >='2020-08-24 00:00:00' and p.post_created_at <'2020-08-25 18:51:20'";
+        $where = " WHERE p.post_created_at >='2020-08-24 00:00:00' and p.post_created_at <'2020-08-25 19:00:00'";
         $countSql = "SELECT count(1) num
                     FROM f_posts_translations t
                     inner join f_posts p on p.post_id = t.post_id
@@ -286,7 +286,9 @@ class ESinit extends Command
 
     public function userDataInit()
     {
-        $where    = " where user_id<=100000";
+        //$where    = " where user_id<=100000";
+        $where    = " where user_id<=200000 and user_id>100000";
+
         $countSql = "SELECT count(1) num FROM f_users $where";
         $limitSql = "SELECT user_id,user_name, user_nick_name, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users $where";
 
