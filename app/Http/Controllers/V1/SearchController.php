@@ -93,6 +93,7 @@ class SearchController extends BaseController
     protected function searchUser($params, $limit=10)
     {
         $user = (new Es($this->searchUser, ['limit'=>$limit]))->likeQuery($params);
+        $user = $user->appends($params);
         return UserSearchCollection::collection($user);
     }
 
@@ -133,7 +134,7 @@ class SearchController extends BaseController
             $post['post_event_country'] = getCountryName($post['post_event_country_id']);
             $posts[$index] = $post;
         }
-
+        $posts = $posts->appends($params);
         return PostSearchPaginateCollection::collection($posts);
 
     }
@@ -147,6 +148,7 @@ class SearchController extends BaseController
     protected function searchTopic($params, $limit=10)
     {
         $topic = (new Es($this->searchTopic, ['limit'=>$limit]))->likeQuery($params);
+        $topic = $topic->appends($params);
         return TopicSearchPaginateCollection::collection($topic);
     }
 

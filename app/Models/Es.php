@@ -257,11 +257,8 @@ class Es
                 ]
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];
-        
         $response = $this->client->search($query);
-        if ($response) {
-            return $this->makeAsGrid($response);
-        }
+        return $this->makeAsGrid($response);
     }
 
     public function makeTermQuery($columns)
