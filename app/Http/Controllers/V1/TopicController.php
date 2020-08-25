@@ -53,7 +53,8 @@ class TopicController extends BaseController
     {
         $user = auth()->user();
         $key = 'user.'.$user->user_id.'.'.'follow.topics';
-        if(Redis::zscore($key , $topic)===null)
+        $topicNewKey = config('redis-key.topic.topic_index_new');
+        if(Redis::zscore($key , $topic)===null&&Redis::zscore($topicNewKey , $topic)!==null)
         {
             $follow = DB::table('topics_follows')->where('user_id' , $user->user_id)->where('topic_content' , $topic)->first();
             if(empty($follow))
@@ -76,8 +77,10 @@ class TopicController extends BaseController
     {
         $user = auth()->user();
         $key = 'user.'.$user->user_id.'.'.'follow.topics';
-        if(Redis::zscore($key , $topic)!==false)
+        $topicNewKey = config('redis-key.topic.topic_index_new');
+        if(Redis::zscore($key , $topic)!==null&&Redis::zscore($topicNewKey , $topic)!==null)
         {
+            DB::table('topics_follows')->where('user_id' , $user->user_id)->where('topic_content' , $topic)->delete();
             Redis::zrem($key , $topic);
         }
         return $this->response->noContent();
@@ -85,14 +88,13 @@ class TopicController extends BaseController
 
     public function post($topic)
     {
-
         $page = intval(request()->input('post_page' , 1));
         $posts = app(PostRepository::class)->paginateTopic($topic);
         $posts = PostPaginateCollection::collection($posts);
         $topicPostCountKey = config('redis-key.topic.topic_post_count');
         $count = Redis::zscore($topicPostCountKey , $topic);
         $additional = array(
-            'discussCount'=>$count
+            'discussCount'=>intval($count)
         );
         $user_follow_state = false;
         if(auth()->check())
