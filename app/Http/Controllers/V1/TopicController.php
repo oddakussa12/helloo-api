@@ -4,10 +4,10 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\RedisList;
 use Illuminate\Http\Request;
-use App\Resources\PostCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Redis;
+use App\Resources\PostPaginateCollection;
 use App\Repositories\Contracts\PostRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
 use App\Resources\TopicSearchPaginateCollection;
@@ -88,7 +88,7 @@ class TopicController extends BaseController
 
         $page = intval(request()->input('post_page' , 1));
         $posts = app(PostRepository::class)->paginateTopic($topic);
-        $posts = PostCollection::collection($posts);
+        $posts = PostPaginateCollection::collection($posts);
         $topicPostCountKey = config('redis-key.topic.topic_post_count');
         $count = Redis::zscore($topicPostCountKey , $topic);
         $additional = array(
