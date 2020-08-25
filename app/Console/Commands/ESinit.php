@@ -286,7 +286,7 @@ class ESinit extends Command
 
     public function userDataInit()
     {
-        $where    = " where user_id<=588634";
+        $where    = " where user_id<=100000";
         $countSql = "SELECT count(1) num FROM f_users $where";
         $limitSql = "SELECT user_id,user_name, user_nick_name, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users $where";
 
