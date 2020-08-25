@@ -45,7 +45,6 @@ class TopicEs implements ShouldQueue
                 'topic_content'    => $v,
                 'topic_created_at' => $time,
                 'topic_updated_at' => $time,
-                'topic_content_suggest' => $v,
 
             );
         } , $topics);

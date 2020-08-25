@@ -1055,6 +1055,10 @@ if (!function_exists('postMedia')) {
         $videoDomain   = config('common.awsUploadDomain.video_domain');
         $videoDomainCn = config('common.awsUploadDomain.video_domain_cn');
 
+        if (!empty($value)) {
+            $value = (!is_array($value)) ? json_decode($value, true) : $value;
+        }
+
         if ($type == 'video') {
             $domain = domain() == 'api.mmantou.cn' ? $videoDomainCn : $videoDomain;
             $value[$type]['video_url'] = $domain . $value[$type]['video_url'];

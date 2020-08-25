@@ -192,11 +192,11 @@ class Es
             foreach ($hit as $item) {
                 foreach ($item['options'] as $it) {
                     if(!empty($it['_source'])){
-                        foreach ($it['_source'] as $fk=>$field) {
+                        /*foreach ($it['_source'] as $fk=>$field) {
                             if (stripos($fk,'_suggest')) {
                                 unset($it['_source'][$fk]);
                             }
-                        }
+                        }*/
                         if ($this->mIndex == 'topic') {
                             $result[] = ['topic_content'=> $it['text']];
                         } else {
@@ -217,7 +217,8 @@ class Es
                 $v => [
                     "prefix" => $keywords,
                     "completion" => [
-                        "field" => $v."_suggest",
+                        "field" => $v.".suggest",
+                        //"field" => $v."_suggest",
                         "skip_duplicates"=> true
                     ]
                 ]

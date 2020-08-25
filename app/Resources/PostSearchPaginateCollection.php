@@ -17,10 +17,9 @@ class PostSearchPaginateCollection extends Resource
      */
     public function toArray($request)
     {
-
         return [
             'post_uuid'          => $this->resource['post_uuid'],
-            'post_media'         => $this->resource['post_media'],
+            'post_media'         => postMedia($this->resource['post_type'], $this->resource['post_media']),
             'post_title'         => $this->resource['post_content'],
             'post_index_locale'  => $this->resource['post_locale'],
             'post_type'          => $this->resource['post_type'],
