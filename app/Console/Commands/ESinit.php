@@ -188,9 +188,6 @@ class ESinit extends Command
             'body'  => [
                 'mappings' => [
                     'properties' => [
-                        'topic_id' => [
-                            'type' => 'long',
-                        ],
                         'topic_content' => [
                             'type'      => 'text',
                             "analyzer"  => "icu_analyzer",
@@ -297,8 +294,7 @@ class ESinit extends Command
     public function topicDataInit()
     {
         $countSql = "SELECT count(1) num FROM f_topics";
-        $limitSql = "SELECT * FROM f_topics ";
-
+        $limitSql = "SELECT topic_content, topic_created_at FROM f_topics ";
 
         $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.topic'));
     }
@@ -325,13 +321,16 @@ class ESinit extends Command
             $result = DB::select($limitSql2);
             $result = array_map('get_object_vars', $result);
 
-            $data = (new Es($index))->batchCreate($result);
-
-            if ($data==null) {
-                (new Es($index))->batchCreate($result);
-            }
             dump('foreach:: '. $offset);
             sleep(1);
+
+            if ($result) {
+                $data = (new Es($index))->batchCreate($result);
+                if ($data==null) {
+                    (new Es($index))->batchCreate($result);
+                }
+            }
+
 
         }
         dump('插入数据完成');

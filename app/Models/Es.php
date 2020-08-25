@@ -67,9 +67,9 @@ class Es
                 '_index' => $this->mIndex,
                 '_type'  => '_doc',
             ];
+
             foreach ($params as $param) {
-                if($this->mIndex=='user')
-                {
+                if ($this->mIndex=='user') {
                     $index['_id'] = $param[$this->mIndex.'_id'];
                 }
                 $data['body'][] = [
