@@ -130,7 +130,7 @@ class SearchController extends BaseController
             $post['likeState'] = in_array($post['post_id'] , $postLikes);
             $post['dislikeState'] = in_array($post['post_id'] , $postDisLikes);
             $post['post_comment_num'] = $this->commentCount($post['post_id']);
-            $post['post_event_country'] = 'en';
+            $post['post_event_country'] = getCountryName($post['post_event_country_id']);
             $posts[$index] = $post;
         }
 
