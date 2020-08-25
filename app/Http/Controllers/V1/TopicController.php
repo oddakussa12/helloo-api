@@ -53,7 +53,7 @@ class TopicController extends BaseController
     {
         $user = auth()->user();
         $key = 'user.'.$user->user_id.'.'.'follow.topics';
-        if(Redis::zscore($key , $topic)===false)
+        if(Redis::zscore($key , $topic)===null)
         {
             $follow = DB::table('topics_follows')->where('user_id' , $user->user_id)->where('topic_content' , $topic)->first();
             if(empty($follow))
