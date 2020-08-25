@@ -265,7 +265,7 @@ class ESinit extends Command
      */
     public function postDataInit()
     {
-        $where = " WHERE p.post_id>=660000 ";
+        $where = " WHERE p.post_id<=670000 ";
 
         $countSql = "SELECT count(1) num
                     FROM f_posts_translations t
@@ -309,13 +309,13 @@ class ESinit extends Command
         $countResult = DB::select($countSql);
 
         $count  = $countResult[0]->num;
-        $limit  = 1500;
+        $limit  = 1000;
         $page   = intval(ceil($count/$limit));
         sleep(1);
         dump($count, $limit, $page, "for start:");
 
         $total = [];
-        for ($j=1;$j<=10;$j++){
+        for ($j=1;$j<=120;$j++){
             $total[] = $j*100000;
         }
         for ($i=0;$i<=$page;$i++) {
@@ -337,8 +337,8 @@ class ESinit extends Command
                 }
             }
             if (in_array($offset, $total)) {
-                dump("休息10分钟...");
-                sleep(600);
+                dump("休息5分钟...");
+                sleep(300);
             }
         }
         dump('插入数据完成');
