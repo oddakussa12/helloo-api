@@ -265,7 +265,8 @@ class ESinit extends Command
      */
     public function postDataInit()
     {
-        $where = " WHERE p.post_created_at >='2020-08-24 00:00:00' and p.post_created_at <'2020-08-25 19:00:00'";
+        $where = " WHERE p.post_id<=670000 ";
+
         $countSql = "SELECT count(1) num
                     FROM f_posts_translations t
                     inner join f_posts p on p.post_id = t.post_id
@@ -286,11 +287,8 @@ class ESinit extends Command
 
     public function userDataInit()
     {
-        //$where    = " where user_id<=100000";
-        $where    = " where user_id<=200000 and user_id>100000";
-
-        $countSql = "SELECT count(1) num FROM f_users $where";
-        $limitSql = "SELECT user_id,user_name, user_nick_name, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users $where";
+        $countSql = "SELECT count(1) num FROM f_users";
+        $limitSql = "SELECT user_id,user_name, user_nick_name, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users order by user_id asc ";
 
         $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.user'));
     }
@@ -311,11 +309,15 @@ class ESinit extends Command
         $countResult = DB::select($countSql);
 
         $count  = $countResult[0]->num;
-        $limit  = 1500;
+        $limit  = 1000;
         $page   = intval(ceil($count/$limit));
         sleep(1);
         dump($count, $limit, $page, "for start:");
 
+        $total = [];
+        for ($j=1;$j<=120;$j++){
+            $total[] = $j*100000;
+        }
         for ($i=0;$i<=$page;$i++) {
             $offset = $limit*$i;
 
@@ -334,8 +336,10 @@ class ESinit extends Command
                     (new Es($index))->batchCreate($result);
                 }
             }
-
-
+            if (in_array($offset, $total)) {
+                dump("休息5分钟...");
+                sleep(300);
+            }
         }
         dump('插入数据完成');
         return;
