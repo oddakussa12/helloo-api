@@ -11,6 +11,7 @@ use App\Repositories\Contracts\PostRepository;
 use App\Resources\PostSearchPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 
 class SearchController extends BaseController
@@ -116,7 +117,7 @@ class SearchController extends BaseController
      * 搜索帖子
      */
     protected function searchPost($params, $limit=10) {
-        $filter      = ['post_content_default_locale'=>locale(), 'limit'=>$limit];
+        $filter      = ['term'=>['post_locale'=>locale()], 'limit'=>$limit];
         $posts       = (new Es($this->searchPost, $filter))->likeQuery($params);
 
 

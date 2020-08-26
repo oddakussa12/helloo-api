@@ -215,13 +215,6 @@ class ESinit extends Command
                             'type' => 'long',
                         ],
                         'user_name' => [
-                            'type'     => 'text',
-                            'fields'   => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
-                                           "suggest" => ["type" => "completion", "analyzer" => "icu_analyzer"]
-                            ],
-                            "analyzer" => "icu_analyzer"
-                        ],
-                        'user_name' => [
                             'type'      => 'text',
                             "analyzer"  => "icu_analyzer",
                             'fields'    => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256],
@@ -309,7 +302,7 @@ class ESinit extends Command
         $countResult = DB::select($countSql);
 
         $count  = $countResult[0]->num;
-        $limit  = 1000;
+        $limit  = 2000;
         $page   = intval(ceil($count/$limit));
         sleep(1);
         dump($count, $limit, $page, "for start:");
@@ -337,8 +330,8 @@ class ESinit extends Command
                 }
             }
             if (in_array($offset, $total)) {
-                dump("休息5分钟...");
-                sleep(300);
+                dump("休息10秒...");
+                sleep(10);
             }
         }
         dump('插入数据完成');

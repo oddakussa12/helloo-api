@@ -14,13 +14,13 @@ class Es
     private $client;
     private $limit;
     private $offset;
-    private $columns;
+    private $term;
     private $likeColumns;
 
     public function __construct($mIndex='', $extra=[])
     {
         $this->client      = new EsClient();
-        $this->columns     = $extra['columns'] ?? [];
+        $this->term        = $extra['term'] ?? [];
         $this->mIndex      = $mIndex ?: env('ELASTICSEARCH_INDEX');
         $this->limit       = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
         $this->offset      = app('request')->get('page') ?: 0;
@@ -253,10 +253,11 @@ class Es
             'index' => $this->mIndex,
             'body' => array_merge([
                 'query' => [
-                    'bool' => array_merge_recursive($this->makeTermQuery($this->columns), $this->makeLikeQuery($this->likeColumns[$this->mIndex], $keywords))
+                    'bool' => array_merge_recursive($this->makeTermQuery($this->term), $this->makeLikeQuery($this->likeColumns[$this->mIndex], $keywords))
                 ]
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];
+
         $response = $this->client->search($query);
         return $this->makeAsGrid($response);
     }
