@@ -75,12 +75,12 @@ class SearchController extends BaseController
      * @return array
      * 热门话题
      */
-    public function hotTopic()
+    public function hotSearch()
     {
-        $topic = ['这是一个话题', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
+        $topic = ['开心', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
         shuffle($topic);
         foreach ($topic as $value) {
-            $data['data'][] = ['topic_content' => $value];
+            $data['data'][] = ['title' => $value];
         }
         return $data ?? [];
     }

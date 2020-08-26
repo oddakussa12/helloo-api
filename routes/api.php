@@ -58,8 +58,8 @@ $api->group($V1Params , function ($api){
 
         // 搜索功能-ES
         $api->get('search', 'SearchController@index');
-        // 热门话题
-        $api->get('search/topic', 'SearchController@hotTopic');
+        // 热门搜索
+        $api->get('hot/search', 'SearchController@hotSearch');
 
         /*****热门话题 开始*****/
         $api->get('topic/hot', 'TopicController@hot');
