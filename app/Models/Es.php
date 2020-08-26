@@ -16,6 +16,7 @@ class Es
     private $offset;
     private $term;
     private $likeColumns;
+    private $page;
 
     public function __construct($mIndex='', $extra=[])
     {
@@ -23,8 +24,8 @@ class Es
         $this->term        = $extra['term'] ?? [];
         $this->mIndex      = $mIndex ?: env('ELASTICSEARCH_INDEX');
         $this->limit       = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
-        $this->offset      = app('request')->get('page') ?: 0;
-        $this->offset      = intval($this->limit * $this->offset);
+        $this->page        = app('request')->get('page') ?: 0;
+        $this->offset      = intval($this->page * $this->offset);
         $this->likeColumns = [
           config('scout.elasticsearch.post')  => ['post_content'],
           config('scout.elasticsearch.topic') => ['topic_content'],
@@ -341,11 +342,11 @@ class Es
         $result = $this->makeAsList($response);
         $total = $response['hits']['total']['value'];
 
-        /*return new LengthAwarePaginator($result, $total, $this->limit, $this->offset, [
+        /*return new LengthAwarePaginator($result, $total, $this->limit, $this->page, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);*/
-        return $this->paginator(collect($result), $total, $this->limit, $this->offset, [
+        return $this->paginator(collect($result), $total, $this->limit, $this->page, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);

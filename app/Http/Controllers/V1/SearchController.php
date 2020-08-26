@@ -11,7 +11,7 @@ use App\Repositories\Contracts\PostRepository;
 use App\Resources\PostSearchPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 
 class SearchController extends BaseController
@@ -77,12 +77,31 @@ class SearchController extends BaseController
      */
     public function hotSearch()
     {
-        $topic = ['开心', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
-        shuffle($topic);
-        foreach ($topic as $value) {
-            $data['data'][] = ['title' => $value];
+        $data = $this->getHotSearch();
+
+        shuffle($data);
+        foreach ($data as $value) {
+            $result['data'][] = ['title' => $value];
         }
-        return $data ?? [];
+        return $result ?? [];
+    }
+
+    /**
+     * @return array|mixed
+     * 获取搜索热词
+     */
+    protected function getHotSearch()
+    {
+        /** @var Redis $key */
+        $key  = 'hotSearch';
+        $list = Redis::get($key);
+        if (empty($list)) {
+            $data = ['开心', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
+            Redis::set($key, json_encode($data, JSON_UNESCAPED_UNICODE));
+        }
+        $list = Redis::get($key);
+        return !empty($list) ? json_decode($list, true) : [];
+
     }
 
     /**
