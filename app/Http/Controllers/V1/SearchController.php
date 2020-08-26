@@ -54,7 +54,8 @@ class SearchController extends BaseController
                 return $result;
                 break;*/
             case 4:  // 输入中 ES suggest
-                $result = $this->searchTopicIng($params);
+                //$result = $this->searchTopicIng($params);
+                $result = $this->searchPostIng($params);
                 $result['user'] = $this->searchUserIng($params, 3);
                 return $result;
                 break;
@@ -126,7 +127,8 @@ class SearchController extends BaseController
 
     protected function searchPostIng($params, $limit=10)
     {
-        return (new Es($this->searchPost, ['limit'=>$limit]))->suggest($params);
+        $result = (new Es($this->searchPost, ['limit'=>$limit]))->suggest($params);
+        return ['data'=> $result];
     }
 
     /**

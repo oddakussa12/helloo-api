@@ -25,7 +25,7 @@ class Es
         $this->mIndex      = $mIndex ?: env('ELASTICSEARCH_INDEX');
         $this->limit       = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
         $this->page        = app('request')->get('page') ?: 0;
-        $this->offset      = intval($this->page * $this->offset);
+        $this->offset      = intval($this->page * $this->limit);
         $this->likeColumns = [
           config('scout.elasticsearch.post')  => ['post_content'],
           config('scout.elasticsearch.topic') => ['topic_content'],
@@ -183,9 +183,7 @@ class Es
 
 //        dump(json_encode($query));
         $response = $this->client->search($query);
-        if ($response) {
-            return $this->makeAsSuggest($response);
-        }
+        return $this->makeAsSuggest($response);
     }
 
     public function makeAsSuggest($response)
@@ -197,8 +195,8 @@ class Es
             foreach ($hit as $item) {
                 foreach ($item['options'] as $it) {
                     if(!empty($it['_source'])){
-                        if ($this->mIndex == 'topic') {
-                            $result[] = ['topic_content'=> $it['text']];
+                        if ($this->mIndex == 'post') {
+                            $result[] = ['topic_content'=>$it['text']];
                         } else {
                             $result[] = array_merge($it['_source'], ['id' => $it['_id'], 'text'=>$it['text']]);
                         }
@@ -250,6 +248,8 @@ class Es
     public function likeQuery($request)
     {
         $keywords = trim($request['keyword']);
+        //截取20个字符
+        $keywords = mb_strcut($keywords, 20, null);
         $query = [
             'index' => $this->mIndex,
             'body' => array_merge([
