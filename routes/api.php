@@ -71,14 +71,14 @@ $api->group($V1Params , function ($api){
 
 
     });
-    $api->group(['middleware'=>'throttle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
+    $api->group(['middleware'=>'redisThrottle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
         $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');
     });
 
     $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
     $api->post('user/phone/resetPwd' , 'AuthController@resetPwdByPhone')->name('user.phone.reset.pwd');
 
-    $api->group(['middleware'=>'throttle:'.config('common.sign_up_throttle_num').','.config('common.sign_up_throttle_expired')] , function ($api){
+    $api->group(['middleware'=>'redisThrottle:'.config('common.sign_up_throttle_num').','.config('common.sign_up_throttle_expired')] , function ($api){
         $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
         $api->post('user/phone/signUp' , 'AuthController@handleSignUp')->name('user.phone.sign.up');
     });
@@ -132,10 +132,10 @@ $api->group($V1Params , function ($api){
         $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
         $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
         $api->post('user/update/myself/email' , 'AuthController@updateUserEmail')->name('myself.update.email');
-        $api->group(['middleware'=>['throttle:'.config('common.user_update_send_phone_code_throttle_num').','.config('common.user_update_send_phone_code_throttle_expired') , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_phone_code_throttle_num').','.config('common.user_update_send_phone_code_throttle_expired') , 'blacklist']] , function ($api){
             $api->post('user/update/phone/code' , 'AuthController@sendUpdatePhoneCode')->name('myself.update.send.phone.code');
         });
-        $api->group(['middleware'=>['throttle:'.config('common.user_update_send_email_code_throttle_num').','.config('common.user_update_send_email_code_throttle_expired') , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_email_code_throttle_num').','.config('common.user_update_send_email_code_throttle_expired') , 'blacklist']] , function ($api){
             $api->post('user/update/email/code' , 'AuthController@sendUpdateEmailCode')->name('myself.update.send.email.code');
         });
         $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
@@ -151,17 +151,17 @@ $api->group($V1Params , function ($api){
 //        $api->put('post/{uuid}/favorite' , 'PostController@favorite')->name('post.favorite');
 //        $api->put('post/{uuid}/unfavorite' , 'PostController@unfavorite')->name('post.unFavorite');
 
-        $api->group(['middleware'=>['throttle:'.config('common.post_like_throttle_num').','.config('common.post_like_throttle_expired') , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['redisThrottle:'.config('common.post_like_throttle_num').','.config('common.post_like_throttle_expired') , 'blacklist']] , function ($api){
             $api->put('post/{uuid}/like' , 'PostController@like')->name('post.like');
         });
 
-        $api->group(['middleware'=>['throttle:'.config('common.post_dislike_throttle_num').','.config('common.post_dislike_throttle_expired') , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['redisThrottle:'.config('common.post_dislike_throttle_num').','.config('common.post_dislike_throttle_expired') , 'blacklist']] , function ($api){
             $api->put('post/{uuid}/dislike' , 'PostController@dislike')->name('post.dislike');
         });
 
         $api->put('post/{uuid}/revokeLike' , 'PostController@revokeLike')->name('post.revokeLike');
         $api->put('post/{uuid}/revokeDislike' , 'PostController@revokeDislike')->name('post.revokeDislike');
-        $api->group(['middleware'=>['throttle:'.config('common.post_comment_like_throttle_num').','.config('common.post_comment_like_throttle_expired') , 'blacklist']] , function ($api) {
+        $api->group(['middleware'=>['redisThrottle:'.config('common.post_comment_like_throttle_num').','.config('common.post_comment_like_throttle_expired') , 'blacklist']] , function ($api) {
             $api->put('postComment/{comment_id}/like', 'PostCommentController@like')->name('comment.like');
         });
 //                $api->put('postComment/{comment_id}/dislike' , 'PostCommentController@dislike');
@@ -177,15 +177,15 @@ $api->group($V1Params , function ($api){
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe')->name('other.followMe');
-        $api->group(['middleware'=>['throttle:'.config('common.post_throttle_num').','.config('common.post_throttle_expired') , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['redisThrottle:'.config('common.post_throttle_num').','.config('common.post_throttle_expired') , 'blacklist']] , function ($api){
             $api->post('post' , 'PostController@store')->name('post.store');
         });
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
-        $api->group(['middleware'=>['throttle:'.config('common.post_comment_throttle_num').','.config('common.post_comment_throttle_expired') , 'blacklist']] , function ($api){
+        $api->group(['middleware'=>['redisThrottle:'.config('common.post_comment_throttle_num').','.config('common.post_comment_throttle_expired') , 'blacklist']] , function ($api){
             $api->post('postComment' , 'PostCommentController@store')->name('comment.store');
         });
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
-        $api->group(['middleware'=>['throttle:5,1']] , function ($api){
+        $api->group(['middleware'=>['redisThrottle:5,1']] , function ($api){
             $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
         });
         $api->put('notification/type/{type}' , 'NotificationController@readAll')->name('notice.readAll');
@@ -256,7 +256,9 @@ $api->group($V1Params , function ($api){
     });
     $api->get('translation' , 'TranslationController@index')->name('translation.index');
     $api->get('google/token' , 'GoogleController@token')->name('google.token');
-    $api->get('test/index' , 'TestController@test')->name('test.test');
+    $api->group(['middleware'=>['redisThrottle:5,1']] , function ($api){
+        $api->get('test/index' , 'TestController@test')->name('test.test');
+    });
 
 });
 

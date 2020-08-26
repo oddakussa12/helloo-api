@@ -1086,6 +1086,15 @@ if (!function_exists('postMedia')) {
 
 }
 
+if (!function_exists('millisecond')) {
+    function millisecond()
+    {
+        list($mses, $sec) = explode(' ', microtime());
+        return  (float)sprintf('%.0f', (floatval($mses) + floatval($sec)) * 1000);
+    }
+}
+
+
 
 
 

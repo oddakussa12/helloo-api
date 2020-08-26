@@ -59,6 +59,7 @@ class TestController extends BaseController
 
     public function test()
     {
+        return $this->response->created();
         putenv('GOOGLE_APPLICATION_CREDENTIALS='.config('common.google_application_credentials'));
         $text = "﻿cool,what?<br />fuck you!,Yooul,what are you dong? cool";
         $sourceLanguage='en';
