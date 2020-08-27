@@ -18,7 +18,7 @@ class PostEs implements ShouldQueue
 
     public $type;
 
-    public function __construct(Post $post , $type)
+    public function __construct(Post $post , $type='create')
     {
         $this->post = $post;
         $this->type = $type;
