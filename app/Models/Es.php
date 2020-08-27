@@ -17,15 +17,19 @@ class Es
     private $term;
     private $likeColumns;
     private $page;
+    private $mustNot;
+    private $updateField;
 
     public function __construct($mIndex='', $extra=[])
     {
         $this->client      = new EsClient();
         $this->term        = $extra['term'] ?? [];
+        $this->mustNot     = $extra['mustNot'] ?? [];
         $this->mIndex      = $mIndex ?: env('ELASTICSEARCH_INDEX');
         $this->limit       = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
         $this->page        = app('request')->get('page') ?: 1;
         $this->offset      = intval(($this->page-1) * $this->limit);
+        $this->updateField = $extra['updateField'] ?? [];
         $this->likeColumns = [
           config('scout.elasticsearch.post')  => ['post_content'],
           config('scout.elasticsearch.topic') => ['topic_content'],
@@ -85,21 +89,20 @@ class Es
         }
     }
 
-    public function update($ids)
+    public function update($ids, $field='_id')
     {
         $ids = $this->toArray($ids);
 
-        $columns['update_at'] = time();
-        $this->client->updateByQuery([
+        return $this->client->updateByQuery([
             'index' => $this->mIndex,
             'refresh' => true,
             'body' => array_merge([
                 'query' => [
                     'terms' => [
-                        '_id' => $ids
+                        $field => $ids
                     ]
                 ],
-            ], $this->makeUpdateScripts($columns))
+            ], $this->makeUpdateScripts($this->updateField))
         ]);
 
 
@@ -252,7 +255,7 @@ class Es
             'index' => $this->mIndex,
             'body' => array_merge([
                 'query' => [
-                    'bool' => array_merge_recursive($this->makeTermQuery($this->term), $this->makeLikeQuery($this->likeColumns[$this->mIndex], $keywords))
+                    'bool' => array_merge_recursive($this->makeTermQuery($this->term), $this->mustNotQuery($this->mustNot), $this->makeLikeQuery($this->likeColumns[$this->mIndex], $keywords))
                 ]
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];
@@ -279,6 +282,21 @@ class Es
         }
         return [
             'must' => $must
+        ];
+    }
+
+    public function mustNotQuery($columns)
+    {
+        $must = [];
+        foreach ($columns as $v) {
+            $must[] = [
+                'exists' => [
+                    'field' => $v
+                ]
+            ];
+        }
+        return [
+            'must_not' => $must
         ];
     }
 
@@ -387,10 +405,11 @@ class Es
     public function toArray($string, $sep = ',')
     {
         if (!empty($string)) {
-            if (is_string($string)) {
+            if (is_array($string)) {
+                return $string;
+            }else {
                 return explode($sep, $string);
             }
         }
-        return $string;
     }
 }
