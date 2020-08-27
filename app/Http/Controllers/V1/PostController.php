@@ -376,7 +376,7 @@ class PostController extends BaseController
             array_walk($topics , function($item , $index) use($pipe ,$topicPostCountKey , $topicNewKey , $post){
                 $key = strval($item);
                 $pipe->zincrby($topicPostCountKey , -1 , $key);
-                $pipe->zrem($topicNewKey , $key);
+//                $pipe->zrem($topicNewKey , $key);
                 $pipe->zrem($key."_new" , $post->post_id);
                 $pipe->zrem($key."_rate" , $post->post_id);
             });
