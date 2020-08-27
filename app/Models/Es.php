@@ -24,7 +24,7 @@ class Es
         $this->term        = $extra['term'] ?? [];
         $this->mIndex      = $mIndex ?: env('ELASTICSEARCH_INDEX');
         $this->limit       = $extra['limit'] ?? (app('request')->get('limit')  ?: 10);
-        $this->page        = app('request')->get('page') ?: 0;
+        $this->page        = app('request')->get('page') ?: 1;
         $this->offset      = intval(($this->page-1) * $this->limit);
         $this->likeColumns = [
           config('scout.elasticsearch.post')  => ['post_content'],
