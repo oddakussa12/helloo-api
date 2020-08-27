@@ -258,7 +258,20 @@ class ESinit extends Command
      */
     public function postDataInit()
     {
-        $where = " WHERE p.post_id<=670000 ";
+        $where = " WHERE p.post_id<=675441 and p.post_id>670000";
+        //$where = " WHERE p.post_id<=670000 and p.post_id>600000";
+        //$where = " WHERE p.post_id<=600000 and p.post_id>550000";
+        //$where = " WHERE p.post_id<=550000 and p.post_id>500000";
+        //$where = " WHERE p.post_id<=500000 and p.post_id>450000";
+        //$where = " WHERE p.post_id<=450000 and p.post_id>400000";
+        //$where = " WHERE p.post_id<=400000 and p.post_id>350000";
+        //$where = " WHERE p.post_id<=350000 and p.post_id>300000";
+        //$where = " WHERE p.post_id<=300000 and p.post_id>250000";
+        //$where = " WHERE p.post_id<=250000 and p.post_id>200000";
+        //$where = " WHERE p.post_id<=200000 and p.post_id>150000";
+        //$where = " WHERE p.post_id<=150000 and p.post_id>100000";
+        //$where = " WHERE p.post_id<=100000 and p.post_id>50000";
+        //$where = " WHERE p.post_id<=50000";
 
         $countSql = "SELECT count(1) num
                     FROM f_posts_translations t
@@ -280,8 +293,9 @@ class ESinit extends Command
 
     public function userDataInit()
     {
-        $countSql = "SELECT count(1) num FROM f_users";
-        $limitSql = "SELECT user_id,user_name, user_nick_name, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users order by user_id asc ";
+        $where    = "where user_id > 570000 ";
+        $countSql = "SELECT count(1) num FROM f_users $where";
+        $limitSql = "SELECT user_id,user_name, user_nick_name, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users $where order by user_id asc ";
 
         $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.user'));
     }
@@ -296,6 +310,9 @@ class ESinit extends Command
 
     public function dataInit($countSql, $limitSql, $index)
     {
+        dump('防止误操作，停止执行导入操作。');
+        return;
+
         dump('开始插入数据');
         set_time_limit(0);
 
