@@ -133,7 +133,8 @@ class SearchController extends BaseController
 
     protected function searchPostIng($params, $limit=10)
     {
-        $result = (new Es($this->searchPost, ['limit'=>$limit]))->suggest($params);
+        $filter = ['mustNot'=>['post_is_delete'], 'limit'=>$limit];
+        $result = (new Es($this->searchPost, $filter))->suggest($params);
         return ['data'=> $result];
     }
 
