@@ -32,11 +32,14 @@ class SearchController extends BaseController
     public function index(Request $request)
     {
         $params = $request->all();
-        $type   = $params['type'] ?? 0;
 
         if (empty($params['keyword'])) {
             return [];
         }
+        //截取20个字符
+
+        $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
+        $type   = $params['type'] ?? 0;
 
         switch ($type) {
             case 1: // 用户

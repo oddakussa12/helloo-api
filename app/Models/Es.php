@@ -248,8 +248,6 @@ class Es
     public function likeQuery($request)
     {
         $keywords = trim($request['keyword']);
-        //截取20个字符
-        $keywords = mb_strcut($keywords, 20, null);
         $query = [
             'index' => $this->mIndex,
             'body' => array_merge([
