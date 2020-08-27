@@ -58,8 +58,8 @@ class SearchController extends BaseController
                 return $result;
                 break;*/
             case 4:  // 输入中 ES suggest
-                //$result = $this->searchTopicIng($params);
-                $result = $this->searchPostIng($params);
+                $result = $this->searchTopicIng($params);
+                //$result = $this->searchPostIng($params);
                 $result['user'] = $this->searchUserIng($params, 3);
                 return $result;
                 break;
