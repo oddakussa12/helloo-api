@@ -763,7 +763,7 @@ if (! function_exists('carousel_post_list')) {
                 $image = isset($item[$locale])?$item[$locale]:(isset($item['en'])?$item['en']:'');
                 if(!empty($image))
                 {
-                    $images[$key] = $imgDomain.$image;
+                    $images[$key] = config('common.qnUploadDomain.thumbnail_domain').$image;
                 }
             })->all();
         }

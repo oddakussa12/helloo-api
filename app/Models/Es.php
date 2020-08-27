@@ -266,6 +266,11 @@ class Es
     {
         $must = [];
         foreach ($columns as $k => $v) {
+            if ($k == 'locale') {
+                if ($v=='zh-CN') $v = 'cn';
+                if ($v=='zh-TW') $v = 'tw';
+            }
+
             $must[] = [
                 'term' => [
                     $this->makeColumn($k) => $v
