@@ -175,16 +175,20 @@ class Es
     {
     }
 
+    /**
+     * @param $request
+     * @return array
+     * 联想词
+     */
     public function suggest($request)
     {
-
         $keywords = trim($request['keyword']);
         $query = [
             'index' => $this->mIndex,
-            'body'  => array_merge($this->completion($keywords), $this->makePaginationCypher())
+            'body'  => array_merge_recursive($this->completion($keywords), ['query'=>['bool'=>$this->mustNotQuery($this->mustNot)]], $this->makePaginationCypher())
         ];
 
-//        dump(json_encode($query));
+        //dump(($query));
         $response = $this->client->search($query);
         return $this->makeAsSuggest($response);
     }
@@ -198,7 +202,7 @@ class Es
             foreach ($hit as $item) {
                 foreach ($item['options'] as $it) {
                     if(!empty($it['_source'])){
-                        if ($this->mIndex == 'post') {
+                        if ($this->mIndex == 'topic') {
                             $result[] = ['topic_content'=>$it['text']];
                         } else {
                             $result[] = array_merge($it['_source'], ['id' => $it['_id'], 'text'=>$it['text']]);
@@ -260,7 +264,7 @@ class Es
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];
 
-        //dump($query);
+        //dump(($query));
         $response = $this->client->search($query);
         return $this->makeAsGrid($response);
     }
