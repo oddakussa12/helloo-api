@@ -334,14 +334,9 @@ class AuthController extends BaseController
         }else{
             $user_fields['user_country_id'] = getUserCountryId($addresses->iso_code);
         }
-        /// \DB::beginTransaction();
+        \DB::beginTransaction();
         try{
-            $user = (new User($user_fields))->save();
-            $userId = $user->id;
-            //exit;
-            //$userId = (new User())->se;
-            //$userId = \DB::table('users')->insertGetId($user_fields);
-            
+            $userId = \DB::table('users')->insertGetId($user_fields);
             \DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
             \DB::commit();
         }catch (\Exception $e)
