@@ -101,16 +101,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $appends['include'] = $include;
         }
         $include = explode(',' ,$include);
-        if($request->get('tag')!==null)
-        {
-            $tag = $request->get('tag');
-            $appends['tag'] = $tag;
-            $tag = Tag::findFromString($tag);
-            $posts = $tag->posts();
-            $posts = $posts->with('translations');
-        }else{
-            $posts = $this->allWithBuilder();
-        }
+//        if($request->get('tag')!==null)
+//        {
+//            $tag = $request->get('tag');
+//            $appends['tag'] = $tag;
+//            $tag = Tag::findFromString($tag);
+//            $posts = $tag->posts();
+//            $posts = $posts->with('translations');
+//        }else{
+//            $posts = $this->allWithBuilder();
+//        }
+        $posts = $this->allWithBuilder();
         $posts = $posts->withTrashed()->with('owner');
         if ($request->get('home')!== null){
             $appends['home'] = $request->get('home');
@@ -132,13 +133,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }else{
                 if($follow!== null&&auth()->check())
                 {
+//                    if($follow!== null&&auth()->check())
+//                    {
+                        $posts = $posts->select('posts.*')->join('common_follows', 'common_follows.followable_id', '=', 'posts.user_id')
+                            ->where('common_follows.user_id', auth()->id())
+                            ->where('common_follows.followable_type', "App\\Models\\User")
+                            ->where('common_follows.relation', 'follow');
+//                        $appends['follow'] = $request->get('follow');
+//                        $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
+//                        $posts = $posts->whereIn('user_id',$userIds);
+//                    }
                     $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-                    if($follow!== null&&auth()->check())
-                    {
-                        $appends['follow'] = $request->get('follow');
-                        $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
-                        $posts = $posts->whereIn('user_id',$userIds);
-                    }
                     $posts->orderBy($this->model->getKeyName() , 'DESC');
                     $queryTime = $request->get('query_time' , '');
                     if(empty($queryTime))
@@ -751,6 +756,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $v = str_replace(' ' , '' , $v);
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
+        $topics = array_map(function($v){
+            return mb_substr($v , 0 , 30);
+        } , $topics);
+        $topics = array_slice($topics,0 , 9);
         if(!blank($topics))
         {
             $topicPostCountKey = config('redis-key.topic.topic_post_count');

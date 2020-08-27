@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\Es;
 use App\Traits\CachablePost;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Resources\UserSearchCollection;
 use App\Repositories\Contracts\UserRepository;
@@ -11,6 +12,7 @@ use App\Repositories\Contracts\PostRepository;
 use App\Resources\PostSearchPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -37,7 +39,6 @@ class SearchController extends BaseController
             return [];
         }
         //截取20个字符
-
         $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
         $type   = $params['type'] ?? 0;
 
@@ -82,7 +83,7 @@ class SearchController extends BaseController
     public function hotSearch()
     {
         $data = $this->getHotSearch();
-
+        return ['data'=>$data];
         shuffle($data);
         foreach ($data as $value) {
             $result['data'][] = ['title' => $value];
@@ -99,6 +100,8 @@ class SearchController extends BaseController
         /** @var Redis $key */
         $key  = 'hotSearch';
         $list = Redis::get($key);
+        return $list;
+
         if (empty($list)) {
             $data = ['开心', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
             Redis::set($key, json_encode($data, JSON_UNESCAPED_UNICODE));
@@ -141,9 +144,8 @@ class SearchController extends BaseController
      * 搜索帖子
      */
     protected function searchPost($params, $limit=10) {
-        $filter      = ['term'=>['post_locale'=>locale()], 'limit'=>$limit];
+        $filter      = ['term'=>['post_locale'=>locale()], 'mustNot'=>['post_is_delete'], 'limit'=>$limit];
         $posts       = (new Es($this->searchPost, $filter))->likeQuery($params);
-
 
         $userIds     = $posts->pluck('user_id')->all();
         $postIds     = $posts->pluck('post_id')->all();
