@@ -266,7 +266,7 @@ class Es
     {
         $must = [];
         foreach ($columns as $k => $v) {
-            if ($k == 'locale') {
+            if ($k == 'post_locale') {
                 if ($v=='zh-CN') $v = 'cn';
                 if ($v=='zh-TW') $v = 'tw';
             }
