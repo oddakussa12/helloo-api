@@ -83,7 +83,6 @@ class SearchController extends BaseController
     public function hotSearch()
     {
         $data = $this->getHotSearch();
-        return ['data'=>$data];
         shuffle($data);
         foreach ($data as $value) {
             $result['data'][] = ['title' => $value];
@@ -98,14 +97,7 @@ class SearchController extends BaseController
     protected function getHotSearch()
     {
         /** @var Redis $key */
-        $key  = 'hotSearch';
-        $list = Redis::get($key);
-        return $list;
-
-        if (empty($list)) {
-            $data = ['开心', 'hello', 'yooul', '你好', '谈恋爱', '找朋友', '中国','美女', '帅哥', '可口可乐'];
-            Redis::set($key, json_encode($data, JSON_UNESCAPED_UNICODE));
-        }
+        $key  = 'hot_search';
         $list = Redis::get($key);
         return !empty($list) ? json_decode($list, true) : [];
 

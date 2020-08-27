@@ -12,6 +12,7 @@ use App\Jobs\PostTranslation;
 use App\Jobs\PostTranslationV2;
 use App\Resources\PostCollection;
 use App\Services\TranslateService;
+use Illuminate\Support\Facades\Redis;
 use App\Http\Requests\StorePostRequest;
 use App\Services\AzureTranslateService;
 use App\Resources\PostPaginateCollection;
@@ -368,6 +369,18 @@ class PostController extends BaseController
         $redis->zIncrBy($userPostsKey , -1 , $user->user_id);
         $postKey = config('redis-key.post.post_index_new');
         $redis->zRem($postKey , $post->getKey());
+        $topics = $post->getPostTopics($post->post_id);
+        $topicPostCountKey = config('redis-key.topic.topic_post_count');
+        $topicNewKey = config('redis-key.topic.topic_index_new');
+        !empty($topics)&&Redis::pipeline(function ($pipe) use ($topics , $topicPostCountKey , $topicNewKey , $post ){
+            array_walk($topics , function($item , $index) use($pipe ,$topicPostCountKey , $topicNewKey , $post){
+                $key = strval($item);
+                $pipe->zincrby($topicPostCountKey , -1 , $key);
+                $pipe->zrem($topicNewKey , $key);
+                $pipe->zrem($key."_new" , $post->post_id);
+                $pipe->zrem($key."_rate" , $post->post_id);
+            });
+        });
         PostEs::dispatch($post , 'delete')->onQueue('post_es');
         return $this->response->noContent();
     }

@@ -147,4 +147,16 @@ class BackStageController extends BaseController
         }
         return $this->response->noContent();
     }
+
+    public function setHotSearch()
+    {
+        $titles = \json_decode(request()->input('titles' , '') , true);
+        $hotSearch = 'hot_search';
+        if(!empty($titles))
+        {
+            Redis::del($hotSearch);
+            Redis::set($hotSearch,json_encode($titles, JSON_UNESCAPED_UNICODE));
+        }
+        return $this->response->noContent();
+    }
 }
