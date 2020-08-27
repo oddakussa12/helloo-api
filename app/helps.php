@@ -1011,7 +1011,7 @@ if (!function_exists('getCountryName')) {
         if (array_key_exists($country, $country_code)) {
             return strtolower($country_code[$country]);
         }
-        return $default ? strtolower($country_code[235]) : [];
+        return $default ? strtolower($country_code[235]) : 'world';
     }
 }
 /**
