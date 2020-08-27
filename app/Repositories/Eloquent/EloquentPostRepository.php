@@ -751,6 +751,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $v = str_replace(' ' , '' , $v);
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
+        $topics = array_map(function($v){
+            return mb_substr($v , 0 , 30);
+        } , $topics);
         if(!blank($topics))
         {
             $topicPostCountKey = config('redis-key.topic.topic_post_count');
