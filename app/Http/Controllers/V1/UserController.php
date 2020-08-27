@@ -71,44 +71,6 @@ class UserController extends BaseController
      */
     public function index(Request $request)
     {
-        //$post= (new Device());
-        /*$post = $post->select('id', 'device_registration_id')->where('id', 200)->first();
-        dump($post);
-        $post->id = 3333;
-        dump($post);
-        $post->save();
-
-        */
-        // 通过 Eloquent 查询添加...
-
-        //$post = Device::select('id', 'device_registration_id')->where('id', 200)->first()->searchable();
-
-        $post = (new Device());
-        $post->select('id', 'device_registration_id')->where('id',201)->first();
-        dump($post);
-
-        $post->searchable();
-        dump($post);
-        exit;
-// 还可以通过集合添加记录...
-        $post->searchable();
-        exit;
-
-
-        /*$client = ClientBuilder::create()->setHosts(config('scout.elasticsearch.hosts'))->build();
-
-        $params = [
-            'index' => config('scout.elasticsearch.index'),
-            'type' => 'keyword',
-            'id' => '1',
-            'body' => ['device_language' => '123213213c', 'user_id'=>time()]
-        ];
-
-        $response = $client->index($params);
-        dump($response);*/
-
-        return ;
-        //
         $name = $request->input('name' , '');
         $users = collect(array());
         $rule = [
