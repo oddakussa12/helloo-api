@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\PostEs;
 use App\Models\Post;
 use Ramsey\Uuid\Uuid;
 use App\Custom\RedisList;
@@ -367,6 +368,7 @@ class PostController extends BaseController
         $redis->zIncrBy($userPostsKey , -1 , $user->user_id);
         $postKey = config('redis-key.post.post_index_new');
         $redis->zRem($postKey , $post->getKey());
+        PostEs::dispatch($post , 'delete')->onQueue('post_es');
         return $this->response->noContent();
     }
 

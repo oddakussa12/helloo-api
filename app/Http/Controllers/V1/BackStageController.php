@@ -6,6 +6,7 @@ use App\Custom\RedisList;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Events\PostCommentDeleted;
+use Illuminate\Support\Facades\Redis;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\PostCommentRepository;
@@ -130,5 +131,20 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
-
+    public function setHotTopic()
+    {
+        $topics = \json_decode(request()->input('topics' , '') , true);
+        $hotTopics = 'hot_topic';
+        if(!empty($topics))
+        {   $now = time();
+            Redis::del($hotTopics);
+            Redis::pipeline(function ($pipe) use ($topics , $hotTopics , $now){
+                array_walk($topics , function($item , $index) use ($pipe , $hotTopics , $now){
+                    $key = strval($item);
+                    $pipe->zadd($hotTopics , $now , $key);
+                });
+            });
+        }
+        return $this->response->noContent();
+    }
 }

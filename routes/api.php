@@ -250,6 +250,7 @@ $api->group($V1Params , function ($api){
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
         $api->patch('bk/non_fine/{post}/post' , 'BackStageController@setNonFinePost')->name('bk.post.non_fine.update');
+        $api->post('bk/set/topic/hot' , 'BackStageController@setHotTopic')->name('user.ry.set.unblock');
     });
     $api->group(['middleware'=>['appAuth']] , function($api){
         $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
