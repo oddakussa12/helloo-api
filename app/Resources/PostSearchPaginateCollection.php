@@ -22,6 +22,7 @@ class PostSearchPaginateCollection extends Resource
             'post_uuid'          => $this->resource['post_uuid'],
             'post_media'         => postMedia($this->resource['post_type'],$this->resource['post_media']),
             'post_title'         => $this->resource['post_content'],
+            'post_default_title' => $this->resource['post_content'],
             'post_index_locale'  => $this->resource['post_content_default_locale'],
             'post_type'          => $this->resource['post_type'],
             'post_comment_num'   => $this->resource['post_comment_num'] ??'',
