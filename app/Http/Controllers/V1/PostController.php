@@ -381,7 +381,7 @@ class PostController extends BaseController
                 $pipe->zrem($key."_rate" , $post->post_id);
             });
         });
-        PostEs::dispatch($post , 'delete')->onQueue('post_es');
+        PostEs::dispatch($post , 'delete')->onQueue('post_es')->delay(now()->addSeconds(120));
         return $this->response->noContent();
     }
 
