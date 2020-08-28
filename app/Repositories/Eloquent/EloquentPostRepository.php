@@ -133,6 +133,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }else{
                 if($follow!== null&&auth()->check())
                 {
+                    $appends['follow'] = $follow;
 //                    if($follow!== null&&auth()->check())
 //                    {
                         $posts = $posts->select('posts.*')->join('common_follows', 'common_follows.followable_id', '=', 'posts.user_id')
