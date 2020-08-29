@@ -342,6 +342,7 @@ class AuthController extends BaseController
         }catch (\Exception $e)
         {
             \DB::rollBack();
+            \Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
