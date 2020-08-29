@@ -6,6 +6,13 @@ namespace App\Custom;
 use Illuminate\Support\Facades\Redis;
 
 class RedisList{
+
+    const LOCK_SUCCESS = 'OK';
+    const IF_NOT_EXIST = 'NX';
+    const MILLISECONDS_EXPIRE_TIME = 'PX';
+
+    const RELEASE_SUCCESS = 1;
+
     // 添加一条数据到redis中
     public function zAdd($key,$score , $member){
         return Redis::zadd($key,$score , $member);
@@ -148,5 +155,16 @@ class RedisList{
     public function existsKey($key)
     {
         return Redis::exists($key);
+    }
+
+    public function tryGetLock(String $key, String $requestId="1", int $expireTime=15000) {
+        $result = Redis::set($key, $requestId, self::MILLISECONDS_EXPIRE_TIME, $expireTime, self::IF_NOT_EXIST);
+        return self::LOCK_SUCCESS === (string)$result;
+    }
+
+    public function releaseLock(String $key, String $requestId="1") {
+        $lua = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        $result = Redis::eval($lua, 1, $key, $requestId);
+        return self::RELEASE_SUCCESS === $result;
     }
 }

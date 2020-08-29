@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Models\Device;
 use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
 use App\Traits\CachableUser;
-use Elasticsearch\ClientBuilder;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
@@ -27,41 +25,6 @@ class UserController extends BaseController
     public function __construct(UserRepository $user)
     {
         $this->user = $user;
-    }
-
-    public function FCMPush($Title,$Content,$Token) {
-        //hotelB2B
-        define( '', '' );
-
-        $data = $this->getPostData();
-        $registrationIds = $data['Token'];
-
-        $msg = array(
-            'body'  =>  $data['Content'],
-            'title' =>  $data['Title'],
-            'icon'  => 'myicon',/*Default Icon*/
-            'sound' => 'mySound'/*Default sound*/
-        );
-
-        $fields = array(
-            'to' => $registrationIds,
-            'notification' => $msg);
-
-        $headers = array(
-            'Authorization: key=' . API_ACCESS_KEY,
-            'Content-Type: application/json'
-        );
-
-        $ch = curl_init();
-        curl_setopt( $ch,CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send' );
-        curl_setopt( $ch,CURLOPT_POST, true );
-        curl_setopt( $ch,CURLOPT_HTTPHEADER, $headers );
-        curl_setopt( $ch,CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $ch,CURLOPT_SSL_VERIFYPEER, false );
-        curl_setopt( $ch,CURLOPT_POSTFIELDS, json_encode( $fields ) );
-        $result = curl_exec($ch );
-        curl_close( $ch );
-        return $result;
     }
 
     /**
@@ -178,24 +141,30 @@ class UserController extends BaseController
 
     public function follow($user_id)
     {
-        $user = $this->user->findOrFail($user_id);
         $follower = auth()->user();
-        $follow = $follower->followUser($user);
-        if($follow===true)
+        if($follower->user_id!=$user_id)
         {
-            event(new Follow($follower , $user));
+            $user = $this->user->findOrFail($user_id);
+            $follow = $follower->followUser($user);
+            if($follow===true)
+            {
+                event(new Follow($follower , $user));
+            }
         }
         return $this->response->noContent();
     }
 
     public function unfollow($user_id)
     {
-        $user = $this->user->findOrFail($user_id);
         $follower = auth()->user();
-        $unFollow = $follower->unFollowUser($user);
-        if($unFollow===true)
+        if($follower->user_id!=$user_id)
         {
-            event(new UnFollow($follower , $user));
+            $user = $this->user->findOrFail($user_id);
+            $unFollow = $follower->unFollowUser($user);
+            if($unFollow===true)
+            {
+                event(new UnFollow($follower , $user));
+            }
         }
         return $this->response->noContent();
     }

@@ -63,6 +63,7 @@ class Kernel extends HttpKernel
         'appAuth' => \App\Http\Middleware\AppAuthenticated::class,
         'throttle' => \App\Http\Middleware\ThrottleRequests::class,
         'redisThrottle' => \App\Http\Middleware\RedisThrottleRequests::class,
+        'repeatedSubmit' => \App\Http\Middleware\RepeatedSubmit::class,
         'refresh' => \App\Http\Middleware\RefreshToken::class,
         'guestRefresh' => \App\Http\Middleware\GuestToken::class,
         'operationLog' => \App\Http\Middleware\OperationLog::class,

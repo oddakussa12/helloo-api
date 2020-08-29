@@ -78,7 +78,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
     $api->post('user/phone/resetPwd' , 'AuthController@resetPwdByPhone')->name('user.phone.reset.pwd');
 
-    $api->group(['middleware'=>'redisThrottle:'.config('common.sign_up_throttle_num').','.config('common.sign_up_throttle_expired')] , function ($api){
+    $api->group(['middleware'=>'redisThrottle:'.config('common.sign_up_throttle_num').','.config('common.sign_up_throttle_expired') , 'repeatedSubmit'] , function ($api){
         $api->post('user/signUp' , 'AuthController@signUp')->name('sign.up');
         $api->post('user/phone/signUp' , 'AuthController@handleSignUp')->name('user.phone.sign.up');
     });
@@ -127,7 +127,9 @@ $api->group($V1Params , function ($api){
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
-        $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
+        $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
+            $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
+        });
         $api->post('user/update/myself/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
         $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
         $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
@@ -258,8 +260,8 @@ $api->group($V1Params , function ($api){
     });
     $api->get('translation' , 'TranslationController@index')->name('translation.index');
     $api->get('google/token' , 'GoogleController@token')->name('google.token');
-    $api->group(['middleware'=>['redisThrottle:5,1']] , function ($api){
-        $api->get('test/index' , 'TestController@test')->name('test.test');
+    $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
+        $api->post('test/index' , 'TestController@test')->name('test.test');
     });
 
 });
