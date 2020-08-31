@@ -44,6 +44,8 @@ class Application
 
     private $fields;
 
+    private $accesstoken;
+
 
     public function __construct($appid, $appsecret, $hw_token_server, $hw_push_server)
     {
@@ -54,6 +56,9 @@ class Application
         $this->token_expiredtime = null;
         $this->accesstoken = null;
         $this->validate_only = false;
+
+        $this->printLogMethodOperate("appid:$appid  appsecret:$appsecret token_server:$hw_token_server push_server:$hw_push_server", __FUNCTION__ . ':' . __LINE__);
+
     }
 
     public function appid($value)
