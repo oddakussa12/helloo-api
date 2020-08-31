@@ -99,10 +99,10 @@ class Application
     private function printLogMethodOperate($dataFlow, $functionName = "", $logLevel = Constants::HW_PUSH_LOG_INFO_LEVEL)
     {
         if (empty($functionName)) {
-            \Log::info('HPush Log:', ['[' . __CLASS__ . ']' , $dataFlow, $logLevel]);
+            //\Log::info('HPush Log:', ['[' . __CLASS__ . ']' , $dataFlow, $logLevel]);
             //PushLogConfig::getSingleInstance()->LogMessage();
         } else {
-            \Log::info('HPush Log:', ['[' . __CLASS__ . ']' . '[' . $functionName . ']', $dataFlow, $logLevel]);
+            //\Log::info('HPush Log:', ['[' . __CLASS__ . ']' . '[' . $functionName . ']', $dataFlow, $logLevel]);
             //PushLogConfig::getSingleInstance()->LogMessage('[' . __CLASS__ . ']' . '[' . $functionName . ']' . $dataFlow, $logLevel);
         }
     }
