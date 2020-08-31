@@ -53,7 +53,7 @@ class Push
             "token" => [$this->token]
         ];
 
-        $application = new Application(env('HW_APPID'), env('HW_APPSECRET'), env('HW_TOKEN_SERVER'), env('HW_PUSH_SERVER'));
+        $application = new Application(config('push.huawei.appId'), config('push.huawei.secret'), config('push.huawei.token_server'), config('push.huawei.push_server'));
         $result = $application->push_send_msg($message);
 
         $result = is_object($result) ? json_decode(json_encode($result), true) : $result;
