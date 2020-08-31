@@ -759,6 +759,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
         $topics = array_map(function($v){
+            $v = str_replace(' ' , '' , $v);
+            $v = ltrim($v , "#");
             return mb_substr($v , 0 , 30);
         } , $topics);
         $topics = array_slice($topics,0 , 9);
