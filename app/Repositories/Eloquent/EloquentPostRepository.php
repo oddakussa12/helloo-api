@@ -219,9 +219,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $key = strval($topic);
         if($orderBy==='time')
         {
-            $topicKey = $key.'_rate';
-        }else{
             $topicKey = $key.'_new';
+        }else{
+            $topicKey = $key.'_rate';
         }
         $pageName = 'post_page';
         $perPage = 8;
