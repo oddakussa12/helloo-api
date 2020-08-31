@@ -275,7 +275,7 @@ class AuthController extends BaseController
     public function handleSignUp(Request $request)
     {
         $user_nick_name = $request->input('user_nick_name');
-        $user_phone = ltrim(strval($request->input('user_phone' , "")) , "+");
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         if($request->has('user_phone_country：'))
         {
             $user_phone_country = ltrim(strval($request->input('user_phone_country：' , "86")) , "+");
@@ -355,7 +355,7 @@ class AuthController extends BaseController
     }
     public function handleSignIn(Request $request)
     {
-        $user_phone = ltrim(strval($request->input('user_phone' , "")) , "+");
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         if($request->has('user_phone_country：'))
         {
             $user_phone_country = ltrim(strval($request->input('user_phone_country：' , "86")) , "+");
@@ -403,7 +403,7 @@ class AuthController extends BaseController
     {
         if($request->has('user_phone')&&$request->has('user_phone_country'))
         {
-            $user_phone = ltrim(strval($request->input('user_phone' , '')) , "+");
+            $user_phone = ltrim(ltrim(strval($request->input('user_phone' , '')) , "+") , "0");
             $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
             $this->forgetPwdByPhone($user_phone , $user_phone_country);
             return $this->response->noContent();
