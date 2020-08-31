@@ -16,6 +16,7 @@ class Push
     private $token;
     private $image;
     private $intent;
+    private $extras;
     private $color;
 
     public function __construct($params)
@@ -24,6 +25,7 @@ class Push
         $this->desc    = array_get($params,  'title', '这是一条mipush推送消息');
         $this->payload = array_get($params,  'payload', '{"test":1,"ok":"It\'s a string"}');
         $this->token   = array_get($params, 'registrationId');
+        $this->extras  = array_get($params,  'extras');
         $this->type    = 1;
         $this->color   = '#AACCDD';
         $this->intent  = 'intent://com.yooul/deeplink?#Intent;scheme=pushscheme;launchFlags=0x4000000;S.type=';
