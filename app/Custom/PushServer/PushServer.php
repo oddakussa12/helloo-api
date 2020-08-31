@@ -20,19 +20,20 @@ class PushServer
 
     public function Send()
     {
+        $deviceBrand = strtolower($this->params['deviceBrand']);
         if ($this->params['registerType'] == 'fcm') {
             $this->fcmPush();
         } else {
-            if ($this->params['deviceBrand'] == 'huawei') {
+            if (in_array($deviceBrand, ['huawei', 'honer'])) {
                 $this->huaweiPush();
             }
-            if ($this->params['deviceBrand'] == 'xiaomi') {
+            if ($deviceBrand == 'xiaomi') {
                 $this->xiaomiPush();
             }
-            if ($this->params['deviceBrand'] == 'oppo') {
+            if ($deviceBrand == 'oppo') {
                 $this->oppoPush();
             }
-            if ($this->params['deviceBrand'] == 'vivo') {
+            if ($deviceBrand == 'vivo') {
 
             }
         }

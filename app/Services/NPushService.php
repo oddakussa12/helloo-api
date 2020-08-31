@@ -24,7 +24,7 @@ class NPushService
         $data = [
             'deviceCountry'  => $device->device_country,
             'registerType'   => $device->device_register_type,
-            'deviceBrand'    => $device->device_phone_model,
+            'deviceBrand'    => !empty($device->device_phone_model) ? strtolower($device->device_phone_model) : '',
             'title'          => $title,
             'content'        => $title,
             'platform'       => $device->device_type,

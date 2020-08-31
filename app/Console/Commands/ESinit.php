@@ -258,7 +258,11 @@ class ESinit extends Command
      */
     public function postDataInit()
     {
-        $where = " WHERE p.post_id<=675441 and p.post_id>670000";
+        $where = " WHERE p.post_id>701191";
+        $where = " WHERE p.post_id<=701191 and p.post_id>701607";
+        //$where = " WHERE p.post_id<=701191 and p.post_id>691341";
+        //$where = " WHERE p.post_id<=691341 and p.post_id>675441";
+        //$where = " WHERE p.post_id<=675441 and p.post_id>670000";
         //$where = " WHERE p.post_id<=670000 and p.post_id>600000";
         //$where = " WHERE p.post_id<=600000 and p.post_id>550000";
         //$where = " WHERE p.post_id<=550000 and p.post_id>500000";
@@ -315,6 +319,7 @@ class ESinit extends Command
 
         dump('开始插入数据');
         set_time_limit(0);
+        ini_set('memory_limit','2048M');
 
         $countResult = DB::select($countSql);
 

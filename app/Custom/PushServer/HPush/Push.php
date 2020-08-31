@@ -26,7 +26,7 @@ class Push
         $this->token   = array_get($params, 'registrationId');
         $this->type    = 1;
         $this->color   = '#AACCDD';
-        $this->intent  = '#Intent;compo=com.rvr/.Activity;S.W=U;end';
+        $this->intent  = 'intent://com.yooul/deeplink?#Intent;scheme=pushscheme;launchFlags=0x4000000;S.type=';
         $this->image   = 'https=>//res.vmallres.com/pimages//common/config/logo/SXppnESYv4K11DBxDFc2_0.png';
     }
 
@@ -44,7 +44,7 @@ class Push
                     "color"       => $this->color,
                     "click_action"=> [
                         "type"    => $this->type,
-                        "intent"  => $this->intent,
+                        "intent"  => $this->intent.$this->extras['type'].";end",
                     ]
                 ]
             ],

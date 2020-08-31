@@ -389,7 +389,7 @@ class AuthController extends BaseController
         if(password_verify($password, $user->user_pwd))
         {
             $token = auth()->login($user);
-            return $this->respondWithToken($token , false);
+            return $this->respondWithToken($token, false);
         }
         return $this->response->errorUnauthorized(trans('auth.phone_failed'));
 
