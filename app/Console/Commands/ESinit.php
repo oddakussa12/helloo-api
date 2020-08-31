@@ -260,10 +260,10 @@ class ESinit extends Command
      */
     public function postDataDelete()
     {
-        $countSql = "SELECT count(1) num FROM f_posts where post_deleted_at is not null ORDER BY t.post_id asc ";
-        $limitSql = "SELECT post_id FROM f_posts where post_deleted_at is not null ORDER BY t.post_id asc ";
+        $countSql = "SELECT count(1) num FROM f_posts where post_deleted_at is not null ORDER BY post_id asc ";
+        $limitSql = "SELECT post_id FROM f_posts where post_deleted_at is not null ORDER BY post_id asc ";
 
-        $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.topic'), 'post_id');
+        $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.post'), 'post_id');
     }
 
     /**
@@ -331,8 +331,8 @@ class ESinit extends Command
     {
         dump('防止误操作，停止执行导入操作。');
         return;
-
-        dump('开始插入数据');
+        dump($countSql, $limitSql, $index, $delete);
+        dump($delete ? '开始删除数据' :'开始插入数据');
         set_time_limit(0);
         ini_set('memory_limit','2048M');
 
@@ -369,13 +369,12 @@ class ESinit extends Command
                     }
                 } else {
                     // 删除
-                    $data = (new Es($index))->update($result, $delete);
+                    $ids = array_column($result, 'post_id');
+                    $data = (new Es($index, ['updateField'=>['post_is_delete'=>3]]))->update($ids, $delete);
                     if ($data==null) {
-                        (new Es($index))->update($result, $delete);
+                        (new Es($index, ['updateField'=>['post_is_delete'=>3]]))->update($ids, $delete);
                     }
                 }
-                $data = (new Es($index))->update($result, 'post_id');
-
             }
             if (in_array($offset, $total)) {
                 dump("休息10秒...");
