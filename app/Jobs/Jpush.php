@@ -46,6 +46,8 @@ class Jpush implements ShouldQueue
                 $this->app = 'web';
             }
         }
+
+        Log::info(__CLASS__. ' '.__FUNCTION__);
     }
 
     /**
@@ -55,6 +57,8 @@ class Jpush implements ShouldQueue
      */
     public function handle()
     {
+        Log::info(__CLASS__. ' '.__FUNCTION__);
+
         $device = DB::table('devices')->where('user_id', $this->userId)->orderBy('device_updated_at', 'desc')->first();
         if(empty($device)) return false;
 

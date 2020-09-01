@@ -20,6 +20,7 @@ class PushServer
 
     public function Send()
     {
+        Log::info(__FUNCTION__.' params:', $this->params);
         $deviceBrand = strtolower($this->params['deviceBrand']);
         if ($this->params['registerType'] == 'fcm') {
             $this->fcmPush();
