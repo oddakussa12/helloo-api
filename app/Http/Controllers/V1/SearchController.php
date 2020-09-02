@@ -13,6 +13,7 @@ use App\Resources\PostSearchPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -41,6 +42,8 @@ class SearchController extends BaseController
         //截取20个字符
         $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
         $type   = $params['type'] ?? 0;
+
+        $this->history($params);
 
         switch ($type) {
             case 1: // 用户
@@ -74,6 +77,28 @@ class SearchController extends BaseController
                 }
                 return $result;
         }
+    }
+
+    /**
+     * 插入搜索记录
+     * @param $params
+     */
+    protected function history($params)
+    {
+        try {
+            $userId  = auth()->user()->user_id;
+            $key     = "search_".$userId;
+            $today   = strtotime(date('Y-m-d'));
+            $keyword = mb_convert_case($params['keyword'], MB_CASE_LOWER, "UTF-8");
+            $value   = Redis::zscore($key, $keyword);
+            if(empty($value)) {
+                Redis::zadd($key,$today , $keyword);
+                DB::insert('insert into f_search_history (title, created_at) values (?, ?)', [$keyword, time()]);
+            }
+        } catch (\Exception $e) {
+            Log::error(__FUNCTION__.' Exception: code:'.$e->getCode(). ' message:'.$e->getMessage());
+        }
+
     }
 
     /**

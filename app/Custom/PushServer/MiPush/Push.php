@@ -75,7 +75,7 @@ class Push
         $message->extra(Builder::intentUri, $this->intent.$this->extra['type'].";end"); // 打开应用内activity必须添加此参数
 
         $message->extra('extra', $this->extra);
-        $message->notifyId(4); // 通知类型。最多支持0-4 5个取值范围，同样的类型的通知会互相覆盖，不同类型可以在通知栏并存
+        $message->notifyId(99999); // 通知类型。最多支持0-4 5个取值范围，同样的类型的通知会互相覆盖，不同类型可以在通知栏并存   左边的官方文档，实际测试，随便取值0-9999999都可以。
         $message->build();
         return $message;
     }
