@@ -21,8 +21,8 @@ class Push
 
     public function __construct($params)
     {
-        $this->title   = array_get($params,   'title', '这是一条mipush推送消息');
-        $this->desc    = array_get($params,  'title', '这是一条mipush推送消息');
+        $this->title   = array_get($params,   'title');
+        $this->desc    = array_get($params,  'title');
         $this->payload = array_get($params,  'payload', '{"test":1,"ok":"It\'s a string"}');
         $this->token   = array_get($params, 'registrationId');
         $this->extras  = array_get($params,  'extras');
