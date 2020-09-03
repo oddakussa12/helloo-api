@@ -142,7 +142,7 @@ class PostCommentController extends BaseController
             }else{
                 $job = new PostCommentTranslation($postComment , $contentLang , $commentContent);
             }
-            $this->dispatch($job);
+            $this->dispatch($job->onQueue('post_comment_translation'));
         }
         $postComment->post_uuid = $postUuid;
         return new PostCommentCollection($postComment);
