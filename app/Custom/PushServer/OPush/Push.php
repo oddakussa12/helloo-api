@@ -29,7 +29,7 @@ class Push
         $this->intent  = 'intent://com.yooul/deeplink?#Intent;scheme=pushscheme;launchFlags=0x4000000;S.type=';
 
         //实例oppo
-        $this->client = new oppoPush(config('push.oppo.appKey'), config('push.oppo.secret')); // AppKey 与 MasterSecret(非 AppSecret)
+        $this->client = new oppoPush(config('push.oppo.appKey'), config('push.oppo.masterSecret')); // AppKey 与 MasterSecret(非 AppSecret)
         try {
             $this->authToken = $this->client->getAuthToken();// 有效期24小时
         } catch (\Exception $e) {
