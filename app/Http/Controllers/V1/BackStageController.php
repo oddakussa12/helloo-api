@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\RedisList;
 use App\Traits\CachableUser;
+use Dingo\Api\Http\Response;
 use Illuminate\Http\Request;
 use App\Events\PostCommentDeleted;
 use Illuminate\Support\Facades\Redis;
@@ -148,15 +149,32 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    /**
+     * @return Response
+     * 设置热门搜索
+     */
     public function setHotSearch()
     {
+        /*$titles = [
+            ['title' => 'title1', 'sort'  => 3],
+            ['title' => 'title2', 'sort'  => 1],
+            ['title' => 'title0', 'sort'  => 2],
+            ['title' => 'title5', 'sort'  => 4],
+            ['title' => 'title6', 'sort'  => 6],
+            ['title' => 'title4', 'sort'  => 5],
+        ];*/
+
         $titles = \json_decode(request()->input('titles' , '') , true);
+        if (count($titles) != count($titles, 1)) {
+            $titles = collect($titles)->sortByDesc('sort')->toArray();
+        }
         $hotSearch = 'hot_search';
         if(!empty($titles))
         {
             Redis::del($hotSearch);
-            Redis::set($hotSearch,json_encode($titles, JSON_UNESCAPED_UNICODE));
+            Redis::set($hotSearch, json_encode($titles, JSON_UNESCAPED_UNICODE));
         }
         return $this->response->noContent();
     }
+
 }

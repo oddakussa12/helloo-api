@@ -43,23 +43,16 @@ class SearchController extends BaseController
         $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
         $type   = $params['type'] ?? 0;
 
-        $this->history($params);
-
         switch ($type) {
             case 1: // 用户
-                return $this->searchUser($params);
+                $result = $this->searchUser($params);
                 break;
             case 2: // 帖子
-                return $this->searchPost($params);
+                $result = $this->searchPost($params);
                 break;
             case 3: // 话题
-                return $this->searchTopic($params);
-                break;
-            /*case 4: // 输入中
                 $result = $this->searchTopic($params);
-                $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
-                return $result;
-                break;*/
+                break;
             case 4:  // 输入中 ES suggest
                 $result = $this->searchTopicIng($params);
                 //$result = $this->searchPostIng($params);
@@ -75,8 +68,13 @@ class SearchController extends BaseController
                     ];
                     $result = $result->additional($res);
                 }
-                return $result;
         }
+        
+        //查询出数据时，搜索入库
+        if (!empty($result['data']) || !empty($result['user']) || !empty($result['topic'])) {
+            $this->history($params);
+        }
+        return $result;
     }
 
     /**
@@ -92,23 +90,24 @@ class SearchController extends BaseController
             $keyword = mb_convert_case($params['keyword'], MB_CASE_LOWER, "UTF-8");
             $value   = Redis::zscore($key, $keyword);
             if(empty($value)) {
-                Redis::zadd($key,$today , $keyword);
-                DB::insert('insert into f_search_history (title, created_at) values (?, ?)', [$keyword, time()]);
+                if ($value != $today) {
+                    Redis::zadd($key, $today, $keyword);
+                    DB::insert('insert into f_search_history (user_id, title, created_at) values (?, ?)', [$userId, $keyword, time()]);
+                }
             }
         } catch (\Exception $e) {
             Log::error(__FUNCTION__.' Exception: code:'.$e->getCode(). ' message:'.$e->getMessage());
         }
-
     }
 
     /**
      * @return array
-     * 热门话题
+     * 热门搜索 主体
      */
     public function hotSearch()
     {
         $data = $this->getHotSearch();
-        shuffle($data);
+        //shuffle($data);
         foreach ($data as $value) {
             $result['data'][] = ['title' => $value];
         }
@@ -122,10 +121,35 @@ class SearchController extends BaseController
     protected function getHotSearch()
     {
         /** @var Redis $key */
-        $key  = 'hot_search';
-        $list = Redis::get($key);
-        return !empty($list) ? json_decode($list, true) : [];
+        $key     = 'hot_search';
+        $list    = Redis::get($key);
+        $hot     = !empty($list) ? json_decode($list, true) : [];
+        if (count($hot) != count($hot, 1)) {
+            $hot = array_column($hot, 'title');
+        }
+        $history = $this->getSearchHistory();
+        return array_unique(array_merge($hot, $history));
+    }
 
+    /**
+     * @return array|mixed
+     * 查询搜索历史 先查缓存 后数据库
+     */
+    protected function getSearchHistory()
+    {
+        $key        = 'hot_search_history';
+        $result     = Redis::get($key);
+        $expireTime = 60*60*6*6;
+        $time       = time() - $expireTime;
+        if (empty($result)) {
+            $result = DB::select('SELECT count(1) num, title from f_search_history where created_at > ? GROUP by title ORDER BY num desc limit 5', [$time]);
+            $result = !empty($result) ? array_column($result, 'title') : [];
+            $result && Redis::set($key, json_encode($result, JSON_UNESCAPED_UNICODE), "nx", "ex", $expireTime);
+        } else {
+            $result = json_decode($result, true);
+        }
+
+        return $result ?? [];
     }
 
     /**
