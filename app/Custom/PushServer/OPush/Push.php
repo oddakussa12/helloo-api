@@ -52,7 +52,7 @@ class Push
         try {
            return $this->client->broadcastByRegId();              // registration_id 推送
         } catch (\Exception $e) {
-            Log::error('OPPO PUSH Exception: code:' .$e->getCode().' msg:'.$e->getMessage());
+            Log::info('OPPO PUSH Exception: code:' .$e->getCode().' msg:'.$e->getMessage());
         }
     }
 
