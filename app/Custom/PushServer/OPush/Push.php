@@ -27,7 +27,6 @@ class Push
         $this->token   = array_get($params, 'registrationId');
         $this->extra   = array_get($params, 'extras');
         $this->type    = 1;
-//        $this->intent  = 'intent://com.yooul/deeplink?#Intent;scheme=pushscheme;launchFlags=0x4000000;S.type=';
         $this->intent  = 'com.yooul.oppopush';
 
         //实例oppo
@@ -38,7 +37,7 @@ class Push
             if (!$authToken) {
                 $authToken  = $this->client->getAuthToken();// 有效期24小时
                 $expireTime = $this->client->getAuthTokenExpiresTime(); // 获取 auth_token 过期时间
-                Redis::set($key, $authToken, 'nx', 'ex', $expireTime - time() -3600);
+                Redis::set($key, $authToken, 'nx', 'ex', $expireTime - time());
             }
             $this->authToken = $authToken;
 

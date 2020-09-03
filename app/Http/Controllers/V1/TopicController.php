@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\RedisList;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Redis;
@@ -114,15 +115,53 @@ class TopicController extends BaseController
         return $posts;
     }
 
+    /**
+     * @return AnonymousResourceCollection
+     * 热门话题
+     */
     public function hot()
     {
-        $hotTopics = 'hot_topic';
-        $redis = new RedisList();
-        $topics = $redis->zRevRangeByScore($hotTopics , '+inf' , '-inf' , true);
-        $topics = array_keys($topics);
-        $topics = collect($topics)->map(function ($item, $key) {
-           return array('topic_content'=>$item);
-        });
-        return TopicSearchPaginateCollection::collection($topics);
+        $key = 'hot_topic';
+        $result = Redis::get($key);
+
+        if(empty($result)) {
+            $topics = [
+                ['topic_content' => 'title1', 'sort'  => 3,'flag' => 1],
+                ['topic_content' => 'title2', 'sort'  => 1,'flag' => 1],
+                ['topic_content' => 'title0', 'sort'  => 2,'flag' => 1],
+                ['topic_content' => 'title5', 'sort'  => 4,'flag' => 2],
+                ['topic_content' => 'title6', 'sort'  => 6,'flag' => 2],
+                ['topic_content' => 'title4', 'sort'  => 5,'flag' => 2],
+            ];
+            $result = sortArrByManyField($topics,'flag',SORT_ASC,'sort',SORT_DESC);
+            $result = json_encode($result, JSON_UNESCAPED_UNICODE);
+            Redis::set($key, $result);
+        }
+
+        $result = $result ? json_decode($result, true) : [];
+        $result = array_map(function($v){
+            unset($v['sort']);return $v;
+        }, $result);
+
+        $hotDb  = $this->getHotByDb();
+        $result = array_merge($result, $hotDb);
+
+        return TopicSearchPaginateCollection::collection(collect($result));
+    }
+
+    /**
+     * @return array
+     * 通过数据库查询热门话题
+     */
+    protected function getHotByDb()
+    {
+        $sql    = 'select count(1) num ,topic_content from f_posts_topics group by topic_content order by num desc limit 15, 20';
+        $result = DB::select($sql);
+        if (!empty($result)) {
+            $result = array_map(function ($v){
+                return ['topic_content' => $v->topic_content];
+            }, $result);
+        }
+        return $result;
     }
 }

@@ -69,9 +69,14 @@ class SearchController extends BaseController
                     $result = $result->additional($res);
                 }
         }
-        
+
+        $data        = $result->items();
+        $resultUser  = !empty($result->additional['user'])  ? $result->additional['user']->resource->items()  : [];
+        $resultTopic = !empty($result->additional['topic']) ? $result->additional['topic']->resource->items() : [];
+        $resultPost  = !empty($result->additional['post'])  ? $result->additional['post']->resource->items()  : [];
+
         //查询出数据时，搜索入库
-        if (!empty($result['data']) || !empty($result['user']) || !empty($result['topic'])) {
+        if (!empty($data) || !empty($resultUser) || !empty($resultTopic) || !empty($resultPost)) {
             $this->history($params);
         }
         return $result;
@@ -92,7 +97,7 @@ class SearchController extends BaseController
             if (empty($value) || $value != $today) {
                 Redis::zremrangebyscore($key, 0, $today-1); // 删除小于今天的数据
                 Redis::zadd($key, $today, $keyword);
-                DB::insert('insert into f_search_history (user_id, title, created_at) values (?, ?, ?)', [$userId, $keyword, time()]);
+                DB::insert('insert into f_search_history(user_id, title, created_at) values (?, ?, ?)', [$userId, $keyword, time()]);
             }
 
         } catch (\Exception $e) {

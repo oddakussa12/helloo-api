@@ -132,19 +132,33 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    /**
+     * flag   1: 官方话题 2:后台可控话题  0: 用户热门话题(此处不需要处理)
+     * sort          倒序排序
+     * topic_content 标题
+     *
+     * @return Response
+     * 后台设置热门话题
+     */
     public function setHotTopic()
     {
+        /*$topics = [
+            ['topic_content' => 'title1', 'sort'  => 3,'flag' => 1],
+            ['topic_content' => 'title2', 'sort'  => 1,'flag' => 1],
+            ['topic_content' => 'title0', 'sort'  => 2,'flag' => 1],
+            ['topic_content' => 'title5', 'sort'  => 4,'flag' => 2],
+            ['topic_content' => 'title6', 'sort'  => 6,'flag' => 2],
+            ['topic_content' => 'title4', 'sort'  => 5,'flag' => 2],
+        ];*/
+
         $topics = \json_decode(request()->input('topics' , '') , true);
-        $hotTopics = 'hot_topic';
-        if(!empty($topics))
-        {   $now = time();
-            Redis::del($hotTopics);
-            Redis::pipeline(function ($pipe) use ($topics , $hotTopics , $now){
-                array_walk($topics , function($item , $index) use ($pipe , $hotTopics , $now){
-                    $key = strval($item);
-                    $pipe->zadd($hotTopics , $now , $key);
-                });
-            });
+        if (count($topics) != count($topics, 1)) {
+            $hotTopics = 'hot_topic';
+            if (!empty($topics)) {
+                $topics = sortArrByManyField($topics, 'is_official', SORT_DESC, 'sort', SORT_DESC);
+                Redis::del($hotTopics);
+                Redis::set($hotTopics, json_encode($topics, JSON_UNESCAPED_UNICODE));
+            }
         }
         return $this->response->noContent();
     }
@@ -165,12 +179,13 @@ class BackStageController extends BaseController
         ];*/
 
         $titles = \json_decode(request()->input('titles' , '') , true);
+
         if (count($titles) != count($titles, 1)) {
             $titles = collect($titles)->sortByDesc('sort')->toArray();
         }
+
         $hotSearch = 'hot_search';
-        if(!empty($titles))
-        {
+        if(!empty($titles)) {
             Redis::del($hotSearch);
             Redis::set($hotSearch, json_encode($titles, JSON_UNESCAPED_UNICODE));
         }

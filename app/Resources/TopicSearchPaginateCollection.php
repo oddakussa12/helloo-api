@@ -17,6 +17,9 @@ class TopicSearchPaginateCollection extends Resource
     {
         return [
             'post_num' => rand(1000, 100000),
+            'flag'     => $this->when(true, function (){
+                return $this->resource['flag'] ?? 0;
+            }),
             'topic_content' => $this->resource['topic_content'],
         ];
     }

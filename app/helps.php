@@ -1095,8 +1095,35 @@ if (!function_exists('millisecond')) {
 }
 
 
-
-
+/**
+ * @return mixed|null
+ * PHP 数组按多个字段排序
+ */
+if (!function_exists('sortArrByManyField')) {
+    function sortArrByManyField()
+    {
+        $args = func_get_args(); // 获取函数的参数的数组
+        if (empty($args)) {
+            return null;
+        }
+        $arr = array_shift($args);
+        if (!is_array($arr)) {
+            return $arr;
+        }
+        foreach ($args as $key => $field) {
+            if (is_string($field)) {
+                $temp = array();
+                foreach ($arr as $index => $val) {
+                    $temp[$index] = $val[$field];
+                }
+                $args[$key] = $temp;
+            }
+        }
+        $args[] = &$arr; //引用值
+        call_user_func_array('array_multisort', $args);
+        return array_pop($args);
+    }
+}
 
 
 
