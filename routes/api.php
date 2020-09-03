@@ -57,16 +57,16 @@ $api->group($V1Params , function ($api){
 //        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
 
         // 搜索功能-ES
-        $api->get('search', 'SearchController@index');
+        $api->get('search', 'SearchController@index')->name('aggregation.search');
         // 热门搜索
-        $api->get('hot/search', 'SearchController@hotSearch');
+        $api->get('hot/search', 'SearchController@hotSearch')->name('search.hot');
 
         /*****热门话题 开始*****/
-        $api->get('topic/hot', 'TopicController@hot');
+        $api->get('topic/hot', 'TopicController@hot')->name('topic.hot');
         /*****热门话题 结束*****/
 
         /*****话题下贴子 开始*****/
-        $api->get('topic/{topic}/post', 'TopicController@post');
+        $api->get('topic/{topic}/post', 'TopicController@post')->name('topic.post');
         /*****话题下贴子 结束*****/
 
 
@@ -93,19 +93,19 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
 
         /*****我关注的话题 开始*****/
-        $api->get('topic/myFollow', 'TopicController@myFollow');
+        $api->get('topic/myFollow', 'TopicController@myFollow')->name('my.follow.topic');
         /*****我关注的话题 结束*****/
 
         /*****关注话题 开始*****/
-        $api->put('topic/{topic}/follow', 'TopicController@follow');
+        $api->put('topic/{topic}/follow', 'TopicController@follow')->name('follow.topic');
         /*****关注话题 结束*****/
 
         /*****取消关注话题 开始*****/
-        $api->put('topic/{topic}/unFollow', 'TopicController@unFollow');
+        $api->put('topic/{topic}/unFollow', 'TopicController@unFollow')->name('unfollow.topic');
         /*****取消关注话题 结束*****/
 
         /*****报告 开始*****/
-        $api->resource('report', 'ReportController',['only' => ['store']]);
+        $api->resource('report', 'ReportController',['only' => ['store']])->name('report.index');
         /*****报告 结束*****/
 
         /*****好友 开始*****/

@@ -59,8 +59,8 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => 'aws_queue',
-            'queue' => 'default',
+            'connection' => 'default',
+            'queue' => '{default}',
             'retry_after' => 90,
         ],
 

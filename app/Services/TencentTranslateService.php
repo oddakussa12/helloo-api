@@ -91,6 +91,8 @@ class TencentTranslateService
             $body = http_build_query($params);
             curl_setopt($curl, CURLOPT_POST, true);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+            curl_setopt($curl, CURLOPT_TIMEOUT_MS, 3000);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT_MS, 500);
 
             // 4. 调用API，获取响应结果
             curl_setopt($curl, CURLOPT_HEADER, false);

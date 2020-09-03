@@ -372,14 +372,11 @@ class PostController extends BaseController
         $topics = $post->getPostTopics($post->post_id);
         $topicPostCountKey = config('redis-key.topic.topic_post_count');
         $topicNewKey = config('redis-key.topic.topic_index_new');
-        !empty($topics)&&Redis::pipeline(function ($pipe) use ($topics , $topicPostCountKey , $topicNewKey , $post ){
-            array_walk($topics , function($item , $index) use($pipe ,$topicPostCountKey , $topicNewKey , $post){
-                $key = strval($item);
-                $pipe->zincrby($topicPostCountKey , -1 , $key);
-//                $pipe->zrem($topicNewKey , $key);
-                $pipe->zrem($key."_new" , $post->post_id);
-                $pipe->zrem($key."_rate" , $post->post_id);
-            });
+        !empty($topics)&&array_walk($topics , function($item , $index) use($topicPostCountKey , $topicNewKey , $post){
+            $key = strval($item);
+            Redis::zincrby($topicPostCountKey , -1 , $key);
+            Redis::zrem($key."_new" , $post->post_id);
+            Redis::zrem($key."_rate" , $post->post_id);
         });
         PostEs::dispatch($post , 'delete')->onQueue('post_es')->delay(now()->addSeconds(120));
         return $this->response->noContent();
