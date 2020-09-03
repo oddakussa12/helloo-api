@@ -109,6 +109,7 @@ class PushServer
             }
         } catch (\Exception $e) {
             Log::error('Push message Exception'.__FUNCTION__.'code:'.$e->getCode(). 'msg:'. $e->getMessage());
+            return false;
         }
     }
 }
