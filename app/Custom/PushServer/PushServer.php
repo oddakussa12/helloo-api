@@ -4,6 +4,7 @@ namespace App\Custom\PushServer;
 use App\Custom\PushServer\HPush\Push as HPush;
 use App\Custom\PushServer\Fcm\Push as FcmPush;
 use App\Custom\PushServer\MiPush\Push as MiPush;
+use App\Custom\PushServer\OPush\Push as OPush;
 use Illuminate\Support\Facades\Log;
 
 class PushServer

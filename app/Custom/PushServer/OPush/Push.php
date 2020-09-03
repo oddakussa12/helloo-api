@@ -44,12 +44,7 @@ class Push
         $this->client->setActionParameters($this->payload); // 打开应用内页或网页时传递的参数 (数组或json类型)
         $this->client->addRegistrationId($this->token);     // 添加需要发送设备的 registration_id, 最多 1000 个
         try {
-            $result = $this->client->broadcastByRegId();              // registration_id 推送
-            if ($result['code'] ==0) {
-                return true;
-            } else {
-                return false;
-            }
+           return $this->client->broadcastByRegId();              // registration_id 推送
         } catch (\Exception $e) {
             Log::error('OPPO PUSH Exception: code:' .$e->getCode().' msg:'.$e->getMessage());
         }
