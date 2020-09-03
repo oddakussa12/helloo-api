@@ -91,34 +91,36 @@ class PostTranslationV2 implements ShouldQueue
             {
                 $title = $postTitle;
             }else{
-                if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($postTitle))<=1024)
-                {
-                    $service = new TencentTranslateService();
-                    $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
-                    if($title===false)
-                    {
-                        $title = $translate->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
-                    }
-                }else{
-                    $title = $translate->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
-                }
+//                if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($postTitle))<=1024)
+//                {
+//                    $service = new TencentTranslateService();
+//                    $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
+//                    if($title===false)
+//                    {
+//                        $title = $translate->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
+//                    }
+//                }else{
+//                    $title = $translate->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
+//                }
+                $title = $translate->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
             }
 
             if(empty($postContent)||$l==$this->postContentLang||$this->postContentDefaultLang=='und')
             {
                 $content = $postContent;
             }else{
-                if((($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))&&strlen(trim($postContent))<=1024)
-                {
-                    $service = new TencentTranslateService();
-                    $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
-                    if($content===false)
-                    {
-                        $content = $translate->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
-                    }
-                }else {
-                    $content = $translate->translate($postContent, array('source'=>$this->postContentLang , 'target' => $t));
-                }
+//                if((($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))&&strlen(trim($postContent))<=1024)
+//                {
+//                    $service = new TencentTranslateService();
+//                    $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
+//                    if($content===false)
+//                    {
+//                        $content = $translate->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
+//                    }
+//                }else {
+//                    $content = $translate->translate($postContent, array('source'=>$this->postContentLang , 'target' => $t));
+//                }
+                $content = $translate->translate($postContent, array('source'=>$this->postContentLang , 'target' => $t));
             }
             $post->fill([
                 "{$l}"  => ['post_title' => $title , 'post_content'=>$content],

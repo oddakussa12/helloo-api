@@ -96,17 +96,18 @@ class PostTranslation implements ShouldQueue
             {
                 $title = $postTitle;
             }else{
-                if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($postTitle))<=1024)
-                {
-                    $service = new TencentTranslateService();
-                    $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
-                    if($title===false)
-                    {
-                        $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
-                    }
-                }else{
-                    $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
-                }
+//                if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($postTitle))<=1024)
+//                {
+//                    $service = new TencentTranslateService();
+//                    $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
+//                    if($title===false)
+//                    {
+//                        $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
+//                    }
+//                }else{
+//                    $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
+//                }
+                $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
             }
 
             if(empty($postContent)||$l==$this->postContentLang||$this->postContentDefaultLang=='und')
