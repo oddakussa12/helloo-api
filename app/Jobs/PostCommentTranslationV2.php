@@ -69,17 +69,18 @@ class PostCommentTranslationV2 implements ShouldQueue
             {
                 $content = $commentContent;
             }else{
-                if(($language=='zh-CN'&&$t=='en')||($language=='en'&&$t=='zh-CN'))
-                {
-                    $service = new TencentTranslateService();
-                    $content = $service->translate($commentContent , array('source'=>$language , 'target'=>$t));
-                    if($content===false)
-                    {
-                        $content = $translate->translate($commentContent , array('source'=>$language , 'target'=>$t));
-                    }
-                }else{
-                    $content = $translate->translate($commentContent , array('source'=>$language , 'target'=>$t));
-                }
+//                if(($language=='zh-CN'&&$t=='en')||($language=='en'&&$t=='zh-CN'))
+//                {
+//                    $service = new TencentTranslateService();
+//                    $content = $service->translate($commentContent , array('source'=>$language , 'target'=>$t));
+//                    if($content===false)
+//                    {
+//                        $content = $translate->translate($commentContent , array('source'=>$language , 'target'=>$t));
+//                    }
+//                }else{
+//                    $content = $translate->translate($commentContent , array('source'=>$language , 'target'=>$t));
+//                }
+                $content = $translate->translate($commentContent , array('source'=>$language , 'target'=>$t));
             }
             $postComment->fill([
                 "{$l}"  => ['comment_content' => $content],
