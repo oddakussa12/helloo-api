@@ -138,11 +138,9 @@ class BackStageController extends BaseController
         if(!empty($topics))
         {   $now = time();
             Redis::del($hotTopics);
-            Redis::pipeline(function ($pipe) use ($topics , $hotTopics , $now){
-                array_walk($topics , function($item , $index) use ($pipe , $hotTopics , $now){
-                    $key = strval($item);
-                    $pipe->zadd($hotTopics , $now , $key);
-                });
+            array_walk($topics , function($item , $index) use ($hotTopics , $now){
+                $key = strval($item);
+                Redis::zadd($hotTopics , $now , $key);
             });
         }
         return $this->response->noContent();

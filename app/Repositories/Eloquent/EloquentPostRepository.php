@@ -772,21 +772,19 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $userId = $post->user_id;
             $postId = $post->getKey();
             $firstRate = first_rate_comment_v2();
-            Redis::pipeline(function ($pipe) use ($topics , $topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
-                array_walk($topics , function($item , $index) use ($pipe , $topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
-                    $key = strval($item);
-                    $pipe->zincrby($topicPostCountKey , 1 , $key);
+            array_walk($topics , function($item , $index) use ($topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
+                $key = strval($item);
+                Redis::zincrby($topicPostCountKey , 1 , $key);
 //                    $pipe->zadd($topicNewKey , $now , $key);
-                    $pipe->zadd($key."_new" , $now , $postId);
-                    $pipe->zadd($key."_rate" , $firstRate , $postId);
-                    $userTopicKey = 'user.'.$userId.'.topics';
-                    $pipe->zadd($userTopicKey , $now , $key);
-                });
-                $postKey = 'post.'.$postId.'.data';
-                $pipe->hmset($postKey , array(
-                    "topics" => \json_encode($topics)
-                ));
+                Redis::zadd($key."_new" , $now , $postId);
+                Redis::zadd($key."_rate" , $firstRate , $postId);
+                $userTopicKey = 'user.'.$userId.'.topics';
+                Redis::zadd($userTopicKey , $now , $key);
             });
+            $postKey = 'post.'.$postId.'.data';
+            Redis::hmset($postKey , array(
+                "topics" => \json_encode($topics)
+            ));
             TopicEs::dispatch($post , $topics)->onQueue('topic_es');
         }
         return $post;

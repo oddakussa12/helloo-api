@@ -417,12 +417,11 @@ trait CachablePost
     {
         $postKey = 'post.'.$id.'.data';
         $topics = \json_decode(Redis::hget($postKey , 'topics') , true);
-        !empty($topics)&&Redis::pipeline(function ($pipe) use ($id , $topics , $rate){
-            array_walk($topics , function($item , $index) use($id , $pipe , $rate){
+        !empty($topics)&&array_walk($topics , function($item , $index) use($id , $rate){
                 $key = strval($item);
-                $pipe->zadd($key."_rate" , $rate , $id);
-            });
+                Redis::zadd($key."_rate" , $rate , $id);
         });
+
     }
 
     public function getPostTopics($id)
