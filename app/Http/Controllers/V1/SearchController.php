@@ -89,12 +89,12 @@ class SearchController extends BaseController
             $today   = strtotime(date('Y-m-d'));
             $keyword = mb_convert_case($params['keyword'], MB_CASE_LOWER, "UTF-8");
             $value   = Redis::zscore($key, $keyword);
-            if(empty($value)) {
-                if ($value != $today) {
-                    Redis::zadd($key, $today, $keyword);
-                    DB::insert('insert into f_search_history (user_id, title, created_at) values (?, ?)', [$userId, $keyword, time()]);
-                }
+            if (empty($value) || $value != $today) {
+                Redis::zremrangebyscore($key, 0, $today-1); // 删除小于今天的数据
+                Redis::zadd($key, $today, $keyword);
+                DB::insert('insert into f_search_history (user_id, title, created_at) values (?, ?, ?)', [$userId, $keyword, time()]);
             }
+
         } catch (\Exception $e) {
             Log::error(__FUNCTION__.' Exception: code:'.$e->getCode(). ' message:'.$e->getMessage());
         }
@@ -106,8 +106,9 @@ class SearchController extends BaseController
      */
     public function hotSearch()
     {
-        $data = $this->getHotSearch();
-        //shuffle($data);
+        $hot     = $this->getHotSearch();
+        $history = $this->getSearchHistory();
+        $data    = array_unique(array_merge($hot, $history));
         foreach ($data as $value) {
             $result['data'][] = ['title' => $value];
         }
@@ -127,8 +128,7 @@ class SearchController extends BaseController
         if (count($hot) != count($hot, 1)) {
             $hot = array_column($hot, 'title');
         }
-        $history = $this->getSearchHistory();
-        return array_unique(array_merge($hot, $history));
+        return $hot;
     }
 
     /**
