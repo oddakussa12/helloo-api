@@ -73,64 +73,65 @@ class PostTranslation implements ShouldQueue
      */
     public function handle()
     {
-        \Log::error('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-//        $exceptLanguages = array($this->postTitleLang , $this->postContentLang);
-//        $post = $this->post;
-//        $postTitle = $this->post_title;
-//        $postContent = $this->post_content;
-//        if(config('common.google_translation_version')=='v2')
-//        {
-//            $translate = app(TranslateService::class);
-//        }else{
-//            $translate = app(V3TranslateService::class);
-//        }
-//        $languages = $this->languages;
-//        foreach ($languages as $l)
-//        {
-//            if($l=='zh-HK')
-//            {
-//                continue;
-//            }else{
-//                $t = $l;
-//            }
-//            if(empty($postTitle)||$l==$this->postTitleLang||$this->postTitleDefaultLang=='und')
-//            {
-//                $title = $postTitle;
-//            }else{
-//                if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($postTitle))<=1024)
-//                {
+        $exceptLanguages = array($this->postTitleLang , $this->postContentLang);
+        $post = $this->post;
+        $postTitle = $this->post_title;
+        $postContent = $this->post_content;
+        if(config('common.google_translation_version')=='v2')
+        {
+            $translate = app(TranslateService::class);
+        }else{
+            $translate = app(V3TranslateService::class);
+        }
+        $languages = $this->languages;
+        foreach ($languages as $l)
+        {
+            if($l=='zh-HK')
+            {
+                continue;
+            }else{
+                $t = $l;
+            }
+            if(empty($postTitle)||$l==$this->postTitleLang||$this->postTitleDefaultLang=='und')
+            {
+                $title = $postTitle;
+            }else{
+                \Log::error($t);
+                if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($postTitle))<=1024)
+                {
 //                    $service = new TencentTranslateService();
 //                    $title = $service->translate($postTitle , array('source'=>$this->postTitleLang , 'target'=>$t));
 //                    if($title===false)
 //                    {
 //                        $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
 //                    }
-//                }else{
-//                    $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
-//                }
-//            }
-//
-//            if(empty($postContent)||$l==$this->postContentLang||$this->postContentDefaultLang=='und')
-//            {
-//                $content = $postContent;
-//            }else{
-//                if((($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))&&strlen(trim($postContent))<=1024)
-//                {
+                }else{
+                    $title = $translate->translate($postTitle , array('target'=>$t , 'resource'=>$this->postTitleLang));
+                }
+            }
+
+            if(empty($postContent)||$l==$this->postContentLang||$this->postContentDefaultLang=='und')
+            {
+                $content = $postContent;
+            }else{
+                \Log::error($t);
+                if((($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))&&strlen(trim($postContent))<=1024)
+                {
 //                    $service = new TencentTranslateService();
 //                    $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
 //                    if($content===false)
 //                    {
 //                        $content = $translate->translate($postContent , array('target'=>$t , 'resource'=>$this->postContentLang));
 //                    }
-//                }else {
-//                    $content = $translate->translate($postContent, array('target' => $t , 'resource'=>$this->postContentLang));
-//                }
-//            }
+                }else {
+                    $content = $translate->translate($postContent, array('target' => $t , 'resource'=>$this->postContentLang));
+                }
+            }
 //            $post->fill([
 //                "{$l}"  => ['post_title' => $title , 'post_content'=>$content],
 //            ]);
-//            $post->save();
-//        }
+////            $post->save();
+        }
 //        $post->fill([
 //            "zh-HK"  => ['post_title' => $post->translate('zh-TW')->post_title , 'post_content'=>$post->translate('zh-TW')->post_content],
 //        ]);
