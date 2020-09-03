@@ -73,6 +73,7 @@ class PostTranslation implements ShouldQueue
      */
     public function handle()
     {
+        \Log::error('start');
         $exceptLanguages = array($this->postTitleLang , $this->postContentLang);
         $post = $this->post;
         $postTitle = $this->post_title;
@@ -96,7 +97,7 @@ class PostTranslation implements ShouldQueue
             {
                 $title = $postTitle;
             }else{
-                \Log::error($t);
+//                \Log::error($t);
                 if((($this->postTitleLang=='zh-CN'&&$t=='en')||($this->postTitleLang=='en'&&$t=='zh-CN'))&&strlen(trim($postTitle))<=1024)
                 {
 //                    $service = new TencentTranslateService();
@@ -114,24 +115,26 @@ class PostTranslation implements ShouldQueue
             {
                 $content = $postContent;
             }else{
-                \Log::error($t);
+                \Log::error($t.'start');
                 if((($this->postContentLang=='zh-CN'&&$t=='en')||($this->postContentLang=='en'&&$t=='zh-CN'))&&strlen(trim($postContent))<=1024)
                 {
-//                    $service = new TencentTranslateService();
-//                    $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
-//                    if($content===false)
-//                    {
-//                        $content = $translate->translate($postContent , array('target'=>$t , 'resource'=>$this->postContentLang));
-//                    }
+                    $service = new TencentTranslateService();
+                    $content = $service->translate($postContent , array('source'=>$this->postContentLang , 'target'=>$t));
+                    if($content===false)
+                    {
+                        $content = $translate->translate($postContent , array('target'=>$t , 'resource'=>$this->postContentLang));
+                    }
                 }else {
                     $content = $translate->translate($postContent, array('target' => $t , 'resource'=>$this->postContentLang));
                 }
+                \Log::error($t.'end');
             }
 //            $post->fill([
 //                "{$l}"  => ['post_title' => $title , 'post_content'=>$content],
 //            ]);
 ////            $post->save();
         }
+        \Log::error('end');
 //        $post->fill([
 //            "zh-HK"  => ['post_title' => $post->translate('zh-TW')->post_title , 'post_content'=>$post->translate('zh-TW')->post_content],
 //        ]);
