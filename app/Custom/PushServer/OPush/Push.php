@@ -30,7 +30,12 @@ class Push
 
         //实例oppo
         $this->client = new oppoPush(config('push.oppo.appKey'), config('push.oppo.secret')); // AppKey 与 MasterSecret(非 AppSecret)
-        $this->authToken = $this->client->getAuthToken(); // 有效期24小时
+        try {
+            $this->authToken = $this->client->getAuthToken();// 有效期24小时
+        } catch (\Exception $e) {
+            Log::error(__CLASS__. '__construct Exception: code:'.$e->getCode().' message: '.$e->getMessage());
+        }
+
     }
 
     public function Send()
