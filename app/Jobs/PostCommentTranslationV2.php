@@ -57,6 +57,7 @@ class PostCommentTranslationV2 implements ShouldQueue
         {
             unset($languages[$index]);
         }
+        $postCommentData = array();
         foreach ($languages as $l)
         {
             if($l=='zh-HK')
@@ -82,14 +83,9 @@ class PostCommentTranslationV2 implements ShouldQueue
 //                }
                 $content = $translate->translate($commentContent , array('source'=>$language , 'target'=>$t));
             }
-            $postComment->fill([
-                "{$l}"  => ['comment_content' => $content],
-            ]);
-            $postComment->save();
+            $postCommentData[$l] = ['comment_content'=>$content];
         }
-        $postComment->fill([
-            "zh-HK"  => ['comment_content' => $postComment->translate('zh-TW')->comment_content],
-        ]);
+        $postComment->fill($postCommentData);
         $postComment->save();
     }
 }

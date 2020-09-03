@@ -122,14 +122,9 @@ class PostTranslationV2 implements ShouldQueue
 //                }
                 $content = $translate->translate($postContent, array('source'=>$this->postContentLang , 'target' => $t));
             }
-            $post->fill([
-                "{$l}"  => ['post_title' => $title , 'post_content'=>$content],
-            ]);
-            $post->save();
+            $postData[$l] = ['post_title' => $title , 'post_content'=>$content];
         }
-        $post->fill([
-            "zh-HK"  => ['post_title' => $post->translate('zh-TW')->post_title , 'post_content'=>$post->translate('zh-TW')->post_content],
-        ]);
+        $post->fill($postData);
         $post->save();
         $exceptLanguages = array_unique(array_diff($exceptLanguages , $languages));
         foreach ($exceptLanguages as $l)
