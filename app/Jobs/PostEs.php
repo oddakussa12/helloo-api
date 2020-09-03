@@ -32,7 +32,7 @@ class PostEs implements ShouldQueue
     public function handle()
     {
         $post = $this->post;
-        if ($this->type == 'creat') {
+        if ($this->type == 'create') {
             $post->create_at = optional($post->post_created_at)->toDateTimeString();
             $post->post_media = (!empty($post->post_type) && !empty($post->post_media)) ? postMedia($post->post_type, $post->post_media) : null;
 

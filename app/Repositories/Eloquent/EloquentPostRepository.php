@@ -219,9 +219,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $key = strval($topic);
         if($orderBy==='time')
         {
-            $topicKey = $key.'_rate';
-        }else{
             $topicKey = $key.'_new';
+        }else{
+            $topicKey = $key.'_rate';
         }
         $pageName = 'post_page';
         $perPage = 8;
@@ -755,9 +755,12 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $topics = array_filter($topics , function($v,$k){
             $v = str_replace(' ' , '' , $v);
+            $v = ltrim($v , "#");
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
         $topics = array_map(function($v){
+            $v = str_replace(' ' , '' , $v);
+            $v = ltrim($v , "#");
             return mb_substr($v , 0 , 30);
         } , $topics);
         $topics = array_slice($topics,0 , 9);

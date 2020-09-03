@@ -40,7 +40,7 @@ trait ResetsPasswords
 
     public function resetByPhone(Request $request)
     {
-        $user_phone = strval($request->input('user_phone' , ""));
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $code = strval($request->input('code'));
         $password = strval($request->input('password'));
