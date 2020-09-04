@@ -132,6 +132,20 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+
+    /**
+     * @return array|mixed
+     * 后台获取 热门话题
+     */
+    public function getHotTopic()
+    {
+        $key = 'hot_topic';
+        $result = Redis::get($key);
+
+        return $result ? json_decode($result, true) : [];
+
+    }
+
     /**
      * flag   1: 官方话题 2:后台可控话题  0: 用户热门话题(此处不需要处理)
      * sort          倒序排序

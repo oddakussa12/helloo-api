@@ -253,6 +253,7 @@ $api->group($V1Params , function ($api){
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
         $api->patch('bk/non_fine/{post}/post' , 'BackStageController@setNonFinePost')->name('bk.post.non_fine.update');
         $api->post('bk/set/topic/hot' , 'BackStageController@setHotTopic')->name('bk.set.topic.hot');
+        $api->get('bk/get/topic/hot' , 'BackStageController@getHotTopic')->name('bk.get.topic.hot');
         $api->post('bk/set/search/hot' , 'BackStageController@setHotSearch')->name('bk.set.search.hot');
     });
     $api->group(['middleware'=>['appAuth']] , function($api){
