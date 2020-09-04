@@ -124,7 +124,7 @@ class TopicController extends BaseController
         $key = 'hot_topic';
         $result = Redis::get($key);
 
-        if(empty($result)) {
+        /*if(empty($result)) {
             $topics = [
                 ['topic_content' => 'title1', 'sort'  => 3,'flag' => 1],
                 ['topic_content' => 'title2', 'sort'  => 1,'flag' => 1],
@@ -136,12 +136,10 @@ class TopicController extends BaseController
             $result = sortArrByManyField($topics,'flag',SORT_ASC,'sort',SORT_DESC);
             $result = json_encode($result, JSON_UNESCAPED_UNICODE);
             Redis::set($key, $result);
-        }
+        }*/
 
         $result = $result ? json_decode($result, true) : [];
-        $result = array_map(function($v){
-            unset($v['sort']);return $v;
-        }, $result);
+        $result = array_map(function($v){unset($v['sort']);return $v;}, $result);
 
         $hotDb  = $this->getHotByDb();
         $result = array_merge($result, $hotDb);
