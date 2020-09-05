@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Jobs\PostEs;
 use App\Models\Post;
 use Ramsey\Uuid\Uuid;
+use App\Models\Banner;
 use App\Custom\RedisList;
 use Illuminate\Http\Request;
 use App\Events\PostViewEvent;
@@ -12,6 +13,7 @@ use App\Jobs\PostTranslation;
 use App\Jobs\PostTranslationV2;
 use App\Resources\PostCollection;
 use App\Services\TranslateService;
+use App\Resources\BannerCollection;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Requests\StorePostRequest;
 use App\Services\AzureTranslateService;
@@ -380,6 +382,31 @@ class PostController extends BaseController
         });
         PostEs::dispatch($post , 'delete')->onQueue('post_es')->delay(now()->addSeconds(120));
         return $this->response->noContent();
+    }
+
+    public function banner()
+    {
+        $key = 'banner_index';
+        if(!Redis::exists($key))
+        {
+            $banners = Banner::where('status' , 1)->orderByDesc('sort')->limit(20)->select('sort' , 'type' , 'image' , 'value')->get();
+            if(!$banners->isEmpty())
+            {
+                Redis::set($key , \json_encode($banners , JSON_UNESCAPED_UNICODE));
+                Redis::expire($key , 86400);
+            }
+        }else{
+            $banners = collect(\json_decode(Redis::get($key) , true));
+        }
+        $locale = locale();
+        $banners = $banners->toArray();
+        foreach ($banners as $index=>$banner)
+        {
+            $image = \json_decode($banner['image'] , true);
+            $banners[$index]['image'] = isset($image[$locale])?$image[$locale]:'';
+        }
+        $banners = collect($banners);
+        return BannerCollection::collection($banners);
     }
 
     public function carousel()

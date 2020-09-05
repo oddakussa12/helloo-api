@@ -419,6 +419,10 @@ DOC;
 
     public function updateHiddenUsers($id, $user_id)
     {
+        $userHiddenUsersKey = 'user.'.$id.'.hidden.users';
+
+        Redis::sadd($userHiddenUsersKey , $user_id);
+
         $hiddenUsers = $this->hiddenUsers($id);
 
         if(!in_array($user_id , $hiddenUsers))
@@ -616,8 +620,9 @@ DOC;
 
     public function updateHiddenPosts($id, $post_uuid)
     {
+        $userHiddenPostsKey = 'user.'.$id.'.hidden.posts';
+        Redis::sadd($userHiddenPostsKey , $post_uuid);
         $hiddenPosts = $this->hiddenPosts($id);
-
         if(!in_array($post_uuid , $hiddenPosts))
         {
             array_push($hiddenPosts, $post_uuid);

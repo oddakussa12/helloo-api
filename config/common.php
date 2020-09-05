@@ -1,6 +1,7 @@
 <?php
 return [
     'online_domain'=>[
+        'elb.api.yooul.net',
         'api.yooul.net',
         'api.mmantou.cn',
     ],

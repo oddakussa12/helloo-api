@@ -33,6 +33,7 @@ $api->group($V1Params , function ($api){
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
+        $api->get('post/banner' , 'PostController@banner')->name('post.banner');
         $api->get('post/carousel' , 'PostController@carousel')->name('post.carousel');
         $api->get('post/fine' , 'PostController@fine')->name('post.fine');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
@@ -248,6 +249,7 @@ $api->group($V1Params , function ($api){
         $api->get('bk/essence/post' , 'BackStageController@getCustomEssencePost')->name('bk.post.essence.post');
         $api->patch('bk/essence/post/{post}' , 'BackStageController@setCustomEssencePost')->name('bk.post.essence.update');
         $api->patch('bk/carousel/post/{post}' , 'BackStageController@setCarousel')->name('bk.post.carousel.update');
+        $api->patch('bk/banner' , 'BackStageController@setBanner')->name('bk.banner.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');

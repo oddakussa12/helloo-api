@@ -93,6 +93,14 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function setBanner(Request $request)
+    {
+        $redis = new RedisList();
+        $key = 'banner_index';
+        $redis->delKey($key);
+        return $this->response->noContent();
+    }
+
     public function setCarousel(Request $request , $postUuid)
     {
         $locale = (string)$request->input('locale' , '');
