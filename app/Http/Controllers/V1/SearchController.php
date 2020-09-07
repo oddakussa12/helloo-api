@@ -42,18 +42,14 @@ class SearchController extends BaseController
         //截取20个字符
         $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
         $type   = $params['type'] ?? 0;
-        $flag   = $params['flag'] ?? '';
         switch ($type) {
             case 1: // 用户
-                if ($flag) return $this->searchUserIng($params);
                 $result = $this->searchUser($params);
                 break;
             case 2: // 帖子
-                if ($flag) return $this->searchPostIng($params);
                 $result = $this->searchPost($params);
                 break;
             case 3: // 话题
-                if ($flag) return $this->searchTopicIng($params);
                 $result = $this->searchTopic($params);
                 break;
             case 4:  // 输入中 ES suggest
@@ -62,15 +58,6 @@ class SearchController extends BaseController
                 return $result;
                 break;
             default: // 全部
-                if ($flag) {
-                    $result = $this->searchPostIng($params);
-                    $res = [
-                        'user'  => $this->searchUserIng($params),
-                        'topic' => $this->searchTopicIng($params)
-                    ];
-                    return $result->additional($res);
-                }
-
                 $result = $this->searchPost($params);
                 if ((!empty($params['page']) && $params['page']==1) || empty($params['page'])) {
                     $res = [
@@ -159,7 +146,7 @@ class SearchController extends BaseController
         $time       = time() - $expireTime;
         if (empty($result)) {
             $result = DB::select('SELECT count(1) num, title from f_search_history where created_at > ? GROUP by title ORDER BY num desc limit 5', [$time]);
-            $result = !empty($result) ? array_column($result, 'title') : [];
+            $result = $result ? array_column($result, 'title') : [];
             $result && Redis::set($key, json_encode($result, JSON_UNESCAPED_UNICODE), "nx", "ex", $expireTime);
         } else {
             $result = json_decode($result, true);
@@ -176,7 +163,7 @@ class SearchController extends BaseController
      */
     protected function searchUser($params, $limit=10)
     {
-        $user = (new Es($this->searchUser, ['limit'=>$limit]))->likeQuery($params);
+        $user = (new Es($this->searchUser, ['limit'=>$limit]))->likeQuery($params, true);
         $user = $user->appends($params);
         return UserSearchCollection::collection($user);
     }
@@ -184,13 +171,13 @@ class SearchController extends BaseController
     protected function searchUserIng($params, $limit=10)
     {
         $user = (new Es($this->searchUser, ['limit'=>$limit]))->suggest($params);
-        $user = !empty($user) ? array_slice($user, 0, 3) : [];
-        return UserSearchCollection::collection(collect($user));
+        return !empty($user) ? array_slice($user, 0, $limit) : [];
     }
+
 
     protected function searchPostIng($params, $limit=10)
     {
-        $filter = ['mustNot'=>['post_is_delete'=>1], 'limit'=>$limit];
+        $filter = ['mustNot'=>['post_is_delete'], 'limit'=>$limit];
         $result = (new Es($this->searchPost, $filter))->suggest($params);
         return ['data'=> $result];
     }
@@ -203,7 +190,7 @@ class SearchController extends BaseController
      */
     protected function searchPost($params, $limit=10) {
         $filter      = ['mustNot'=>['post_is_delete'=>1], 'limit'=>$limit];
-        $posts       = (new Es($this->searchPost, $filter))->likeQuery($params);
+        $posts       = (new Es($this->searchPost, $filter))->likeQuery($params, true);
 
         $userIds     = $posts->pluck('user_id')->all();
         $postIds     = $posts->pluck('post_id')->all();
@@ -232,7 +219,7 @@ class SearchController extends BaseController
      */
     protected function searchTopic($params, $limit=10)
     {
-        $topic = (new Es($this->searchTopic, ['limit'=>$limit]))->likeQuery($params);
+        $topic = (new Es($this->searchTopic, ['limit'=>$limit]))->likeQuery($params, true);
         $topic = $topic->appends($params);
         return TopicSearchPaginateCollection::collection($topic);
     }

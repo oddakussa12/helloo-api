@@ -168,7 +168,7 @@ class Es
 
     public function makeResult($data)
     {
-        return array_merge($data['_source'], ['id' => $data['_id']], isset($data['highlight']) ? ['.highlight' => $data['highlight']] : []);
+        return array_merge($data['_source'], ['id' => $data['post_id'] ?? $data['_id'],'_score'=>$data['_score']], isset($data['text']) ? ['text'=>$data['text']] : [], isset($data['highlight']) ? ['.highlight' => $data['highlight']] : []);
     }
 
     public function afterView($id)
@@ -188,8 +188,9 @@ class Es
             'body'  => array_merge_recursive($this->completion($keywords), ['query'=>['bool'=>$this->mustNotQuery($this->mustNot)]], $this->makePaginationCypher())
         ];
 
-        //dump(($query));
+        //(json_encode($query));
         $response = $this->client->search($query);
+
         return $this->makeAsSuggest($response);
     }
 
@@ -202,11 +203,7 @@ class Es
             foreach ($hit as $item) {
                 foreach ($item['options'] as $it) {
                     if(!empty($it['_source'])){
-                        if ($this->mIndex == 'topic') {
-                            $result[] = ['topic_content'=>$it['text']];
-                        } else {
-                            $result[] = array_merge($it['_source'], ['id' => $it['_id'], 'text'=>$it['text']]);
-                        }
+                        $result[] = $this->makeResult($it);
                     }
                 }
             }
@@ -218,17 +215,15 @@ class Es
     {
         $suggest = [];
         foreach ($this->likeColumns[$this->mIndex] as $v) {
-            $suggest = [
-                $v => [
-                    "prefix" => $keywords,
-                    "completion" => [
-                        "field" => $v.".suggest",
-                        "skip_duplicates"=> true
-                    ]
+            $suggest['suggest'][$v] = [
+                "prefix" => $keywords,
+                "completion" => [
+                    "field" => $v.".suggest",
+                    "skip_duplicates"=> true
                 ]
             ];
         }
-        return ['suggest'=> $suggest];
+        return $suggest;
 
     }
 
@@ -252,21 +247,51 @@ class Es
         return ['suggest'=> $suggest];
 
     }
-    public function likeQuery($request)
+
+    /**
+     * @param $request
+     * @param bool $suggest 是否启用联合suggest
+     * @return LengthAwarePaginator
+     * ES 分词匹配
+     */
+    public function likeQuery($request, $suggest=false)
     {
         $keywords = trim($request['keyword']);
         $query = [
             'index' => $this->mIndex,
-            'body' => array_merge([
+            'body'  => array_merge([
                 'query' => [
                     'bool' => array_merge_recursive($this->makeTermQuery($this->term), $this->mustNotQuery($this->mustNot), $this->makeLikeQuery($this->likeColumns[$this->mIndex], $keywords))
                 ]
             ], $this->makeOrderCypher(), $this->makePaginationCypher())
         ];
 
-        //dump(($query));
+        // 将联想词封入查询语句中
+        if($suggest) {
+            $query = array_merge_recursive($query, ['body'=>$this->completion($keywords)]);
+        }
+
+        //dump(json_encode($query));
+
         $response = $this->client->search($query);
-        return $this->makeAsGrid($response);
+        if ($suggest) {
+            // 联想词
+            $suggest = $this->makeAsSuggest($response);
+            $total   = $response['hits']['total']['value'];
+            // 正常数据
+            $result  = $this->makeAsList($response);
+            // 进行数据合并
+            $result  = array_merge($result, $suggest);
+
+            // 进行排序和去重处理
+            if(!empty($result) && !empty($suggest)) {
+                $result = sortArrByManyField($result, '_score', SORT_DESC);
+                $result = assoc_unique($result, 'id');
+            }
+            return $this->selfPaginator($result, $total);
+        } else {
+            return $this->makeAsGrid($response);
+        }
     }
 
     public function makeTermQuery($columns)
@@ -278,15 +303,9 @@ class Es
                 if ($v=='zh-TW') $v = 'tw';
             }
 
-            $must[] = [
-                'term' => [
-                    $this->makeColumn($k) => $v
-                ]
-            ];
+            $must[] = ['term' => [$this->makeColumn($k) => $v] ];
         }
-        return [
-            'must' => $must
-        ];
+        return ['must' => $must];
     }
 
     public function mustNotQuery($columns)
@@ -368,14 +387,21 @@ class Es
         $result = $this->makeAsList($response);
         $total = $response['hits']['total']['value'];
 
+        return $this->selfPaginator($result, $total);
         /*return new LengthAwarePaginator($result, $total, $this->limit, $this->page, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);*/
+
+    }
+
+    public function selfPaginator($result, $total)
+    {
         return $this->paginator(collect($result), $total, $this->limit, $this->page, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);
+
     }
 
 
