@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Custom\RedisList;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -121,22 +122,15 @@ class TopicController extends BaseController
      */
     public function hot()
     {
-        $key = 'hot_topic';
+        $key    = 'hot_topic';
         $result = Redis::get($key);
-
-        /*if(empty($result)) {
-            $topics = [
-                ['topic_content' => 'title1', 'sort'  => 3,'flag' => 1],
-                ['topic_content' => 'title2', 'sort'  => 1,'flag' => 1],
-                ['topic_content' => 'title0', 'sort'  => 2,'flag' => 1],
-                ['topic_content' => 'title5', 'sort'  => 4,'flag' => 2],
-                ['topic_content' => 'title6', 'sort'  => 6,'flag' => 2],
-                ['topic_content' => 'title4', 'sort'  => 5,'flag' => 2],
-            ];
+        $time   = Carbon::now();
+        if(empty($result)) {
+            $topics = DB::select('SELECT topic_content,flag,sort from f_hot_topics where is_delete<1 and (start_time > ? and end_time < ?) GROUP by topic_content ORDER BY flag asc sort desc limit 20', [$time, $time]);
             $result = sortArrByManyField($topics,'flag',SORT_ASC,'sort',SORT_DESC);
             $result = json_encode($result, JSON_UNESCAPED_UNICODE);
             Redis::set($key, $result);
-        }*/
+        }
 
         $result = $result ? json_decode($result, true) : [];
         $result = array_map(function($v){unset($v['sort']);return $v;}, $result);

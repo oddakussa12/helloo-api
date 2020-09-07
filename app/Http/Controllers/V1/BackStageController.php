@@ -169,7 +169,7 @@ class BackStageController extends BaseController
         if (count($topics) != count($topics, 1)) {
             $hotTopics = 'hot_topic';
             if (!empty($topics)) {
-                $topics = sortArrByManyField($topics, 'flag', SORT_DESC, 'sort', SORT_DESC);
+                $topics = sortArrByManyField($topics, 'flag', SORT_ASC, 'sort', SORT_DESC);
                 Redis::del($hotTopics);
                 Redis::set($hotTopics, json_encode($topics, JSON_UNESCAPED_UNICODE));
             }
