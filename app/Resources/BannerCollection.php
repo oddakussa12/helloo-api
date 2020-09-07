@@ -17,7 +17,7 @@ class BannerCollection extends Resource
         return [
             'sort' => $this->resource['sort'],
             'type' => $this->resource['type'],
-            'image' => $this->resource['image'],
+            'image' => config('common.qnUploadDomain.thumbnail_domain').$this->resource['image'],
             'value' => $this->resource['value'],
         ];
     }

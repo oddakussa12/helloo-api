@@ -20,7 +20,6 @@ return [
 		'ja',
 		'es',
 		'zh-TW',
-		'zh-HK',
 		'vi',
 		'th',
 		'fr',

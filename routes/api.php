@@ -250,6 +250,7 @@ $api->group($V1Params , function ($api){
         $api->patch('bk/essence/post/{post}' , 'BackStageController@setCustomEssencePost')->name('bk.post.essence.update');
         $api->patch('bk/carousel/post/{post}' , 'BackStageController@setCarousel')->name('bk.post.carousel.update');
         $api->patch('bk/banner' , 'BackStageController@setBanner')->name('bk.banner.update');
+        $api->patch('bk/event' , 'BackStageController@setEvent')->name('bk.event.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');
