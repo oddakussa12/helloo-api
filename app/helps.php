@@ -1095,10 +1095,55 @@ if (!function_exists('millisecond')) {
 }
 
 
+/**
+ * @return mixed|null
+ * PHP 数组按多个字段排序
+ */
+if (!function_exists('sortArrByManyField')) {
+    function sortArrByManyField()
+    {
+        $args = func_get_args(); // 获取函数的参数的数组
+        if (empty($args)) {
+            return null;
+        }
+        $arr = array_shift($args);
+        if (!is_array($arr)) {
+            return $arr;
+        }
+        foreach ($args as $key => $field) {
+            if (is_string($field)) {
+                $temp = array();
+                foreach ($arr as $index => $val) {
+                    $temp[$index] = $val[$field];
+                }
+                $args[$key] = $temp;
+            }
+        }
+        $args[] = &$arr; //引用值
+        call_user_func_array('array_multisort', $args);
+        return array_pop($args);
+    }
+}
 
+/**
+ * 数组按某一个字段去重
+ */
+if (!function_exists('assoc_unique')) {
+    function assoc_unique($arr, $key)
+    {
+        $tmp_arr = array();
+        foreach ($arr as $k => $v) {
+            if (in_array($v[$key], $tmp_arr)) {//搜索$v[$key]是否在$tmp_arr数组中存在，若存在返回true
+                unset($arr[$k]);
+            } else {
+                $tmp_arr[] = $v[$key];
+            }
+        }
+        sort($arr); //sort函数对数组进行排序
+        return $arr;
 
+    }
 
-
-
+}
 
 

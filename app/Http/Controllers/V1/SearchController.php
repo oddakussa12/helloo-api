@@ -13,6 +13,7 @@ use App\Resources\PostSearchPaginateCollection;
 use App\Resources\TopicSearchPaginateCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -41,25 +42,18 @@ class SearchController extends BaseController
         //截取20个字符
         $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
         $type   = $params['type'] ?? 0;
-
         switch ($type) {
             case 1: // 用户
-                return $this->searchUser($params);
+                $result = $this->searchUser($params);
                 break;
             case 2: // 帖子
-                return $this->searchPost($params);
+                $result = $this->searchPost($params);
                 break;
             case 3: // 话题
-                return $this->searchTopic($params);
-                break;
-            /*case 4: // 输入中
                 $result = $this->searchTopic($params);
-                $result  = $result->additional(['user'=>$this->searchUser($params, 3)]);
-                return $result;
-                break;*/
+                break;
             case 4:  // 输入中 ES suggest
                 $result = $this->searchTopicIng($params);
-                //$result = $this->searchPostIng($params);
                 $result['user'] = $this->searchUserIng($params, 3);
                 return $result;
                 break;
@@ -72,18 +66,52 @@ class SearchController extends BaseController
                     ];
                     $result = $result->additional($res);
                 }
-                return $result;
+        }
+
+        $data        = $result->items();
+        $resultUser  = !empty($result->additional['user'])  ? $result->additional['user']->resource->items()  : [];
+        $resultTopic = !empty($result->additional['topic']) ? $result->additional['topic']->resource->items() : [];
+        $resultPost  = !empty($result->additional['post'])  ? $result->additional['post']->resource->items()  : [];
+
+        //查询出数据时，搜索入库
+        if (!empty($data) || !empty($resultUser) || !empty($resultTopic) || !empty($resultPost)) {
+            $this->history($params);
+        }
+        return $result;
+    }
+
+    /**
+     * 插入搜索记录
+     * @param $params
+     */
+    protected function history($params)
+    {
+        try {
+            $userId  = auth()->user()->user_id;
+            $key     = "search_".$userId;
+            $today   = strtotime(date('Y-m-d'));
+            $keyword = mb_convert_case($params['keyword'], MB_CASE_LOWER, "UTF-8");
+            $value   = Redis::zscore($key, $keyword);
+            if (empty($value) || $value != $today) {
+                Redis::zremrangebyscore($key, 0, $today-1); // 删除小于今天的数据
+                Redis::zadd($key, $today, $keyword);
+                DB::insert('insert into f_search_history(user_id, title, created_at) values (?, ?, ?)', [$userId, $keyword, time()]);
+            }
+
+        } catch (\Exception $e) {
+            Log::error(__FUNCTION__.' Exception: code:'.$e->getCode(). ' message:'.$e->getMessage());
         }
     }
 
     /**
      * @return array
-     * 热门话题
+     * 热门搜索 主体
      */
     public function hotSearch()
     {
-        $data = $this->getHotSearch();
-        shuffle($data);
+        $hot     = $this->getHotSearch();
+        $history = $this->getSearchHistory();
+        $data    = array_unique(array_merge($hot, $history));
         foreach ($data as $value) {
             $result['data'][] = ['title' => $value];
         }
@@ -97,10 +125,34 @@ class SearchController extends BaseController
     protected function getHotSearch()
     {
         /** @var Redis $key */
-        $key  = 'hot_search';
-        $list = Redis::get($key);
-        return !empty($list) ? json_decode($list, true) : [];
+        $key     = 'hot_search';
+        $list    = Redis::get($key);
+        $hot     = !empty($list) ? json_decode($list, true) : [];
+        if (count($hot) != count($hot, 1)) {
+            $hot = array_column($hot, 'title');
+        }
+        return $hot;
+    }
 
+    /**
+     * @return array|mixed
+     * 查询搜索历史 先查缓存 后数据库
+     */
+    protected function getSearchHistory()
+    {
+        $key        = 'hot_search_history';
+        $result     = Redis::get($key);
+        $expireTime = 60*60*6*6;
+        $time       = time() - $expireTime;
+        if (empty($result)) {
+            $result = DB::select('SELECT count(1) num, title from f_search_history where created_at > ? GROUP by title ORDER BY num desc limit 5', [$time]);
+            $result = $result ? array_column($result, 'title') : [];
+            $result && Redis::set($key, json_encode($result, JSON_UNESCAPED_UNICODE), "nx", "ex", $expireTime);
+        } else {
+            $result = json_decode($result, true);
+        }
+
+        return $result ?? [];
     }
 
     /**
@@ -111,7 +163,7 @@ class SearchController extends BaseController
      */
     protected function searchUser($params, $limit=10)
     {
-        $user = (new Es($this->searchUser, ['limit'=>$limit]))->likeQuery($params);
+        $user = (new Es($this->searchUser, ['limit'=>$limit]))->likeQuery($params, true);
         $user = $user->appends($params);
         return UserSearchCollection::collection($user);
     }
@@ -119,9 +171,9 @@ class SearchController extends BaseController
     protected function searchUserIng($params, $limit=10)
     {
         $user = (new Es($this->searchUser, ['limit'=>$limit]))->suggest($params);
-        $user = !empty($user) ? array_slice($user, 0, 3) : [];
-        return UserSearchCollection::collection(collect($user));
+        return !empty($user) ? array_slice($user, 0, $limit) : [];
     }
+
 
     protected function searchPostIng($params, $limit=10)
     {
@@ -137,8 +189,8 @@ class SearchController extends BaseController
      * 搜索帖子
      */
     protected function searchPost($params, $limit=10) {
-        $filter      = ['term'=>['post_locale'=>locale()], 'mustNot'=>['post_is_delete'], 'limit'=>$limit];
-        $posts       = (new Es($this->searchPost, $filter))->likeQuery($params);
+        $filter      = ['mustNot'=>['post_is_delete'=>1], 'limit'=>$limit];
+        $posts       = (new Es($this->searchPost, $filter))->likeQuery($params, true);
 
         $userIds     = $posts->pluck('user_id')->all();
         $postIds     = $posts->pluck('post_id')->all();
@@ -167,7 +219,7 @@ class SearchController extends BaseController
      */
     protected function searchTopic($params, $limit=10)
     {
-        $topic = (new Es($this->searchTopic, ['limit'=>$limit]))->likeQuery($params);
+        $topic = (new Es($this->searchTopic, ['limit'=>$limit]))->likeQuery($params, true);
         $topic = $topic->appends($params);
         return TopicSearchPaginateCollection::collection($topic);
     }

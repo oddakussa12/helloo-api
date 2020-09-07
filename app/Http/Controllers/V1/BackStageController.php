@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\RedisList;
 use App\Traits\CachableUser;
+use Dingo\Api\Http\Response;
 use Illuminate\Http\Request;
 use App\Events\PostCommentDeleted;
 use Illuminate\Support\Facades\Redis;
@@ -147,30 +148,69 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+
+    /**
+     * @return array|mixed
+     * 后台获取 热门话题
+     */
+    public function getHotTopic()
+    {
+        $key = 'hot_topic';
+        $result = Redis::get($key);
+
+        return $result ? json_decode($result, true) : [];
+
+    }
+
+    /**
+     * flag   1: 官方话题 2:后台可控话题  0: 用户热门话题(此处不需要处理)
+     * sort          倒序排序
+     * topic_content 标题
+     *
+     * @return Response
+     * 后台设置热门话题
+     */
     public function setHotTopic()
     {
         $topics = \json_decode(request()->input('topics' , '') , true);
-        $hotTopics = 'hot_topic';
-        if(!empty($topics))
-        {   $now = time();
-            Redis::del($hotTopics);
-            array_walk($topics , function($item , $index) use ($hotTopics , $now){
-                $key = strval($item);
-                Redis::zadd($hotTopics , $now , $key);
-            });
+        if (count($topics) != count($topics, 1)) {
+            $hotTopics = 'hot_topic';
+            if (!empty($topics)) {
+                $topics = sortArrByManyField($topics, 'flag', SORT_ASC, 'sort', SORT_DESC);
+                Redis::del($hotTopics);
+                Redis::set($hotTopics, json_encode($topics, JSON_UNESCAPED_UNICODE));
+            }
         }
         return $this->response->noContent();
     }
 
+    /**
+     * @return Response
+     * 设置热门搜索
+     */
     public function setHotSearch()
     {
+        /*$titles = [
+            ['title' => 'title1', 'sort'  => 3],
+            ['title' => 'title2', 'sort'  => 1],
+            ['title' => 'title0', 'sort'  => 2],
+            ['title' => 'title5', 'sort'  => 4],
+            ['title' => 'title6', 'sort'  => 6],
+            ['title' => 'title4', 'sort'  => 5],
+        ];*/
+
         $titles = \json_decode(request()->input('titles' , '') , true);
+
+        if (count($titles) != count($titles, 1)) {
+            $titles = collect($titles)->sortByDesc('sort')->toArray();
+        }
+
         $hotSearch = 'hot_search';
-        if(!empty($titles))
-        {
+        if(!empty($titles)) {
             Redis::del($hotSearch);
-            Redis::set($hotSearch,json_encode($titles, JSON_UNESCAPED_UNICODE));
+            Redis::set($hotSearch, json_encode($titles, JSON_UNESCAPED_UNICODE));
         }
         return $this->response->noContent();
     }
+
 }

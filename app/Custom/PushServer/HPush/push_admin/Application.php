@@ -44,6 +44,8 @@ class Application
 
     private $fields;
 
+    private $accesstoken;
+
 
     public function __construct($appid, $appsecret, $hw_token_server, $hw_push_server)
     {
@@ -54,6 +56,9 @@ class Application
         $this->token_expiredtime = null;
         $this->accesstoken = null;
         $this->validate_only = false;
+
+        $this->printLogMethodOperate("appid:$appid  appsecret:$appsecret token_server:$hw_token_server push_server:$hw_push_server", __FUNCTION__ . ':' . __LINE__);
+
     }
 
     public function appid($value)
@@ -94,10 +99,10 @@ class Application
     private function printLogMethodOperate($dataFlow, $functionName = "", $logLevel = Constants::HW_PUSH_LOG_INFO_LEVEL)
     {
         if (empty($functionName)) {
-            \Log::info('HPush Log:', ['[' . __CLASS__ . ']' , $dataFlow, $logLevel]);
+            //\Log::info('HPush Log:', ['[' . __CLASS__ . ']' , $dataFlow, $logLevel]);
             //PushLogConfig::getSingleInstance()->LogMessage();
         } else {
-            \Log::info('HPush Log:', ['[' . __CLASS__ . ']' . '[' . $functionName . ']', $dataFlow, $logLevel]);
+            //\Log::info('HPush Log:', ['[' . __CLASS__ . ']' . '[' . $functionName . ']', $dataFlow, $logLevel]);
             //PushLogConfig::getSingleInstance()->LogMessage('[' . __CLASS__ . ']' . '[' . $functionName . ']' . $dataFlow, $logLevel);
         }
     }

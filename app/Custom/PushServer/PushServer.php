@@ -4,6 +4,7 @@ namespace App\Custom\PushServer;
 use App\Custom\PushServer\HPush\Push as HPush;
 use App\Custom\PushServer\Fcm\Push as FcmPush;
 use App\Custom\PushServer\MiPush\Push as MiPush;
+use App\Custom\PushServer\OPush\Push as OPush;
 use Illuminate\Support\Facades\Log;
 
 class PushServer
@@ -20,19 +21,21 @@ class PushServer
 
     public function Send()
     {
+        Log::info(__FUNCTION__.' params:', $this->params);
+        $deviceBrand = strtolower($this->params['deviceBrand']);
         if ($this->params['registerType'] == 'fcm') {
             $this->fcmPush();
         } else {
-            if ($this->params['deviceBrand'] == 'huawei') {
+            if (in_array($deviceBrand, ['huawei', 'honer'])) {
                 $this->huaweiPush();
             }
-            if ($this->params['deviceBrand'] == 'xiaomi') {
+            if ($deviceBrand == 'xiaomi') {
                 $this->xiaomiPush();
             }
-            if ($this->params['deviceBrand'] == 'oppo') {
+            if ($deviceBrand == 'oppo') {
                 $this->oppoPush();
             }
-            if ($this->params['deviceBrand'] == 'vivo') {
+            if ($deviceBrand == 'vivo') {
 
             }
         }
@@ -105,7 +108,8 @@ class PushServer
                 return false;
             }
         } catch (\Exception $e) {
-            Log::error('Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
+            Log::error('Push message Exception'.__FUNCTION__.'code:'.$e->getCode(). 'msg:'. $e->getMessage());
+            return false;
         }
     }
 }

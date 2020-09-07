@@ -16,17 +16,19 @@ class Push
     private $token;
     private $image;
     private $intent;
+    private $extras;
     private $color;
 
     public function __construct($params)
     {
-        $this->title   = array_get($params,   'title', '这是一条mipush推送消息');
-        $this->desc    = array_get($params,  'title', '这是一条mipush推送消息');
+        $this->title   = array_get($params,   'title');
+        $this->desc    = array_get($params,  'title');
         $this->payload = array_get($params,  'payload', '{"test":1,"ok":"It\'s a string"}');
         $this->token   = array_get($params, 'registrationId');
+        $this->extras  = array_get($params,  'extras');
         $this->type    = 1;
         $this->color   = '#AACCDD';
-        $this->intent  = '#Intent;compo=com.rvr/.Activity;S.W=U;end';
+        $this->intent  = 'intent://com.yooul/deeplink?#Intent;scheme=pushscheme;launchFlags=0x4000000;S.type=';
         $this->image   = 'https=>//res.vmallres.com/pimages//common/config/logo/SXppnESYv4K11DBxDFc2_0.png';
     }
 
@@ -44,14 +46,14 @@ class Push
                     "color"       => $this->color,
                     "click_action"=> [
                         "type"    => $this->type,
-                        "intent"  => $this->intent,
+                        "intent"  => $this->intent.$this->extras['type'].";end",
                     ]
                 ]
             ],
             "token" => [$this->token]
         ];
 
-        $application = new Application(env('HW_APPID'), env('HW_APPSECRET'), env('HW_TOKEN_SERVER'), env('HW_PUSH_SERVER'));
+        $application = new Application(config('push.huawei.appId'), config('push.huawei.secret'), config('push.huawei.token_server'), config('push.huawei.push_server'));
         $result = $application->push_send_msg($message);
 
         $result = is_object($result) ? json_decode(json_encode($result), true) : $result;

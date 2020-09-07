@@ -80,6 +80,9 @@ class ESinit extends Command
             } else if ($param == 'userdata') {
                 $this->userDataInit();
                 $this->info('============create userDataInit success============');
+            } else if ($param == 'postdatadelete') {
+                $this->postDataDelete();
+                $this->info('============delete postDataDelete success============');
             }
 
 
@@ -246,7 +249,6 @@ class ESinit extends Command
                         'user_birthday' => [
                             'type' => 'text',
                         ]
-
                     ]
                 ]
             ]
@@ -254,11 +256,26 @@ class ESinit extends Command
     }
 
     /**
+     * 逻辑删除 post数据
+     */
+    public function postDataDelete()
+    {
+        $countSql = "SELECT count(1) num FROM f_posts where post_deleted_at is not null ORDER BY post_id asc ";
+        $limitSql = "SELECT post_id FROM f_posts where post_deleted_at is not null ORDER BY post_id asc ";
+
+        $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.post'), 'post_id');
+    }
+
+    /**
      * post数据导入
      */
     public function postDataInit()
     {
-        $where = " WHERE p.post_id<=675441 and p.post_id>670000";
+        $where = " p.post_id>701191";
+        //$where = " p.post_id<=701191 and p.post_id>701607";
+        //$where = " WHERE p.post_id<=701191 and p.post_id>691341";
+        //$where = " WHERE p.post_id<=691341 and p.post_id>675441";
+        //$where = " WHERE p.post_id<=675441 and p.post_id>670000";
         //$where = " WHERE p.post_id<=670000 and p.post_id>600000";
         //$where = " WHERE p.post_id<=600000 and p.post_id>550000";
         //$where = " WHERE p.post_id<=550000 and p.post_id>500000";
@@ -276,7 +293,8 @@ class ESinit extends Command
         $countSql = "SELECT count(1) num
                     FROM f_posts_translations t
                     inner join f_posts p on p.post_id = t.post_id
-                    $where
+                    where post_deleted_at is not null
+                    $where 
                     ORDER BY t.post_id desc";
 
         $limitSql = "SELECT p.post_id,p.post_uuid,p.user_id,p.post_category_id,p.post_media,p.post_content_default_locale,p.post_type,
@@ -284,6 +302,7 @@ class ESinit extends Command
                     p.post_created_at as create_at
                     FROM f_posts_translations t
                     inner join f_posts p on p.post_id = t.post_id
+                    where post_deleted_at is not null
                     $where
                     ORDER BY t.post_id desc ";
 
@@ -308,13 +327,14 @@ class ESinit extends Command
         $this->dataInit($countSql, $limitSql, config('scout.elasticsearch.topic'));
     }
 
-    public function dataInit($countSql, $limitSql, $index)
+    public function dataInit($countSql, $limitSql, $index, $delete=false)
     {
         dump('防止误操作，停止执行导入操作。');
         return;
-
-        dump('开始插入数据');
+        dump($countSql, $limitSql, $index, $delete);
+        dump($delete ? '开始删除数据' :'开始插入数据');
         set_time_limit(0);
+        ini_set('memory_limit','2048M');
 
         $countResult = DB::select($countSql);
 
@@ -341,9 +361,19 @@ class ESinit extends Command
             sleep(1);
 
             if ($result) {
-                $data = (new Es($index))->batchCreate($result);
-                if ($data==null) {
-                    (new Es($index))->batchCreate($result);
+                // 插入
+                if ($delete==false) {
+                    $data = (new Es($index))->batchCreate($result);
+                    if ($data==null) {
+                        (new Es($index))->batchCreate($result);
+                    }
+                } else {
+                    // 删除
+                    $ids = array_column($result, 'post_id');
+                    $data = (new Es($index, ['updateField'=>['post_is_delete'=>3]]))->update($ids, $delete);
+                    if ($data==null) {
+                        (new Es($index, ['updateField'=>['post_is_delete'=>3]]))->update($ids, $delete);
+                    }
                 }
             }
             if (in_array($offset, $total)) {
