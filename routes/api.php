@@ -26,10 +26,10 @@ $V1Params = [
 ];
 
 $api->group($V1Params , function ($api){
-    $api->group(['middleware'=>['guestRefresh' , 'operationLog']] , function($api){
-
-        $api->resource('post', 'PostController', ['only' => ['index']]);
-        $api->patch('post/{uuid}', 'PostController@update');
+    $api->group(['middleware'=>['guestRefresh']] , function($api){
+        $api->group(['middleware'=>'operationLog'] , function ($api){
+            $api->resource('post', 'PostController', ['only' => ['index']]);
+        });
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
@@ -37,25 +37,10 @@ $api->group($V1Params , function ($api){
         $api->get('post/carousel' , 'PostController@carousel')->name('post.carousel');
         $api->get('post/fine' , 'PostController@fine')->name('post.fine');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
-//        $api->post('post/autopost' , 'PostController@autoStorePost')->name('post.auto.store.post');
 
-//        $api->post('login/oauth/callback', 'AuthController@handleProviderCallback')->name('oauth.login');
         $api->get('postComment/more/{commentTopId}' , 'PostCommentController@moreComment')->name('show.more.comment');
         $api->get('postComment/locate/{commentId}' , 'PostCommentController@locateComment')->name('show.locate.comment');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
-
-//        $api->resource('category' , 'CategoryController');
-
-//        $api->resource('pychat', 'PyChatController', ['only' => ['store']]);
-//        $api->post('pychat/translation', 'PyChatController@store');
-//
-//        $api->post('pychat/chatimageinsert', 'PyChatController@chatImageStore');
-        //聊天房间添加
-//        $api->resource('pychatroom', 'PyChatRoomController',['only' => ['store']]);
-//
-//        $api->post('pychat/showmessage/user', 'PyChatController@showMessageByUserId')->name('show.message.by.userid');
-        //获取房间内聊天记录
-//        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
 
         // 搜索功能-ES
         $api->get('search', 'SearchController@index')->name('aggregation.search');
@@ -91,7 +76,7 @@ $api->group($V1Params , function ($api){
 //    $api->get('auth/smsCode' , 'AuthController@smsSend')->name('auth.sms.send');
 
 
-    $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
+    $api->group(['middleware'=>['refresh']] , function($api){
 
         /*****我关注的话题 开始*****/
         $api->get('topic/myFollow', 'TopicController@myFollow')->name('my.follow.topic');
@@ -198,7 +183,7 @@ $api->group($V1Params , function ($api){
         $api->post('device/update', 'DeviceController@update')->name('device.update');
 
     });
-    $api->group(['middleware'=>['guestRefresh' , 'operationLog']] , function($api){
+    $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->get('user/userranking' , 'UserController@rank')->name('user.rank');
 
         $api->get('postComment/user/{user}' , 'PostCommentController@showPostCommentByUser')->name('show.comment.by.user');
@@ -213,13 +198,11 @@ $api->group($V1Params , function ($api){
         $api->resource('user' , 'UserController' , ['only' => ['show']]);
     });
     $api->post('message/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
-    $api->post('message/push' , 'PrivateMessageController@push')->name('message.push');
+
     $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
 
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
     $api->get('device', 'DeviceController@index');
-    $api->get('device/test', 'DeviceController@test');
-
 
 //    $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend');
     $api->get('user/{user}/type/{type}' , 'AuthController@accountExists')->where('type', 'email|name|phone|nick_name')->name('user.account.exists');

@@ -10,8 +10,6 @@ namespace App\Resources;
 
 use App\Traits\CachableUser;
 use Illuminate\Http\Resources\Json\Resource;
-use App\Repositories\Contracts\PostRepository;
-use App\Repositories\Contracts\PostCommentRepository;
 
 class UserCollection extends Resource
 {
@@ -80,7 +78,7 @@ class UserCollection extends Resource
                     
                     'user_profile_like_num'=>$this->user_profile_like_num,
                     'user_picture'=>$this->user_picture_link,
-                    'userTags'=> UserTagCollection::collection($this->tags),
+                    'userTags'=> UserTagCollection::collection($this->user_tags),
                 ]);
             }),
         ];
