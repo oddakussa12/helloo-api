@@ -775,7 +775,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             array_walk($topics , function($item , $index) use ($topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
                 $key = strval($item);
                 Redis::zincrby($topicPostCountKey , 1 , $key);
-//                    $pipe->zadd($topicNewKey , $now , $key);
                 Redis::zadd($key."_new" , $now , $postId);
                 Redis::zadd($key."_rate" , $firstRate , $postId);
                 $userTopicKey = 'user.'.$userId.'.topics';

@@ -18,9 +18,9 @@ class PostPaginateCollection extends Resource
             'post_uuid' => $this->post_uuid,
             'post_media' => $this->when(true , function () use ($request){
                 $media = $this->post_mutation_media;
-                if($request->routeIs('topic.post'))
+                if($request->routeIs('topic.post')&&$this->post_type=='video')
                 {
-                    $media = $media==null?"{}":$media;
+                    $media['image']['image_url'] = [];
                 }
                 return $media;
             }),

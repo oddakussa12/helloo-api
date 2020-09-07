@@ -1,44 +1,29 @@
 <?php
 
 namespace App\Http\Controllers\V1;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class EventController extends BaseController
 {
     //
     public function index()
     {
-        $events = config('events');
-        $event = isset($events[0])?$events[0]:'default';
-        $contents = \Storage::get('events/'.$event.'.json');
-        $contents = \json_decode($contents);
-        return response()->json($contents);
-    }
-
-    public function roomTopic(Request $request)
-    {
-        $lang = locale();
-        $topicTitleFile = 'events/topicTitle.json';
-        $topicContentFile = 'events/topicContent'.date('Ymd',time()).'.json';
-        $topicContentDefault= 'events/topicContentDefault.json';
-        $topic = '......';
-        if(\Storage::exists($topicContentFile)&&\Storage::exists($topicTitleFile))
+        $key = 'event_index';
+        if(!Redis::exists($key))
         {
-            $topicTitle = \Storage::get($topicTitleFile);
-            $topicTitle = \json_decode($topicTitle);
-            $topicContent = \Storage::get($topicContentFile);
-            $topicContent = \json_decode($topicContent);
-            $topic = $topicTitle->$lang.$topicContent->$lang;
-            return response()->json($topic);
-        }else if(\Storage::exists($topicContentDefault)&&\Storage::exists($topicTitleFile)){
-            $topicTitle = \Storage::get($topicTitleFile);
-            $topicTitle = \json_decode($topicTitle);
-            $topicContentDefault = \Storage::get($topicContentDefault);
-            $topicContentDefault = \json_decode($topicContentDefault);
-            $topic = $topicTitle->$lang.$topicContentDefault->$lang;
-            return response()->json($topic);
+            $event = \DB::table('events')->where('status' , 1)->orderByDesc('sort')->select('name' , 'sort' , 'type' , 'image' , 'value')->first();
+            if(!blank($event))
+            {
+                Redis::set($key , \json_encode($event , JSON_UNESCAPED_UNICODE));
+                Redis::expire($key , 86400);
+            }
+        }else{
+            $event = \json_decode(Redis::get($key));
         }
-        return response()->json($topic);
+        $locale = locale();
+        $event->image = empty($event->image)?'':(\json_decode($event->image , true))[$locale];
+        return $this->response->array((array)$event);
     }
-    
 }

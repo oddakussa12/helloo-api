@@ -282,6 +282,7 @@ class UserController extends BaseController
         if($request->has('country')&&$user_gender!==null)
         {
             $user = $this->user->randDiffRyOnlineUserV2();
+            $user->user_country_id = $this->getUser($user->getKey() , 'user_country_id');
             return new UserCollection($user);
         }else{
             $userId = intval($this->user->randDiffRyOnlineUser());

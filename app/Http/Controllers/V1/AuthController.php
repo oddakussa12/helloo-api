@@ -4,7 +4,6 @@ namespace App\Http\Controllers\V1;
 
 use App\Jobs\Sms;
 use App\Jobs\Device;
-use App\Models\User;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
