@@ -42,24 +42,35 @@ class SearchController extends BaseController
         //截取20个字符
         $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
         $type   = $params['type'] ?? 0;
-
+        $flag   = $params['flag'] ?? '';
         switch ($type) {
             case 1: // 用户
+                if ($flag) return $this->searchUserIng($params);
                 $result = $this->searchUser($params);
                 break;
             case 2: // 帖子
+                if ($flag) return $this->searchPostIng($params);
                 $result = $this->searchPost($params);
                 break;
             case 3: // 话题
+                if ($flag) return $this->searchTopicIng($params);
                 $result = $this->searchTopic($params);
                 break;
             case 4:  // 输入中 ES suggest
                 $result = $this->searchTopicIng($params);
-                //$result = $this->searchPostIng($params);
                 $result['user'] = $this->searchUserIng($params, 3);
                 return $result;
                 break;
             default: // 全部
+                if ($flag) {
+                    $result = $this->searchPostIng($params);
+                    $res = [
+                        'user'  => $this->searchUserIng($params),
+                        'topic' => $this->searchTopicIng($params)
+                    ];
+                    return $result->additional($res);
+                }
+
                 $result = $this->searchPost($params);
                 if ((!empty($params['page']) && $params['page']==1) || empty($params['page'])) {
                     $res = [
@@ -179,7 +190,7 @@ class SearchController extends BaseController
 
     protected function searchPostIng($params, $limit=10)
     {
-        $filter = ['mustNot'=>['post_is_delete'], 'limit'=>$limit];
+        $filter = ['mustNot'=>['post_is_delete'=>1], 'limit'=>$limit];
         $result = (new Es($this->searchPost, $filter))->suggest($params);
         return ['data'=> $result];
     }
@@ -191,7 +202,7 @@ class SearchController extends BaseController
      * 搜索帖子
      */
     protected function searchPost($params, $limit=10) {
-        $filter      = ['term'=>['post_locale'=>locale()], 'mustNot'=>['post_is_delete'], 'limit'=>$limit];
+        $filter      = ['mustNot'=>['post_is_delete'=>1], 'limit'=>$limit];
         $posts       = (new Es($this->searchPost, $filter))->likeQuery($params);
 
         $userIds     = $posts->pluck('user_id')->all();

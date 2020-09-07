@@ -292,12 +292,12 @@ class Es
     public function mustNotQuery($columns)
     {
         $must = [];
-        foreach ($columns as $v) {
-            $must[] = [
-                'exists' => [
-                    'field' => $v
-                ]
-            ];
+        foreach ($columns as $k=>$v) {
+            if (is_int($k)) {
+                $must[] = ['term' => ['field' => $v]];
+            } else {
+                $must[] = ['term' => [$k => $v]];
+            }
         }
         return [
             'must_not' => $must
