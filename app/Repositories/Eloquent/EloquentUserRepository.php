@@ -61,9 +61,58 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where(array('user_'.$oauth=>$id))->first();
     }
 
+    public function findOtherMyFollow($userId)
+    {
+        $followerIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['followable_id'] , 'follow_page');
+
+        $userIds = $followerIds->pluck('followable_id')->all(); //获取分页user id
+
+        $followers = $this->findByMany($userIds);
+
+        $authFollowers = $this->userFollow($userIds);
+
+        $followerIds->each(function ($item, $key) use ($followers , $authFollowers) {
+            $item->user = $followers->where('user_id' , $item->followable_id)->first();
+        });
+
+        $followerIds = $followerIds->filter(function ($item, $key){
+            return !blank($item->user);
+        });
+
+        $followerIds->each(function ($item, $key) use ($authFollowers) {
+            $item->user->user_follow_state = in_array($item->followable_id , $authFollowers);
+        });
+
+        return $followerIds;
+    }
+
+    public function findOtherFollowMe($userId)
+    {
+        $followerIds = DB::table('common_follows')->where('followable_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['user_id'] , 'follow_page');
+
+        $userIds = $followerIds->pluck('user_id')->all(); //获取分页user id
+
+        $followers = $this->findByMany($userIds);
+
+        $followerIds->each(function ($item, $key) use ($followers) {
+            $item->user = $followers->where('user_id' , $item->user_id)->first();
+        });
+
+        $followerIds = $followerIds->filter(function ($item, $key){
+            return !blank($item->user);
+        });
+
+        $followedIds = $this->userFollow($userIds);
+
+        $followerIds->each(function ($item, $key) use ($followedIds) {
+            $item->user->user_follow_state = in_array($item->user_id , $followedIds);
+        });
+        return $followerIds;
+    }
+
     public function findMyFollow($userId)
     {
-        $followerIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->paginate(15 , ['followable_id'] , 'follow_page');
+        $followerIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['followable_id'] , 'follow_page');
 
         $userIds = $followerIds->pluck('followable_id')->all(); //获取分页user id
 
@@ -81,14 +130,9 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $followerIds;
     }
 
-    public function findByWhere($where)
-    {
-        return $this->model->where($where)->first();
-    }
-
     public function findFollowMe($userId)
     {
-        $followerIds = DB::table('common_follows')->where('followable_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->paginate(15 , ['user_id'] , 'follow_page');
+        $followerIds = DB::table('common_follows')->where('followable_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['user_id'] , 'follow_page');
 
         $userIds = $followerIds->pluck('user_id')->all(); //获取分页user id
 
@@ -102,13 +146,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             return !blank($item->user);
         });
 
-        //$followerIds = userFollow($userIds);//重新获取当前登录用户信息
-        $followedIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->whereIn('followable_id' , $userIds)->select('followable_id')->pluck('followable_id')->all();
+        $followedIds = $this->userFollow($userIds);//重新获取当前登录用户信息
 
         $followerIds->each(function ($item, $key) use ($followedIds) {
             $item->user->user_follow_state = in_array($item->user_id , $followedIds);
         });
         return $followerIds;
+    }
+
+    public function findByWhere($where)
+    {
+        return $this->model->where($where)->first();
     }
 
     public function getUserRank()
@@ -371,6 +419,10 @@ DOC;
 
     public function updateHiddenUsers($id, $user_id)
     {
+        $userHiddenUsersKey = 'user.'.$id.'.hidden.users';
+
+        Redis::sadd($userHiddenUsersKey , $user_id);
+
         $hiddenUsers = $this->hiddenUsers($id);
 
         if(!in_array($user_id , $hiddenUsers))
@@ -378,6 +430,7 @@ DOC;
             array_push($hiddenUsers, $user_id);
         }
         Redis::hset('user.'.$id.'.data', 'hiddenUsers', json_encode($hiddenUsers));
+
         return $hiddenUsers;
     }
 
@@ -567,8 +620,9 @@ DOC;
 
     public function updateHiddenPosts($id, $post_uuid)
     {
+        $userHiddenPostsKey = 'user.'.$id.'.hidden.posts';
+        Redis::sadd($userHiddenPostsKey , $post_uuid);
         $hiddenPosts = $this->hiddenPosts($id);
-
         if(!in_array($post_uuid , $hiddenPosts))
         {
             array_push($hiddenPosts, $post_uuid);

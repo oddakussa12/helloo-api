@@ -25,13 +25,13 @@ class NiuTranslateService
 
     private $client;
 
-    private $connect_timeout = 10;
+    private $connect_timeout = 5;
 
     private $debug = false;
 
     private $decode_content = true;
 
-    private $timeout = 20;
+    private $timeout = 10;
 
     private $params = array();
 

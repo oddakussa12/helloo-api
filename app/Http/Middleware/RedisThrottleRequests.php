@@ -75,16 +75,17 @@ class RedisThrottleRequests extends Throttle
     protected function calculateUsedAttempts($key , $period)
     {
         $this->now = $now = millisecond();   # 毫秒时间戳
-        Redis::multi(); //使用管道提升性能
-        Redis::zadd($key, $now, $now); //value 和 score 都使用毫秒时间戳
-        Redis::zremrangebyscore($key, 0, $now - $period * 1000); //移除时间窗口之前的行为记录，剩下的都是时间窗口内的
-        Redis::zcard($key);  //获取窗口内的行为数量
-        Redis::zrangebyscore($key , "-inf" , "+inf" , array(
+        $redis = Redis::connection('single');
+        $redis->multi(); //使用管道提升性能
+        $redis->zadd($key, $now, $now); //value 和 score 都使用毫秒时间戳
+        $redis->zremrangebyscore($key, 0, $now - $period * 1000); //移除时间窗口之前的行为记录，剩下的都是时间窗口内的
+        $redis->zcard($key);  //获取窗口内的行为数量
+        $redis->zrangebyscore($key , "-inf" , "+inf" , array(
             'withScores'=>true,
             'limit'=>array(0,1)
         ));
-        Redis::expire($key, $period  + 1);  //多加一秒过期时间
-        $replies = Redis::exec();
+        $redis->expire($key, $period  + 1);  //多加一秒过期时间
+        $replies = $redis->exec();
         return array('count'=>intval($replies[2]) , 'first'=>array_first($replies[3]));
     }
 

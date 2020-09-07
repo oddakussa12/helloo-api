@@ -117,7 +117,7 @@ class User extends Authenticatable implements JWTSubject
             'user_id'           => $this->user_id,
             'user_name'         => $this->user_name,
             'user_nick_name'    => $this->user_nick_name  ?? '',
-            'user_avatar'       => $this->user_avatar     ?? 'userdefalutavatar.jpg',
+            'user_avatar'       => $this->user_avatar     ?? 'default_avatar.jpg',
             'user_country_id'   => $this->user_country_id ?? '',
             'user_gender'       => $this->user_gender     ?? -1,
             'user_about'        => $this->user_about      ?? '',
@@ -141,7 +141,7 @@ class User extends Authenticatable implements JWTSubject
     public function getUserAvatarLinkAttribute()
     {
         $value = $this->user_avatar;
-        $value = empty($value)?'userdefalutavatar.jpg':$value;
+        $value = empty($value)?'default_avatar.jpg':$value;
         if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
             return $value;
         }
@@ -150,7 +150,7 @@ class User extends Authenticatable implements JWTSubject
     public function getUserCoverLinkAttribute()
     {
         $value = $this->user_cover;
-        $value = empty($value)?'userdefalutcover.jpg':$value;
+        $value = empty($value)?'default_cover.png':$value;
         if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
             return $value;
         }

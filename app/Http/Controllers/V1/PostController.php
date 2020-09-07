@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Jobs\PostEs;
 use App\Models\Post;
 use Ramsey\Uuid\Uuid;
+use App\Models\Banner;
 use App\Custom\RedisList;
 use Illuminate\Http\Request;
 use App\Events\PostViewEvent;
@@ -12,6 +13,7 @@ use App\Jobs\PostTranslation;
 use App\Jobs\PostTranslationV2;
 use App\Resources\PostCollection;
 use App\Services\TranslateService;
+use App\Resources\BannerCollection;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Requests\StorePostRequest;
 use App\Services\AzureTranslateService;
@@ -279,7 +281,7 @@ class PostController extends BaseController
             $job = new PostTranslation($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
         }
 //        $this->dispatchNow($job);
-        $this->dispatch($job);
+        $this->dispatch($job->onQueue('post_translation'));
         return new PostCollection($post);
     }
 
@@ -372,17 +374,39 @@ class PostController extends BaseController
         $topics = $post->getPostTopics($post->post_id);
         $topicPostCountKey = config('redis-key.topic.topic_post_count');
         $topicNewKey = config('redis-key.topic.topic_index_new');
-        !empty($topics)&&Redis::pipeline(function ($pipe) use ($topics , $topicPostCountKey , $topicNewKey , $post ){
-            array_walk($topics , function($item , $index) use($pipe ,$topicPostCountKey , $topicNewKey , $post){
-                $key = strval($item);
-                $pipe->zincrby($topicPostCountKey , -1 , $key);
-//                $pipe->zrem($topicNewKey , $key);
-                $pipe->zrem($key."_new" , $post->post_id);
-                $pipe->zrem($key."_rate" , $post->post_id);
-            });
+        !empty($topics)&&array_walk($topics , function($item , $index) use($topicPostCountKey , $topicNewKey , $post){
+            $key = strval($item);
+            Redis::zincrby($topicPostCountKey , -1 , $key);
+            Redis::zrem($key."_new" , $post->post_id);
+            Redis::zrem($key."_rate" , $post->post_id);
         });
         PostEs::dispatch($post , 'delete')->onQueue('post_es')->delay(now()->addSeconds(120));
         return $this->response->noContent();
+    }
+
+    public function banner()
+    {
+        $key = 'banner_index';
+        if(!Redis::exists($key))
+        {
+            $banners = Banner::where('status' , 1)->orderByDesc('sort')->limit(20)->select('sort' , 'type' , 'image' , 'value')->get();
+            if(!$banners->isEmpty())
+            {
+                Redis::set($key , \json_encode($banners , JSON_UNESCAPED_UNICODE));
+                Redis::expire($key , 86400);
+            }
+        }else{
+            $banners = collect(\json_decode(Redis::get($key) , true));
+        }
+        $locale = locale();
+        $banners = $banners->toArray();
+        foreach ($banners as $index=>$banner)
+        {
+            $image = \json_decode($banner['image'] , true);
+            $banners[$index]['image'] = isset($image[$locale])?$image[$locale]:'';
+        }
+        $banners = collect($banners);
+        return BannerCollection::collection($banners);
     }
 
     public function carousel()

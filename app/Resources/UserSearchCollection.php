@@ -26,7 +26,7 @@ class UserSearchCollection extends Resource
     public function toArray($request)
     {
         $userCountry = getCountryName($this->resource['user_country_id']);
-        $avatar      = !empty($this->resource['user_avatar']) ? $this->resource['user_avatar'] : 'userdefalutavatar.jpg';
+        $avatar      = !empty($this->resource['user_avatar']) ? $this->resource['user_avatar'] : 'default_avatar.jpg';
         return [
             'user_id'           => $this->resource['user_id'],
             'user_name'         => $this->resource['user_name'],

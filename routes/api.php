@@ -33,6 +33,7 @@ $api->group($V1Params , function ($api){
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
         $api->get('post/top' , 'PostController@top')->name('post.top');
+        $api->get('post/banner' , 'PostController@banner')->name('post.banner');
         $api->get('post/carousel' , 'PostController@carousel')->name('post.carousel');
         $api->get('post/fine' , 'PostController@fine')->name('post.fine');
         $api->get('post/hot' , 'PostController@hot')->name('post.hot');
@@ -57,16 +58,16 @@ $api->group($V1Params , function ($api){
 //        $api->post('pychat/showmessage/room', 'PyChatController@showMessageByRoomUuid')->name('show.message.by.room.uuid');
 
         // 搜索功能-ES
-        $api->get('search', 'SearchController@index');
+        $api->get('search', 'SearchController@index')->name('aggregation.search');
         // 热门搜索
-        $api->get('hot/search', 'SearchController@hotSearch');
+        $api->get('hot/search', 'SearchController@hotSearch')->name('search.hot');
 
         /*****热门话题 开始*****/
-        $api->get('topic/hot', 'TopicController@hot');
+        $api->get('topic/hot', 'TopicController@hot')->name('topic.hot');
         /*****热门话题 结束*****/
 
         /*****话题下贴子 开始*****/
-        $api->get('topic/{topic}/post', 'TopicController@post');
+        $api->get('topic/{topic}/post', 'TopicController@post')->name('topic.post');
         /*****话题下贴子 结束*****/
 
 
@@ -93,15 +94,15 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
 
         /*****我关注的话题 开始*****/
-        $api->get('topic/myFollow', 'TopicController@myFollow');
+        $api->get('topic/myFollow', 'TopicController@myFollow')->name('my.follow.topic');
         /*****我关注的话题 结束*****/
 
         /*****关注话题 开始*****/
-        $api->put('topic/{topic}/follow', 'TopicController@follow');
+        $api->put('topic/{topic}/follow', 'TopicController@follow')->name('follow.topic');
         /*****关注话题 结束*****/
 
         /*****取消关注话题 开始*****/
-        $api->put('topic/{topic}/unFollow', 'TopicController@unFollow');
+        $api->put('topic/{topic}/unFollow', 'TopicController@unFollow')->name('unfollow.topic');
         /*****取消关注话题 结束*****/
 
         /*****报告 开始*****/
@@ -248,6 +249,7 @@ $api->group($V1Params , function ($api){
         $api->get('bk/essence/post' , 'BackStageController@getCustomEssencePost')->name('bk.post.essence.post');
         $api->patch('bk/essence/post/{post}' , 'BackStageController@setCustomEssencePost')->name('bk.post.essence.update');
         $api->patch('bk/carousel/post/{post}' , 'BackStageController@setCarousel')->name('bk.post.carousel.update');
+        $api->patch('bk/banner' , 'BackStageController@setBanner')->name('bk.banner.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');
         $api->delete('bk/post/{post}' , 'BackStageController@destroyPost')->name('bk.post.delete');
         $api->patch('bk/user/{user}/follow' , 'BackStageController@setFollowUser')->name('bk.user.follow');

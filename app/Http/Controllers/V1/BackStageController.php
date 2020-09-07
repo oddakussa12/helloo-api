@@ -94,6 +94,14 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function setBanner(Request $request)
+    {
+        $redis = new RedisList();
+        $key = 'banner_index';
+        $redis->delKey($key);
+        return $this->response->noContent();
+    }
+
     public function setCarousel(Request $request , $postUuid)
     {
         $locale = (string)$request->input('locale' , '');
@@ -156,15 +164,6 @@ class BackStageController extends BaseController
      */
     public function setHotTopic()
     {
-        /*$topics = [
-            ['topic_content' => 'title1', 'sort'  => 3,'flag' => 1],
-            ['topic_content' => 'title2', 'sort'  => 1,'flag' => 1],
-            ['topic_content' => 'title0', 'sort'  => 2,'flag' => 1],
-            ['topic_content' => 'title5', 'sort'  => 4,'flag' => 2],
-            ['topic_content' => 'title6', 'sort'  => 6,'flag' => 2],
-            ['topic_content' => 'title4', 'sort'  => 5,'flag' => 2],
-        ];*/
-
         $topics = \json_decode(request()->input('topics' , '') , true);
         if (count($topics) != count($topics, 1)) {
             $hotTopics = 'hot_topic';
