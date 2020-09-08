@@ -128,9 +128,11 @@ class TopicController extends BaseController
 
         if(empty($result)) {
             $topics = DB::select('SELECT topic_content,flag,sort from f_hot_topics where is_delete<1 and (start_time <= ? and end_time >= ?) GROUP by topic_content ORDER BY flag asc, sort desc limit 20', [$time, $time]);
-            $result = sortArrByManyField($topics,'flag',SORT_ASC,'sort',SORT_DESC);
+
             if(!empty($topics)) {
-                Redis::set($key, json_encode($topics, JSON_UNESCAPED_UNICODE));
+                $result = array_map('get_object_vars', $topics);
+                $result = sortArrByManyField($result,'flag',SORT_ASC,'sort',SORT_DESC);
+                Redis::set($key, json_encode($result, JSON_UNESCAPED_UNICODE));
             }
         }
 
