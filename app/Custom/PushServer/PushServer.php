@@ -32,7 +32,7 @@ class PushServer
             if ($deviceBrand == 'xiaomi') {
                 $this->xiaomiPush();
             }
-            if ($deviceBrand == 'oppo') {
+            if (in_array($deviceBrand, ['oppo', 'realme'])) {
                 $this->oppoPush();
             }
             if ($deviceBrand == 'vivo') {
