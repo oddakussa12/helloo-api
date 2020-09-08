@@ -147,7 +147,7 @@ class BackStageController extends BaseController
      */
     public function getHotTopic()
     {
-        $key = 'hot_topic';
+        $key = 'hot_topic_list';
         $result = Redis::get($key);
 
         return $result ? json_decode($result, true) : [];
@@ -164,16 +164,20 @@ class BackStageController extends BaseController
      */
     public function setHotTopic()
     {
-        $topics = \json_decode(request()->input('topics' , '') , true);
+        $hotTopics = 'hot_topic_list';
+        Redis::del($hotTopics);
+        return $this->response->noContent();
+        
+        /*$topics = \json_decode(request()->input('topics' , '') , true);
         if (count($topics) != count($topics, 1)) {
-            $hotTopics = 'hot_topic';
+            $hotTopics = 'hot_topic_list';
             if (!empty($topics)) {
                 $topics = sortArrByManyField($topics, 'flag', SORT_ASC, 'sort', SORT_DESC);
                 Redis::del($hotTopics);
                 Redis::set($hotTopics, json_encode($topics, JSON_UNESCAPED_UNICODE));
             }
         }
-        return $this->response->noContent();
+        return $this->response->noContent();*/
     }
 
     /**

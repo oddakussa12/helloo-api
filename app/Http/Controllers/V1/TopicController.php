@@ -122,7 +122,7 @@ class TopicController extends BaseController
      */
     public function hot()
     {
-        $key    = 'hot_topic';
+        $key    = 'hot_topic_list';
         $result = Redis::get($key);
         $time   = Carbon::now();
 
@@ -131,17 +131,16 @@ class TopicController extends BaseController
 
             if(!empty($topics)) {
                 $result = array_map('get_object_vars', $topics);
-                $result = sortArrByManyField($result,'flag',SORT_ASC,'sort',SORT_DESC);
+                $result = sortArrByManyField($result, 'flag', SORT_ASC, 'sort', SORT_DESC);
                 $result = json_encode($result, JSON_UNESCAPED_UNICODE);
-                Redis::set($key, $result);
+                Redis::set($key, $result, 'nx', 'ex', 3600);
             }
         }
 
         $result = $result ? json_decode($result, true) : [];
-        $result = array_map(function($v){unset($v['sort']);return $v;}, $result);
-
         $hotDb  = $this->getHotByDb();
         $result = array_merge($result, $hotDb);
+        $result = assoc_unique($result, 'topic_content');
 
         return TopicSearchPaginateCollection::collection(collect($result));
     }
@@ -152,13 +151,22 @@ class TopicController extends BaseController
      */
     protected function getHotByDb()
     {
-        $sql    = 'select count(1) num ,topic_content from f_posts_topics group by topic_content order by num desc limit 15, 20';
-        $result = DB::select($sql);
-        if (!empty($result)) {
-            $result = array_map(function ($v){
-                return ['topic_content' => $v->topic_content];
-            }, $result);
+        $key    = 'user_hot_topic_list';
+        $result = Redis::get($key);
+
+        if (empty($result)) {
+            $time   = time() - 86400*7;
+            $sql    = "select count(1) num, topic_content from f_posts_topics where topic_created_at>=$time group by topic_content order by num desc limit 10";
+            $result = DB::select($sql);
+            if (!empty($result)) {
+                $result = array_map(function ($v){
+                    return ['topic_content' => $v->topic_content];
+                }, $result);
+                $result = json_encode($result,JSON_UNESCAPED_UNICODE);
+                Redis::set($key, $result, 'nx', 'ex', 3600);
+            }
         }
-        return $result;
+
+        return $result ? json_decode($result, true) : [];
     }
 }

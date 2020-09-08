@@ -1129,7 +1129,7 @@ if (!function_exists('sortArrByManyField')) {
  * 数组按某一个字段去重
  */
 if (!function_exists('assoc_unique')) {
-    function assoc_unique($arr, $key)
+    function assoc_unique($arr, $key, $sort=false)
     {
         $tmp_arr = array();
         foreach ($arr as $k => $v) {
@@ -1139,9 +1139,8 @@ if (!function_exists('assoc_unique')) {
                 $tmp_arr[] = $v[$key];
             }
         }
-        sort($arr); //sort函数对数组进行排序
+        if($sort) sort($arr); //sort函数对数组进行排序
         return $arr;
-
     }
 
 }
