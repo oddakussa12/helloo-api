@@ -127,7 +127,7 @@ class TopicController extends BaseController
         $time   = Carbon::now();
 
         if(empty($result)) {
-            $topics = DB::select('SELECT topic_content,flag,sort from f_hot_topics where is_delete<1 and (start_time >= ? and end_time <= ?) GROUP by topic_content ORDER BY flag asc, sort desc limit 20', [$time, $time]);
+            $topics = DB::select('SELECT topic_content,flag,sort from f_hot_topics where is_delete<1 and (start_time <= ? and end_time >= ?) GROUP by topic_content ORDER BY flag asc, sort desc limit 20', [$time, $time]);
             $result = sortArrByManyField($topics,'flag',SORT_ASC,'sort',SORT_DESC);
             if(!empty($topics)) {
                 Redis::set($key, json_encode($topics, JSON_UNESCAPED_UNICODE));
