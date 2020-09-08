@@ -133,19 +133,20 @@ class TopicController extends BaseController
 
     protected function getHot()
     {
-        $now = Carbon::now();
+        $now     = Carbon::now();
         $nowTime = $now->timestamp;
-        $key = "hot_topic_customize";
-        if(!Redis::exists($key))
-        {
+        $key     = "hot_topic_customize";
+        $result  = Redis::get($key);
+        if(empty($result)) {
             $topics = HotTopic::where('is_delete' , 0)->where('start_time' , '<=' , $nowTime)
                 ->where('end_time' , '>=' , $nowTime)->select('flag','sort', 'topic_content')->orderBy('flag')->orderBy('sort' , "DESC")->limit(10)->get()->toArray();
-            Redis::set($key , \json_encode($topics));
-            Redis::expire($key , 86400);
-        }else{
-            $topics = \json_decode(Redis::get($key) , true);
+            if($topics) {
+                $result = \json_encode($topics,JSON_UNESCAPED_UNICODE);
+                Redis::set($key , $result);
+                Redis::expire($key , 86400);
+            }
         }
-        return $topics;
+        return !empty($result) ? \json_decode($result , true) : [];
     }
 
     /**
@@ -154,22 +155,25 @@ class TopicController extends BaseController
      */
     protected function getHotByDb()
     {
-        $now = Carbon::now();
-        $today = Carbon::today();
+        $now       = Carbon::now();
+        $today     = Carbon::today();
         $startTime = $today->subDays(3)->timestamp;
-        $endTime = $now->timestamp;
-        $key = "hot_topic_auto";
-        if(!Redis::exists($key))
-        {
+        $endTime   = $now->timestamp;
+        $key       = "hot_topic_auto";
+        $result    = Redis::get($key);
+
+        if(empty($result)) {
             $topics = Topic::where('topic_created_at' , '<=' , $endTime)
                 ->where('topic_created_at' , '>=' , $startTime)->select('topic_content', DB::raw('COUNT(id) as num'))->groupBy('topic_content')->orderBy('num' , "DESC")->limit(10)->get()->map(function($item , $index){
                     return array('topic_content'=>$item->topic_content);
                 })->toArray();
-            Redis::set($key , \json_encode($topics));
-            Redis::expire($key , 86400);
-        }else{
-            $topics = \json_decode(Redis::get($key) , true);
+            if ($topics) {
+                $result = \json_encode($topics,JSON_UNESCAPED_UNICODE);
+                Redis::set($key , $result);
+                Redis::expire($key , 86400);
+            }
         }
-        return $topics;
+
+        return !empty($result) ? \json_decode($result , true) : [];
     }
 }
