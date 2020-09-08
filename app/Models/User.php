@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Traits\like\CanLike;
+use Laravel\Scout\Searchable;
 use App\Traits\follow\CanFollow;
 use App\Traits\dislike\CanDislike;
 use App\Traits\favorite\CanFavorite;
 use App\Traits\follow\CanBeFollowed;
-use Laravel\Scout\Jobs\MakeSearchable;
-use Laravel\Scout\Searchable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Support\Facades\Storage;
 use App\Foundation\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -271,9 +271,36 @@ class User extends Authenticatable implements JWTSubject
             ->orderBy('tag_sort');
     }
 
+    public function getUserTagsAttribute()
+    {
+        $userTags = Storage::get('userTags/tags.json');
+        $userTags = \json_decode($userTags , true);
+        $tags = UserTaggable::where('taggable_id' , $this->getKey())->where('taggable_type' , self::class)->get();
+        $tags->each(function($tag , $index) use ($userTags){
+            $tag->tag_slug = $userTags[$tag->tag_id]['tag_slug'];
+        });
+        $tags = $tags->filter(function ($tag, $index) {
+            return !blank($tag->tag_slug);
+        });
+        return $tags;
+    }
+
     public function regions()
     {
         return $this->belongsToMany(Region::class,'users_regions' , 'user_id' , 'region_id');
+    }
+
+    public function getUserRegionsAttribute()
+    {
+        $userRegions = config('user-region');
+        $regions = UserRegion::where('user_id' , $this->getKey())->get();
+        $regions->each(function($region , $index) use ($userRegions){
+            $region->region_slug = $userRegions[intval($region->region_id)]??'';
+        });
+        $regions = $regions->filter(function ($region, $index) {
+            return !blank($region->region_slug );
+        });
+        return $regions;
     }
 
     public function setUserGenderAttribute($value)

@@ -12,14 +12,16 @@ use App\Models\Post;
 use App\Models\Like;
 use App\Models\User;
 use App\Models\Region;
-use App\Models\UserTag;
+use App\Models\UserRegion;
 use App\Models\PostComment;
+use App\Models\UserTaggable;
 use App\Models\YesterdayScore;
 use Illuminate\Support\Facades\DB;
 use App\Events\UserProfileLikeEvent;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use App\Events\UserProfileRevokeLikeEvent;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -560,9 +562,9 @@ DOC;
             if(intval($user)<=0)
             {
                 $randUsersFile = 'randUsers/users.json';
-                if(\Storage::exists($randUsersFile))
+                if(Storage::exists($randUsersFile))
                 {
-                    $randUsers = \json_decode(\Storage::get($randUsersFile) , true);
+                    $randUsers = \json_decode(Storage::get($randUsersFile) , true);
                     if(getType($randUsers)=='array')
                     {
                         $user = array_random(array_unique(array_diff($randUsers , $usedUser)));
@@ -673,9 +675,9 @@ DOC;
         $deletedUsersFile = 'deletedUsers/users.json';
         return Cache::rememberForever('deletedUsers' , function() use ($deletedUsersFile){
             $users = array();
-            if(\Storage::exists($deletedUsersFile))
+            if(Storage::exists($deletedUsersFile))
             {
-                $deletedUsers = \json_decode(\Storage::get($deletedUsersFile) , true);
+                $deletedUsers = \json_decode(Storage::get($deletedUsersFile) , true);
                 if(getType($deletedUsers)=='array')
                 {
                     $users = $deletedUsers;
@@ -730,12 +732,32 @@ DOC;
 
     public function attachTags(Model $user  , $tag_slug)
     {
-        $tags = UserTag::whereIn('tag_slug' , $tag_slug)->select('tag_id' , 'tag_slug')->get();
-        $tags_id = $tags->pluck('tag_id')->toArray();
-        $tags_id = array_filter($tags_id ,function($v){
+        $userTags = config('user-tag');
+        $tag_slug = array_filter($tag_slug ,function($v) use ($userTags){
+            return in_array($v , $userTags);
+        });
+        $tagIds = array_map(function($v) use ($userTags){
+            return array_search($v , $userTags);
+        } , $tag_slug);
+        $tagIds = array_filter($tagIds ,function($v){
             return is_int($v);
         });
-        $user->tags()->sync($tags_id);
+        $taggable_id = $user->getKey();
+        $taggable_type = $user->getMorphClass();
+        $userTaggable = UserTaggable::where('taggable_id' , $taggable_id)->where('taggable_type' , $taggable_type)->pluck('tag_id')->all();
+        $newTagIds = array_diff($tagIds , $userTaggable);
+        $removeTagIds = array_diff($userTaggable , $tagIds);
+        $newTags = array_map(function($v) use ($taggable_id , $taggable_type){
+            return array('taggable_id'=>$taggable_id , 'tag_id'=>$v , 'taggable_type'=>$taggable_type);
+        } , $newTagIds);
+        !blank($newTags)&&UserTaggable::insert($newTags);
+        !blank($removeTagIds)&&UserTaggable::where('taggable_id' , $taggable_id)->whereIn('tag_id' , $removeTagIds)->delete();
+//        $tags = UserTag::whereIn('tag_slug' , $tag_slug)->select('tag_id' , 'tag_slug')->get();
+//        $tags_id = $tags->pluck('tag_id')->toArray();
+//        $tags_id = array_filter($tags_id ,function($v){
+//            return is_int($v);
+//        });
+//        $user->tags()->sync($tags_id);
     }
 
     public function referFriend()
@@ -743,9 +765,9 @@ DOC;
         $userIds = $this->randReferFriend();
         $referFriendFile = 'tmp/referFriend.json';
         $referFriends = array();
-        if(\Storage::exists($referFriendFile))
+        if(Storage::exists($referFriendFile))
         {
-            $referFriendFile = \json_decode(\Storage::get($referFriendFile) , true);
+            $referFriendFile = \json_decode(Storage::get($referFriendFile) , true);
             if(getType($referFriendFile)=='array'&&auth()->check())
             {
                 $regions = auth()->user()->regions->pluck('region_slug')->all();
@@ -776,12 +798,32 @@ DOC;
 
     public function attachRegions(Model $user  , $region_slug)
     {
-        $regions = Region::whereIn('region_slug' , $region_slug)->select('region_id' , 'region_slug')->get();
-        $regions_id = $regions->pluck('region_id')->toArray();
-        $regions_id = array_filter($regions_id ,function($v){
+        $userRegions = config('user-region');
+        $region_slug = array_filter($region_slug ,function($v) use ($userRegions){
+            return in_array($v , $userRegions);
+        });
+        $regionIds = array_map(function($v) use ($userRegions){
+            return array_search($v , $userRegions);
+        } , $region_slug);
+        $regionIds = array_filter($regionIds ,function($v){
             return is_int($v);
         });
-        $user->regions()->sync($regions_id);
+        $userId = $user->getKey();
+        $userRegions = UserRegion::where('user_id' , $userId)->pluck('region_id')->all();
+        $newRegionIds = array_diff($regionIds , $userRegions);
+        $removeRegionIds = array_diff($userRegions , $regionIds);
+        $newRegions = array_map(function($v) use ($userId){
+            return array('user_id'=>$userId , 'region_id'=>$v);
+        } , $newRegionIds);
+        !blank($newRegions)&&UserRegion::insert($newRegions);
+        !blank($removeRegionIds)&&UserRegion::where('user_id' , $userId)->whereIn('region_id' , $removeRegionIds)->delete();
+//
+//        $regions = Region::whereIn('region_slug' , $region_slug)->select('region_id' , 'region_slug')->get();
+//        $regions_id = $regions->pluck('region_id')->toArray();
+//        $regions_id = array_filter($regions_id ,function($v){
+//            return is_int($v);
+//        });
+//        $user->regions()->sync($regions_id);
     }
 
     public function onlineUsersCount()

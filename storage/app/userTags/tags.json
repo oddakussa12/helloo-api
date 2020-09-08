@@ -1,0 +1,74 @@
+{
+    "1": {
+        "tag_id": 1,
+        "tag_slug": "fun"
+    },
+    "40": {
+        "tag_id": 40,
+        "tag_slug": "exercise"
+    },
+    "41": {
+        "tag_id": 41,
+        "tag_slug": "travel"
+    },
+    "42": {
+        "tag_id": 42,
+        "tag_slug": "fashion"
+    },
+    "43": {
+        "tag_id": 43,
+        "tag_slug": "pets"
+    },
+    "44": {
+        "tag_id": 44,
+        "tag_slug": "gourmet"
+    },
+    "45": {
+        "tag_id": 45,
+        "tag_slug": "cartoon"
+    },
+    "46": {
+        "tag_id": 46,
+        "tag_slug": "reading"
+    },
+    "47": {
+        "tag_id": 47,
+        "tag_slug": "movies"
+    },
+    "48": {
+        "tag_id": 48,
+        "tag_slug": "music"
+    },
+    "49": {
+        "tag_id": 49,
+        "tag_slug": "make_friends"
+    },
+    "50": {
+        "tag_id": 50,
+        "tag_slug": "video_games"
+    },
+    "51": {
+        "tag_id": 51,
+        "tag_slug": "pretty"
+    },
+    "52": {
+        "tag_id": 52,
+        "tag_slug": "passionate"
+    },
+    "53": {
+        "tag_id": 53,
+        "tag_slug": "introvert"
+    },
+    "54": {
+        "tag_id": 54,
+        "tag_slug": "learn_languages"
+    },
+    "55": {
+        "tag_id": 55,
+        "tag_slug": "news"
+    },
+    "56": {
+        "tag_id": 56,
+        "tag_slug": "dating"
+    }
+}

@@ -112,8 +112,8 @@ class AuthController extends BaseController
         $user_gender = $request->input('user_gender');
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
         $user_picture = (array)$request->input('user_picture' , array());
-        $tag_slug = array_diff($request->input('tag_slug' , array()),array(null , ''));
-        $region_slug = array_diff($request->input('region_slug' , array()),array(null , ''));
+        $tag_slug = array_diff((array)$request->input('tag_slug' , array()),array(null , ''));
+        $region_slug = array_diff((array)$request->input('region_slug' , array()),array(null , ''));
         $user_picture = \array_filter($user_picture , function($v , $k){
             return !empty($v);
         } , ARRAY_FILTER_USE_BOTH );
@@ -251,8 +251,8 @@ class AuthController extends BaseController
         $user->yesterdayScore = null;
         $user->yesterdayRank = null;
         $user->userRank = $rank;
-        $user->userTags = UserTagCollection::collection($user->tags);
-        $user->userRegions = UserRegionCollection::collection($user->regions);
+        $user->userTags = UserTagCollection::collection($user->user_tags);
+        $user->userRegions = UserRegionCollection::collection($user->user_regions);
         $user->user_avatar = $user->user_avatar_link;
         $user->user_cover = $user->user_cover_link;
         $user->user_picture = $user->user_picture_link;
@@ -260,8 +260,8 @@ class AuthController extends BaseController
         $user->user_phone_country = empty($phone['user_phone_country'])?'':$phone['user_phone_country'];
         $user->user_phone = empty($phone['user_phone'])?'':$phone['user_phone'];
         $user->userNameIsCanUpdate = $this->isCanUpdateName($user->user_id);
-        unset($user->tags);
-        unset($user->regions);
+        unset($user->user_tags);
+        unset($user->user_regions);
         unset($user->user_country);
         return $this->response->array($user);
     }
