@@ -138,7 +138,7 @@ class TopicController extends BaseController
         $key = "hot_topic_customize";
         if(!Redis::exists($key))
         {
-            $topics = HotTopic::where('start_time' , '<=' , $nowTime)
+            $topics = HotTopic::where('is_delete' , 0)->where('start_time' , '<=' , $nowTime)
                 ->where('end_time' , '>=' , $nowTime)->select('flag','sort', 'topic_content')->orderBy('flag')->orderBy('sort' , "DESC")->limit(10)->get()->toArray();
             Redis::set($key , \json_encode($topics));
             Redis::expire($key , 86400);
@@ -156,7 +156,7 @@ class TopicController extends BaseController
     {
         $now = Carbon::now();
         $today = Carbon::today();
-        $startTime = $today->subDays(100)->timestamp;
+        $startTime = $today->subDays(3)->timestamp;
         $endTime = $now->timestamp;
         $key = "hot_topic_auto";
         if(!Redis::exists($key))
