@@ -132,7 +132,8 @@ class TopicController extends BaseController
             if(!empty($topics)) {
                 $result = array_map('get_object_vars', $topics);
                 $result = sortArrByManyField($result,'flag',SORT_ASC,'sort',SORT_DESC);
-                Redis::set($key, json_encode($result, JSON_UNESCAPED_UNICODE));
+                $result = json_encode($result, JSON_UNESCAPED_UNICODE);
+                Redis::set($key, $result);
             }
         }
 
