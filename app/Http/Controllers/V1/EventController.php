@@ -23,7 +23,13 @@ class EventController extends BaseController
             $event = \json_decode(Redis::get($key));
         }
         $locale = locale();
-        !blank($event)&&$event->image = config('common.qnUploadDomain.thumbnail_domain').(!empty($event->image)?'':(\json_decode($event->image , true))[$locale]);
+        if(!blank($event))
+        {
+            $image = \json_decode($event->image , true);
+            $event->image = $image;
+            isset($image[$locale])&&$event->image = config('common.qnUploadDomain.thumbnail_domain').$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+            !isset($image[$locale])&&$event=array();
+        }
         return $this->response->array((array)$event);
     }
 }
