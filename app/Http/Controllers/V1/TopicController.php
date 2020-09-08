@@ -127,6 +127,7 @@ class TopicController extends BaseController
         $result = $this->getHot();
         $hotDb  = $this->getHotByDb();
         $result = array_merge($result, $hotDb);
+        $result = assoc_unique($result, 'topic_content');
         return TopicSearchPaginateCollection::collection(collect($result));
     }
 

@@ -147,21 +147,6 @@ class BackStageController extends BaseController
         $this->post->setNonFinePost($postId , $flag);
         return $this->response->noContent();
     }
-
-
-    /**
-     * @return array|mixed
-     * 后台获取 热门话题
-     */
-    public function getHotTopic()
-    {
-        $key = 'hot_topic';
-        $result = Redis::get($key);
-
-        return $result ? json_decode($result, true) : [];
-
-    }
-
     /**
      * flag   1: 官方话题 2:后台可控话题  0: 用户热门话题(此处不需要处理)
      * sort          倒序排序
@@ -172,15 +157,8 @@ class BackStageController extends BaseController
      */
     public function setHotTopic()
     {
-        $topics = \json_decode(request()->input('topics' , '') , true);
-        if (count($topics) != count($topics, 1)) {
-            $hotTopics = 'hot_topic';
-            if (!empty($topics)) {
-                $topics = sortArrByManyField($topics, 'flag', SORT_ASC, 'sort', SORT_DESC);
-                Redis::del($hotTopics);
-                Redis::set($hotTopics, json_encode($topics, JSON_UNESCAPED_UNICODE));
-            }
-        }
+        $hotTopics = 'hot_topic_customize';
+        Redis::del($hotTopics);
         return $this->response->noContent();
     }
 

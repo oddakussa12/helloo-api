@@ -285,8 +285,8 @@ class Es
 
             // 进行排序和去重处理
             if(!empty($result) && !empty($suggest)) {
-                $result = sortArrByManyField($result, '_score', SORT_DESC);
                 $result = assoc_unique($result, 'id');
+                $result = sortArrByManyField($result, '_score', SORT_DESC);
             }
             return $this->selfPaginator($result, $total);
         } else {
