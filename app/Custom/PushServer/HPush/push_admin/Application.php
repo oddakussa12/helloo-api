@@ -22,6 +22,9 @@ limitations under the License.
  */
 namespace App\Custom\PushServer\HPush\push_admin;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
+
 include_once (dirname(__FILE__) . '/Constants.php');
 include_once (dirname(__FILE__) . '/PushLogConfig.php');
 
@@ -45,11 +48,13 @@ class Application
     private $fields;
 
     private $accesstoken;
+    private $memKey;
 
 
     public function __construct($appid, $appsecret, $hw_token_server, $hw_push_server)
     {
-        $this->appid = $appid;
+        $this->memKey = 'huawei_push_access_token';
+        $this->appid  = $appid;
         $this->appsecret = $appsecret;
         $this->hw_token_server = $hw_token_server;
         $this->hw_push_server = $hw_push_server;
@@ -109,12 +114,19 @@ class Application
 
     private function is_token_expired()
     {
-        if (empty($this->accesstoken)) {
+       $result = Redis::get($this->memKey);
+       //Log::info(__FUNCTION__.' redis:::value::'.$result);
+       if (!empty($result)) {
+           $this->accesstoken = $result;
+       } else {
+           return true;
+       }
+        /*if (empty($this->accesstoken)) {
             return true;
         }
         if (time() > $this->token_expiredtime) {
             return true;
-        }
+        }*/
         return false;
     }
 
@@ -135,6 +147,9 @@ class Application
         $this->printLogMethodOperate('refresh_token result:' . json_encode($result), __FUNCTION__ . ':' . __LINE__);
         $this->accesstoken = $result->access_token;
         $this->token_expiredtime = time() + $result->expires_in;
+        Redis::set($this->memKey, $result->access_token);
+        Redis::expire($this->memKey,  $result->expires_in);
+        Log::info(__FUNCTION__. 'redis :::key::'.$this->memKey.'::value:'.$result->access_token.'::expires_in:'.$result->expires_in);
         return $this->access_token;
     }
 
