@@ -21,7 +21,7 @@ class PushServer
 
     public function Send()
     {
-        Log::info(__FUNCTION__.' params:', $this->params);
+        // Log::info(__FUNCTION__.' params:', $this->params);
         $deviceBrand = strtolower($this->params['deviceBrand']);
         if ($this->params['registerType'] == 'fcm') {
             $this->fcmPush();
@@ -69,7 +69,7 @@ class PushServer
         try {
             $result = (new HPush($this->params))->send();
             if ($result['code'] == '80000000') {
-                Log::info('Push message success:'.__FUNCTION__, $result);
+                // Log::info('Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
                 Log::info('Push message fail:'.__FUNCTION__, $result);
@@ -85,7 +85,7 @@ class PushServer
         try {
             $result = (new MiPush($this->params))->send();
             if ($result['code'] == 0) {
-                Log::info('Push message success:'.__FUNCTION__, $result);
+                // Log::info('Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
                 Log::info('Push message fail:'.__FUNCTION__, $result);
@@ -101,7 +101,7 @@ class PushServer
         try {
             $result = (new OPush($this->params))->send();
             if ($result['code'] == 0) {
-                Log::info('Push message success:'.__FUNCTION__, $result);
+                // Log::info('Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
                 Log::info('Push message fail:'.__FUNCTION__, $result);
