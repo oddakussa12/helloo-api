@@ -28,6 +28,7 @@ class BlackUser extends Model
         'desc',
         'operator',
         'is_delete',
+        'created_at'
     ];
 
     /**
