@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Custom\RedisList;
 use Carbon\Carbon;
+use App\Models\Topic;
+use App\Models\HotTopic;
+use App\Custom\RedisList;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Redis;
@@ -13,6 +14,7 @@ use App\Resources\PostPaginateCollection;
 use App\Repositories\Contracts\PostRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
 use App\Resources\TopicSearchPaginateCollection;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TopicController extends BaseController
 {
@@ -122,28 +124,29 @@ class TopicController extends BaseController
      */
     public function hot()
     {
-        $key    = 'hot_topic';
-        $result = Redis::get($key);
-        $time   = Carbon::now();
-
-        if(empty($result)) {
-            $topics = DB::select('SELECT topic_content,flag,sort from f_hot_topics where is_delete<1 and (start_time <= ? and end_time >= ?) GROUP by topic_content ORDER BY flag asc, sort desc limit 20', [$time, $time]);
-
-            if(!empty($topics)) {
-                $result = array_map('get_object_vars', $topics);
-                $result = sortArrByManyField($result,'flag',SORT_ASC,'sort',SORT_DESC);
-                $result = json_encode($result, JSON_UNESCAPED_UNICODE);
-                Redis::set($key, $result);
-            }
-        }
-
-        $result = $result ? json_decode($result, true) : [];
-        $result = array_map(function($v){unset($v['sort']);return $v;}, $result);
-
+        $result = $this->getHot();
         $hotDb  = $this->getHotByDb();
         $result = array_merge($result, $hotDb);
-
+        $result = array_values(assoc_unique($result, 'topic_content'));
         return TopicSearchPaginateCollection::collection(collect($result));
+    }
+
+    protected function getHot()
+    {
+        $now     = Carbon::now();
+        $nowTime = $now->timestamp;
+        $key     = "hot_topic_customize";
+        $result  = Redis::get($key);
+        if(empty($result)) {
+            $topics = HotTopic::where('is_delete' , 0)->where('start_time' , '<=' , $nowTime)
+                ->where('end_time' , '>=' , $nowTime)->select('flag','sort', 'topic_content')->orderBy('flag')->orderBy('sort' , "DESC")->limit(10)->get()->toArray();
+            if($topics) {
+                $result = \json_encode($topics,JSON_UNESCAPED_UNICODE);
+                Redis::set($key , $result);
+                Redis::expire($key , 86400);
+            }
+        }
+        return !empty($result) ? \json_decode($result , true) : [];
     }
 
     /**
@@ -152,13 +155,25 @@ class TopicController extends BaseController
      */
     protected function getHotByDb()
     {
-        $sql    = 'select count(1) num ,topic_content from f_posts_topics group by topic_content order by num desc limit 15, 20';
-        $result = DB::select($sql);
-        if (!empty($result)) {
-            $result = array_map(function ($v){
-                return ['topic_content' => $v->topic_content];
-            }, $result);
+        $now       = Carbon::now();
+        $today     = Carbon::today();
+        $startTime = $today->subDays(3)->timestamp;
+        $endTime   = $now->timestamp;
+        $key       = "hot_topic_auto";
+        $result    = Redis::get($key);
+
+        if(empty($result)) {
+            $topics = Topic::where('topic_created_at' , '<=' , $endTime)
+                ->where('topic_created_at' , '>=' , $startTime)->select('topic_content', DB::raw('COUNT(id) as num'))->groupBy('topic_content')->orderBy('num' , "DESC")->limit(10)->get()->map(function($item , $index){
+                    return array('topic_content'=>$item->topic_content);
+                })->toArray();
+            if ($topics) {
+                $result = \json_encode($topics,JSON_UNESCAPED_UNICODE);
+                Redis::set($key , $result);
+                Redis::expire($key , 86400);
+            }
         }
-        return $result;
+
+        return !empty($result) ? \json_decode($result , true) : [];
     }
 }

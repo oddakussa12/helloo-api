@@ -403,7 +403,12 @@ class PostController extends BaseController
         foreach ($banners as $index=>$banner)
         {
             $image = \json_decode($banner['image'] , true);
-            $banners[$index]['image'] = isset($image[$locale])?$image[$locale]:'';
+            if(isset($image[$locale]))
+            {
+                $banners[$index]['image'] = $image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+            }else{
+                unset($banners[$index]);
+            }
         }
         $banners = collect($banners);
         return BannerCollection::collection($banners);
