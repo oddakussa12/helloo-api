@@ -1,5 +1,6 @@
 <?php
 return [
+    'cron_switch'=>env('CRON_SWITCH' , false),
     'online_domain'=>[
         'elb.api.yooul.net',
         'api.yooul.net',

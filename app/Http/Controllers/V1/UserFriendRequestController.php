@@ -7,7 +7,6 @@ use App\Models\UserFriend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Models\UserFriendRequest;
-use Illuminate\Support\Facades\DB;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
