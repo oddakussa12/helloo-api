@@ -7,6 +7,8 @@
  */
 namespace App\Repositories\Eloquent;
 
+use App\Models\BlackUser;
+use App\Models\Block;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
@@ -407,6 +409,8 @@ DOC;
         if(auth()->check())
         {
             $this->updateHiddenUsers(auth()->id() , $userId);
+            // 插入表中
+            Block::findOrInsert(auth()->id(), $userId);
         }
     }
 
@@ -668,6 +672,11 @@ DOC;
         $deletedUsers = $this->getDeletedUsers();
         throw_if($deletedUsers->has($name), new DeleteResourceFailedException('Your account has been deleted!'));
         throw_if($deletedUsers->flip()->has($name), new DeleteResourceFailedException('Your account has been deleted!'));
+    }
+
+    public function isBlackUser($user_id)
+    {
+       return BlackUser::where('user_id',$user_id)->where('is_delete', 0)->first();
     }
 
     public function getDeletedUsers()

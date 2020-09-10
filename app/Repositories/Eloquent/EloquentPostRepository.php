@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\Block;
 use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Post;
@@ -435,7 +436,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         if(auth()->check())
         {
-            app(UserRepository::class)->updateHiddenPosts(auth()->id() , $uuid);
+            app(UserRepository::class)->updateHiddenPosts(auth()->id(), $uuid);
+            // 插入表中
+            $post = Post::where('post_uuid', $uuid)->first();
+            Block::findOrInsert(auth()->id(), $post->user_id ?? 0 ,$uuid);
         }
     }
 

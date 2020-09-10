@@ -5,12 +5,16 @@ namespace App\Http\Controllers\V1;
 use App\Jobs\Dispatcher;
 use App\Models\Report;
 use App\Custom\RedisList;
+use Dingo\Api\Exception\InternalHttpException;
 use Illuminate\Http\Request;
 use App\Repositories\Contracts\PostRepository;
 use App\Repositories\Contracts\UserRepository;
+use Illuminate\Support\Facades\Log;
 
 class ReportController extends BaseController
 {
+    private $post;
+
     /**
      * Display a listing of the resource.
      *
@@ -30,82 +34,82 @@ class ReportController extends BaseController
     public function store(Request $request)
     {
         $postUuid = strval($request->input('post_uuid' , ''));
-        $userId = strval($request->input('user_id' , ''));
-        if(!blank($postUuid))
-        {
-            $auth = auth()->user();
+        $userId   = strval($request->input('user_id' , ''));
+        $auth     = auth()->user();
+
+        if(!blank($postUuid)) {
             try{
-                $post = $this->post->findOrFailByUuid($postUuid);
-                $relation = Report::where('reportable_id', $post->getKey())
-                    ->where('reportable_type', $post->getMorphClass())
-                    ->select(\DB::raw('DISTINCT user_id'))->orderBy('id' , 'DESC')->limit(intval(config('common.report_post_num')+config('common.report_limit_num')))->pluck('user_id')->all();
-                $reportNum = count($relation);
-                if(!in_array($auth->getKey() , $relation)&&$reportNum<config('common.report_post_num'))
-                {
-                    $report = new Report();
-                    $report->user_id = $auth->getKey();
-                    $report->reportable_id=$post->getKey();
-                    $report->reportable_type=$post->getMorphClass();
-                    $report->save();
-                    $reportNum = $reportNum+1;
-                }
-                if($reportNum>=config('common.report_post_num'))
-                {
-                    $redis = new RedisList();
+                $post      = $this->post->findOrFailByUuid($postUuid);
+                $reportNum = $this->reportInfo($auth, $post);
+
+                if($reportNum >= config('common.report_post_num')) {
                     $this->post->destroy($post);
-                    $userPostsKey = config('redis-key.user.posts');
-                    $redis->zIncrBy($userPostsKey , -1 , $post->user_id);
-                    $postKey = config('redis-key.post.post_index_new');
-                    $essencePostKey = config('redis-key.post.post_index_essence');
+
+                    $userPostsKey         = config('redis-key.user.posts');
+                    $postKey              = config('redis-key.post.post_index_new');
+                    $essencePostKey       = config('redis-key.post.post_index_essence');
+                    $rateKeyOne           = config('redis-key.post.post_index_rate').'_1';
+                    $rateKeyTwo           = config('redis-key.post.post_index_rate').'_2';
                     $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
-                    $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
-                    $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
+
+                    $redis = new RedisList();
+                    $redis->zIncrBy($userPostsKey , -1 , $post->user_id);
                     $redis->zRem($postKey , $post->getKey());
                     $redis->zRem($rateKeyOne , $post->getKey());
                     $redis->zRem($rateKeyTwo , $post->getKey());
                     $redis->zRem($essencePostKey , $post->getKey());
                     $redis->zRem($essenceManualPostKey , $post->getKey());
                 }
-            }catch (\Exception $e)
-            {
+            }catch (\Exception $e) {
                 \Log::error('report post error:'.\json_encode($e->getMessage()));
             }
-        }elseif (!blank($userId))
-        {
-            $auth = auth()->user();
+        } elseif (!blank($userId)) {
             try{
-                $user = app(UserRepository::class)->findOrFail($userId);
-                $relation = Report::where('reportable_id', $user->getKey())
-                    ->where('reportable_type', $user->getMorphClass())
-                    ->select(\DB::raw('DISTINCT user_id'))->orderBy('id' , 'DESC')->limit(intval(config('common.report_user_num')+config('common.report_limit_num')))->pluck('user_id')->all();
-                $reportNum = count($relation);
-                if(!in_array($auth->getKey() , $relation)&&$reportNum<config('common.report_post_num'))
-                {
-                    $report = new Report();
-                    $report->user_id = $auth->getKey();
-                    $report->reportable_id=$user->getKey();
-                    $report->reportable_type=$user->getMorphClass();
-                    $report->save();
-                    $reportNum = $reportNum+1;
-                }
-                if($reportNum>=config('common.report_user_num'))
-                {
-                    $params = array(
-                        'user_id'=>$userId,
-                        'user_name'=>$user->user_name,
-                        'time_stamp'=>time()
-                    );
+                $user      = app(UserRepository::class)->findOrFail($userId);
+                $reportNum = $this->reportInfo($auth, $user);
+
+                if($reportNum >= config('common.report_user_num')) {
+                    $params = [
+                        'user_id'    => $userId,
+                        'user_name'  => $user->user_name,
+                        'time_stamp' => time()
+                    ];
                     $params['signature'] = common_signature($params);
                     $this->dispatch(new Dispatcher('/api/ry/set/block' , 'post' , $params));
                 }
-            }catch (\Dingo\Api\Exception\InternalHttpException $e){
+            }catch (InternalHttpException $e) {
                 \Log::error('report user error response:'.$e->getResponse());
-            }catch (\Exception $e)
-            {
+            }catch (\Exception $e) {
                 \Log::error('report user error:'.\json_encode($e->getMessage()));
             }
 
         }
         return $this->response->noContent();
+    }
+
+
+    /**
+     * @param $auth
+     * @param $model
+     * @return int
+     * 举报信息入库
+     */
+    protected function reportInfo($auth, $model)
+    {
+        $relation = Report::where('reportable_id', $model->getKey())
+            ->where('reportable_type', $model->getMorphClass())
+            ->select(\DB::raw('DISTINCT user_id'))->orderBy('id' , 'DESC')->limit(intval(config('common.report_user_num')+config('common.report_limit_num')))->pluck('user_id')->all();
+
+        $reportNum = count($relation);
+        if(!in_array($auth->getKey() , $relation) && $reportNum < config('common.report_post_num')) {
+            $report = new Report();
+            $report->user_id = $auth->getKey();
+            $report->reportable_id=$model->getKey();
+            $report->reportable_type=$model->getMorphClass();
+            $report->save();
+            $reportNum = $reportNum+1;
+        }
+        return $reportNum;
+
     }
 }

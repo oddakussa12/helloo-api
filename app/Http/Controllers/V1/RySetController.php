@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\BlackUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use App\Repositories\Contracts\UserRepository;
@@ -49,8 +50,7 @@ class RySetController extends BaseController
         $key = 'block_user';
         $userId = intval($request->input('user_id' , 0));
         $minute = intval($request->input('minute' , 43200));
-        if($userId<=0)
-        {
+        if($userId<=0) {
             return $this->response->errorNotFound();
         }
         try{
@@ -76,36 +76,37 @@ class RySetController extends BaseController
 
     public function blockUser(Request $request)
     {
-        $key = 'block_user';
-        $userId = intval($request->input('user_id' , 0));
+        $key      = 'block_user';
+        $userId   = intval($request->input('user_id' , 0));
         $userName = intval($request->input('user_name' , ''));
-        $minute = intval($request->input('minute' , 43200));
-        if($userId<=0)
-        {
+        $minute   = intval($request->input('minute' , 43200));
+        if($userId<=0) {
             return $this->response->errorNotFound();
         }
-        if(empty($userName))
-        {
-            $user = app(UserRepository::class)->findOrFail($userId);
+        if(empty($userName)) {
+            $user     = app(UserRepository::class)->findOrFail($userId);
             $userName = $user->user_name;
         }
-        try{
+        try {
             $res = \RongCloud::getUser()->Block()->add(array('id'=>$userId , 'minute'=>$minute));
-            Redis::zadd($key,time() , $userId);
+            Redis::zadd($key, time() , $userId);
             block_user($userName);
-            $res['userId'] = $userId;
-            $res['minute'] = $minute;
+            $res['userId']  = $userId;
+            $res['minute']  = $minute;
             $res['message'] = 'ok';
+
+            // 插入表中
+            BlackUser::findOrInsert($userId, auth()->user()->user_id ?? 0);
+
             throw_if($res['code']!=200 , new \Exception('internal error'));
-        }catch (\Throwable $e)
-        {
+        } catch (\Throwable $e) {
             Redis::zRem($key, $userId);
             unblock_user($userName);
             $res = array(
-                'code'=>$e->getCode(),
-                'userId'=>$userId,
-                'minute'=>$minute,
-                'message'=>$e->getMessage(),
+                'code'    => $e->getCode(),
+                'userId'  => $userId,
+                'minute'  => $minute,
+                'message' => $e->getMessage(),
             );
             \Log::error(\json_encode($res));
         }
