@@ -679,7 +679,7 @@ DOC;
         if (empty($result)) {
             $data = Block::where(['user_id'=>$id, 'is_delete'=>0])->where('post_uuid', '!=', '0')->get()->toArray();
             array_map(function ($value) use($id, $userHiddenPostsKey) {
-                Redis::sadd($userHiddenPostsKey, $value['$post_uuid']);
+                Redis::sadd($userHiddenPostsKey, $value['post_uuid']);
             }, $data);
             $result = Redis::sMembers($userHiddenPostsKey);
         }
