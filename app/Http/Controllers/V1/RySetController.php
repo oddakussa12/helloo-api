@@ -47,53 +47,29 @@ class RySetController extends BaseController
 
     public function block(Request $request)
     {
-        $key = 'block_user';
-        $userId = intval($request->input('user_id' , 0));
-        $minute = intval($request->input('minute' , 43200));
-        if($userId<=0) {
-            return $this->response->errorNotFound();
-        }
-        try{
-            $res = \RongCloud::getUser()->Block()->add(array('id'=>$userId , 'minute'=>43200));
-            Redis::zadd($key,time() , $userId);
-            $res['userId'] = $userId;
-            $res['minute'] = $minute;
-            $res['message'] = 'ok';
-            throw_if($res['code']!=200 , new \Exception('internal error'));
-        }catch (\Throwable $e)
-        {
-            Redis::zRem($key, $userId);
-            $res = array(
-                'code'=>500,
-                'userId'=>$userId,
-                'minute'=>$minute,
-                'message'=>$e->getMessage(),
-            );
-            \Log::error(\json_encode($res));
-        }
-        return $this->response->array($res);
+        return $this->blockUser($request);
     }
 
+    /**
+     * @param Request $request
+     * 屏蔽用户
+     */
     public function blockUser(Request $request)
     {
         $key      = 'block_user';
         $userId   = intval($request->input('user_id' , 0));
-        $userName = intval($request->input('user_name' , ''));
         $minute   = intval($request->input('minute' , 43200));
         if($userId<=0) {
             return $this->response->errorNotFound();
         }
-        if(empty($userName)) {
-            $user     = app(UserRepository::class)->findOrFail($userId);
-            $userName = $user->user_name;
-        }
+
         try {
-            $res = \RongCloud::getUser()->Block()->add(array('id'=>$userId , 'minute'=>$minute));
-            Redis::zadd($key, time() , $userId);
-            block_user($userName);
+            $res            = \RongCloud::getUser()->Block()->add(array('id'=>$userId, 'minute'=>$minute));
             $res['userId']  = $userId;
             $res['minute']  = $minute;
             $res['message'] = 'ok';
+
+            Redis::zadd($key, time(), $userId);
 
             // 插入表中
             BlackUser::findOrInsert($userId, auth()->user()->user_id ?? 0);
@@ -101,7 +77,6 @@ class RySetController extends BaseController
             throw_if($res['code']!=200 , new \Exception('internal error'));
         } catch (\Throwable $e) {
             Redis::zRem($key, $userId);
-            unblock_user($userName);
             $res = array(
                 'code'    => $e->getCode(),
                 'userId'  => $userId,
@@ -111,15 +86,16 @@ class RySetController extends BaseController
             \Log::error(\json_encode($res));
         }
         return $this->response->array($res);
+
     }
+
 
     public function unblockUser(Request $request)
     {
         $key = 'block_user';
         $userId = intval($request->input('user_id' , 0));
         $userName = intval($request->input('user_name' , ''));
-        if($userId<=0)
-        {
+        if($userId<=0) {
             return $this->response->errorNotFound();
         }
         if(empty($userName))
@@ -131,15 +107,12 @@ class RySetController extends BaseController
         try{
             $res = \RongCloud::getUser()->Block()->remove(array('id'=>$userId));
             Redis::zRem($key, $userId);
-            unblock_user($userName);
             $res['userId'] = $userId;
             $res['message'] = 'ok';
             throw_if($res['code']!=200 , new \Exception('internal error'));
         }catch (\Throwable $e){
-            if($time!==null)
-            {
+            if($time!==null) {
                 Redis::zadd($key,$time , $userId);
-                block_user($userName);
             }
             $res = array(
                 'code'=>$e->getCode(),

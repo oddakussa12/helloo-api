@@ -656,7 +656,7 @@ if (!function_exists('dx_uuid'))
         });
     }
 }
-
+/*
 if (! function_exists('block_user')) {
 
     function block_user($userName)
@@ -701,7 +701,7 @@ if (! function_exists('unblock_user')) {
         \Storage::put($filePath , \json_encode(array('list'=>$users) , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
         return $users;
     }
-}
+}*/
 if (! function_exists('carousel_post')) {
 
     function carousel_post($postUuid , $locale , $image)

@@ -31,6 +31,12 @@ use Dingo\Api\Exception\DeleteResourceFailedException;
 
 class EloquentUserRepository  extends EloquentBaseRepository implements UserRepository
 {
+    public function __construct($model)
+    {
+        parent::__construct($model);
+
+    }
+
     public function getDefaultPasswordField()
     {
         return $this->model->default_password_field;
@@ -423,21 +429,43 @@ DOC;
         return $query->whereIn("user_id", $ids)->get();
     }
 
+    /**
+     * @param $id
+     * @return string
+     * 屏蔽用户 redis key
+     */
+    public function hiddenUsersMemKey($id)
+    {
+        return 'user.'.$id.'.hidden.users';
+    }
+
+    /**
+     * @param $id
+     * @param $user_id
+     * @return mixed
+     * 添加屏蔽用户至redis
+     */
     public function updateHiddenUsers($id, $user_id)
     {
-        $userHiddenUsersKey = 'user.'.$id.'.hidden.users';
-
+        $userHiddenUsersKey = $this->hiddenUsersMemKey($id);
         Redis::sadd($userHiddenUsersKey , $user_id);
-
-        $hiddenUsers = $this->hiddenUsers($id);
+        $result = Redis::sMembers($userHiddenUsersKey);
+        if (empty($result)) {
+            $data = Block::where(['user_id'=>$id, 'is_delete'=>0, 'post_uuid'=>'0'])->get()->toArray();
+            array_map(function ($value) use($id, $userHiddenUsersKey) {
+                Redis::sadd($userHiddenUsersKey , $value['block_user_id']);
+            }, $data);
+            $result = Redis::sMembers($userHiddenUsersKey);
+        }
+        return $result;
+        /*$hiddenUsers = $this->hiddenUsers($id);
 
         if(!in_array($user_id , $hiddenUsers))
         {
             array_push($hiddenUsers, $user_id);
         }
         Redis::hset('user.'.$id.'.data', 'hiddenUsers', json_encode($hiddenUsers));
-
-        return $hiddenUsers;
+        return $hiddenUsers;*/
     }
 
     public function hiddenUsers($id=0)
@@ -445,11 +473,13 @@ DOC;
         if ($id === 0) {
             $id = \Auth::id();
         }
-        if ($value = Redis::hget('user.'.$id.'.data', 'hiddenUsers')) {
+        return Redis::sMembers($this->hiddenUsersMemKey($id));
+
+        /*if ($value = Redis::hget('user.'.$id.'.data', 'hiddenUsers')) {
             return json_decode($value , true);
         }
-        $value = $this->initHiddenUsers($id);
-        return $value;
+        return $this->initHiddenUsers($id);
+        */
     }
 
     public function hiddenPosts($id=0)
@@ -457,11 +487,13 @@ DOC;
         if ($id === 0) {
             $id = \Auth::id();
         }
+        return Redis::sMembers($this->hiddenPostsMemKey($id));
+        /*
         if ($value = Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
             return json_decode($value , true);
         }
         $value = $this->initHiddenPosts($id);
-        return $value;
+        return $value;*/
     }
 
     public function initHiddenUsers($id=0)
@@ -624,21 +656,46 @@ DOC;
         return $userData;
     }
 
+    /**
+     * @param $id
+     * @return string
+     * 屏蔽帖子 redis key
+     */
+    public function hiddenPostsMemKey($id)
+    {
+        return 'user.'.$id.'.hidden.posts';
+    }
+
+    /**
+     * @param $id
+     * @param $post_uuid
+     * @return mixed
+     * 添加屏蔽帖子至redis
+     */
     public function updateHiddenPosts($id, $post_uuid)
     {
-        $userHiddenPostsKey = 'user.'.$id.'.hidden.posts';
+        $userHiddenPostsKey = $this->hiddenPostsMemKey($id);
         Redis::sadd($userHiddenPostsKey , $post_uuid);
-        $hiddenPosts = $this->hiddenPosts($id);
-        if(!in_array($post_uuid , $hiddenPosts))
-        {
-            array_push($hiddenPosts, $post_uuid);
+        if (empty($result)) {
+            $data = Block::where(['user_id'=>$id, 'is_delete'=>0])->where('post_uuid', '!=', '0')->get()->toArray();
+            array_map(function ($value) use($id, $userHiddenPostsKey) {
+                Redis::sadd($userHiddenPostsKey, $value['$post_uuid']);
+            }, $data);
+            $result = Redis::sMembers($userHiddenPostsKey);
         }
+        return $result;
+
+        /*$hiddenPosts = $this->hiddenPosts($id);
+        if (!in_array($post_uuid , $hiddenPosts)) {
+            array_push($hiddenPosts, $post_uuid);
+        }*/
+
         // we need to make sure the cached data exists
-        if (!Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
+        /*if (!Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
             $this->cacheUserData($id);
         }
-        Redis::hset('user.'.$id.'.data', 'hiddenPosts', json_encode($hiddenPosts));
-        return $hiddenPosts;
+        Redis::hset('user.'.$id.'.data', 'hiddenPosts', json_encode($hiddenPosts));*/
+        //return $hiddenPosts;
     }
 
     public function randFollow()
