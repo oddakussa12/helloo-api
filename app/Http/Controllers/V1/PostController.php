@@ -407,7 +407,12 @@ class PostController extends BaseController
             {
                 $banners[$index]['image'] = $image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
             }else{
-                unset($banners[$index]);
+                if(isset($image['en']))
+                {
+                    $banners[$index]['image'] = $image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                }else{
+                    unset($banners[$index]);
+                }
             }
         }
         $banners = collect($banners);
