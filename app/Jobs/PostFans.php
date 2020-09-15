@@ -14,6 +14,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PostFans implements ShouldQueue
 {
@@ -66,7 +67,9 @@ class PostFans implements ShouldQueue
                     $userNickName = $this->user->user_nick_name ?? ($this->user->user_name ?? 'some one');
                     foreach ($data as $language => $datum) {
                         if (!empty($datum['device'])) {
+                            Log::info('message: Mpush  start');
                             Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
+                            Log::info('message: Mpush  end');
                         }
                     }
                 }
