@@ -66,10 +66,10 @@ class TopicPush implements ShouldQueue
      * @return array
      * 通过userIds获取用户设备信息
      */
-    public function getDeviceList($userIds)
+    public static function getDeviceList($userIds)
     {
         $devices = \App\Models\Device::whereIn('user_id', $userIds)->where(['device_register_type'=>'fcm'])
-            ->groupBy('user_id')->orderBy('device_updated_at')->get()->toArray();
+            ->groupBy('user_id')->orderBy('device_updated_at', 'DESC')->get()->toArray();
         $push    = ['device_register_type' => 'fcm', 'device_type' => 2];
 
         $languages = array_column($devices, 'device_language');

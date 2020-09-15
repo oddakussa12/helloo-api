@@ -62,7 +62,7 @@ class PostFans implements ShouldQueue
             ->where('relation' , 'follow')->orderByDesc('id')->chunk(50, function ($users) use($post_uuid) {
                 $userIds = $users->pluck('user_id')->all();
                 if (!empty(count($userIds))) {
-                    $data = $this->getDeviceList($userIds);
+                    $data = TopicPush::getDeviceList($userIds);
                     $userNickName = $this->user->user_nick_name ?? ($this->user->user_name ?? 'some one');
                     foreach ($data as $language => $datum) {
                         if (!empty($datum['device'])) {
