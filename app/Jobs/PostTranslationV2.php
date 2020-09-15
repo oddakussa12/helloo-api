@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\Post;
 use App\Traits\CachableUser;
 use App\Traits\CachablePost;
-use GPBMetadata\Google\Api\Log;
 use Illuminate\Bus\Queueable;
 use App\Services\NiuTranslateService;
 use Illuminate\Queue\SerializesModels;
@@ -17,6 +16,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Models\PostTranslation as PostTranslationModel;
+use Illuminate\Support\Facades\Log;
 
 class PostTranslationV2 implements ShouldQueue
 {
