@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Custom\Constant\Constant;
 use App\Models\User;
 use App\Models\Post;
 use App\Traits\CachableUser;
@@ -13,11 +14,12 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Services\TencentTranslateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Models\PostTranslation as PostTranslationModel;
 
 class PostTranslationV2 implements ShouldQueue
 {
-    use CachablePost,CachableUser,Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use CachablePost,CachableUser,DispatchesJobs, InteractsWithQueue, Queueable, SerializesModels;
 
     private $languages;
 
@@ -64,6 +66,7 @@ class PostTranslationV2 implements ShouldQueue
         $this->updateUserPostCount($user->user_id);
         $this->updateUserScoreRank($user->user_id , 2);
         $this->initPost($post);
+//        $this->handle();
     }
     /**
      * Execute the job.
@@ -81,8 +84,7 @@ class PostTranslationV2 implements ShouldQueue
         $postData = array();
         foreach ($languages as $l)
         {
-            if($l=='zh-HK')
-            {
+            if($l=='zh-HK') {
                 continue;
             }else{
                 $t = $l;
@@ -148,6 +150,11 @@ class PostTranslationV2 implements ShouldQueue
         }
 
         // 组装数据 插入ES
-        PostEs::dispatch($post)->onQueue('post_es');
+        PostEs::dispatch($post)->onQueue(Constant::QUEUE_ES_POST);
+
+        // 批量推送给粉丝
+        $job = new PostFans($this->user , $post, $postData);
+        $this->dispatchNow($job->onQueue(Constant::QUEUE_PUSH_POST));
     }
+
 }

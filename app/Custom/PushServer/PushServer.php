@@ -21,24 +21,28 @@ class PushServer
 
     public function Send()
     {
-        // Log::info(__FUNCTION__.' params:', $this->params);
+        Log::info('message', $this->params);
         $deviceBrand = strtolower($this->params['deviceBrand']);
         if ($this->params['registerType'] == 'fcm') {
-            $this->fcmPush();
+            $result = $this->fcmPush();
         } else {
             if (in_array($deviceBrand, ['huawei', 'honer'])) {
-                $this->huaweiPush();
+                $result = $this->huaweiPush();
             }
             if ($deviceBrand == 'xiaomi') {
-                $this->xiaomiPush();
+                $result = $this->xiaomiPush();
             }
             if (in_array($deviceBrand, ['oppo', 'realme'])) {
-                $this->oppoPush();
+                $result = $this->oppoPush();
             }
             if ($deviceBrand == 'vivo') {
 
             }
         }
+        if (empty($result)) {
+            // Log::info(__FUNCTION__.' params:', $this->params);
+        }
+
 
     }
 
@@ -49,14 +53,29 @@ class PushServer
     public function fcmPush()
     {
         try {
-            $result = (new FcmPush($this->params))->send();
-            if (!empty($result['success'])) {
-                return true;
-            } else {
-                return false;
+            $tokens = $this->params['registrationId'];
+            $count  = count($tokens);
+            $limit  = 1000;
+            $page   = intval(ceil($count/$limit));
+
+            for ($i=0; $i<$page; $i++) {
+                $this->params['registrationId'] = array_slice($tokens, $i*$limit, $limit-1);
+                $result = (new FcmPush($this->params))->send();
+                if (!empty($result['success'])) {
+                    return true;
+                } else {
+                    if (!empty($result['tokensToDelete'])) {
+                        // Log::info(__FUNCTION__.' Push message tokensToDelete:'.__FUNCTION__, $result);
+                        return true;
+                    } else {
+                        Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
+                        return false;
+                    }
+                }
             }
+
         } catch (\Exception $e) {
-            Log::error('Push message Exception'.__FUNCTION__, ['code'=>$e->getCode(), 'msg'=> $e->getMessage()]);
+            Log::error(__FUNCTION__.' Push message Exception'.__FUNCTION__, ['code'=>$e->getCode(), 'msg'=> $e->getMessage()]);
         }
     }
 
@@ -69,14 +88,14 @@ class PushServer
         try {
             $result = (new HPush($this->params))->send();
             if ($result['code'] == '80000000') {
-                // Log::info('Push message success:'.__FUNCTION__, $result);
+                // Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
-                Log::info('Push message fail:'.__FUNCTION__, $result);
+                Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
                 return false;
             }
         } catch (\Exception $e) {
-            Log::error('Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
+            Log::error(__FUNCTION__.' Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
         }
     }
 
@@ -85,14 +104,14 @@ class PushServer
         try {
             $result = (new MiPush($this->params))->send();
             if ($result['code'] == 0) {
-                // Log::info('Push message success:'.__FUNCTION__, $result);
+                // Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
-                Log::info('Push message fail:'.__FUNCTION__, $result);
+                Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
                 return false;
             }
         } catch (\Exception $e) {
-            Log::error('Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
+            Log::error(__FUNCTION__.' Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
         }
     }
 
@@ -101,14 +120,14 @@ class PushServer
         try {
             $result = (new OPush($this->params))->send();
             if ($result['code'] == 0) {
-                // Log::info('Push message success:'.__FUNCTION__, $result);
+                // Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
-                Log::info('Push message fail:'.__FUNCTION__, $result);
+                Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
                 return false;
             }
         } catch (\Exception $e) {
-            Log::error('Push message Exception'.__FUNCTION__.'code:'.$e->getCode(). 'msg:'. $e->getMessage());
+            Log::error(__FUNCTION__.' Push message Exception'.__FUNCTION__.'code:'.$e->getCode(). 'msg:'. $e->getMessage());
             return false;
         }
     }

@@ -1,6 +1,7 @@
 <?php
 namespace App\Custom\Notifynder\Senders;
 
+use App\Custom\Constant\Constant;
 use App\Jobs\Jpush;
 use App\Custom\Notifynder\Models\Notification;
 use App\Services\JpushService;
@@ -56,8 +57,13 @@ class JpushNotificationSender implements SenderContract
         switch ($category->name)
         {
             case 'user.like':
-            case 'user.post_like':
-                    $type = 'like';
+                $type = 'like';
+                break;
+            case 'user.post_like':// 帖子点赞
+                $type = 'post_like';
+                break;
+            case 'user.publish.post': // 发帖
+                $type = 'publish_post';
                 break;
             case 'user.post_comment':
                 $type = 'post_comment';
@@ -78,7 +84,7 @@ class JpushNotificationSender implements SenderContract
                 $user_name = $from->user_name;
             }
 
-            Jpush::dispatch($type , $user_name , $to_id)->onQueue('op_jpush');
+            Jpush::dispatch($type , $user_name , $to_id)->onQueue(Constant::QUEUE_PUSH_NAME);
         }
     }
 }

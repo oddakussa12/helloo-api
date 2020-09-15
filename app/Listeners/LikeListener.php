@@ -23,7 +23,7 @@ class LikeListener
      */
     public function __construct()
     {
-
+        $this->handle();
     }
 
     /**
@@ -69,8 +69,7 @@ class LikeListener
                     ) ,
                     'setField'=>array('contact_id' , $keyValue),
                     'url'=>'/notification/post/'.$keyValue,
-                ),
-                false
+                )
             );
         }else if($object instanceof PostComment)
         {

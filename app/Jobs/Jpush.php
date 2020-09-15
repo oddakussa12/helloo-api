@@ -23,7 +23,7 @@ class Jpush implements ShouldQueue
     public $content;
     public $version=0;
     public $app='web';
-    public $deviceBrand = ['huawei', 'honer', 'xiaomi', 'oppo', 'realme'];
+    public $deviceBrand = ['fcm', 'huawei', 'honer', 'xiaomi', 'oppo', 'realme'];
     //public $deviceBrand = [];
 
     public function __construct($type , $formName , $userId , $content='')
@@ -58,7 +58,7 @@ class Jpush implements ShouldQueue
         $device = DB::table('devices')->where('user_id', $this->userId)->orderBy('device_updated_at', 'desc')->first();
         if(empty($device)) return false;
 
-        if ($device->device_type==2 && ($device->device_register_type == 'fcm' || in_array(strtolower($device->device_phone_model), $this->deviceBrand))) {
+        if ($device->device_type==2 && in_array(strtolower($device->device_register_type), $this->deviceBrand)) {
             NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
 
         } else{

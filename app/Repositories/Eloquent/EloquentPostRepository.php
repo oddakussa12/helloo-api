@@ -2,6 +2,8 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Custom\Constant\Constant;
+use App\Jobs\TopicPush;
 use App\Models\Block;
 use Carbon\Carbon;
 use App\Models\Tag;
@@ -777,7 +779,12 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             Redis::hmset($postKey , array(
                 "topics" => \json_encode($topics)
             ));
-            TopicEs::dispatch($post , $topics)->onQueue('topic_es');
+
+            // 组装数据 插入ES
+            TopicEs::dispatch($post , $topics)->onQueue(Constant::QUEUE_ES_TOPIC);
+
+            // 批量推送给关注者
+            TopicPush::dispatch($post, $topics)->onQueue(Constant::QUEUE_PUSH_TOPIC);
         }
         return $post;
     }
