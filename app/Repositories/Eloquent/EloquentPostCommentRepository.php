@@ -25,8 +25,8 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
         $appends = array();
         $queryTime = $request->get('query_time' , '');
         $post = app(PostRepository::class)->findOrFailByUuid($uuid);
-        $comments = $post->comments()->withTrashed()
-            ->with('translations')
+        $comments = $this->allWithBuilder()->withTrashed()
+            ->where('post_id' , $post->post_id)
             ->where('comment_comment_p_id' , 0)
             ->whereNull($this->model->getDeletedAtColumn());
         if(empty($queryTime))
@@ -261,12 +261,6 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
     public function findByCommentIds(array $comment_ids , $type='comment')
     {
         $comments = $this->allWithBuilder();
-        if($type=='comment')
-        {
-            $comments = $comments->with(['parent'=>function($q){
-                $q->with('translations')->with('owner');
-            }]);
-        }
         $comments = $comments->whereIn('comment_id' , $comment_ids)
             ->with('owner')
             ->with(['post'=>function($q){
@@ -278,6 +272,25 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $postCommentLikes = $this->userPostCommentLike($commentIds);
             $comments->each(function ($comment , $key) use ($postCommentLikes) {
                 $comment->likeState = in_array($comment->comment_id , $postCommentLikes);
+            });
+        }
+        if($type=='comment')
+        {
+            $parentIds = $comments->pluck('comment_comment_p_id')->filter(function ($value, $key){
+                return $value>0;
+            })->all();
+            if(auth()->check())
+            {
+                $user = auth()->user();
+                $parents = $this->allWithBuilder()->whereIn('comment_id' , $parentIds)->get();
+                $parents->each(function ($comment , $key) use ($user) {
+                    $comment->owner = $user;
+                });
+            }else{
+                $parents = $this->allWithBuilder()->with('owner')->whereIn('comment_id' , $parentIds)->get();
+            }
+            $comments->each(function ($comment , $key) use ($parents) {
+                $comment->parent = $parents->where('comment_id' , $comment->comment_comment_p_id)->first();
             });
         }
         return $comments;
@@ -295,7 +308,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
             $topTwoCommentQuery = $topTwoCommentQuery->where('comment_created_at' , '<=' , $queryTime);
         }
         $topTwoCommentQuery = $topTwoCommentQuery->orderBy('comment_top_id')
-            ->select(DB::raw('*,@comment := NULL ,@rank := 0'))
+            ->select(DB::raw('comment_id,comment_top_id,@comment := NULL ,@rank := 0'))
             ->orderBy('comment_id' , $order);
         $topTwoCommentQuery = DB::table(DB::raw("({$topTwoCommentQuery->toSql()}) as b"))
             ->mergeBindings($topTwoCommentQuery->getQuery())

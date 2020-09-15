@@ -92,7 +92,6 @@ class RySetController extends BaseController
         try{
             $res = \RongCloud::getUser()->Block()->add(array('id'=>$userId , 'minute'=>$minute));
             Redis::zadd($key,time() , $userId);
-            block_user($userName);
             $res['userId'] = $userId;
             $res['minute'] = $minute;
             $res['message'] = 'ok';
@@ -100,7 +99,6 @@ class RySetController extends BaseController
         }catch (\Throwable $e)
         {
             Redis::zRem($key, $userId);
-            unblock_user($userName);
             $res = array(
                 'code'=>$e->getCode(),
                 'userId'=>$userId,
@@ -130,7 +128,6 @@ class RySetController extends BaseController
         try{
             $res = \RongCloud::getUser()->Block()->remove(array('id'=>$userId));
             Redis::zRem($key, $userId);
-            unblock_user($userName);
             $res['userId'] = $userId;
             $res['message'] = 'ok';
             throw_if($res['code']!=200 , new \Exception('internal error'));
@@ -138,7 +135,6 @@ class RySetController extends BaseController
             if($time!==null)
             {
                 Redis::zadd($key,$time , $userId);
-                block_user($userName);
             }
             $res = array(
                 'code'=>$e->getCode(),

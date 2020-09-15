@@ -89,10 +89,10 @@ class PostComment extends Model
     }
 
 
-    public function parent()
-    {
-        return $this->belongsTo(self::class, 'comment_comment_p_id');
-    }
+//    public function parent()
+//    {
+//        return $this->belongsTo(self::class, 'comment_comment_p_id');
+//    }
 
     public function post()
     {

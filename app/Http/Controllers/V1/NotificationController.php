@@ -31,7 +31,8 @@ class NotificationController extends BaseController
             $message = Notification::where('to_type'  , 'global')->where('expires_at' , '>=' , Carbon::now())->orderByDesc('expires_at')->get();
             if(auth()->check()&&auth()->user()->user_name=='admin')
             {
-                $message_ext = auth()->user()->getNotificationRelation()
+                $user = auth()->user();
+                $message_ext = Notification::where('to_id' , $user->user_id)
                     ->whereIn('category_id', [4 , 7 , 8])
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
@@ -47,7 +48,8 @@ class NotificationController extends BaseController
         }elseif ($type=='like'){
             if(auth()->check())
             {
-                $message = auth()->user()->getNotificationRelation()
+                $user = auth()->user();
+                $message = Notification::where('to_id' , $user->user_id)
                     ->with('from')
                     ->with('category')
                     ->where('category_id', 3)
@@ -71,14 +73,16 @@ class NotificationController extends BaseController
         }elseif ($type=='comment'){
             if(auth()->check())
             {
-                $message = auth()->user()->getNotificationRelation()->with('category')->with('from')->with('to')
+                $user = auth()->user();
+                $message = Notification::where('to_id' , $user->user_id)->with('category')
                     ->whereIn('category_id', [5 , 6])
                     ->orderBy('created_at', 'desc')
                     ->orderBy('read', 'asc')
                     ->paginate(10 , ['*'] , 'notice_page');
                 $message= $message->appends($appends);
-                $message->each(function($item , $key) use (&$postIds , &$commentIds){
+                $message->each(function($item , $key) use (&$postIds , &$commentIds , $user){
                     $extra = $item->extra;
+                    $item->to = $user;
                     array_push($postIds , $extra['post_id']);
                     array_push($commentIds , $extra['comment_id']);
                 });

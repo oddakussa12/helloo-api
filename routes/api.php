@@ -27,7 +27,7 @@ $V1Params = [
 
 $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh']] , function($api){
-        $api->group(['middleware'=>'operationLog'] , function ($api){
+        $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
             $api->resource('post', 'PostController', ['only' => ['index']]);
         });
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
@@ -53,6 +53,7 @@ $api->group($V1Params , function ($api){
 
         /*****话题下贴子 开始*****/
         $api->get('topic/{topic}/post', 'TopicController@post')->name('topic.post');
+        $api->get('topic/post', 'TopicController@topicPost')->name('topic.post.v2');
         /*****话题下贴子 结束*****/
 
 
@@ -175,7 +176,7 @@ $api->group($V1Params , function ($api){
             $api->post('postComment' , 'PostCommentController@store')->name('comment.store');
         });
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
-        $api->group(['middleware'=>['redisThrottle:5,1']] , function ($api){
+        $api->group(['middleware'=>['lastActive' , 'redisThrottle:'.config('common.notification_throttle_num').','.config('common.notification_throttle_expired')]] , function ($api){
             $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
         });
         $api->put('notification/type/{type}' , 'NotificationController@readAll')->name('notice.readAll');

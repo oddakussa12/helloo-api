@@ -192,6 +192,7 @@ return [
         Laravel\Scout\ScoutServiceProvider::class,
         ScoutEngines\Elasticsearch\ElasticsearchProvider::class,
         LaravelFCM\FCMServiceProvider::class,
+        App\Providers\DingoServiceProvider::class,
 
     ],
 

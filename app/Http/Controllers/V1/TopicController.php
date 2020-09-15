@@ -15,6 +15,7 @@ use App\Repositories\Contracts\PostRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
 use App\Resources\TopicSearchPaginateCollection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use function GuzzleHttp\Psr7\str;
 
 class TopicController extends BaseController
 {
@@ -88,6 +89,16 @@ class TopicController extends BaseController
             Redis::zrem($key , $topic);
         }
         return $this->response->noContent();
+    }
+
+    public function topicPost(Request $request)
+    {
+        $topic = strval($request->input('topic' , ''));
+        if(empty($topic))
+        {
+            abort(404);
+        }
+        return $this->post($topic);
     }
 
     public function post($topic)
