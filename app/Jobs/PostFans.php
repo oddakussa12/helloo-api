@@ -47,6 +47,8 @@ class PostFans implements ShouldQueue
         $this->user      = $user;
         $this->post      = $post;
         $this->postData  = $postData;
+        Log::info('message::批量推送给粉丝  __construct ');
+        $this->handle();
     }
     /**
      * Execute the job.
@@ -55,6 +57,7 @@ class PostFans implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('message::批量推送给粉丝  handle start ');
         $post_uuid = $this->post->post_uuid->toString();
         if (empty($post_uuid)) return false;
         $userId = $this->user->user_id ?? '';
@@ -74,6 +77,9 @@ class PostFans implements ShouldQueue
                     }
                 }
             });
+
+        Log::info('message::批量推送给粉丝  handle end ');
+
     }
 
 
