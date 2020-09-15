@@ -153,6 +153,8 @@ class PostTranslationV2 implements ShouldQueue
         PostEs::dispatch($post)->onQueue(Constant::QUEUE_ES_POST);
 
         // 批量推送给粉丝
+        //PostFans::dispatch($this->user , $post, $postData)->onQueue(Constant::QUEUE_PUSH_POST);
+
         $job = new PostFans($this->user , $post, $postData);
         $this->dispatchNow($job->onQueue(Constant::QUEUE_PUSH_POST));
     }

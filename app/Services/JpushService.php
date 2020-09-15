@@ -191,10 +191,10 @@ class JpushService
                 $title = trans('notifynder.user.comment' , [] , $lang);
                 break;
             case 'publish_post':
-                $title = trans('notifynder.user.publish.post' , [] , $lang);
+                $title = trans('notifynder.user.publish_post' , [] , $lang);
                 break;
             case 'publish_topic':
-                $title = trans('notifynder.user.publish.topic' , [] , $lang);
+                $title = trans('notifynder.user.publish_topic' , [] , $lang);
                 break;
             case 'post_comment':
                 $title = trans('notifynder.user.post_comment' , [] , $lang);
