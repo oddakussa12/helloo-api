@@ -71,10 +71,17 @@ class PostCommentCollection extends Resource
             'post'=>$this->when($this->relationLoaded('post')&&!$request->routeIs('comment.store'), function (){
                 return new PostCollection($this->post);
             }),
-            $this->mergeWhen(!empty($this->parent), function (){
-                return collect(array(
-                    'parent'=>new PostCommentSubCollection($this->parent),
-                ));
+            $this->mergeWhen(!empty($this->parentComment)||$this->relationLoaded('parent'), function (){
+                if(!empty($this->parentComment))
+                {
+                    return collect(array(
+                        'parent'=>new PostCommentSubCollection($this->parentComment),
+                    ));
+                }else{
+                    return collect(array(
+                        'parent'=>new PostCommentSubCollection($this->parent),
+                    ));
+                }
             }),
             $this->mergeWhen($this->relationLoaded('to')||isset($this->toer), function (){
                 if($this->relationLoaded('to'))

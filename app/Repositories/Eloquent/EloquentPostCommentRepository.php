@@ -290,7 +290,7 @@ class EloquentPostCommentRepository  extends EloquentBaseRepository implements P
                 $parents = $this->allWithBuilder()->with('owner')->whereIn('comment_id' , $parentIds)->get();
             }
             $comments->each(function ($comment , $key) use ($parents) {
-                $comment->parent = $parents->where('comment_id' , $comment->comment_comment_p_id)->first();
+                $comment->parentComment = $parents->where('comment_id' , $comment->comment_comment_p_id)->first();
             });
         }
         return $comments;
