@@ -46,7 +46,7 @@ if(!function_exists('dynamicSetLocales')){
 if(!function_exists('notify')){
     function notify($category='user.like', $data =[], $isJpush=true, $anonymous=false)
     {
-        $params     = ['from'=>'', 'to'=>'', 'extra'=>[], 'value'=>'', 'url'=>'', 'expire'=>'', 'setField'=>[]];
+        $params     = ['from'=>'', 'to'=>'', 'extra'=>[], 'url'=>'', 'expire'=>'', 'setField'=>[]];
         $op         = array_intersect_key($data , $params);
         $notifynder = Notifynder::category($category);
         if($anonymous) {

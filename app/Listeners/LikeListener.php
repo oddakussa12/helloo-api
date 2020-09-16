@@ -79,8 +79,8 @@ class LikeListener
             }
             $object->increment('comment_like_num' , $event->getType() , $extra);
             $this->updateUserPostCommentLikeCount($user->user_id);
-            notify('user.like' ,
-                array(
+            notify('user.like',
+                [
                     'from' => $user->user_id ,
                     'to'   => $object->user_id ,
                     'extra'=> [
@@ -88,9 +88,9 @@ class LikeListener
                         'post_id'=> $post->post_id,
                         'value'  => $post->post_uuid,
                     ],
-                    'setField'=>array('contact_id' , $keyValue),
+                    'setField' =>['contact_id', $keyValue],
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
-                )
+                ]
             );
 
         }
