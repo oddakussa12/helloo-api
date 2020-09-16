@@ -73,9 +73,9 @@ class PostFans implements ShouldQueue
                         if (!empty($datum['device'])) {
                             Log::info('message: Mpush  start');
 
-                            $job = new PostFans('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid);
+                            $job = new Mpush('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid);
                             $this->dispatchNow($job->onQueue(Constant::QUEUE_PUSH_NAME));
-                            
+
                             //Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
                             Log::info('message: Mpush  end');
                         }
