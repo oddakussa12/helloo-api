@@ -9,6 +9,7 @@ use App\Traits\CachableUser;
 use App\Traits\CachablePost;
 use Illuminate\Bus\Queueable;
 use Illuminate\Config\Repository;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 
 class PostFans implements ShouldQueue
 {
-    use CachablePost,CachableUser,Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use CachablePost,CachableUser,DispatchesJobs, InteractsWithQueue, Queueable, SerializesModels;
 
     private $languages;
 
@@ -71,7 +72,11 @@ class PostFans implements ShouldQueue
                     foreach ($data as $language => $datum) {
                         if (!empty($datum['device'])) {
                             Log::info('message: Mpush  start');
-                            Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
+
+                            $job = new PostFans('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid);
+                            $this->dispatchNow($job->onQueue(Constant::QUEUE_PUSH_NAME));
+                            
+                            //Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
                             Log::info('message: Mpush  end');
                         }
                     }
