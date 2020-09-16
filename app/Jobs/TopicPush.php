@@ -52,7 +52,8 @@ class TopicPush implements ShouldQueue
         foreach ($topicList as $item) {
             DB::table('topics_follows')->where('topic_content', $item)->chunk(50, function ($users) use ($data, $item) {
                     $userIds = $users->pluck('user_id')->all();
-                    if (!empty(count($userIds))) {
+                    Log::info('message:::userIds:::', $userIds);
+                    if (!empty($userIds)) {
                         $languages = $this->getDeviceList($userIds);
                         $userNickName = '';
                         foreach ($languages as $language => $datum) {
