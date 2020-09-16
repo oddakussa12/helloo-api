@@ -579,12 +579,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     /**
      * @param $posts
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     *
      * 获取自定义精华帖
      */
     public function getCustomEssencePost($posts)
     {
         $key = config('redis-key.post.post_index_essence');
-        $this->getCachePosts($posts, $key);
+        return $this->getCachePosts($posts, $key);
     }
 
     /**
