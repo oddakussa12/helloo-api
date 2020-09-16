@@ -62,7 +62,7 @@ class LikeListener
                 [
                     'from'     => $user->user_id ,
                     'to'       => $object->user_id ,
-                    'extra'    => [$keyName => $keyValue, 'value' => $object->post_uuid->toString()],
+                    'extra'    => [$keyName => $keyValue, 'value' => $object->post_uuid ?? ''],
                     'setField' => array('contact_id' , $keyValue),
                     'url'      => '/notification/post/'.$keyValue,
                 ]
