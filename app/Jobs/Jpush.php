@@ -27,7 +27,7 @@ class Jpush implements ShouldQueue
     public $deviceBrand = ['fcm', 'huawei', 'honer', 'xiaomi', 'oppo', 'realme'];
     //public $deviceBrand = [];
 
-    public function __construct($type , $formName , $userId , $extra=null, $content='')
+    public function __construct($type , $formName , $userId , $extra=[], $content='')
     {
         $this->type     = $type;
         $this->formName = $formName;

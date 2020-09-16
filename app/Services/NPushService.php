@@ -17,12 +17,13 @@ class NPushService
         return (new PushServer($params))->send();
     }
 
-    public static function commonPush($device, $fromName, $toUserId, $type='like', $extra=null, $content='')
+    public static function commonPush($device, $fromName, $toUserId, $type='like', $pushExtra=[], $content='')
     {
         if(empty($toUserId)) return;
 
         $title = $fromName.' '.self::getTitle($type , $device->device_language);
-        $data = [
+        $extra = ['type'=>$type, 'url'=>self::getPushUrl($type), 'title'=>$title];
+        $data  = [
             'deviceCountry'  => $device->device_country,
             'registerType'   => $device->device_register_type,
             'deviceBrand'    => !empty($device->device_phone_model) ? strtolower($device->device_phone_model) : '',
@@ -30,7 +31,7 @@ class NPushService
             'content'        => $title,
             'platform'       => $device->device_type,
             'builderId'      => 1,
-            'extras'         => ['type'=>$type, 'url'=>self::getPushUrl($type), 'title'=>$title, 'value'=>$extra['value'] ?? ''],
+            'extras'         => !empty($pushExtra) && is_array($pushExtra) ? array_merge_recursive($extra, $pushExtra) : $extra,
             'type'           => 2,
             'registrationId' => $device->device_registration_id
         ];

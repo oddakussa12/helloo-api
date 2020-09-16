@@ -9,6 +9,7 @@ use App\Services\NPushService;
 use Fenos\Notifynder\Contracts\SenderContract;
 use Fenos\Notifynder\Contracts\SenderManagerContract;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class JpushNotificationSender implements SenderContract
 {
@@ -38,10 +39,10 @@ class JpushNotificationSender implements SenderContract
      */
     public function send(SenderManagerContract $sender)
     {
-        $from = $this->build->getFrom();
+        $from         = $this->build->getFrom();
         $notification = $sender->send($this->notification);
-        $extra = $this->notification->extra ?? '';
-        $this->sendJpush($notification , $from, $extra);
+        $extra        = !is_array($notification->extra) ? json_decode($notification->extra, true) : $notification->extra;
+        $this->sendJpush($notification, $from, $extra);
     }
 
     /**
@@ -49,9 +50,10 @@ class JpushNotificationSender implements SenderContract
      *
      * @param Notification $notification
      * @param null $from
+     * @param array $extra
      * @return void
      */
-    public function sendJpush(Notification $notification, $from=null, $extra=null) {
+    public function sendJpush(Notification $notification, $from=null, $extra=[]) {
         $to_id    = $notification->to_id;
         $category = $notification->category;
         $type     = '';
