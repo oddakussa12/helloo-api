@@ -88,7 +88,7 @@ class TopicPush implements ShouldQueue
             }
         }
 
-        return $languages;
+        return $data ?? [];
 
     }
 }
