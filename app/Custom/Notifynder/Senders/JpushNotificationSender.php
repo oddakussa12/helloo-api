@@ -84,7 +84,7 @@ class JpushNotificationSender implements SenderContract
                 $user_name = $from->user_name;
             }
 
-            Jpush::dispatch($type , $user_name , $to_id)->onQueue(Constant::QUEUE_PUSH_NAME);
+            Jpush::dispatch($type, $user_name , $to_id, $from)->onQueue(Constant::QUEUE_PUSH_NAME);
         }
     }
 }

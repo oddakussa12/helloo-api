@@ -17,7 +17,7 @@ class NPushService
         return (new PushServer($params))->send();
     }
 
-    public static function commonPush($device, $fromName, $toUserId, $type='like')
+    public static function commonPush($device, $fromName, $toUserId, $type='like', $from=null, $content='')
     {
         if(empty($toUserId)) return;
 
@@ -30,7 +30,7 @@ class NPushService
             'content'        => $title,
             'platform'       => $device->device_type,
             'builderId'      => 1,
-            'extras'         => ['type'=>$type, 'url'=>self::getPushUrl($type), 'title'=>$title],
+            'extras'         => ['type'=>$type, 'url'=>self::getPushUrl($type), 'title'=>$title, 'value'=>$from->extras['value'] ?? ''],
             'type'           => 2,
             'registrationId' => $device->device_registration_id
         ];

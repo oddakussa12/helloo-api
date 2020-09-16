@@ -23,15 +23,17 @@ class Jpush implements ShouldQueue
     public $content;
     public $version=0;
     public $app='web';
+    private $from;
     public $deviceBrand = ['fcm', 'huawei', 'honer', 'xiaomi', 'oppo', 'realme'];
     //public $deviceBrand = [];
 
-    public function __construct($type , $formName , $userId , $content='')
+    public function __construct($type , $formName , $userId , $from=null, $content='')
     {
-        $this->type = $type;
+        $this->type     = $type;
         $this->formName = $formName;
-        $this->userId = $userId;
-        $this->content = $content;
+        $this->userId   = $userId;
+        $this->content  = $content;
+        $this->from     = $from;
         $agent = new Agent();
         if($agent->match('Yooul'))
         {
@@ -59,10 +61,10 @@ class Jpush implements ShouldQueue
         if(empty($device)) return false;
 
         if ($device->device_type==2 && in_array(strtolower($device->device_register_type), $this->deviceBrand)) {
-            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
+            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->from, $this->content);
 
         } else{
-            JpushService::commonPush($device, $this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
+            JpushService::commonPush($device, $this->formName, $this->userId, $this->type , $this->content, $this->app, $this->version);
         }
     }
 
