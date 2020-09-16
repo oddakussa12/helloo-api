@@ -77,7 +77,7 @@ class TopicPush implements ShouldQueue
      */
     public static function getDeviceList($userIds)
     {
-        $devices = \App\Models\Device::whereIn('user_id', $userIds)->where(['device_register_type'=>'fcm'])
+        $devices = \App\Models\Device::whereIn('user_id', $userIds)
             ->groupBy('user_id')->orderBy('device_updated_at', 'DESC')->get()->toArray();
         $push    = ['device_register_type' => 'fcm', 'device_type' => 2];
 
@@ -85,6 +85,9 @@ class TopicPush implements ShouldQueue
 
         foreach ($languages as $k=>$language) {
             foreach ($devices as $key =>$item) {
+                if ($item['device_register_type']!='fcm') {
+                    continue;
+                }
                 if (!in_array($item['device_language'], $languages)) {
                     $data['en']['device'] = $push;
                     $data['en']['device']['device_registration_id'][] = $item['device_registration_id'];
