@@ -23,28 +23,26 @@ class Jpush implements ShouldQueue
     public $content;
     public $version=0;
     public $app='web';
-    private $from;
+    private $extra;
     public $deviceBrand = ['fcm', 'huawei', 'honer', 'xiaomi', 'oppo', 'realme'];
     //public $deviceBrand = [];
 
-    public function __construct($type , $formName , $userId , $from=null, $content='')
+    public function __construct($type , $formName , $userId , $extra=null, $content='')
     {
         $this->type     = $type;
         $this->formName = $formName;
         $this->userId   = $userId;
         $this->content  = $content;
-        $this->from     = $from;
-        $agent = new Agent();
-        if($agent->match('Yooul'))
-        {
+        $this->extra    = $extra;
+        $agent          = new Agent();
+
+        if ($agent->match('Yooul')) {
             $this->version = (string)$agent->getHttpHeader('YooulVersion');
-            if($agent->match('YooulAndroid'))
-            {
+            if ($agent->match('YooulAndroid')) {
                 $this->app = 'android';
-            }elseif ($agent->match('YoouliOS'))
-            {
+            } elseif ($agent->match('YoouliOS')) {
                 $this->app = 'ios';
-            }else{
+            } else {
                 $this->app = 'web';
             }
         }
@@ -61,7 +59,7 @@ class Jpush implements ShouldQueue
         if(empty($device)) return false;
 
         if ($device->device_type==2 && in_array(strtolower($device->device_register_type), $this->deviceBrand)) {
-            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->from, $this->content);
+            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->extra, $this->content);
 
         } else{
             JpushService::commonPush($device, $this->formName, $this->userId, $this->type , $this->content, $this->app, $this->version);

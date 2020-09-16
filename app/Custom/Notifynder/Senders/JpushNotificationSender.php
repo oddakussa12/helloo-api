@@ -40,7 +40,8 @@ class JpushNotificationSender implements SenderContract
     {
         $from = $this->build->getFrom();
         $notification = $sender->send($this->notification);
-        $this->sendJpush($notification , $from);
+        $extra = $this->notification->extra ?? '';
+        $this->sendJpush($notification , $from, $extra);
     }
 
     /**
@@ -50,10 +51,10 @@ class JpushNotificationSender implements SenderContract
      * @param null $from
      * @return void
      */
-    public function sendJpush(Notification $notification , $from=null) {
-        $to_id = $notification->to_id;
+    public function sendJpush(Notification $notification, $from=null, $extra=null) {
+        $to_id    = $notification->to_id;
         $category = $notification->category;
-        $type = '';
+        $type     = '';
         switch ($category->name)
         {
             case 'user.like':
@@ -84,7 +85,7 @@ class JpushNotificationSender implements SenderContract
                 $user_name = $from->user_name;
             }
 
-            Jpush::dispatch($type, $user_name , $to_id, $from)->onQueue(Constant::QUEUE_PUSH_NAME);
+            Jpush::dispatch($type, $user_name , $to_id, $extra)->onQueue(Constant::QUEUE_PUSH_NAME);
         }
     }
 }
