@@ -77,7 +77,8 @@ class TopicPush implements ShouldQueue
      */
     public static function getDeviceList($userIds)
     {
-        $sql     = "SELECT * from (SELECT user_id,device_registration_id,device_language,device_register_type from f_devices where user_id in ({$userIds})  ORDER BY device_updated_at desc) a GROUP BY user_id";
+        $userIds = is_array($userIds) ? implode(',', $userIds) : $userIds;
+        $sql     = "SELECT * from (SELECT user_id,device_registration_id,device_language,device_register_type from f_devices where user_id in ({$userIds}) ORDER BY device_updated_at desc) a GROUP BY user_id";
         $devices = collect(\DB::select($sql))->map(function ($value) {
             return (array)$value;
         })->toArray();
