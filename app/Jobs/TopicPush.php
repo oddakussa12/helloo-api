@@ -77,10 +77,12 @@ class TopicPush implements ShouldQueue
      */
     public static function getDeviceList($userIds)
     {
-        $devices = \App\Models\Device::whereIn('user_id', $userIds)
-            ->groupBy('user_id')->orderBy('device_updated_at', 'DESC')->get()->toArray();
-        $push    = ['device_register_type' => 'fcm', 'device_type' => 2];
+        $sql     = "SELECT * from (SELECT user_id,device_registration_id,device_language,device_register_type from f_devices where user_id in ({$userIds})  ORDER BY device_updated_at desc) a GROUP BY user_id";
+        $devices = collect(\DB::select($sql))->map(function ($value) {
+            return (array)$value;
+        })->toArray();
 
+        $push      = ['device_register_type' => 'fcm', 'device_type' => 2];
         $languages = array_column($devices, 'device_language');
 
         foreach ($languages as $k=>$language) {
