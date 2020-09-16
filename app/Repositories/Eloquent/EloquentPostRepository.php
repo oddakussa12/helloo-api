@@ -17,6 +17,7 @@ use App\Models\PostViewNum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -783,8 +784,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             // 组装数据 插入ES
             TopicEs::dispatch($post , $topics)->onQueue(Constant::QUEUE_ES_TOPIC);
 
+            Log::info('message:::::批量推送给关注者  start ');
             // 批量推送给关注者
             TopicPush::dispatch($post, $topics)->onQueue(Constant::QUEUE_PUSH_TOPIC);
+            Log::info('message:::::批量推送给关注者  end ');
+
         }
         return $post;
     }

@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class TopicPush
@@ -27,6 +28,8 @@ class TopicPush implements ShouldQueue
     {
         $this->post = $post;
         $this->topics = $topics;
+        Log::info('message:::::批量推送给关注者  __construct ');
+        $this->handle();
     }
 
     /**
@@ -36,6 +39,7 @@ class TopicPush implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('message:::::批量推送给关注者  handle ');
         Log::info('message::::发布话题 handle  start');
         $result = DB::table('posts_topics')->select(DB::raw("count(1) as num"), 'topic_content')
                   ->whereIn('topic_content', $this->topics)->groupBy('topic_content')->get()->toArray();
