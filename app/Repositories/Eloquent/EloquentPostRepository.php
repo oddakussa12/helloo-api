@@ -6,7 +6,6 @@ use App\Custom\Constant\Constant;
 use App\Jobs\TopicPush;
 use App\Models\Block;
 use Carbon\Carbon;
-use App\Models\Tag;
 use App\Models\Post;
 use App\Models\Like;
 use App\Jobs\TopicEs;
@@ -40,38 +39,36 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function top($request)
     {
-        $include = $request->input('include' , '');
-        $include = explode(',' ,$include);
-        $posts = $this->allWithBuilder();
-        $posts = $posts->with('owner');
-        $posts = $posts->where('post_topping' , 1);
-        $posts = $posts->orderBy('post_topped_at', 'DESC')
-            ->limit(8)
-            ->get();
+        $include = $request->input('include', '');
+        $include = explode(',', $include);
+        $posts   = $this->allWithBuilder()->with('owner')->where('post_topping' , 1)
+                        ->orderBy('post_topped_at', 'DESC')->limit(8)->get();
+
 //        $activeUsers = app(UserRepository::class)->getYesterdayUserRank(); //获取活跃用户
-//
 //        $posts->each(function ($item, $key) use ($activeUsers){
-//
 //            $item->owner->user_medal = $activeUsers->where('user_id' , $item->user_id)->pluck('user_rank_score')->first();
 //        });
 
-        if(auth()->check())
-        {
-            $postIds = $posts->pluck('post_id')->all();
-            $postLikes = $this->userPostLike($postIds);
-            $postDisLikes = $this->userPostDislike($postIds);
-
-            $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
-                $post->likeState = in_array($post->post_id , $postLikes);
-                $post->dislikeState = in_array($post->post_id , $postDisLikes);
-            });
-        }
-        if(in_array('follow' , $include))
-        {
-            $userIds = $posts->pluck('user_id')->all();//获取user id
+        $posts = $this->authCheck($posts);
+        if(in_array('follow' , $include)) {
+            $userIds   = $posts->pluck('user_id')->all();//获取user id
             $followers = app(UserRepository::class)->userFollow($userIds);//重新获取当前登录用户信息
             $posts->each(function ($item, $key) use ($followers){
                 $item->owner->user_follow_state = in_array($item->user_id , $followers);
+            });
+        }
+        return $posts;
+    }
+
+    public function authCheck($posts)
+    {
+        if (auth()->check()) {
+            $postIds      = $posts->pluck('post_id')->all();
+            $postLikes    = $this->userPostLike($postIds);
+            $postDisLikes = $this->userPostDislike($postIds);
+            $posts->each(function ($post, $key) use ($postLikes, $postDisLikes) {
+                $post->likeState    = in_array($post->post_id, $postLikes);
+                $post->dislikeState = in_array($post->post_id, $postDisLikes);
             });
         }
         return $posts;
@@ -169,7 +166,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                         $item->owner->user_follow_state = true;
                     });
                 }else{
-                    $userIds = $posts->pluck('user_id')->all();//获取user id
+                    $userIds   = $posts->pluck('user_id')->all();//获取user id
                     $followers = app(UserRepository::class)->userFollow($userIds);//重新获取当前登录用户信息
                     $posts->each(function ($item, $key) use ($followers){
                         $item->owner->user_follow_state = in_array($item->user_id , $followers);
@@ -183,11 +180,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
                 $keys        = $postIds = [];
 
-                $posts->each(function ($post , $key) use ($hiddenPosts , $hiddenUsers , &$keys , &$postIds) {
-                    if(in_array($post->post_uuid , $hiddenPosts) || in_array($post->user_id , $hiddenUsers)) {
-                        array_push($keys , $key);
+                $posts->each(function ($post, $key) use ($hiddenPosts, $hiddenUsers, &$keys, &$postIds) {
+                    if(in_array($post->post_uuid, $hiddenPosts) || in_array($post->user_id, $hiddenUsers)) {
+                        array_push($keys, $key);
                     } else {
-                        array_push($postIds , $post->post_id);
+                        array_push($postIds, $post->post_id);
                     }
                 });
                 $posts->offsetUnset($keys);
@@ -213,29 +210,23 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function paginateTopic($topic)
     {
-        $appends = array();
-        $request = \request();
-        $orderBy = strval($request->input('order_by' , 'time'));
-        $appends['order_by'] = $orderBy;
-        $key = strval($topic);
-        if($orderBy==='time')
-        {
-            $topicKey = $key.'_new';
-        }else{
-            $topicKey = $key.'_rate';
-        }
+        $request  = \request();
+        $orderBy  = strval($request->input('order_by', 'time'));
+        $key      = strval($topic);
+        $topicKey = $orderBy==='time' ? $key.'_new' : $key.'_rate';
         $pageName = 'post_page';
-        $perPage = 8;
-        $page = intval($request->input($pageName, 1));
-        $offset = ($page-1)*$perPage;
-        $redis = new RedisList();
-        if($redis->existsKey($topicKey))
-        {
-            $total = $redis->zSize($topicKey);
+        $perPage  = 8;
+        $page     = intval($request->input($pageName, 1));
+        $offset   = ($page-1)*$perPage;
+        $redis    = new RedisList();
+        $appends['order_by'] = $orderBy;
+
+        if($redis->existsKey($topicKey)) {
+            $total   = $redis->zSize($topicKey);
             $postIds = $redis->zRevRangeByScore($topicKey , '+inf' , '-inf' , true , array($offset , $perPage));
             $postIds = array_keys($postIds);
-        }else{
-            $total = 0;
+        } else {
+            $total   = 0;
             $postIds = array();
         }
         $posts = $this->allWithBuilder();
@@ -244,14 +235,14 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->whereIn('post_id' , $postIds)->orderBy($this->model->getCreatedAtColumn() , 'DESC')->get();
         $posts = $this->paginator($posts, $total, $perPage, $page, [
-            'path' => Paginator::resolveCurrentPath(),
+            'path'     => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
         ]);
-        $postLikes = $this->userPostLike($postIds);
+        $postLikes    = $this->userPostLike($postIds);
         $postDisLikes = $this->userPostDislike($postIds);
 
         $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
-            $post->likeState = in_array($post->post_id , $postLikes);
+            $post->likeState    = in_array($post->post_id , $postLikes);
             $post->dislikeState = in_array($post->post_id , $postDisLikes);
         });
         return $posts->appends($appends);
@@ -272,16 +263,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $post->firstOrFail();
     }
 
-    public function paginateByUser(Request $request , $user)
+    public function paginateByUser(Request $request, $user)
     {
         $appends = array();
-        if(!is_object($user))
-        {
+        if (!is_object($user)) {
             $user = app(UserRepository::class)->findOrFail($user);
         }
         $posts = $user->posts()->with('translations');
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
-            $order = $request->get('order') === 'asc' ? 'asc' : 'desc';
+            $order   = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $orderBy = $request->get('order_by' , 'post_like_num');
             $appends['order'] = $order;
             $appends['order_by'] = $orderBy;
@@ -296,19 +286,16 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 
-//        $userIds = $posts->pluck('user_id')->all(); //获取分页user Id
-
+//        $userIds   = $posts->pluck('user_id')->all(); //获取分页user Id
 //        $followers = app(UserRepository::class)->userFollow($userIds);//重新获取当前登录用户信息
 
-        $postIds = $posts->pluck('post_id');
-
-        $postLikes = $this->userPostLike($postIds);
-
+        $postIds      = $posts->pluck('post_id');
+        $postLikes    = $this->userPostLike($postIds);
         $postDisLikes = $this->userPostDislike($postIds);
 
         $posts->each(function ($item, $key) use ($postLikes , $postDisLikes , $user) {
-            $item->owner = $user;
-            $item->likeState = in_array($item->post_id , $postLikes);
+            $item->owner        = $user;
+            $item->likeState    = in_array($item->post_id , $postLikes);
             $item->dislikeState = in_array($item->post_id , $postDisLikes);
         });
 
@@ -707,16 +694,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $appends['order_by'] = 'post_comment_num';
 
         $posts = $this->getCachePosts($posts, $key, $appends['order_by']);
+        $posts = $this->authCheck($posts);
 
-        if(auth()->check()) {
-            $postIds = $posts->pluck('post_id')->all();
-            $postLikes = $this->userPostLike($postIds);
-            $postDisLikes = $this->userPostDislike($postIds);
-            $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
-                $post->likeState = in_array($post->post_id , $postLikes);
-                $post->dislikeState = in_array($post->post_id , $postDisLikes);
-            });
-        }
         return $posts->appends($appends);
     }
 
