@@ -1,6 +1,7 @@
 <?php
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Jenssegers\Agent\Agent;
 use Illuminate\Support\Facades\Cache;
@@ -43,35 +44,29 @@ if(!function_exists('dynamicSetLocales')){
 }
 
 if(!function_exists('notify')){
-    function notify($category = 'user.like' , $data = array() , $isJpush=true, $anonymous=false)
+    function notify($category='user.like', $data =[], $isJpush=true, $anonymous=false)
     {
-	//echo 1;die;
-        $params = array('from'=>'' , 'to'=>'' , 'extra'=>array() , 'url'=>'' , 'expire'=>'' , 'setField'=>array());
-        $op = array_intersect_key($data , $params);
+        $params     = ['from'=>'', 'to'=>'', 'extra'=>[], 'value'=>'', 'url'=>'', 'expire'=>'', 'setField'=>[]];
+        $op         = array_intersect_key($data , $params);
         $notifynder = Notifynder::category($category);
-        if($anonymous)
-        {
+        if($anonymous) {
             unset($op['from']);
             $notifynder->anonymous();
         }
-        foreach ($op as $k=>$v)
-        {
-            if($k=='setField')
-            {
-                $notifynder->{$k}($v[0] , $v[1]);
-            }else{
-                if($k=='from'&&($v instanceof \Illuminate\Database\Eloquent\Model))
-                {
+        foreach ($op as $k=>$v) {
+            if ($k=='setField') {
+                $notifynder->{$k}($v[0], $v[1]);
+            } else {
+                if ($k=='from' && ($v instanceof Model)) {
                     $notifynder->{$k}($v->{$v->getKeyName()});
-                }else{
+                } else {
                     $notifynder->{$k}($v);
                 }
             }
         }
-        if($isJpush)
-        {
+        if ($isJpush) {
             $notifynder->sendWithJpush();
-        }else{
+        } else {
             $notifynder->send();
         }
     }
