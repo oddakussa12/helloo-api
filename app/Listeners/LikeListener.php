@@ -23,7 +23,6 @@ class LikeListener
      */
     public function __construct()
     {
-        $this->handle();
     }
 
     /**
