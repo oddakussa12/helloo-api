@@ -63,8 +63,8 @@ class PostFans implements ShouldQueue
         if (empty($post_uuid)) return false;
         $userId = $this->user->user_id ?? '';
         if (empty($userId)) return false;
-        DB::table('common_follows')->where('followable_id', $userId)->where('followable_type' , User::class)
-            ->where('relation' , 'follow')->orderByDesc('id')->chunk(50, function ($users) use($post_uuid) {
+        DB::table('common_follows')->where('followable_id', $userId)->where('followable_type', User::class)
+            ->where('relation', 'follow')->orderByDesc('id')->chunk(50, function ($users) use($post_uuid) {
                 $userIds = $users->pluck('user_id')->all();
                 if (!empty(count($userIds))) {
                     Log::info('message:: CHUNK 查询结果集 不为空::'. json_encode($userIds, JSON_UNESCAPED_UNICODE));

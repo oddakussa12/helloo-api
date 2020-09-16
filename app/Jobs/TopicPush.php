@@ -50,7 +50,8 @@ class TopicPush implements ShouldQueue
 
         $data   = [];
         foreach ($topicList as $item) {
-            DB::table('topics_follows')->where('topic_content', $item)->chunk(50, function ($users) use ($data, $item) {
+            DB::table('topics_follows')->where('topic_content', $item)->orderByDesc('id')
+                ->chunk(50, function ($users) use ($data, $item) {
                     $userIds = $users->pluck('user_id')->all();
                     Log::info('message:::userIds:::', $userIds);
                     if (!empty($userIds)) {
