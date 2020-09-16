@@ -67,6 +67,7 @@ class PostFans implements ShouldQueue
             ->where('relation' , 'follow')->orderByDesc('id')->chunk(50, function ($users) use($post_uuid) {
                 $userIds = $users->pluck('user_id')->all();
                 if (!empty(count($userIds))) {
+                    Log::info('message:: CHUNK 查询结果集 不为空');
                     $data = TopicPush::getDeviceList($userIds);
                     $userNickName = $this->user->user_nick_name ?? ($this->user->user_name ?? 'some one');
                     foreach ($data as $language => $datum) {
@@ -80,6 +81,8 @@ class PostFans implements ShouldQueue
                             Log::info('message: Mpush  end');
                         }
                     }
+                } else {
+                    Log::info('message:: CHUNK 查询结果集 空空空空空空空空空');
                 }
             });
 
