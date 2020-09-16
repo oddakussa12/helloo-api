@@ -49,7 +49,6 @@ class PostFans implements ShouldQueue
         $this->post      = $post;
         $this->postData  = $postData;
         Log::info('message::批量推送给粉丝  __construct ');
-        $this->handle();
     }
     /**
      * Execute the job.

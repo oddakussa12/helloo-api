@@ -24,7 +24,7 @@ class TopicPush implements ShouldQueue
     public $topics;
     private $post;
 
-    public function __construct(Post $post , $topics)
+    public function __construct(Post $post, $topics)
     {
         $this->post = $post;
         $this->topics = $topics;
