@@ -54,6 +54,7 @@ class PushServer
     {
         try {
             $tokens = $this->params['registrationId'];
+            Log::info('message::::::::::::::', $tokens);
             $count  = count($tokens);
             $limit  = 1000;
             $page   = intval(ceil($count/$limit));
@@ -65,7 +66,7 @@ class PushServer
                     return true;
                 } else {
                     if (!empty($result['tokensToDelete'])) {
-                        // Log::info(__FUNCTION__.' Push message tokensToDelete:'.__FUNCTION__, $result);
+                         Log::info(__FUNCTION__.' Push message tokensToDelete:'.__FUNCTION__, $result);
                         return true;
                     } else {
                         Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);

@@ -36,6 +36,7 @@ class TopicPush implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('message::::发布话题 handle  start');
         $result = DB::table('posts_topics')->select(DB::raw("count(1) as num"), 'topic_content')
                   ->whereIn('topic_content', $this->topics)->groupBy('topic_content')->get()->toArray();
 
@@ -58,6 +59,8 @@ class TopicPush implements ShouldQueue
                     }
                 });
         }
+        Log::info('message::::发布话题 handle  end');
+
 
     }
 

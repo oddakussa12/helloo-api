@@ -41,17 +41,16 @@ class LikeListener
         $this->updateUserScoreRank($user->user_id);
         if($object instanceof Post)
         {
-            $keyName = $object->getKeyName();
-            $tmpLikeNum = $event->getTmpLikeNum();
-            $keyValue = $object->getKey();
+            $keyName      = $object->getKeyName();
+            $tmpLikeNum   = $event->getTmpLikeNum();
+            $keyValue     = $object->getKey();
             $commenterNum = $this->commenterCount($keyValue);
-            $countryNum = $this->countryNum($keyValue);
-            $commentNum = $object->post_comment_num;
-            $likeNum = $object->post_like_num+$event->getType();
-            $createdTime = $object->post_created_at;
-            $rate = rate_comment_v3($commentNum , $createdTime , $likeNum , $commenterNum , $countryNum);
-            if($rate!=$object->post_rate)
-            {
+            $countryNum   = $this->countryNum($keyValue);
+            $commentNum   = $object->post_comment_num;
+            $likeNum      = $object->post_like_num+$event->getType();
+            $createdTime  = $object->post_created_at;
+            $rate         = rate_comment_v3($commentNum , $createdTime , $likeNum , $commenterNum , $countryNum);
+            if($rate!=$object->post_rate) {
                 $extra = array('post_rate'=>$rate);
                 $this->updateTopicPostRate($keyValue , $rate);
             }
@@ -59,16 +58,14 @@ class LikeListener
             $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum);
             $this->updateCountry($keyValue , $user->user_country_id);
             $this->updateUserPostLikeCount($user->user_id);
-            notify('user.post_like' ,
-                array(
-                    'from'=>$user->user_id ,
-                    'to'=>$object->user_id ,
-                    'extra'=>array(
-                        "{$keyName}"=>$keyValue,
-                    ) ,
-                    'setField'=>array('contact_id' , $keyValue),
-                    'url'=>'/notification/post/'.$keyValue,
-                )
+            notify('user.post_like',
+                [
+                    'from'     => $user->user_id ,
+                    'to'       => $object->user_id ,
+                    'extra'    => [$keyName => $keyValue, 'value' => $object->post_uuid->toString()],
+                    'setField' => array('contact_id' , $keyValue),
+                    'url'      => '/notification/post/'.$keyValue,
+                ]
             );
         }else if($object instanceof PostComment)
         {
@@ -84,12 +81,13 @@ class LikeListener
             $this->updateUserPostCommentLikeCount($user->user_id);
             notify('user.like' ,
                 array(
-                    'from'=>$user->user_id ,
-                    'to'=>$object->user_id ,
-                    'extra'=>array(
-                        $keyName=>$keyValue,
-                        'post_id'=>$post->post_id,
-                    ) ,
+                    'from' => $user->user_id ,
+                    'to'   => $object->user_id ,
+                    'extra'=> [
+                        $keyName => $keyValue,
+                        'post_id'=> $post->post_id,
+                        'value'  => $post->post_uuid,
+                    ],
                     'setField'=>array('contact_id' , $keyValue),
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
                 )
