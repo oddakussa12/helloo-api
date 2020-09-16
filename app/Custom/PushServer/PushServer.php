@@ -54,6 +54,7 @@ class PushServer
     {
         try {
             $tokens = $this->params['registrationId'];
+            $tokens = is_array($tokens) ? $tokens : [$tokens];
             Log::info('message::::::::::::::', $tokens);
             $count  = count($tokens);
             $limit  = 1000;
