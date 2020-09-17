@@ -421,9 +421,33 @@ class PostController extends BaseController
 
     public function carousel()
     {
-        return $this->response->array(
-            carousel_post_list()
-        );
+        $carousel = array();
+        $key = 'banner_index';
+        if(!Redis::exists($key))
+        {
+            return $this->response->array($carousel);
+        }
+        $banners = collect(\json_decode(Redis::get($key) , true));
+        $locale = locale();
+        $banners = $banners->toArray();
+        foreach ($banners as $index=>$banner)
+        {
+            if($banner['type']!='postDetail')
+            {
+                continue;
+            }
+            $image = \json_decode($banner['image'] , true);
+            if(isset($image[$locale]))
+            {
+                $carousel[$banner['value']] = $image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+            }else{
+                if(isset($image['en']))
+                {
+                    $carousel[$banner['value']] = $image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                }
+            }
+        }
+        return $this->response->array($carousel);
     }
 
     public function top(Request $request)
