@@ -76,8 +76,8 @@ class TopicPush implements ShouldQueue
         })->toArray();
 
         $push      = ['device_register_type' => 'fcm', 'device_type' => 2];
-        $languages = config('translatable.locale');
-        $languages = $languages ?? array_column($devices, 'device_language');
+        $languages = config('translatable.locales');
+        $languages = !empty($languages) ? $languages : array_column($devices, 'device_language');
 
         foreach ($languages as $k=>$language) {
             foreach ($devices as $key =>$item) {
