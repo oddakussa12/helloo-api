@@ -56,7 +56,7 @@ class PostFans implements ShouldQueue
      */
     public function handle()
     {
-        $post_uuid = $this->post->post_uuid->toString();
+        $post_uuid = $this->post->post_uuid;
         if (empty($post_uuid)) return false;
         $userId = $this->user->user_id ?? '';
         if (empty($userId)) return false;
