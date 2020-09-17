@@ -762,10 +762,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             // 组装数据 插入ES
             TopicEs::dispatch($post , $topics)->onQueue(Constant::QUEUE_ES_TOPIC);
 
-            Log::info('message:::::批量推送给关注者  start ');
             // 批量推送给关注者
             TopicPush::dispatch($post, $topics)->onQueue(Constant::QUEUE_PUSH_TOPIC);
-            Log::info('message:::::批量推送给关注者  end ');
 
         }
         return $post;
