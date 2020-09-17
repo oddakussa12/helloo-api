@@ -287,7 +287,7 @@ class PostController extends BaseController
             $job = new PostTranslation($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
         }
 //        $this->dispatchNow($job);
-        $this->dispatchNow($job->onQueue('post_translation'));
+        $this->dispatch($job->onQueue('post_translation'));
         return new PostCollection($post);
     }
 

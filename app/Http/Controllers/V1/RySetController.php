@@ -58,6 +58,8 @@ class RySetController extends BaseController
     {
         $key      = 'block_user';
         $userId   = intval($request->input('user_id' , 0));
+        $operator = intval($request->input('operator' , 0));
+        $desc     = $request->input('desc');
         $minute   = intval($request->input('minute' , 43200));
         if($userId<=0) {
             return $this->response->errorNotFound();
@@ -72,7 +74,7 @@ class RySetController extends BaseController
             Redis::zadd($key, time(), $userId);
 
             // 插入表中
-            BlackUser::findOrInsert($userId, auth()->user()->user_id ?? 0);
+            BlackUser::findOrInsert($userId, $operator, $desc);
 
             throw_if($res['code']!=200 , new \Exception('internal error'));
         } catch (\Throwable $e) {
@@ -98,17 +100,16 @@ class RySetController extends BaseController
         if($userId<=0) {
             return $this->response->errorNotFound();
         }
-        if(empty($userName))
-        {
-            $user = app(UserRepository::class)->findOrFail($userId);
-            $userName = $user->user_name;
-        }
+
         $time = Redis::zScore($key, $userId);
         try{
             $res = \RongCloud::getUser()->Block()->remove(array('id'=>$userId));
             Redis::zRem($key, $userId);
-            $res['userId'] = $userId;
+            $res['userId']  = $userId;
             $res['message'] = 'ok';
+
+            BlackUser::where('user_id', $userId)->update(['is_delete'=>1]);
+
             throw_if($res['code']!=200 , new \Exception('internal error'));
         }catch (\Throwable $e){
             if($time!==null) {

@@ -14,7 +14,7 @@ class BlackUser extends Model
 
     const CREATED_AT = 'created_at';
 
-    const UPDATED_AT = 'update_at';
+    const UPDATED_AT = 'updated_at';
 
     public function setUpdatedAtAttribute($value) {
         // Do nothing.

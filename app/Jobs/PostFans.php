@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 
 class PostFans implements ShouldQueue
 {
-    use CachablePost,CachableUser,DispatchesJobs, InteractsWithQueue, Queueable, SerializesModels;
+    use CachablePost,CachableUser,Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $languages;
 
@@ -64,13 +64,10 @@ class PostFans implements ShouldQueue
             ->where('relation', 'follow')->orderByDesc('id')->chunk(50, function ($users) use($post_uuid) {
                 $userIds = $users->pluck('user_id')->all();
                 if (!empty(count($userIds))) {
-                    Log::info('message:: CHUNK 查询结果集 不为空::'. json_encode($userIds, JSON_UNESCAPED_UNICODE));
                     $data = TopicPush::getDeviceList($userIds);
                     $userNickName = $this->user->user_nick_name ?? ($this->user->user_name ?? 'some one');
                     foreach ($data as $language => $datum) {
                         if (!empty($datum['device'])) {
-                            //$job = new Mpush('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid);
-                            //$this->dispatchNow($job->onQueue(Constant::QUEUE_PUSH_NAME));
                             Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
                         }
                     }
