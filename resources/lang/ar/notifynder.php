@@ -4,6 +4,8 @@ return [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => '.أعجبك تعليقك',
         'post_like' => 'أحب منشورك.',
+        'publish_post'=>'نشرت شيئا جديدا.',
+        'publish_topic'=>'تحقق من الوظائف الجديدة!',
         'comment'=>'.رد على تعليقك',
         'post_comment'=>'.علق على مشاركتك',
         'private_message'=>'.قد تلقيت رسالة جديدة',

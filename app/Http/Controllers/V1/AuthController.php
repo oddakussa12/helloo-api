@@ -388,7 +388,7 @@ class AuthController extends BaseController
         $user = $this->user->find($phone->user_id);
         if(password_verify($password, $user->user_pwd))
         {
-            //todo  是否被封号
+            // 是否被封号
             $isBlack = $this->user->isBlackUser($user->user_id);
             if (!empty($isBlack)) {
                 return $this->response->errorUnauthorized(trans('auth.user_banned'));
