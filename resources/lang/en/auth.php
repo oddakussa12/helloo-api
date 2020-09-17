@@ -13,6 +13,7 @@ return [
     |
     */
 
+    'user_banned'   => 'The account has been banned for alleged violations',
     'failed' => 'These credentials do not match our records!',
     'password_error' =>'Incorrect password!',
     'phone_failed' => 'Incorrect phone number or password!',

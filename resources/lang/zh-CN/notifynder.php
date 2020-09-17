@@ -3,6 +3,9 @@ return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => '点赞了你。',
+        'post_like' => '点赞了你的帖子',
+        'publish_post'=>'发表了新动态，快去看看吧~',
+        'publish_topic'=>'你关注的话题更新啦，来去看看吧~',
         'comment'=>'回复了你的评论。',
         'post_comment'=>'评论了你的帖子。',
         'private_message'=>'您已收到一则新消息。',

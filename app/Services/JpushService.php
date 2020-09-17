@@ -23,8 +23,7 @@ class JpushService
         } else {
             return null;
         }
-        $client = new Client($appKey, $master);
-        return $client;
+        return new Client($appKey, $master);
     }
 
     /**
@@ -154,7 +153,7 @@ class JpushService
         }
     }
 
-    public static function getTitle($type = 'privateMessage' , $lang='en')
+    public static function getTitle($type='privateMessage', $lang='en')
     {
         $lang = strtolower($lang);
         $zhCNArray = array(
@@ -172,15 +171,12 @@ class JpushService
             'zh-tw',
             'zh-hk',
         );
-        if(in_array($lang , $zhCNArray))
-        {
+        if (in_array($lang, $zhCNArray)) {
             $lang = 'zh-CN';
-        }elseif (in_array($lang , $zhTWArray))
-        {
+        } elseif (in_array($lang, $zhTWArray)) {
             $lang = 'zh-TW';
-        }else
-        {
-            $lang = explode('_' , $lang);
+        } else {
+            $lang = explode('_', $lang);
             $lang = $lang[0];
         }
         switch ($type)
@@ -188,8 +184,17 @@ class JpushService
             case 'like':
                 $title = trans('notifynder.user.like' , [] , $lang);
                 break;
+            case 'post_like':
+                $title = trans('notifynder.user.post_like' , [] , $lang);
+                break;
             case 'comment':
                 $title = trans('notifynder.user.comment' , [] , $lang);
+                break;
+            case 'publish_post':
+                $title = trans('notifynder.user.publish_post' , [] , $lang);
+                break;
+            case 'publish_topic':
+                $title = trans('notifynder.user.publish_topic' , [] , $lang);
                 break;
             case 'post_comment':
                 $title = trans('notifynder.user.post_comment' , [] , $lang);
@@ -206,10 +211,9 @@ class JpushService
 
     public static function getPushUrl($type = 'follow')
     {
-        if(basename(base_path())!=config('common.app_dir'))
-        {
+        if (basename(base_path())!=config('common.app_dir')) {
             $host = 'http://'.config('common.front_domain.h5_test');
-        }else{
+        } else {
             $host = 'https://'.config('common.front_domain.h5');
         }
         switch ($type)
@@ -217,7 +221,10 @@ class JpushService
             case 'like':
                 $url = $host.'/inbox/mylikes';
                 break;
-            case 'comment':
+            case 'post_like': // 点赞帖子
+            case 'publish_post': // 发布帖子
+            case 'publish_topic': // 发布话题
+            case 'comment': // 评论帖子
                 $url = $host.'/inbox/myreplies';
                 break;
             default:

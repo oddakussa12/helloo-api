@@ -7,7 +7,6 @@ use Laravel\Scout\Searchable;
 
 class Device extends Model
 {
-    use Searchable;
 
     protected $table = "devices";
 
@@ -22,31 +21,14 @@ class Device extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id', 'device_registration_id'
-        //'device_language','user_id', 'device_registration_id', 'device_phone_model', 'device_country'
+        'user_id',
+        'device_registration_id',
+        'device_language',
+        'device_type',
+        'device_phone_model',
+        'device_country',
+        'device_register_type'
     ];
 
     protected $guarded=[]; //不可以注入的字段
-
-    /**
-     * 定义索引里的type值,重写
-     * // 定义索引里面的类型
-
-     * @return string
-     */
-    public function searchableAs()
-    {
-        return "device";
-    }
-
-    /**
-     * 定义那些字段需要搜索
-     * @return array
-     */
-    public function toSearchableArray()
-    {
-      return array_only($this->toArray(), ['user_id', 'device_registration_id']);
-
-    }
-
 }

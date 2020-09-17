@@ -23,26 +23,26 @@ class Jpush implements ShouldQueue
     public $content;
     public $version=0;
     public $app='web';
-    public $deviceBrand = ['huawei', 'honer', 'xiaomi', 'oppo', 'realme'];
+    private $extra;
+    public $deviceBrand = ['fcm', 'huawei', 'honer', 'xiaomi', 'oppo', 'realme'];
     //public $deviceBrand = [];
 
-    public function __construct($type , $formName , $userId , $content='')
+    public function __construct($type , $formName , $userId , $extra=[], $content='')
     {
-        $this->type = $type;
+        $this->type     = $type;
         $this->formName = $formName;
-        $this->userId = $userId;
-        $this->content = $content;
-        $agent = new Agent();
-        if($agent->match('Yooul'))
-        {
+        $this->userId   = $userId;
+        $this->content  = $content;
+        $this->extra    = $extra;
+        $agent          = new Agent();
+
+        if ($agent->match('Yooul')) {
             $this->version = (string)$agent->getHttpHeader('YooulVersion');
-            if($agent->match('YooulAndroid'))
-            {
+            if ($agent->match('YooulAndroid')) {
                 $this->app = 'android';
-            }elseif ($agent->match('YoouliOS'))
-            {
+            } elseif ($agent->match('YoouliOS')) {
                 $this->app = 'ios';
-            }else{
+            } else {
                 $this->app = 'web';
             }
         }
@@ -58,11 +58,11 @@ class Jpush implements ShouldQueue
         $device = DB::table('devices')->where('user_id', $this->userId)->orderBy('device_updated_at', 'desc')->first();
         if(empty($device)) return false;
 
-        if ($device->device_type==2 && ($device->device_register_type == 'fcm' || in_array(strtolower($device->device_phone_model), $this->deviceBrand))) {
-            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->content);
+        if ($device->device_type==2 && in_array(strtolower($device->device_register_type), $this->deviceBrand)) {
+            NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->extra, $this->content);
 
         } else{
-            JpushService::commonPush($device, $this->formName ,$this->userId ,$this->type , $this->content , $this->app , $this->version);
+            JpushService::commonPush($device, $this->formName, $this->userId, $this->type , $this->content, $this->app, $this->version);
         }
     }
 

@@ -2,6 +2,7 @@
 namespace App\Services;
 
 use App\Custom\PushServer\PushServer;
+use App\Jobs\Jpush;
 use Illuminate\Support\Facades\Log;
 
 class NPushService
@@ -16,12 +17,13 @@ class NPushService
         return (new PushServer($params))->send();
     }
 
-    public static function commonPush($device, $fromName, $toUserId, $type='like')
+    public static function commonPush($device, $fromName, $toUserId, $type='like', $pushExtra=[], $content='')
     {
         if(empty($toUserId)) return;
 
         $title = $fromName.' '.self::getTitle($type , $device->device_language);
-        $data = [
+        $extra = ['type'=>$type, 'url'=>self::getPushUrl($type), 'title'=>$title];
+        $data  = [
             'deviceCountry'  => $device->device_country,
             'registerType'   => $device->device_register_type,
             'deviceBrand'    => !empty($device->device_phone_model) ? strtolower($device->device_phone_model) : '',
@@ -29,7 +31,7 @@ class NPushService
             'content'        => $title,
             'platform'       => $device->device_type,
             'builderId'      => 1,
-            'extras'         => ['type'=>$type, 'url'=>self::getPushUrl($type), 'title'=>$title],
+            'extras'         => !empty($pushExtra) && is_array($pushExtra) ? array_merge_recursive($extra, $pushExtra) : $extra,
             'type'           => 2,
             'registrationId' => $device->device_registration_id
         ];
@@ -38,86 +40,40 @@ class NPushService
     }
 
     /**
-     * @param $params
-     * 批量 推送
+     * @param $language
+     * @param $device
+     * @param $fromName
+     * @param string $type
+     * @param string $value 帖子 post_uuid 或 话题名称
+     * @return array
+     * 同语言批量发送
      */
-    public function batchPush($params)
+    public static function batchPush($language, $device, $fromName, $type='like', $value='')
     {
-        
-    }
+        $title = $fromName.' '.self::getTitle($type , $language);
+        $data = [
+            'registerType'   => $device->device_register_type,
+            'deviceBrand'    => !empty($device->device_phone_model) ? strtolower($device->device_phone_model) : '',
+            'title'          => $title,
+            'content'        => $title,
+            'platform'       => $device->device_type,
+            'builderId'      => 1,
+            'extras'         => ['type'=>$type, 'url'=>self::getPushUrl($type), 'title'=>$title, 'value'=>$value],
+            'type'           => 2,
+            'registrationId' => $device->device_registration_id
+        ];
 
+        return self::androidPush($data);
+    }
 
     public static function getTitle($type = 'privateMessage' , $lang='en')
     {
-        $lang = strtolower($lang);
-        $zhCNArray = array(
-            'yue_hans_cn',
-            'yue_hans',
-            'zh_hant',
-            'zh-cn',
-            'zh',
-        );
-        $zhTWArray = array(
-            'zh_hant_tw',
-            'zh_hant_hk',
-            'zh_hant_mo',
-            'zh_hans_hk',
-            'zh-tw',
-            'zh-hk',
-        );
-        if(in_array($lang , $zhCNArray))
-        {
-            $lang = 'zh-CN';
-        }elseif (in_array($lang , $zhTWArray))
-        {
-            $lang = 'zh-TW';
-        }else
-        {
-            $lang = explode('_' , $lang);
-            $lang = $lang[0];
-        }
-        switch ($type)
-        {
-            case 'like':
-                $title = trans('notifynder.user.like' , [] , $lang);
-                break;
-            case 'comment':
-                $title = trans('notifynder.user.comment' , [] , $lang);
-                break;
-            case 'post_comment':
-                $title = trans('notifynder.user.post_comment' , [] , $lang);
-                break;
-            case 'follow':
-                $title = trans('notifynder.user.follow' , [] , $lang);
-                break;
-            default:
-                $title = trans('notifynder.user.private_message' , [] , $lang);
-                break;
-        }
-        return $title;
+        return JpushService::getTitle($type, $lang);
     }
 
     public static function getPushUrl($type = 'follow')
     {
-        if(basename(base_path())!=config('common.app_dir'))
-        {
-            $host = 'http://'.config('common.front_domain.h5_test');
-        }else{
-            $host = 'https://'.config('common.front_domain.h5');
-        }
-        switch ($type)
-        {
-            case 'like':
-                $url = $host.'/inbox/mylikes';
-                break;
-            case 'comment':
-                $url = $host.'/inbox/myreplies';
-                break;
-            default:
-                $url = $host.'/followers';
-                break;
-        }
-        return $url;
+        return JpushService::getPushUrl($type);
     }
 
 }

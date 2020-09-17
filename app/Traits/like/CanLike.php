@@ -22,6 +22,8 @@ trait CanLike
 {
     /**
      * @param \Illuminate\Database\Eloquent\Model $object
+     * @param int $type
+     * @return bool
      */
     public function like(Model $object , $type=1)
     {

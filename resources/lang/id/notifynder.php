@@ -3,6 +3,9 @@ return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => 'menyukai komentar Anda.',
+        'post_like' => 'menyukai postingan Anda.',
+        'publish_post'=>'memposting sesuatu yang baru.',
+        'publish_topic'=>'Lihat postingan baru!',
         'comment'=>'membalas komentar Anda.',
         'post_comment'=>'membalas komentar Anda.',
         'private_message'=>'Anda telah menerima pesan baru.',

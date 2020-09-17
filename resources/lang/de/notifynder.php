@@ -3,6 +3,9 @@ return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => 'Mochte dich.',
+        'post_like' => 'wie dein Beitrag',
+        'publish_post'=>'hat etwas Neues gepostet.',
+        'publish_topic'=>'Schau dir neue Beiträge an!',
         'comment'=>'Hat auf deinen Kommentar geantwortet.',
         'post_comment'=>'Kommentierte Ihren Beitrag.',
         'private_message'=>'Sie haben eine neue Nachricht erhalten.',

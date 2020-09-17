@@ -19,8 +19,8 @@ class Push
 
     public function __construct($params)
     {
-        $this->title = array_get($params, 'title', '这是一条mipush推送消息');
-        $this->desc  = array_get($params, 'title', '这是一条mipush推送消息');
+        $this->title = array_get($params, 'title');
+        $this->desc  = array_get($params, 'title');
         $this->token = array_get($params, 'registrationId');
         $this->sound = array_get($params, 'sound', 'default');
         $this->extras= array_get($params, 'extras', []);
@@ -68,10 +68,14 @@ class Push
         //Log::info('FCM PUSH STATUS:', [serialize($downstreamResponse)]);
 
         return [
-            'success'=> $downstreamResponse->numberSuccess(),
-            'fail'   => $downstreamResponse->numberFailure(),
-            'msg'    => $downstreamResponse->tokensWithError()
+            'success'        => $downstreamResponse->numberSuccess(),
+            'fail'           => $downstreamResponse->numberFailure(),
+            'msg'            => $downstreamResponse->tokensWithError(),
+            'tokensToDelete' => $downstreamResponse->tokensToDelete(),
+            'tokensToModify' => $downstreamResponse->tokensToModify(),
+            'tokensToRetry'  => $downstreamResponse->tokensToRetry(),
         ];
+
     }
 
     public function sendTopic()

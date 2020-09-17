@@ -3,6 +3,9 @@ return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => 'आपकी टिप्पणी पसंद आई.',
+        'post_like' => 'आपकी पोस्ट पसंद है',
+        'publish_post'=>'कुछ नया पोस्ट किया।',
+        'publish_topic'=>'नई पोस्ट देखें!',
         'comment'=>'आपकी टिप्पणी का जवाब दिया.',
         'post_comment'=>'आपकी पोस्ट पर टिप्पणी की.',
         'private_message'=>'आपको एक नया संदेश प्राप्त हुआ है।.',
