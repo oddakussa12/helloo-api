@@ -21,6 +21,7 @@ class Kernel extends ConsoleKernel
 //        \App\Console\Commands\AutoIncreasePostView::class,
         \App\Console\Commands\GeneratePostEssenceRank::class,
         \App\Console\Commands\AutoUpdateOnlineUser::class,
+        \App\Console\Commands\Promote::class,
         \Torann\GeoIP\Console\Update::class,
     ];
 

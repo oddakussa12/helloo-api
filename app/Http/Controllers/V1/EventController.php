@@ -13,7 +13,7 @@ class EventController extends BaseController
         $key = 'event_index';
         if(!Redis::exists($key))
         {
-            $event = \DB::table('events')->where('status' , 1)->orderByDesc('sort')->select('name' , 'sort' , 'type' , 'image' , 'value')->first();
+            $event = \DB::table('events')->where('status' , 1)->orderByDesc('sort')->select('name' , 'sort' , 'type' , 'image' , 'value' , 'flag')->first();
             if(!blank($event))
             {
                 Redis::set($key , \json_encode($event , JSON_UNESCAPED_UNICODE));

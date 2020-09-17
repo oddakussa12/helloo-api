@@ -2,6 +2,7 @@
 return [
     'cron_switch'=>env('CRON_SWITCH' , false),
     'online_domain'=>[
+        'dev.api.yooul.net',
         'elb.api.yooul.net',
         'api.yooul.net',
         'api.mmantou.cn',
