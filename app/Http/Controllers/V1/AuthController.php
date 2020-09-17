@@ -391,7 +391,7 @@ class AuthController extends BaseController
             //todo  是否被封号
             $isBlack = $this->user->isBlackUser($user->user_id);
             if (!empty($isBlack)) {
-                return $this->response->errorUnauthorized('该帐号涉嫌违规已被封禁');
+                return $this->response->errorUnauthorized(trans('auth.user_banned'));
             } else {
                 $token = auth()->login($user);
                 return $this->respondWithToken($token, false);

@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'user_banned'   => '该帐号涉嫌违规已被封禁',
     'password_error'   => '密码错误!',
     'failed'   => '用户名或密码错误!',
     'phone_failed'   => '手机号或密码错误!',

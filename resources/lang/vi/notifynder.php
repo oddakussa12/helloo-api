@@ -3,6 +3,7 @@ return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => 'Thích bạn.',
+        'post_like' => 'thích bài viết của bạn',
         'comment'=>'Đã trả lời bình luận của bạn.',
         'post_comment'=>'Nhận xét về bài viết của bạn.',
         'private_message'=>'Bạn đã nhận được một tin nhắn mới.',

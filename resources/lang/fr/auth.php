@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'user_banned'   => 'Le compte a été interdit pour des violations présumées',
     'failed'   => 'Ces identifiants ne correspondent pas à nos enregistrements!',
     'password_error' =>'Mot de passe incorrect!',
     'phone_failed'   => 'Numéro de téléphone ou mot de passe incorrect!',

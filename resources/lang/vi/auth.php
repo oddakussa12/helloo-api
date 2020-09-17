@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'user_banned'   => 'Tài khoản đã bị cấm vì bị cáo buộc vi phạm',
     'failed'   => 'Thông tin tài khoản không tìm thấy trong hệ thống!',
     'password_error' =>'Mật khẩu không đúng!',
     'phone_failed'   => 'Số điện thoại hoặc mật khẩu không chính xác!',

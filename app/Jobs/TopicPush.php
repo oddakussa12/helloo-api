@@ -28,8 +28,6 @@ class TopicPush implements ShouldQueue
     {
         $this->post = $post;
         $this->topics = $topics;
-        Log::info('message:::::批量推送给关注者  __construct ');
-        $this->handle();
     }
 
     /**
@@ -39,8 +37,6 @@ class TopicPush implements ShouldQueue
      */
     public function handle()
     {
-        Log::info('message:::::批量推送给关注者  handle ');
-        Log::info('message::::发布话题 handle  start');
         $result = DB::table('posts_topics')->select(DB::raw("count(1) as num"), 'topic_content')
                   ->whereIn('topic_content', $this->topics)->groupBy('topic_content')->get()->toArray();
 
@@ -53,7 +49,6 @@ class TopicPush implements ShouldQueue
             DB::table('topics_follows')->where('topic_content', $item)->orderByDesc('id')
                 ->chunk(50, function ($users) use ($data, $item) {
                     $userIds = $users->pluck('user_id')->all();
-                    Log::info('message:::userIds:::', $userIds);
                     if (!empty($userIds)) {
                         $languages = $this->getDeviceList($userIds);
                         $userNickName = '';
@@ -65,9 +60,6 @@ class TopicPush implements ShouldQueue
                     }
                 });
         }
-        Log::info('message::::发布话题 handle  end');
-
-
     }
 
     /**
@@ -84,7 +76,8 @@ class TopicPush implements ShouldQueue
         })->toArray();
 
         $push      = ['device_register_type' => 'fcm', 'device_type' => 2];
-        $languages = array_column($devices, 'device_language');
+        $languages = config('translatable.locale');
+        $languages = $languages ?? array_column($devices, 'device_language');
 
         foreach ($languages as $k=>$language) {
             foreach ($devices as $key =>$item) {

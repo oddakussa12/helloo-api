@@ -48,7 +48,6 @@ class PostFans implements ShouldQueue
         $this->user      = $user;
         $this->post      = $post;
         $this->postData  = $postData;
-        Log::info('message::批量推送给粉丝  __construct ');
     }
     /**
      * Execute the job.
@@ -57,7 +56,6 @@ class PostFans implements ShouldQueue
      */
     public function handle()
     {
-        Log::info('message::批量推送给粉丝  handle start ');
         $post_uuid = $this->post->post_uuid->toString();
         if (empty($post_uuid)) return false;
         $userId = $this->user->user_id ?? '';
@@ -71,24 +69,13 @@ class PostFans implements ShouldQueue
                     $userNickName = $this->user->user_nick_name ?? ($this->user->user_name ?? 'some one');
                     foreach ($data as $language => $datum) {
                         if (!empty($datum['device'])) {
-                            Log::info('message: Mpush  start');
-
-                            $job = new Mpush('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid);
-                            $this->dispatchNow($job->onQueue(Constant::QUEUE_PUSH_NAME));
-
-                            //Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
-                            Log::info('message: Mpush  end');
-                        } else{
-                            Log::info('message: device 设备表 为空');
+                            //$job = new Mpush('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid);
+                            //$this->dispatchNow($job->onQueue(Constant::QUEUE_PUSH_NAME));
+                            Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
                         }
                     }
-                } else {
-                    Log::info('message:: CHUNK 查询结果集 空空空空空空空空空');
                 }
             });
-
-        Log::info('message::批量推送给粉丝  handle end ');
-
     }
 
 

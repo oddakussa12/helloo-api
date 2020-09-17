@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'user_banned'   => 'La cuenta ha sido prohibida por presuntas infracciones.',
     'failed'   => 'Estas credenciales no coinciden con nuestros registros.',
     'password_error' =>'¡Contraseña incorrecta!',
     'phone_failed'   => '¡Número de teléfono o contraseña incorrectos!',

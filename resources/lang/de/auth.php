@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'user_banned'   => 'Das Konto wurde wegen mutmaßlicher Verstöße gesperrt',
     'failed'   => 'Diese Kombination aus Zugangsdaten wurde nicht in unserer Datenbank gefunden!',
     'password_error' =>'Falsches Passwort!',
     'phone_failed'   => 'Falsche Telefonnummer oder falsches Passwort!',

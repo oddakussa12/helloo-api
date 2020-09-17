@@ -3,6 +3,7 @@ return [
     'user' => [
         'following' => '{to.user_name}, {from.user_name} is now following you and want to let you know "{extra.message}".',
         'like' => 'あなたのコメントが気に入りました。',
+        'post_like' => 'あなたの投稿のように',
         'comment'=>'あなたのコメントに返信しました。',
         'post_comment'=>'あなたのコメントに返信しました。',
         'private_message'=>'新しいメッセージを受け取りました。',

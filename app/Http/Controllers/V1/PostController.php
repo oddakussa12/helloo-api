@@ -153,7 +153,7 @@ class PostController extends BaseController
         $blackUser = BlackUser::where('user_id', $poster->user_id)->first();
         //todo
         if ($blackUser) {
-            return $this->response->errorUnauthorized('该帐号涉嫌违规已被封禁');
+            return $this->response->errorUnauthorized(trans('auth.user_banned'));
         }
         $post_title = clean($request->input('post_title' , ''));
         $post_content = clean($request->input('post_content' , ''));

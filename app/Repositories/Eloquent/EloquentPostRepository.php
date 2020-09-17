@@ -752,15 +752,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             array_walk($topics , function($item , $index) use ($topicPostCountKey , $topicNewKey , $now , $userId , $postId , $firstRate){
                 $key = strval($item);
                 Redis::zincrby($topicPostCountKey , 1 , $key);
-                Redis::zadd($key."_new" , $now , $postId);
-                Redis::zadd($key."_rate" , $firstRate , $postId);
+                //$pipe->zadd($topicNewKey , $now , $key);
+
+                Redis::zadd($key."_new", $now , $postId);
+                Redis::zadd($key."_rate", $firstRate , $postId);
                 $userTopicKey = 'user.'.$userId.'.topics';
-                Redis::zadd($userTopicKey , $now , $key);
+                Redis::zadd($userTopicKey, $now , $key);
             });
             $postKey = 'post.'.$postId.'.data';
-            Redis::hmset($postKey , array(
-                "topics" => \json_encode($topics)
-            ));
+            Redis::hmset($postKey, ["topics" => \json_encode($topics)]);
 
             // 组装数据 插入ES
             TopicEs::dispatch($post , $topics)->onQueue(Constant::QUEUE_ES_TOPIC);

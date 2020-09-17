@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'user_banned'   => 'Akun tersebut telah diblokir karena dugaan pelanggaran',
     'failed'   => 'Identitas tersebut tidak cocok dengan data kami!',
     'password_error' =>'Kata kunci Salah!',
     'phone_failed'   => 'Nomor atau kata sandi telepon salah!',

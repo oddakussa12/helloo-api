@@ -12,6 +12,7 @@ return [
     |
     */
 
+    'user_banned'   => '該帳戶因涉嫌違規而被禁止',
     'failed'   => '用戶名或密碼錯誤!',
     'password_error'   => '密碼錯誤!',
     'phone_failed'   => '電話號碼或密碼錯誤!',

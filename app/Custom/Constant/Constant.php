@@ -4,7 +4,7 @@ namespace App\Custom\Constant;
 class Constant {
 
     //话题推送阈值
-    const TOPIC_PUSH_THRESHOLD = 1;
+    const TOPIC_PUSH_THRESHOLD = 2;
 
     //话题推送给关注者
     const QUEUE_PUSH_TOPIC='topic_push';
