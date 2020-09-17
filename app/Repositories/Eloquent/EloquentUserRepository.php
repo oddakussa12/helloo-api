@@ -412,11 +412,14 @@ DOC;
 
     public function blockUser($userId)
     {
-        if(auth()->check())
-        {
-            $this->updateHiddenUsers(auth()->id() , $userId);
-            // 插入表中
-            Block::findOrInsert(auth()->id(), $userId);
+        if (auth()->check()) {
+            // 不屏蔽自己
+            $authUser = auth()->id();
+            if ($authUser != $userId) {
+                $this->updateHiddenUsers($authUser, $userId);
+                // 插入表中
+                Block::findOrInsert(auth()->id(), $userId);
+            }
         }
     }
 

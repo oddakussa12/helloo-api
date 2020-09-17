@@ -421,12 +421,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     public function blockPost($uuid)
     {
-        if(auth()->check())
-        {
-            app(UserRepository::class)->updateHiddenPosts(auth()->id(), $uuid);
-            // 插入表中
-            $post = Post::where('post_uuid', $uuid)->first();
-            Block::findOrInsert(auth()->id(), $post->user_id ?? 0 ,$uuid);
+        if (auth()->check()) {
+            $authUser = auth()->id();
+            $post     = Post::where('post_uuid', $uuid)->first();
+            // 不屏蔽自己的帖子
+            if (!empty($post) && ($authUser != $post['user_id'])) {
+                app(UserRepository::class)->updateHiddenPosts($authUser, $uuid);
+
+                // 插入表中
+                Block::findOrInsert(auth()->id(), $post['user_id'] ?? 0 ,$uuid);
+            }
+
         }
     }
 
