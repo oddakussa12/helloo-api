@@ -41,7 +41,7 @@ class TopicPush implements ShouldQueue
                   ->whereIn('topic_content', $this->topics)->groupBy('topic_content')->get()->toArray();
 
         $topicList = array_map(function ($v) {
-            if ($v->num >= Constant::TOPIC_PUSH_THRESHOLD) return $v->topic_content;
+            if ($v->num % Constant::TOPIC_PUSH_THRESHOLD == 0) return $v->topic_content;
         }, $result);
 
         $data   = [];
