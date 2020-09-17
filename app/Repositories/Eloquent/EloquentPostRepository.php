@@ -707,14 +707,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $redis->delKey($postKey);
         $i = 0;
         $posts = $this->model;
-        $finePostFile = 'tmp/finePost.json';
-        if(\Storage::exists($finePostFile))
-        {
-            $whereIn = true;
-            $finePost = \Storage::get($finePostFile);
-            $finePost = \json_decode($finePost);
-            $posts = $posts->whereIn('post_uuid' , $finePost);
-        }
         $posts->orderBy('post_comment_num' , 'DESC')->chunk(8 , function($posts) use ($redis , $postKey , &$i , $whereIn){
             if(!$whereIn) {
                 $i++;

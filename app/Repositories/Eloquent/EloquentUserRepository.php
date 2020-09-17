@@ -617,6 +617,7 @@ DOC;
     {
         $currentMinute = date('i');
         $index = floor($currentMinute/5);
+        $lastActivityTime = 'ry_user_last_activity_time';
         $key = 'ry_user_online_status';
         $bitKey = 'ry_user_online_status_bit';
         $dynamicKey = config('redis-key.user.ry_update_online_status')."_".strval($index);
@@ -631,10 +632,12 @@ DOC;
         });
         !blank($onlineUsers)&&Redis::sadd($key , array_keys($onlineUsers));
         !blank($offlineUsers)&&Redis::srem($key , array_keys($offlineUsers));
-        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $dynamicKey){
+        $time = time();
+        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $dynamicKey , $lastActivityTime , $time){
             $v = intval($v)>0?0:1;
             Redis::setBit($bitKey , intval($k) , intval($v));
             Redis::zadd($dynamicKey , intval($v) , intval($k));
+            Redis::zadd($lastActivityTime , $time , intval($k));
         });
         Redis::expire($dynamicKey,900);
     }
@@ -738,19 +741,7 @@ DOC;
 
     public function getDeletedUsers()
     {
-        $deletedUsersFile = 'deletedUsers/users.json';
-        return Cache::rememberForever('deletedUsers' , function() use ($deletedUsersFile){
-            $users = array();
-            if(Storage::exists($deletedUsersFile))
-            {
-                $deletedUsers = \json_decode(Storage::get($deletedUsersFile) , true);
-                if(getType($deletedUsers)=='array')
-                {
-                    $users = $deletedUsers;
-                }
-            }
-            return collect($users);
-        });
+
     }
 
     public function generateFollower()
@@ -829,27 +820,7 @@ DOC;
     public function referFriend()
     {
         $userIds = $this->randReferFriend();
-        $referFriendFile = 'tmp/referFriend.json';
         $referFriends = array();
-        if(Storage::exists($referFriendFile))
-        {
-            $referFriendFile = \json_decode(Storage::get($referFriendFile) , true);
-            if(getType($referFriendFile)=='array'&&auth()->check())
-            {
-                $regions = auth()->user()->regions->pluck('region_slug')->all();
-                $regions = array_slice($regions , 0 , 2);
-                $regions = empty($regions)?array_rand($referFriendFile , 2):$regions;
-                if(count($regions)==1)
-                {
-                    $referFriends = array_random($referFriendFile[array_pop($regions)] , 2);
-                }else{
-                    foreach ($regions as $region)
-                    {
-                        array_push($referFriends , array_random($referFriendFile[$region]));
-                    }
-                }
-            }
-        }
         $userIds = array_unique(array_merge($userIds , $referFriends));
         $userIds = array_diff($userIds , array(auth()->id()));
         $query = $this->model->query();

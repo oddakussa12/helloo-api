@@ -1,5 +1,6 @@
 <?php
 return [
+    'cron_switch'=>env('CRON_SWITCH' , false),
     'online_domain'=>[
         'elb.api.yooul.net',
         'api.yooul.net',
@@ -60,6 +61,8 @@ return [
     'user_update_send_phone_code_throttle_expired' =>env('USER_UPDATE_SEND_PHONE_CODE_THROTTLE_EXPIRED', 10),
     'user_update_send_email_code_throttle_num' =>env('USER_UPDATE_SEND_EMAIL_CODE_THROTTLE_NUM', 2),
     'user_update_send_email_code_throttle_expired' =>env('USER_UPDATE_SEND_EMAIL_CODE_THROTTLE_EXPIRED', 10),
+    'notification_throttle_num'=>env('NOTIFICATION_THROTTLE_NUM' , 20),
+    'notification_throttle_expired'=>env('NOTIFICATION_THROTTLE_EXPIRED' , 1),
 
     'authorization'=>[
         'create_post'=>env('AUTHORIZATION_CREATE_POST' , true),

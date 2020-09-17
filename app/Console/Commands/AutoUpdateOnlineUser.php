@@ -39,6 +39,8 @@ class AutoUpdateOnlineUser extends Command
      */
     public function handle()
     {
+        $time = time();
+        $date = date('Y-m-d H:i:s' , $time);
         $currentMinute = date('i');
         $index = floor($currentMinute/5);
         $index = $index<=0?11:($index-1);
@@ -76,19 +78,22 @@ class AutoUpdateOnlineUser extends Command
                         $user_country_id = $user['user_country_id'];
                         $user_avatar = $user['user_avatar'];
                         $user_created_at= $user['user_created_at'];
-                        $sql = <<<DOC
-INSERT INTO `f_ry_online_users` ( `user_id`, `user_name`, `user_nick_name`, `user_gender`, `user_country_id`, `user_avatar`, `user_created_at`) SELECT ?,?,?,?,?,?,?  FROM DUAL WHERE NOT EXISTS ( SELECT `user_id` FROM `f_ry_online_users` WHERE `user_id` = ?)
-DOC;
-                        \DB::statement($sql , array(
-                            $userId,
-                            $user_name,
-                            $user_nick_name,
-                            $user_gender,
-                            $user_country_id,
-                            $user_avatar,
-                            $user_created_at,
-                            $userId
-                        ));
+                        $user = \DB::table('ry_online_users')->where('user_id' , $userId)->first();
+                        if(blank($user))
+                        {
+                            \DB::table('ry_online_users')->insert(
+                                array(
+                                    'user_id'=>$userId,
+                                    'user_name'=>$user_name??'guest',
+                                    'user_nick_name'=>$user_nick_name??'guest',
+                                    'user_gender'=>$user_gender??0,
+                                    'user_country_id'=>$user_country_id??246,
+                                    'user_avatar'=>$user_avatar??'default_avatar.jpg',
+                                    'user_created_at'=>$user_created_at??$date,
+                                    'created_at'=>$time,
+                                )
+                            );
+                        }
                     }
                 }
                 if(!blank($offlineUsers))

@@ -257,23 +257,7 @@ class UserController extends BaseController
 
     public function cancelled($name , $email)
     {
-        $deletedUsersFile = 'deletedUsers/users.json';
-        $cancelledUsers = array();
-        if(\Storage::exists($deletedUsersFile))
-        {
-            $deletedUsers = \json_decode(\Storage::get($deletedUsersFile) , true);
-            if(getType($deletedUsers)=='array')
-            {
-                $cancelledUsers = $deletedUsers;
-            }
-        }
-        $cancelledUsers = collect($cancelledUsers);
-        if(!($cancelledUsers->has($name)||$cancelledUsers->flip()->has($name)||$cancelledUsers->flip()->has($email)||$cancelledUsers->flip()->has($email)))
-        {
-            $cancelledUsers->put($name , $email);
-            \Storage::put($deletedUsersFile , \json_encode($cancelledUsers , JSON_ERROR_UNSUPPORTED_TYPE|JSON_PRETTY_PRINT));
-            \Cache::forget('deletedUsers');
-        }
+        
     }
 
     public function randRyOnlineUser(Request $request)

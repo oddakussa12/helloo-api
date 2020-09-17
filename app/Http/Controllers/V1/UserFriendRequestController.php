@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\Friend;
+use App\Models\UserFriend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Models\UserFriendRequest;
-use Illuminate\Support\Facades\DB;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
@@ -73,20 +73,21 @@ class UserFriendRequestController extends BaseController
 
     public function accept($friendId , Request $request)
     {
+        $user = auth()->user();
+        $userId = $user->user_id;
         $requestState = 1;
-        UserFriendRequest::where('request_from_id' , $friendId)->where('request_to_id' , auth()->id())->update(array('request_state'=>$requestState));
+        UserFriendRequest::where('request_from_id' , $friendId)->where('request_to_id' , $userId)->update(array('request_state'=>$requestState));
         $createdAt = time();
-        $auth = auth()->user();
-        $userId = $auth->user_id;
-        $mySql = <<<DOC
-INSERT INTO `f_users_friends` ( `user_id`, `friend_id`, `created_at`) SELECT {$userId}, {$friendId}, {$createdAt} FROM DUAL WHERE NOT EXISTS ( SELECT `id` FROM `f_users_friends` WHERE `user_id` = {$userId} AND `friend_id` = {$friendId} );
-DOC;
-        $friendSql = <<<DOC
-INSERT INTO `f_users_friends` ( `user_id`, `friend_id`, `created_at`) SELECT {$friendId}, {$userId}, {$createdAt} FROM DUAL WHERE NOT EXISTS ( SELECT `id` FROM `f_users_friends` WHERE `user_id` = {$friendId} AND `friend_id` = {$userId} );
-DOC;
-        DB::statement($mySql);
-        DB::statement($friendSql);
-        $user = new UserCollection($auth);
+        $userFriend = UserFriend::where('user_id' , $userId)->where('friend_id' , $friendId)->first();
+        $friendUser = UserFriend::where('user_id' , $friendId)->where('friend_id' , $userId)->first();
+        $friends = array();
+        blank($userFriend)&&array_push($friends , array('user_id'=>$userId,'friend_id'=>$friendId,'created_at'=>$createdAt));
+        blank($friendUser)&&array_push($friends , array('user_id'=>$friendId,'friend_id'=>$userId,'created_at'=>$createdAt));
+        if(!blank($friends))
+        {
+            UserFriend::insert($friends);
+        }
+        $user = new UserCollection($user);
         $user->extra = array(
             'devicePlatformName'=>'Server'
         );
@@ -102,17 +103,8 @@ DOC;
     {
         $requestState = -1;
         UserFriendRequest::where('request_from_id' , $friendId)->where('request_to_id' , auth()->id())->update(array('request_state'=>$requestState));
-        $createdAt = time();
         $auth = auth()->user();
         $userId = $auth->user_id;
-        $mySql = <<<DOC
-INSERT INTO `f_users_friends` ( `user_id`, `friend_id`, `created_at`) SELECT {$userId}, {$friendId}, {$createdAt} FROM DUAL WHERE NOT EXISTS ( SELECT `id` FROM `f_users_friends` WHERE `user_id` = {$userId} AND `friend_id` = {$friendId} );
-DOC;
-        $friendSql = <<<DOC
-INSERT INTO `f_users_friends` ( `user_id`, `friend_id`, `created_at`) SELECT {$friendId}, {$userId}, {$createdAt} FROM DUAL WHERE NOT EXISTS ( SELECT `id` FROM `f_users_friends` WHERE `user_id` = {$friendId} AND `friend_id` = {$userId} );
-DOC;
-        DB::statement($mySql);
-        DB::statement($friendSql);
         $user = new UserCollection($auth);
         $user->extra = array(
             'devicePlatformName'=>'Server'

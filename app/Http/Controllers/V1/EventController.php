@@ -27,8 +27,16 @@ class EventController extends BaseController
         {
             $image = \json_decode($event->image , true);
             $event->image = $image;
-            isset($image[$locale])&&$event->image = config('common.qnUploadDomain.thumbnail_domain').$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
-            !isset($image[$locale])&&$event=array();
+            if(isset($image[$locale]))
+            {
+                $event->image = config('common.qnUploadDomain.thumbnail_domain').$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+            }else{
+                if(isset($image['en']))
+                {
+                    $event->image = config('common.qnUploadDomain.thumbnail_domain').$image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                }
+            }
+            (!isset($image[$locale])&&!isset($image['en']))&&$event=array();
         }
         return $this->response->array((array)$event);
     }

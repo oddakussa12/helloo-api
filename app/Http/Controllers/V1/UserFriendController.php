@@ -5,11 +5,9 @@ namespace App\Http\Controllers\V1;
 use App\Jobs\Friend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
-use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\DB;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
-use App\Http\Requests\StoreUserFriendRequestRequest;
 use App\Repositories\Contracts\UserFriendRepository;
 
 class UserFriendController extends BaseController
@@ -54,12 +52,6 @@ class UserFriendController extends BaseController
      */
     public function store(int $friendId)
     {
-        $createdAt = time();
-        $userId = auth()->id();
-        $sql = <<<DOC
-INSERT INTO `f_users_friends` ( `user_id`, `friend_id`, `created_at`) SELECT {$userId}, {$friendId}, {$createdAt} FROM DUAL WHERE NOT EXISTS ( SELECT `id` FROM `f_users_friends` WHERE `user_id` = {$userId} AND `friend_id` = {$friendId} )
-DOC;
-        DB::insert($sql);
         return $this->response->f_friends_request();
     }
 

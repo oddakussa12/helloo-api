@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'guestRefresh' => \App\Http\Middleware\GuestToken::class,
         'operationLog' => \App\Http\Middleware\OperationLog::class,
         'blacklist' => \App\Http\Middleware\Blacklist::class,
+        'lastActive' => \App\Http\Middleware\LastActive::class,
         'localization' => \App\Http\Middleware\LocalizationMiddleware::class,
         'cors' => \Barryvdh\Cors\HandleCors::class,
     ];
