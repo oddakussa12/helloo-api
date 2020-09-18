@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 
-class BlackUser extends Model
+class BlockUser extends Model
 {
 
-    protected $table = "black_users";
+    protected $table = "block_users";
 
     protected $primaryKey = 'id';
 
@@ -21,10 +21,10 @@ class BlackUser extends Model
 
     protected $fillable = [
         'user_id',
-        'desc',
-        'operator',
-        'is_delete',
+        'blocked_user_id',
+        'is_deleted',
         'created_at',
         'updated_at'
     ];
+
 }

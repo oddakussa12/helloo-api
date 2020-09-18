@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\PostEs;
-use App\Models\BlackUser;
 use App\Models\Post;
 use Ramsey\Uuid\Uuid;
 use App\Models\Banner;
@@ -149,12 +148,6 @@ class PostController extends BaseController
      */
     public function store(StorePostRequest $request)
     {
-        $poster    = auth()->user();
-        $blackUser = BlackUser::where('user_id', $poster->user_id)->first();
-        //todo
-        if ($blackUser) {
-            return $this->response->errorUnauthorized(trans('auth.user_banned'));
-        }
         $post_title = clean($request->input('post_title' , ''));
         $post_content = clean($request->input('post_content' , ''));
         $post_event_country = $request->input('post_event_country');
@@ -215,6 +208,7 @@ class PostController extends BaseController
             \Log::error(\json_encode($e->getMessage() , JSON_UNESCAPED_UNICODE));
             abort(424 , 'Sorry guys! We are updating our services in the next 24 hours. We apologize for the inconvenience !');
         }
+        $poster    = auth()->user();
         $titleLocale = niuAzureToGoogle($post_title_default_locale);
         $contentLocale = niuAzureToGoogle($post_content_default_locale);
         $post_info= array(

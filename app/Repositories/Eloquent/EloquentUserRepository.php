@@ -7,13 +7,13 @@
  */
 namespace App\Repositories\Eloquent;
 
-use App\Models\BlackUser;
-use App\Models\Block;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
 use App\Models\User;
-use App\Models\Region;
+use App\Models\BlockUser;
+use App\Models\BlackUser;
+use App\Models\BlockPost;
 use App\Models\UserRegion;
 use App\Models\PostComment;
 use App\Models\UserTaggable;
@@ -417,8 +417,6 @@ DOC;
             $authUser = auth()->id();
             if ($authUser != $userId) {
                 $this->updateHiddenUsers($authUser, $userId);
-                // 插入表中
-                Block::findOrInsert(auth()->id(), $userId);
             }
         }
     }
@@ -451,16 +449,15 @@ DOC;
     public function updateHiddenUsers($id, $user_id)
     {
         $userHiddenUsersKey = $this->hiddenUsersMemKey($id);
-        Redis::sadd($userHiddenUsersKey , $user_id);
-        $result = Redis::sMembers($userHiddenUsersKey);
-        if (empty($result)) {
-            $data = Block::where(['user_id'=>$id, 'is_delete'=>0, 'post_uuid'=>'0'])->get()->toArray();
-            array_map(function ($value) use($id, $userHiddenUsersKey) {
-                Redis::sadd($userHiddenUsersKey , $value['block_user_id']);
-            }, $data);
-            $result = Redis::sMembers($userHiddenUsersKey);
+        if(!Redis::sismember($userHiddenUsersKey , $user_id))
+        {
+            Redis::sadd($userHiddenUsersKey , $user_id);
+            BlockUser::insert(array(
+                'user_id'=>$id,
+                'blocked_user_id'=>$id,
+            ));
         }
-        return $result;
+        return Redis::smembers($userHiddenUsersKey);
         /*$hiddenUsers = $this->hiddenUsers($id);
 
         if(!in_array($user_id , $hiddenUsers))
@@ -681,15 +678,17 @@ DOC;
     public function updateHiddenPosts($id, $post_uuid)
     {
         $userHiddenPostsKey = $this->hiddenPostsMemKey($id);
-        Redis::sadd($userHiddenPostsKey , $post_uuid);
-        if (empty($result)) {
-            $data = Block::where(['user_id'=>$id, 'is_delete'=>0])->where('post_uuid', '!=', '0')->get()->toArray();
-            array_map(function ($value) use($id, $userHiddenPostsKey) {
-                Redis::sadd($userHiddenPostsKey, $value['post_uuid']);
-            }, $data);
-            $result = Redis::sMembers($userHiddenPostsKey);
+        if(!Redis::sismember($userHiddenPostsKey , $post_uuid))
+        {
+            Redis::sadd($userHiddenPostsKey , $post_uuid);
+            BlockPost::insert(
+                array(
+                    'user_id'=>$id,
+                    'blocked_post_uuid'=>$post_uuid,
+                )
+            );
         }
-        return $result;
+        return Redis::sMembers($userHiddenPostsKey);
 
         /*$hiddenPosts = $this->hiddenPosts($id);
         if (!in_array($post_uuid , $hiddenPosts)) {

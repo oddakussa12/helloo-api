@@ -54,7 +54,7 @@ class UserController extends BaseController
             $users = $nameUsers->merge($nicknameUsers)->unique('user_id');
             $users = $users->filter(function ($user, $key) {
                 $userId = $user['user_id'];
-                return !$this->isBlock($userId);
+                return !$this->isBlocked($userId);
             })->values();
             return $this->response->array(array(
                 'data'=>$users
@@ -92,7 +92,7 @@ class UserController extends BaseController
      */
     public function show($id)
     {
-        if($this->isBlock($id))
+        if($this->isBlocked($id))
         {
             return $this->response->errorNotFound();
         }

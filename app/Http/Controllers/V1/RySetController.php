@@ -59,23 +59,36 @@ class RySetController extends BaseController
         $key      = 'block_user';
         $userId   = intval($request->input('user_id' , 0));
         $operator = intval($request->input('operator' , 0));
-        $desc     = $request->input('desc');
+        $desc     = strval($request->input('desc' , ''));
         $minute   = intval($request->input('minute' , 43200));
         if($userId<=0) {
             return $this->response->errorNotFound();
         }
-
         try {
+            $start = time();
             $res            = \RongCloud::getUser()->Block()->add(array('id'=>$userId, 'minute'=>$minute));
             $res['userId']  = $userId;
             $res['minute']  = $minute;
             $res['message'] = 'ok';
 
             Redis::zadd($key, time(), $userId);
-
-            // 插入表中
-            BlackUser::findOrInsert($userId, $operator, $desc);
-
+            $blackUser = BlackUser::where('user_id' , $userId)->orderBy('updated_at' , "DESC")->first();
+            if(blank($blackUser))
+            {
+                BlackUser::create(
+                    array(
+                        'user_id'=>$userId,
+                        'desc'=>$desc,
+                        'start_time'=>$start,
+                        'end_time'=>$start+$minute*60,
+                        'operator'=>$operator,
+                    )
+                );
+            }else{
+                $blackUser->start_time = $start;
+                $blackUser->end_time = $start+$minute*60;
+                $blackUser->save();
+            }
             throw_if($res['code']!=200 , new \Exception('internal error'));
         } catch (\Throwable $e) {
             Redis::zRem($key, $userId);

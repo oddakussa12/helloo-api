@@ -74,6 +74,12 @@ class PostCommentController extends BaseController
         $commentContent = clean($request->input('comment_content' , ''));
         $commentPId = $request->input('comment_comment_p_id' , 0);
         $post = app(PostRepository::class)->findOrFailByUuid($postUuid);
+        $user = auth()->user();
+        $hiddenUsers = app(UserRepository::class)->hiddenUsers($post->user_id);
+        if(in_array($user->user_id , $hiddenUsers))
+        {
+            abort(403 , 'The other party has blocked you!');
+        }
         $comment_image= $request->input('comment_image',array());
         $comment_image = \array_filter($comment_image , function($v , $k){
             return !empty($v);
@@ -85,6 +91,10 @@ class PostCommentController extends BaseController
         if($commentPId!=0)
         {
             $comment_info = $this->postComment->findOrFail($commentPId);
+            if(in_array($comment_info->user_id , $hiddenUsers))
+            {
+                abort(403 , 'The other party has blocked you!');
+            }
             $comment_to_id =$comment_info->user_id;
             if($comment_info->comment_comment_p_id==0)
             {
@@ -109,7 +119,6 @@ class PostCommentController extends BaseController
             abort(424 , 'Sorry guys! We are updating our services in the next 24 hours. We apologize for the inconvenience !');
         }
         $locale = niuAzureToGoogle($contentDefaultLang);
-        $user = auth()->user();
         $comment = array(
             'post_id'=>$post->post_id,
             'user_id'=>$user->user_id,

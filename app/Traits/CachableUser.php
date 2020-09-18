@@ -351,9 +351,10 @@ trait CachableUser
         return (bool)($likeUserId&&Redis::zrank($userProfileLikeKey , $likeUserId)!==null);
     }
 
-    public function isBlock($userId)
+    public function isBlocked($userId)
     {
         $key = 'block_user';
-        return (bool)Redis::zscore($key , $userId);
+        $time = Redis::zscore($key , $userId);
+        return !blank($time)&&time()-$time>43200*60;
     }
 }

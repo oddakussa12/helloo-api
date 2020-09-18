@@ -2,18 +2,17 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Custom\Constant\Constant;
-use App\Jobs\TopicPush;
-use App\Models\Block;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
 use App\Jobs\TopicEs;
+use App\Jobs\TopicPush;
 use App\Models\Dislike;
 use App\Custom\RedisList;
 use App\Models\PostComment;
 use App\Models\PostViewNum;
 use Illuminate\Http\Request;
+use App\Custom\Constant\Constant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
@@ -423,15 +422,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         if (auth()->check()) {
             $authUser = auth()->id();
-            $post     = Post::where('post_uuid', $uuid)->first();
-            // 不屏蔽自己的帖子
-            if (!empty($post) && ($authUser != $post['user_id'])) {
+            $post = $this->findOrFailByUuid($uuid);
+            if ($authUser != $post->user_id) {
                 app(UserRepository::class)->updateHiddenPosts($authUser, $uuid);
-
-                // 插入表中
-                Block::findOrInsert(auth()->id(), $post['user_id'] ?? 0 ,$uuid);
             }
-
         }
     }
 

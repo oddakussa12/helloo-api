@@ -4,7 +4,6 @@ namespace App\Http\Controllers\V1;
 
 use App\Jobs\Sms;
 use App\Jobs\Device;
-use App\Models\BlackUser;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
@@ -177,6 +176,11 @@ class AuthController extends BaseController
     }
     protected function respondWithToken($token , $extend=true)
     {
+        $user = auth()->user();
+        if($this->isBlocked($user->user_id))
+        {
+            abort(401 , trans('auth.user_banned'));
+        }
         $referer = request()->input('referer' , 'web');
         if($referer!='web')
         {
@@ -192,7 +196,6 @@ class AuthController extends BaseController
         );
         if($extend)
         {
-            $user = auth()->user();
             $rank = $this->userScoreRank($user->user_id);
             $user = array(
                     'user_id'=>$user->user_id,
@@ -388,14 +391,8 @@ class AuthController extends BaseController
         $user = $this->user->find($phone->user_id);
         if(password_verify($password, $user->user_pwd))
         {
-            // 是否被封号
-            $isBlack = $this->user->isBlackUser($user->user_id);
-            if (!empty($isBlack)) {
-                return $this->response->errorUnauthorized(trans('auth.user_banned'));
-            } else {
-                $token = auth()->login($user);
-                return $this->respondWithToken($token, false);
-            }
+            $token = auth()->login($user);
+            return $this->respondWithToken($token , false);
         }
         return $this->response->errorUnauthorized(trans('auth.phone_failed'));
 
