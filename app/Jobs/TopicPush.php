@@ -40,7 +40,7 @@ class TopicPush implements ShouldQueue
         $result = DB::table('posts_topics')->select(DB::raw("count(1) as num"), 'topic_content')
                   ->whereIn('topic_content', $this->topics)->groupBy('topic_content')->get()->toArray();
 
-        $topicList = array_filter($result, function ($v) {
+        $topicList = array_map($result, function ($v) {
             if ($v->num % Constant::TOPIC_PUSH_THRESHOLD == 0) return $v->topic_content;
         });
         $topicList = array_filter($topicList);
