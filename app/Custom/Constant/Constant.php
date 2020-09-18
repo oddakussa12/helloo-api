@@ -15,6 +15,9 @@ class Constant {
     // PUSH 推送
     const QUEUE_PUSH_NAME="op_jpush";
 
+    // 翻译 队列
+    const QUEUE_POST_TRANSLATION="post_translation_1";
+
     // ES 队列
     const QUEUE_ES_POST="post_es";
     const QUEUE_ES_TOPIC="topic_es";
