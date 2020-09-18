@@ -37,6 +37,16 @@ class EventController extends BaseController
                 }
             }
             (!isset($image[$locale])&&!isset($image['en']))&&$event=array();
+            if(!empty($event))
+            {
+                if(isset($event->type)&&$event->type=='h5')
+                {
+                    $value = $event->value;
+                    $ip = getRequestIpAddress();
+                    $country = geoip($ip)->iso_code;
+                    $event->value = $value."?country=".$country;
+                }
+            }
         }
         return $this->response->array((array)$event);
     }
