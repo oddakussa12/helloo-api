@@ -208,7 +208,7 @@ class Es
                 }
             }
         }
-        return $result;
+        return $result ? assoc_unique($result, 'id') : $result;
     }
 
     public function completion($keywords)
