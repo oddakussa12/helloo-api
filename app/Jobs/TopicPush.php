@@ -40,26 +40,30 @@ class TopicPush implements ShouldQueue
         $result = DB::table('posts_topics')->select(DB::raw("count(1) as num"), 'topic_content')
                   ->whereIn('topic_content', $this->topics)->groupBy('topic_content')->get()->toArray();
 
-        $topicList = array_map(function ($v) {
+        $topicList = array_filter($result, function ($v) {
             if ($v->num % Constant::TOPIC_PUSH_THRESHOLD == 0) return $v->topic_content;
-        }, $result);
-
-        $data   = [];
-        foreach ($topicList as $item) {
-            DB::table('topics_follows')->where('topic_content', $item)->orderByDesc('id')
-                ->chunk(50, function ($users) use ($data, $item) {
-                    $userIds = $users->pluck('user_id')->all();
-                    if (!empty($userIds)) {
-                        $languages = $this->getDeviceList($userIds);
-                        $userNickName = '';
-                        foreach ($languages as $language => $datum) {
-                            if (!empty($datum['device'])) {
-                                Mpush::dispatch('publish_topic', $userNickName, $language, (object)$datum['device'], $item)->onQueue(Constant::QUEUE_PUSH_NAME);
+        });
+        $topicList = array_filter($topicList);
+        $data      = [];
+        
+        if ($topicList) {
+            foreach ($topicList as $item) {
+                DB::table('topics_follows')->where('topic_content', $item)->orderByDesc('id')
+                    ->chunk(50, function ($users) use ($data, $item) {
+                        $userIds = $users->pluck('user_id')->all();
+                        if (!empty($userIds)) {
+                            $languages = $this->getDeviceList($userIds);
+                            $userNickName = '';
+                            foreach ($languages as $language => $datum) {
+                                if (!empty($datum['device'])) {
+                                    Mpush::dispatch('publish_topic', $userNickName, $language, (object)$datum['device'], $item)->onQueue(Constant::QUEUE_PUSH_NAME);
+                                }
                             }
                         }
-                    }
-                });
+                    });
+            }
         }
+
     }
 
     /**
