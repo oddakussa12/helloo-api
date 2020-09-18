@@ -71,6 +71,8 @@ class ReportController extends BaseController
                 if($reportNum >= config('common.report_user_num')) {
                     $params = [
                         'user_id'    => $userId,
+                        'operator'   => $auth->user_id,
+                        'desc'       => 'automatic ban',
                         'user_name'  => $user->user_name,
                         'time_stamp' => time()
                     ];

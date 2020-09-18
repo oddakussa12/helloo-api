@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 
-class BlackUser extends Model
+class BlockPost extends Model
 {
 
-    protected $table = "black_users";
+    protected $table = "block_posts";
 
     protected $primaryKey = 'id';
 
@@ -16,15 +16,15 @@ class BlackUser extends Model
 
     const UPDATED_AT = 'updated_at';
 
+
     public $dateFormat = "U";
 
 
     protected $fillable = [
         'user_id',
-        'desc',
-        'operator',
-        'is_delete',
+        'post_uuid',
+        'is_deleted',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 }
