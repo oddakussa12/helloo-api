@@ -28,6 +28,7 @@ class TopicPush implements ShouldQueue
     {
         $this->post = $post;
         $this->topics = $topics;
+
     }
 
     /**
@@ -40,9 +41,9 @@ class TopicPush implements ShouldQueue
         $result = DB::table('posts_topics')->select(DB::raw("count(1) as num"), 'topic_content')
                   ->whereIn('topic_content', $this->topics)->groupBy('topic_content')->get()->toArray();
 
-        $topicList = array_filter($result, function ($v) {
+        $topicList = array_map(function ($v) {
             if ($v->num % Constant::TOPIC_PUSH_THRESHOLD == 0) return $v->topic_content;
-        });
+        }, $result);
         $topicList = array_filter($topicList);
         $data      = [];
         
@@ -55,7 +56,7 @@ class TopicPush implements ShouldQueue
                             $languages = $this->getDeviceList($userIds);
                             $userNickName = '';
                             foreach ($languages as $language => $datum) {
-                                if (!empty($datum['device'])) {
+                                if (!empty($datum['device']) && !empty($datum['device']['device_registration_id'])) {
                                     Mpush::dispatch('publish_topic', $userNickName, $language, (object)$datum['device'], $item)->onQueue(Constant::QUEUE_PUSH_NAME);
                                 }
                             }
@@ -79,22 +80,20 @@ class TopicPush implements ShouldQueue
             return (array)$value;
         })->toArray();
 
-        $push      = ['device_register_type' => 'fcm', 'device_type' => 2];
+        $push      = ['device_register_type' => 'fcm', 'device_type' => 2, 'device_registration_id'=>[]];
         $languages = config('translatable.locales');
         $languages = !empty($languages) ? $languages : array_column($devices, 'device_language');
 
         foreach ($languages as $k=>$language) {
+            $data[$language]['device'] = $push;
             foreach ($devices as $key =>$item) {
-                if ($item['device_register_type']!='fcm') {
-                    continue;
-                }
-                if (!in_array($item['device_language'], $languages)) {
-                    $data['en']['device'] = $push;
-                    $data['en']['device']['device_registration_id'][] = $item['device_registration_id'];
-                } else {
-                    if ($language == $item['device_language']) {
-                        $data[$language]['device'] = $push;
-                        $data[$language]['device']['device_registration_id'][] = $item['device_registration_id'];
+                if ($item['device_register_type']=='fcm') {
+                    if (!in_array($item['device_language'], $languages)) {
+                        $data['en']['device']['device_registration_id'][] = $item['device_registration_id'];
+                    } else {
+                        if ($language == $item['device_language']) {
+                            $data[$language]['device']['device_registration_id'][] = $item['device_registration_id'];
+                        }
                     }
                 }
             }

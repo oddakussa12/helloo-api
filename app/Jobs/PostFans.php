@@ -67,7 +67,7 @@ class PostFans implements ShouldQueue
                     $data = TopicPush::getDeviceList($userIds);
                     $userNickName = $this->user->user_nick_name ?? ($this->user->user_name ?? 'some one');
                     foreach ($data as $language => $datum) {
-                        if (!empty($datum['device'])) {
+                        if (!empty($datum['device']) && !empty($datum['device']['device_registration_id'])) {
                             Mpush::dispatch('publish_post', $userNickName, $language, (object)$datum['device'], $post_uuid)->onQueue(Constant::QUEUE_PUSH_NAME);
                         }
                     }

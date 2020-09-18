@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Custom\Constant\Constant;
 use App\Jobs\PostEs;
 use App\Models\Post;
 use Ramsey\Uuid\Uuid;
@@ -281,7 +282,7 @@ class PostController extends BaseController
             $job = new PostTranslation($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
         }
 //        $this->dispatchNow($job);
-        $this->dispatch($job->onQueue('post_translation'));
+        $this->dispatch($job->onQueue(Constant::QUEUE_POST_TRANSLATION));
         return new PostCollection($post);
     }
 
