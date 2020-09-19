@@ -12,5 +12,6 @@
   "Reset Password": "비밀번호 재설정",
   "Reset Password Notification": "비밀번호 재설정 알림",
   "Send Password Reset Link": "비밀번호 재설정 링크 보내기",
-  "You are receiving this email because we received a password reset request for your account.": "귀하의 계정에 비밀번호 재설정이 요청되어 해당 메일이 발송되었습니다."
+  "You are receiving this email because we received a password reset request for your account.": "귀하의 계정에 비밀번호 재설정이 요청되어 해당 메일이 발송되었습니다.",
+  "I‘m sorry~, you have been blocked by this user.": "(。 ・ ＿ ・。) ﾉ 죄송합니다 ~,이 사용자에 의해 차단되었습니다."
 }

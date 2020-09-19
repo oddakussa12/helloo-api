@@ -78,7 +78,7 @@ class PostCommentController extends BaseController
         $hiddenUsers = app(UserRepository::class)->hiddenUsers($post->user_id);
         if(in_array($user->user_id , $hiddenUsers))
         {
-            abort(403 , 'The other party has blocked you!');
+            abort(403 , __("I‘m sorry~, you have been blocked by this user."));
         }
         $comment_image= $request->input('comment_image',array());
         $comment_image = \array_filter($comment_image , function($v , $k){
@@ -93,7 +93,7 @@ class PostCommentController extends BaseController
             $comment_info = $this->postComment->findOrFail($commentPId);
             if(in_array($comment_info->user_id , $hiddenUsers))
             {
-                abort(403 , 'The other party has blocked you!');
+                abort(403 , __("I‘m sorry~, you have been blocked by this user."));
             }
             $comment_to_id =$comment_info->user_id;
             if($comment_info->comment_comment_p_id==0)
