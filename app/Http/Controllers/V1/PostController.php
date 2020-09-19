@@ -390,7 +390,7 @@ class PostController extends BaseController
         $key = 'banner_index';
         if(!Redis::exists($key))
         {
-            $banners = Banner::where('status' , 1)->orderByDesc('sort')->limit(20)->select('sort' , 'type' , 'image' , 'value')->get();
+            $banners = Banner::where('status' , 1)->orderByDesc('sort')->limit(20)->select('repeat' , 'sort' , 'type' , 'image' , 'value')->get();
             if(!$banners->isEmpty())
             {
                 Redis::set($key , \json_encode($banners , JSON_UNESCAPED_UNICODE));
