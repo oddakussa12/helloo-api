@@ -474,7 +474,7 @@ DOC;
         if(!Redis::sismember($userHiddenUsersKey , $user_id))
         {
             Redis::sadd($userHiddenUsersKey , $user_id);
-            BlockUser::insert(array(
+            BlockUser::create(array(
                 'user_id'=>$id,
                 'blocked_user_id'=>$user_id,
             ));
