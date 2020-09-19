@@ -64,6 +64,15 @@ return [
     'user_update_send_email_code_throttle_expired' =>env('USER_UPDATE_SEND_EMAIL_CODE_THROTTLE_EXPIRED', 10),
     'notification_throttle_num'=>env('NOTIFICATION_THROTTLE_NUM' , 20),
     'notification_throttle_expired'=>env('NOTIFICATION_THROTTLE_EXPIRED' , 1),
+    'user_follow_throttle_num' =>env('USER_FOLLOW_THROTTLE_NUM', 10),
+    'user_follow_throttle_expired' =>env('USER_FOLLOW_THROTTLE_EXPIRED', 1),
+    'user_unfollow_throttle_num' =>env('USER_UNFOLLOW_THROTTLE_NUM', 30),
+    'user_unfollow_throttle_expired' =>env('USER_UNFOLLOW_THROTTLE_EXPIRED', 1),
+    'user_like_throttle_num' =>env('USER_LIKE_THROTTLE_NUM', 10),
+    'user_like_throttle_expired' =>env('USER_LIKE_THROTTLE_EXPIRED', 1),
+    'user_unlike_throttle_num' =>env('USER_UNLIKE_THROTTLE_NUM', 5),
+    'user_unlike_throttle_expired' =>env('USER_UNLIKE_THROTTLE_EXPIRED', 1),
+
 
     'authorization'=>[
         'create_post'=>env('AUTHORIZATION_CREATE_POST' , true),

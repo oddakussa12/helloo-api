@@ -403,7 +403,6 @@ class PostController extends BaseController
         $banners = $banners->toArray();
         $ip = getRequestIpAddress();
         $country = geoip($ip)->iso_code;
-        $domain = config('common.qnUploadDomain.thumbnail_domain');
         foreach ($banners as $index=>$banner)
         {
             if((isset($banner['repeat'])&&$banner['repeat']==1)||!isset($banner['image']))
@@ -414,11 +413,11 @@ class PostController extends BaseController
             $image = \json_decode($banner['image'] , true);
             if(isset($image[$locale]))
             {
-                $banners[$index]['image'] = $domain.$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                $banners[$index]['image'] = $image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
             }else{
                 if(isset($image['en']))
                 {
-                    $banners[$index]['image'] = $domain.$image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                    $banners[$index]['image'] = $image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
                 }else{
                     unset($banners[$index]);
                     continue;
