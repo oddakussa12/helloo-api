@@ -703,14 +703,14 @@ DOC;
         if(!Redis::sismember($userHiddenPostsKey , $post_uuid))
         {
             Redis::sadd($userHiddenPostsKey , $post_uuid);
-            BlockPost::insert(
+            BlockPost::create(
                 array(
                     'user_id'=>$id,
                     'blocked_post_uuid'=>$post_uuid,
                 )
             );
         }
-        return Redis::sMembers($userHiddenPostsKey);
+//        return Redis::sMembers($userHiddenPostsKey);
 
         /*$hiddenPosts = $this->hiddenPosts($id);
         if (!in_array($post_uuid , $hiddenPosts)) {
