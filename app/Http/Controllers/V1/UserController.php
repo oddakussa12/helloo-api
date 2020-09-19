@@ -208,6 +208,12 @@ class UserController extends BaseController
         return $this->response->created();
     }
 
+    public function unblock($userId)
+    {
+        $this->user->unblockUser($userId);
+        return $this->response->created();
+    }
+
     public function getQiniuUploadToken(Request $request)
     {
         $type = $request->input('type' , 1);

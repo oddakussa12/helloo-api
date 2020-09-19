@@ -410,6 +410,28 @@ DOC;
         $this->getYesterdayUserRank();
     }
 
+    public function unblockUser($userId)
+    {
+        if (auth()->check()) {
+            $authUser = auth()->id();
+            if ($authUser != $userId) {
+                $this->removeHiddenUsers($authUser, $userId);
+            }
+        }
+    }
+
+    public function removeHiddenUsers($id, $user_id)
+    {
+        $userHiddenUsersKey = $this->hiddenUsersMemKey($id);
+        if(Redis::sismember($userHiddenUsersKey , $user_id))
+        {
+            Redis::srem($userHiddenUsersKey , $user_id);
+            BlockUser::where('user_id' , $id)->where('blocked_user_id' , $user_id)->update(
+                array('is_deleted'=>1)
+            );
+        }
+    }
+
     public function blockUser($userId)
     {
         if (auth()->check()) {
@@ -454,10 +476,10 @@ DOC;
             Redis::sadd($userHiddenUsersKey , $user_id);
             BlockUser::insert(array(
                 'user_id'=>$id,
-                'blocked_user_id'=>$id,
+                'blocked_user_id'=>$user_id,
             ));
         }
-        return Redis::smembers($userHiddenUsersKey);
+//        return Redis::smembers($userHiddenUsersKey);
         /*$hiddenUsers = $this->hiddenUsers($id);
 
         if(!in_array($user_id , $hiddenUsers))

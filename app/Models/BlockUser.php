@@ -22,9 +22,7 @@ class BlockUser extends Model
     protected $fillable = [
         'user_id',
         'blocked_user_id',
-        'is_deleted',
-        'created_at',
-        'updated_at'
+        'is_deleted'
     ];
 
 }

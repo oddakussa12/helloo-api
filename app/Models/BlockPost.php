@@ -23,8 +23,6 @@ class BlockPost extends Model
     protected $fillable = [
         'user_id',
         'post_uuid',
-        'is_deleted',
-        'created_at',
-        'updated_at',
+        'is_deleted'
     ];
 }

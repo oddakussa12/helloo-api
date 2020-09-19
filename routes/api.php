@@ -135,6 +135,7 @@ $api->group($V1Params , function ($api){
         $api->get('hot/search', 'SearchController@hotSearch')->name('search.hot');
 
         $api->post('user/{user}/block', 'UserController@block')->name('user.block');
+        $api->post('user/{user}/unblock', 'UserController@unblock')->name('user.unblock');
         $api->post('post/{uuid}/block', 'PostController@block')->name('post.block');
 
 //        $api->put('post/{uuid}/favorite' , 'PostController@favorite')->name('post.favorite');
