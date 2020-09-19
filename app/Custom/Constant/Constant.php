@@ -13,10 +13,10 @@ class Constant {
     const QUEUE_PUSH_POST='post_fans';
 
     // PUSH 推送
-    const QUEUE_PUSH_NAME="op_jpush_1";
+    const QUEUE_PUSH_NAME="op_jpush";
 
     // 翻译 队列
-    const QUEUE_POST_TRANSLATION="post_translation_1";
+    const QUEUE_POST_TRANSLATION="post_translation";
 
     // ES 队列
     const QUEUE_ES_POST="post_es";
