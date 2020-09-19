@@ -401,22 +401,36 @@ class PostController extends BaseController
         }
         $locale = locale();
         $banners = $banners->toArray();
+        $ip = getRequestIpAddress();
+        $country = geoip($ip)->iso_code;
+        $domain = config('common.qnUploadDomain.thumbnail_domain');
         foreach ($banners as $index=>$banner)
         {
+            if((isset($banner['repeat'])&&$banner['repeat']==1)||!isset($banner['image']))
+            {
+                unset($banners[$index]);
+                continue;
+            }
             $image = \json_decode($banner['image'] , true);
             if(isset($image[$locale]))
             {
-                $banners[$index]['image'] = $image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                $banners[$index]['image'] = $domain.$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
             }else{
                 if(isset($image['en']))
                 {
-                    $banners[$index]['image'] = $image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                    $banners[$index]['image'] = $domain.$image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
                 }else{
                     unset($banners[$index]);
+                    continue;
                 }
             }
+            if(isset($banner['type'])&&$banner['type']=='h5')
+            {
+                $value = $banner['value'];
+                $banners[$index]['value'] = $value."?country=".$country."&language=".$locale."&time=".time();
+            }
         }
-        $banners = collect($banners);
+        $banners = collect($banners)->values()->sortByDesc('sort');
         return BannerCollection::collection($banners);
     }
 
@@ -431,20 +445,21 @@ class PostController extends BaseController
         $banners = collect(\json_decode(Redis::get($key) , true));
         $locale = locale();
         $banners = $banners->toArray();
+        $domain = config('common.qnUploadDomain.thumbnail_domain');
         foreach ($banners as $index=>$banner)
         {
-            if($banner['type']!='postDetail')
+            if($banner['type']!='postDetail'||!isset($banner['image']))
             {
                 continue;
             }
             $image = \json_decode($banner['image'] , true);
             if(isset($image[$locale]))
             {
-                $carousel[$banner['value']] = $image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                $carousel[$banner['value']] = $domain.$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
             }else{
                 if(isset($image['en']))
                 {
-                    $carousel[$banner['value']] = $image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                    $carousel[$banner['value']] = $domain.$image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
                 }
             }
         }

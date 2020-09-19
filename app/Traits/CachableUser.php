@@ -355,6 +355,6 @@ trait CachableUser
     {
         $key = 'block_user';
         $time = Redis::zscore($key , $userId);
-        return !blank($time)&&time()-$time>43200*60;
+        return !blank($time)&&time()-$time<=43200*60;
     }
 }

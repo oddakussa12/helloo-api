@@ -13,7 +13,7 @@ class Blacklist extends BaseMiddleware
         {
             $key      = 'block_user';
             $time = Redis::zscore($key , auth()->id());
-            if(!blank($time)&&time()-$time>43200*60)
+            if(!blank($time)&&time()-$time<=43200*60)
             {
                 abort('401' , trans('auth.user_banned'));
             }

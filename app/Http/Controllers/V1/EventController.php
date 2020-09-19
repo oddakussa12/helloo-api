@@ -14,37 +14,36 @@ class EventController extends BaseController
         if(!Redis::exists($key))
         {
             $event = \DB::table('events')->where('status' , 1)->orderByDesc('sort')->select('name' , 'sort' , 'type' , 'image' , 'value' , 'flag')->first();
+            $event = collect($event)->toArray();
             if(!blank($event))
             {
                 Redis::set($key , \json_encode($event , JSON_UNESCAPED_UNICODE));
                 Redis::expire($key , 86400);
             }
         }else{
-            $event = \json_decode(Redis::get($key));
+            $event = \json_decode(Redis::get($key) , true);
         }
         $locale = locale();
-        if(!blank($event))
+        $ip = getRequestIpAddress();
+        $country = geoip($ip)->iso_code;
+        $domain = config('common.qnUploadDomain.thumbnail_domain');
+        if(!blank($event)&&!empty($event['image']))
         {
-            $image = \json_decode($event->image , true);
-            $event->image = $image;
+            if(isset($event['type'])&&$event['type']=='h5')
+            {
+                $value = $event['value'];
+                $event['value'] = $value."?country=".$country."&language=".$locale."&time=".time();
+            }
+            $image = \json_decode($event['image'] , true);
             if(isset($image[$locale]))
             {
-                $event->image = config('common.qnUploadDomain.thumbnail_domain').$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                $event['image'] = $domain.$image[$locale].'?imageMogr2/auto-orient/interlace/1|imageslim';
             }else{
                 if(isset($image['en']))
                 {
-                    $event->image = config('common.qnUploadDomain.thumbnail_domain').$image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
-                }
-            }
-            (!isset($image[$locale])&&!isset($image['en']))&&$event=array();
-            if(!empty($event))
-            {
-                if(isset($event->type)&&$event->type=='h5')
-                {
-                    $value = $event->value;
-                    $ip = getRequestIpAddress();
-                    $country = geoip($ip)->iso_code;
-                    $event->value = $value."?country=".$country;
+                    $event['image'] = $domain.$image['en'].'?imageMogr2/auto-orient/interlace/1|imageslim';
+                }else{
+                    $event = array();
                 }
             }
         }
