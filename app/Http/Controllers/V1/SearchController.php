@@ -87,17 +87,18 @@ class SearchController extends BaseController
     protected function history($params)
     {
         try {
-            $userId  = auth()->user()->user_id;
-            $key     = "search_".$userId;
-            $today   = strtotime(date('Y-m-d'));
-            $keyword = mb_convert_case($params['keyword'], MB_CASE_LOWER, "UTF-8");
-            $value   = Redis::zscore($key, $keyword);
-            if (empty($value) || $value != $today) {
-                Redis::zremrangebyscore($key, 0, $today-1); // 删除小于今天的数据
-                Redis::zadd($key, $today, $keyword);
-                DB::insert('insert into f_search_history(user_id, title, created_at) values (?, ?, ?)', [$userId, $keyword, time()]);
+            if (auth()->check()) {
+                $userId  = auth()->user()->user_id;
+                $key     = "search_".$userId;
+                $today   = strtotime(date('Y-m-d'));
+                $keyword = mb_convert_case($params['keyword'], MB_CASE_LOWER, "UTF-8");
+                $value   = Redis::zscore($key, $keyword);
+                if (empty($value) || $value != $today) {
+                    Redis::zremrangebyscore($key, 0, $today-1); // 删除小于今天的数据
+                    Redis::zadd($key, $today, $keyword);
+                    DB::insert('insert into f_search_history(user_id, title, created_at) values (?, ?, ?)', [$userId, $keyword, time()]);
+                }
             }
-
         } catch (\Exception $e) {
             Log::error(__FUNCTION__.' Exception: code:'.$e->getCode(). ' message:'.$e->getMessage());
         }

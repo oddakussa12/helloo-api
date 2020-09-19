@@ -42,11 +42,6 @@ $api->group($V1Params , function ($api){
         $api->get('postComment/locate/{commentId}' , 'PostCommentController@locateComment')->name('show.locate.comment');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
 
-        // 搜索功能-ES
-        $api->get('search', 'SearchController@index')->name('aggregation.search');
-        // 热门搜索
-        $api->get('hot/search', 'SearchController@hotSearch')->name('search.hot');
-
         /*****热门话题 开始*****/
         $api->get('topic/hot', 'TopicController@hot')->name('topic.hot');
         /*****热门话题 结束*****/
@@ -134,7 +129,10 @@ $api->group($V1Params , function ($api){
         $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo')->name('follow.two');
 
 
-
+        // 搜索功能-ES
+        $api->get('search', 'SearchController@index')->name('aggregation.search');
+        // 热门搜索
+        $api->get('hot/search', 'SearchController@hotSearch')->name('search.hot');
 
         $api->post('user/{user}/block', 'UserController@block')->name('user.block');
         $api->post('post/{uuid}/block', 'PostController@block')->name('post.block');
