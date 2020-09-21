@@ -34,7 +34,6 @@ class Push
 
     public function send()
     {
-        $str2 = 2;
         $message = [
             "notification" => [
                 "title"    => $this->title,
@@ -57,7 +56,7 @@ class Push
         $result = $application->push_send_msg($message);
 
         $result = is_object($result) ? json_decode(json_encode($result), true) : $result;
-        Log::info('HPush result:', $result);
+        // Log::info('HPush result:', $result);
         return $result;
 
         //$pushMsg = new TestPushMsgCommon();

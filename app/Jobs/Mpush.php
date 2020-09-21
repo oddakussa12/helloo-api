@@ -36,7 +36,6 @@ class Mpush implements ShouldQueue
         $this->deviceList = $deviceList;
         $this->app        = 'android';
         $this->postOrTopic= $postOrTopic;
-        Log::info(__FILE__);
     }
 
     /**
@@ -46,8 +45,6 @@ class Mpush implements ShouldQueue
      */
     public function handle()
     {
-        Log::info(__CLASS__. ' '.__FUNCTION__);
-
         $device = $this->deviceList;
         if(empty($device)) return false;
         NpushService::batchPush($this->language, $this->deviceList, $this->formName, $this->type, $this->postOrTopic);

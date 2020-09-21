@@ -21,7 +21,7 @@ class PushServer
 
     public function Send()
     {
-        Log::info('message', $this->params);
+        //Log::info('message', $this->params);
         $deviceBrand = strtolower($this->params['deviceBrand']);
         if ($this->params['registerType'] == 'fcm') {
             $result = $this->fcmPush();
@@ -40,7 +40,7 @@ class PushServer
             }
         }
         if (empty($result)) {
-            // Log::info(__FUNCTION__.' params:', $this->params);
+            Log::info(__FUNCTION__.' params:', $this->params);
         }
 
 
@@ -66,7 +66,7 @@ class PushServer
                     return true;
                 } else {
                     if (!empty($result['tokensToDelete'])) {
-                         Log::info(__FUNCTION__.' Push message tokensToDelete:'.__FUNCTION__, $result);
+                         //Log::info(__FUNCTION__.' Push message tokensToDelete:'.__FUNCTION__, $result);
                         return true;
                     } else {
                         Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
