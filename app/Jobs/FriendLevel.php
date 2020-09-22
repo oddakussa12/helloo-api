@@ -142,7 +142,6 @@ class FriendLevel implements ShouldQueue
             // 未加特殊关系或未满20条时  叠加聊天条数
             $data = ['user_id_count'=>$uNum, 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];
             dump($data);
-            Log::info('message', $data);
             UserFriendTalkList::updateOrCreate(['id' => $result['id']], $data);
             return 123;
             //}
