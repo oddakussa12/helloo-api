@@ -54,15 +54,32 @@ class UserFriendAffinityController extends BaseController
 
     }
 
+    /**
+     * @param $friendId
+     * @return mixed
+     * 获取好友间签到记录
+     */
     public function getSignInList($friendId)
     {
         $userId = auth()->id();
-        $first  = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
-            ->orderBy('id', 'ASC')->first();
+
         $result = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
-            ->orderBy('id', 'ASC')->limit(30)->get();
-        $firstDay = $first['sign_day'];
-        return $result;
+            ->orderBy('id', 'ASC')->limit(30)->get()->toArray();
+
+        $firstDay = current($result);
+        $today    = strtotime(date('Ymd'));
+        $totalDay = ($today - $firstDay['sign_day'])/86400+1;
+
+        $signDay  = count($result);
+        $total    = $signDay - ($totalDay - $signDay);
+        $total    = $total < 0 ? 0 : $total;
+
+        $data['total'] = $total;
+        $data['list']  = array_map(function($val){
+            return date('Ymd', $val['sign_day']);
+        }, $result);
+
+        return $data;
     }
 
     /**
