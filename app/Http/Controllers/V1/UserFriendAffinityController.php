@@ -5,16 +5,18 @@ namespace App\Http\Controllers\V1;
 use App\Custom\Constant\Constant;
 use App\Jobs\Affinity;
 use App\Jobs\Friend;
+use App\Jobs\FriendSignIn;
+use App\Models\User;
 use App\Models\UserFriend;
 use App\Models\UserFriendLevel;
+use App\Models\UserFriendRelationRule;
 use App\Models\UserFriendRelationship;
+use App\Models\UserFriendRelationShipRule;
 use App\Models\UserFriendSignIn;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
-use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
-use App\Repositories\Contracts\UserFriendRequestRepository;
 
 /**
  * Class UserFriendAffinityController
@@ -42,14 +44,33 @@ class UserFriendAffinityController extends BaseController
        return UserFriendRelationship::select('id','name')->where('is_delete', 0)->orderBy('sort', 'ASC')->get();
     }
 
-    public function rule()
+    /**
+     * @param $friendId
+     * @return array
+     */
+    public function getLevelInfo($friendId)
     {
+        $authUserId = auth()->id();
+        list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
+
+        $result = UserFriendLevel::select('score','relationship_id')
+            ->where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0,'status'=>0])->first();
+
+        if (!empty($result)) {
+            $user_id = $userId == $authUserId ? $userId : $friendId;
+            $friend  = User::where('user_id', $user_id)->get();
+            $result['friend'] = UserCollection::collection($friend);
+
+            $rule = UserFriendRelationShipRule::select('name', 'score', 'desc')
+                ->where(['relationship_id'=>$result['relationship_id'], 'is_delete'=>0])
+                ->orderBy('score', 'ASC')->get();
 
 
-    }
+            $result['rule'] = $rule;
 
-    public function getLevelInfo()
-    {
+        }
+
+        return $result ?? [];
 
 
     }
@@ -85,6 +106,7 @@ class UserFriendAffinityController extends BaseController
     /**
      * @param Request $request
      * @return mixed
+     * 获取特殊好友关系列表【未使用】
      */
     public function list(Request $request)
     {
@@ -137,16 +159,14 @@ class UserFriendAffinityController extends BaseController
 
         $requests    = new UserFriendLevel();
         $auth        = auth()->user();
-        $arr         = [$auth->user_id, $friendId];
-        sort($arr);
-
         $relation    = UserFriendRelationship::where(['is_delete'=>0,'id'=>$relation_id])->first();
+
         if (empty($relation)) {
             return $this->response->noContent();
             return $this->response->errorNotFound('该关系不存在');
         }
 
-        list($userId, $friendId)   = $arr;
+        list($userId, $friendId)   = FriendSignIn::sortId($auth->user_id, $friendId);
         $requests->user_id         = $userId;
         $requests->friend_id       = $friendId;
         $requests->relationship_id = $relation_id;
