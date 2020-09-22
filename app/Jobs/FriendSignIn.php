@@ -40,7 +40,7 @@ class FriendSignIn implements ShouldQueue
         $raw      = $this->data;
         $nextDay  = strtotime(date('Y-m-d',strtotime('+1 day'))); // 获取明天凌晨的时间戳
         $isFriend = self::isFriend($raw['fromUserId'], $raw['toUserId']); // 是否是好友
-        $arr      = self::sortId($raw['fromUserId'], $raw['toUserId']); // 排序
+        list($userId, $friendId) = $arr = self::sortId($raw['fromUserId'], $raw['toUserId']); // 排序
 
         $friend_uuid = implode('_', $arr);
         $memKey      = Constant::RY_CHAT_FRIEND_SIGN_IN. $friend_uuid;
@@ -55,7 +55,7 @@ class FriendSignIn implements ShouldQueue
                 Redis::expire($memKey, $nextDay - time());
 
                 // 签到成功  ----  入库操作
-                $data = ['user_id'=>$raw['fromUserId'],'friend_id'=>$raw['toUserId'],'created_at'=>time(),'sign_month'=>date('Ym'),'sign_month'=>strtotime(date('Ymd'))];
+                $data = ['user_id'=>$userId,'friend_id'=>$friendId,'created_at'=>time(),'sign_month'=>date('Ym'),'sign_day'=>strtotime(date('Ymd'))];
                $isFriend && UserFriendSignIn::insert($data);
             }
         } else {
