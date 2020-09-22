@@ -108,10 +108,14 @@ $api->group($V1Params , function ($api){
         /*****特殊好友关系请求 开始*****/
         $api->group(['middleware'=>['blacklist' , 'repeatedSubmit']] , function ($api){
             $api->post('affinity/request' , 'UserFriendAffinityController@store')->name('user.affinity.request.store');//发起好友请求
+            $api->get('affinity/list', 'UserFriendAffinityController@list')->name('user.affinity.list');//好友请求列表
             $api->patch('affinity/{friend}/accept' , 'UserFriendAffinityController@accept')->name('user.affinity.request.accept');//好友请求响应接受
             $api->patch('affinity/{friend}/refuse' , 'UserFriendAffinityController@refuse')->name('user.affinity.request.refuse');//好友请求响应拒绝
         });
         //$api->get('my/affinity/request' , 'UserFriendRequestController@my')->name('my.friend.request');//我的好友请求
+
+        $api->get('affinity', 'UserFriendAffinityController@index')->name('user.affinity');//基础关系列表
+
         /*****特殊好友关系请求 结束*****/
 
         /*****评论 开始*****/

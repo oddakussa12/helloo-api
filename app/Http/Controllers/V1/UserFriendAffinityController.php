@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\Constant\Constant;
 use App\Jobs\Affinity;
+use App\Jobs\Friend;
 use App\Models\UserFriend;
 use App\Models\UserFriendLevel;
 use App\Models\UserFriendRelationship;
@@ -22,19 +23,8 @@ use App\Repositories\Contracts\UserFriendRequestRepository;
 class UserFriendAffinityController extends BaseController
 {
 
-    /**
-     * @var UserFriendRequestRepository
-     */
-    private $userFriendRequest;
-
-
-    /**
-     * UserFriendController constructor.
-     * @param UserFriendRequestRepository $userFriendRequest
-     */
-    public function __construct(UserFriendRequestRepository $userFriendRequest)
+    public function __construct()
     {
-        $this->userFriendRequest = $userFriendRequest;
     }
     /*public function paginateByUser($toId , $perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
     {
@@ -43,10 +33,25 @@ class UserFriendAffinityController extends BaseController
     }*/
 
     /**
+     * @return mixed
+     * 特殊关系列表
+     */
+    public function index()
+    {
+       return UserFriendRelationship::select('id','name','alias_name')->where('is_delete', 0)->orderBy('sort', 'ASC')->get();
+    }
+
+    public function rule()
+    {
+
+
+    }
+
+    /**
      * @param Request $request
      * @return mixed
      */
-    public function index(Request $request)
+    public function list(Request $request)
     {
         $page   = $request->input('page', 1);
         $page   = intval($page)>0 ? intval($page) : 1;
@@ -55,15 +60,26 @@ class UserFriendAffinityController extends BaseController
         $result = UserFriendLevel::where('user_id', $userId)->orWhere('friend_id', $userId)->where('is_delete', 0)
             ->where('status', $status)->orderBy('created_at', 'DESC')->paginate(10, ['*'], 'page', $page);
 
-        $friendIds = array_filter($result, function ($value) use ($userId) {
-            if ($value['user_id'] == $userId) return $value['friend_id'];
-            if ($value['friend_id'] == $userId) return $value['user_id'];
+        $userIds   = $result->pluck('user_id')->all();
+        $friendIds = $result->pluck('friend_id')->all();
+        $friendIds = array_unique(array_merge($userIds, $friendIds));
+        $friendIds = array_filter($friendIds,
+            function($value) use ($userId) {if (!empty($value) && $value != $userId) return $value;
         });
+        $users     = app(UserRepository::class)->findByMany($friendIds);
+
+        //return $result;
+
+        foreach ($result as $index=>$value) {
+            $user_id = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
+            $value['friend'] = $users->where('user_id', $user_id)->first();
+            $result[$index]  = $value;
+        }
+
+        return $result;
+        dump($friendIds, $result);
 
         /*$friends = app(UserRepository::class)->findByMany($friendIds);
-        $result->each(function($friend , $key) use ($friends){
-            $friend->friend = $friends->where('user_id' , $friend->friend_id)->first();
-        });
         $userFriendRequests = $result->filter(function ($value, $key) {
             return !blank($value->friend);
         });
@@ -76,8 +92,14 @@ class UserFriendAffinityController extends BaseController
      */
     public function store(StoreUserFriendRequestRequest $request)
     {
+
         $friendId    = intval($request->input('friend_id'));
         $relation_id = intval($request->input('relationship_id'));
+        $this->validate($request, [
+            'relationship_id' => 'required|int',
+            'friend_id'       => 'required|int',
+        ]);
+
         $requests    = new UserFriendLevel();
         $auth        = auth()->user();
         $arr         = [$auth->user_id, $friendId];
@@ -85,6 +107,7 @@ class UserFriendAffinityController extends BaseController
 
         $relation    = UserFriendRelationship::where(['is_delete'=>0,'id'=>$relation_id])->first();
         if (empty($relation)) {
+            return $this->response->noContent();
             return $this->response->errorNotFound('该关系不存在');
         }
 
@@ -94,6 +117,17 @@ class UserFriendAffinityController extends BaseController
         $requests->relationship_id = $relation_id;
         $requests->save();
         $user = new UserCollection($auth);
+        $user->extra = array(
+            'devicePlatformName'=>'Server'
+        );
+
+        // 融云推送 聊天
+        $this->dispatch((new Friend($auth->user_id, $friendId, 'Yooul:AffinityFriendRequest', [
+            'content' => 'friend request',
+            'user'    => $user
+        ]))->onQueue('friend'));
+
+        // 推送通知
         $this->dispatch((new Affinity($user, $requests, 'friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
         return $this->response->created();
     }
@@ -115,11 +149,26 @@ class UserFriendAffinityController extends BaseController
         $userFriend = UserFriend::where('user_id', $userId)->where('friend_id' , $friendId)->first();
         $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $userId)->first();
 
-        if (!blank($userFriend) && !empty($friendUser)) {
-            UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
+        if (empty($userFriend) || empty($friendUser)) {
+            return $this->response->errorNotFound();
         }
 
+        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
+
         $user = new UserCollection($user);
+        $user->extra = array(
+            'devicePlatformName'=>'Server'
+        );
+
+
+        // 融云推送 聊天
+        $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendRequestReposed', [
+            'content' => 'friend response' ,
+            'reposed' => 1,
+            'user'    => $user
+        ]))->onQueue('friend'));
+
+        // 推送通知
         $this->dispatch((new Affinity($user, $request->all(), 'accept_friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
 
         return $this->response->accepted();
