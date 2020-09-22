@@ -115,11 +115,11 @@ class RyChatController extends BaseController
 
                     // 签到队列
                     $friendSignIn = new FriendSignIn($all);
-                    $this->dispatchNow($friendSignIn->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
+                    $this->dispatch($friendSignIn->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
 
                     // 升级队列
                     $friendLevel = new FriendLevel($all);
-                    $this->dispatchNow($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
+                    $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
 
                 }
             }
