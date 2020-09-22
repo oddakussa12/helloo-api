@@ -3,21 +3,12 @@
 namespace App\Jobs;
 
 use App\Custom\Constant\Constant;
-use App\Models\PostTranslation as PostTranslationModel;
-use App\Models\RyChatRaw;
-use App\Models\RyChatFailed;
-use App\Models\UserFriend;
 use App\Models\UserFriendLevel;
 use App\Models\UserFriendLevelHistory;
-use App\Models\UserFriendRequest;
-use App\Models\UserFriendSignIn;
 use App\Models\UserFriendTalk;
 use App\Models\UserFriendTalkList;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Validation\Rule;
-use App\Models\RyChat as RyChats;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -37,6 +28,7 @@ class FriendLevel implements ShouldQueue
     public function __construct($data)
     {
         $this->data = $data;
+        $this->handle();
     }
 
     /**

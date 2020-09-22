@@ -29,7 +29,7 @@ class Constant {
 
 
 
-    // 融云回调 
+    // 融云回调
     const QUEUE_RY_CHAT='store_ry_msg_tsm';
 
 
