@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 class UserFriendSignIn extends Model
 {
 
-    protected $table = "user_friend_sign_in";
+    protected $table = "users_friends_sign_in";
 
     const CREATED_AT = 'created_at';
 
@@ -23,4 +23,5 @@ class UserFriendSignIn extends Model
 
     protected $primaryKey = 'id';
 
+    protected $fillable = ['user_id', 'friend_id', 'sign_month', 'sign_day'];
 }

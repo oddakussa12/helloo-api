@@ -8,6 +8,7 @@ use App\Jobs\Friend;
 use App\Models\UserFriend;
 use App\Models\UserFriendLevel;
 use App\Models\UserFriendRelationship;
+use App\Models\UserFriendSignIn;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\UserFriendCollection;
@@ -38,13 +39,30 @@ class UserFriendAffinityController extends BaseController
      */
     public function index()
     {
-       return UserFriendRelationship::select('id','name','alias_name')->where('is_delete', 0)->orderBy('sort', 'ASC')->get();
+       return UserFriendRelationship::select('id','name')->where('is_delete', 0)->orderBy('sort', 'ASC')->get();
     }
 
     public function rule()
     {
 
 
+    }
+
+    public function getLevelInfo()
+    {
+
+
+    }
+
+    public function getSignInList($friendId)
+    {
+        $userId = auth()->id();
+        $first  = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
+            ->orderBy('id', 'ASC')->first();
+        $result = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
+            ->orderBy('id', 'ASC')->limit(30)->get();
+        $firstDay = $first['sign_day'];
+        return $result;
     }
 
     /**
@@ -144,7 +162,7 @@ class UserFriendAffinityController extends BaseController
         $userId = $user->user_id;
         $arr    = [$user->user_id, $friendId];
         sort($arr);
-        list($user_id, $friendId) = $arr;
+        list($user_id, $friend_id) = $arr;
 
         $userFriend = UserFriend::where('user_id', $userId)->where('friend_id' , $friendId)->first();
         $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $userId)->first();
@@ -153,7 +171,7 @@ class UserFriendAffinityController extends BaseController
             return $this->response->errorNotFound();
         }
 
-        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
+        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
 
         $user = new UserCollection($user);
         $user->extra = array(
@@ -163,7 +181,7 @@ class UserFriendAffinityController extends BaseController
 
         // 融云推送 聊天
         $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendRequestReposed', [
-            'content' => 'friend response' ,
+            'content' => 'friend response',
             'reposed' => 1,
             'user'    => $user
         ]))->onQueue('friend'));

@@ -114,7 +114,10 @@ $api->group($V1Params , function ($api){
         });
         //$api->get('my/affinity/request' , 'UserFriendRequestController@my')->name('my.friend.request');//我的好友请求
 
-        $api->get('affinity', 'UserFriendAffinityController@index')->name('user.affinity');//基础关系列表
+        $api->get('affinity', 'UserFriendAffinityController@index')->name('user.affinity'); //基础关系列表
+        $api->get('affinity/{friend}/sign', 'UserFriendAffinityController@getSignInList')->name('user.affinity.sign.list');//签到列表
+
+
 
         /*****特殊好友关系请求 结束*****/
 

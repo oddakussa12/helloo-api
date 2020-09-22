@@ -55,8 +55,8 @@ class FriendSignIn implements ShouldQueue
                 Redis::expire($memKey, $nextDay - time());
 
                 // 签到成功  ----  入库操作
-                $data[] = ['user_id'=>$raw['fromUserId'],'friend_id'=>$raw['toUserId'],'friend_uuid'=>$friend_uuid,'created_at'=>time(),'sign_month'=>date('Ym'),'sign_month'=>date('Ymd')];
-                $data[] = ['user_id'=>$raw['toUserId'],'friend_id'=>$raw['fromUserId'],'friend_uuid'=>$friend_uuid,'created_at'=>time(),'sign_month'=>date('Ym'),'sign_month'=>date('Ymd')];
+                $data[] = ['user_id'=>$raw['fromUserId'],'friend_id'=>$raw['toUserId'],'friend_uuid'=>$friend_uuid,'created_at'=>time(),'sign_month'=>date('Ym'),'sign_month'=>strtotime(date('Ymd'))];
+                $data[] = ['user_id'=>$raw['toUserId'],'friend_id'=>$raw['fromUserId'],'friend_uuid'=>$friend_uuid,'created_at'=>time(),'sign_month'=>date('Ym'),'sign_month'=>strtotime(date('Ymd'))];
                $isFriend && UserFriendSignIn::insert($data);
             }
         } else {
