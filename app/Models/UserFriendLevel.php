@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 class UserFriendLevel extends Model
 {
 
-    protected $table = "user_friend_level";
+    protected $table = "users_friends_level";
 
     const CREATED_AT = 'created_at';
 
@@ -23,5 +23,6 @@ class UserFriendLevel extends Model
 
     protected $primaryKey = 'id';
 
+    protected $fillable = ['relationship_id', 'score', 'level_id', 'user_id', 'friend_id', 'status', 'is_delete'];
 
 }
