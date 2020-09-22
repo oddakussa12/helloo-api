@@ -26,9 +26,6 @@ class Constant {
 
 
 
-
-
-
     // 融云回调
     const QUEUE_RY_CHAT='store_ry_msg_tsm';
 
@@ -37,7 +34,8 @@ class Constant {
     // 好友关系
 
 
-    // 队列名称
+    // 加好友队列
+    const RY_CHAT_FRIEND="friend_tsm";
 
     // 发送好友请求
     const QUEUE_PUSH_FRIEND="friend_request";

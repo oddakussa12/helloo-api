@@ -143,7 +143,7 @@ class UserFriendAffinityController extends BaseController
         $this->dispatch((new Friend($auth->user_id, $friendId, 'Yooul:AffinityFriendRequest', [
             'content' => 'friend request',
             'user'    => $user
-        ]))->onQueue('friend'));
+        ]))->onQueue(Constant::RY_CHAT_FRIEND));
 
         // 推送通知
         $this->dispatch((new Affinity($user, $requests, 'friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
@@ -184,7 +184,7 @@ class UserFriendAffinityController extends BaseController
             'content' => 'friend response',
             'reposed' => 1,
             'user'    => $user
-        ]))->onQueue('friend'));
+        ]))->onQueue(Constant::RY_CHAT_FRIEND));
 
         // 推送通知
         $this->dispatch((new Affinity($user, $request->all(), 'accept_friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
