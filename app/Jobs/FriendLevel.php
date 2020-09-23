@@ -114,16 +114,19 @@ class FriendLevel implements ShouldQueue
             $count = array_sum([$uNum, $fNum]);
 
             if (!empty($uNum) && !empty($fNum) && $count>=Constant::CHAT_SUM_STAR) {
+                // 当特殊好友关系不存在
+                if (empty($isFriendRelation)) return false;
+
+                //星数>5时，直接返回
+                if ($score>$star) return false;
 
                 $date = ['user_id_count'=>$uNum, 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];
                 UserFriendTalkList::updateOrCreate(['id' => $result['id']], $date);
 
-                // 当特殊好友关系不存在或星数>5时，直接返回
-                if (empty($isFriendRelation) || $score>$star) return false;
 
                 if (!empty($isFriendRelation) && $score<=$star) {
                     // 插入升级历史表
-                    if (!empty($isFriendRelation && $score<=$star)) {
+                    if (!empty($isFriendRelation) && $score<=$star) {
                         $date = array_merge($result->toArray(), $date);
                         unset($date['id']);
                         UserFriendLevelHistory::create($date);

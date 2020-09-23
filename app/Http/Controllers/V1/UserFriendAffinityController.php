@@ -73,27 +73,34 @@ class UserFriendAffinityController extends BaseController
 
     /**
      * @param $friendId
+     * @param bool $num
      * @return mixed
      * 获取好友间签到记录
      */
-    public function getSignInList($friendId)
+    public function getSignInList($friendId, $num=false)
     {
         $userId = auth()->id();
 
         $result = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
-            ->orderBy('id', 'ASC')->limit(30)->get()->toArray();
+            ->orderBy('id', 'ASC')->limit(50)->get()->toArray();
 
         $firstDay = current($result);
+        $endDay   = end($result);
         $today    = strtotime(date('Ymd'));
-        $totalDay = ($today - $firstDay['sign_day'])/86400+1;
+
+        $totalDay = ($today - $firstDay['sign_day'])/86400;
+        $totalDay = $today == $endDay['sign_day'] ? $totalDay +1 : $totalDay;
 
         $signDay  = count($result);
         $total    = $signDay - ($totalDay - $signDay);
         $total    = $total < 0 ? 0 : $total;
 
-        $data['total'] = $totalDay;
-        $data['sign']  = $total;
-        $data['list']  = array_map(function($val){
+        if (empty($num)) return $total;
+
+        //$data['total']  = $totalDay;
+        $data['signDay']  = $signDay;
+        $data['sign']     = $total;
+        $data['list']     = array_map(function($val){
             return date('Ymd', $val['sign_day']);
         }, $result);
 
@@ -103,31 +110,28 @@ class UserFriendAffinityController extends BaseController
     /**
      * @param Request $request
      * @return mixed
-     * 获取特殊好友关系列表【未使用】
+     * 获取特殊好友关系列表
      */
-    public function list(Request $request)
+    public function list()
     {
-        $page   = $request->input('page', 1);
-        $page   = intval($page)>0 ? intval($page) : 1;
-        $status = $request->input('status', 1);
         $userId = auth()->id();
-        $result = UserFriendLevel::where('user_id', $userId)->orWhere('friend_id', $userId)->where('is_delete', 0)
-            ->where('status', $status)->orderBy('created_at', 'DESC')->paginate(10, ['*'], 'page', $page);
+        $result = UserFriendLevel::select('user_id', 'friend_id', 'score', 'relationship_id')->where('user_id', $userId)->orWhere('friend_id', $userId)
+            ->where(['is_delete'=>0,'status'=>1])->orderBy('score', 'DESC')->limit(5)->get();
 
         $userIds   = $result->pluck('user_id')->all();
         $friendIds = $result->pluck('friend_id')->all();
+        $result    = $result->toArray();
         $friendIds = array_unique(array_merge($userIds, $friendIds));
         $friendIds = array_filter($friendIds,
             function($value) use ($userId) {if (!empty($value) && $value != $userId) return $value;
         });
         $users     = app(UserRepository::class)->findByMany($friendIds);
+        $users     = UserCollection::collection($users);
 
-        //return $result;
-
-        foreach ($result as $index=>$value) {
-            $user_id = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
-            $value['friend'] = $users->where('user_id', $user_id)->first();
-            $result[$index]  = $value;
+        foreach ($result as $index=>&$value) {
+            $user_id         = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
+            $value['sign']   = $this->getSignInList($userId);
+            $value['friend'] = $users->where('user_id', $user_id)->first();;
         }
 
         return $result;
