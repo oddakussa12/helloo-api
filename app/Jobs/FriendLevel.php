@@ -131,17 +131,17 @@ class FriendLevel implements ShouldQueue
                 $uNum  = $fNum = 0;
                 $score = $score < $star ? $score+1 : $score;
 
-                $rule  = UserFriendRelationShipRule::select('id', 'name', 'score', 'desc')
+                /*$rule  = UserFriendRelationShipRule::select('id', 'name', 'score', 'desc')
                     ->where(['relationship_id'=>$isFriendRelation['relationship_id'], 'is_delete'=>0])
                     ->orderBy('score', 'DESC')->get()->toArray();
 
                 $ruleId = array_filter($rule, function ($value) use ($score) {
                     if ($score>=$value['score']) {return $value['id'];}
-                });
+                });*/
 
                 // 插入好友关系等级表
                 UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
-                    ['score'=>$isFriendRelation['score']+1, 'level_id'=>$ruleId]
+                    ['score'=>$isFriendRelation['score']+1]
                 );
 
             }
