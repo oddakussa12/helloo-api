@@ -48,26 +48,22 @@ class UserFriendAffinityController extends BaseController
      * @param $friendId
      * @return array
      */
-    public function getLevelInfo($friendId)
+    public function main($friendId)
     {
         $authUserId = auth()->id();
         list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
 
-        $result = UserFriendLevel::select('score','relationship_id')
+        $result = UserFriendLevel::select('score','relationship_id', 'level_id')
             ->where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0,'status'=>0])->first();
 
         if (!empty($result)) {
-            $user_id = $userId == $authUserId ? $userId : $friendId;
-            $friend  = User::where('user_id', $user_id)->get();
+            $user_id          = $userId == $authUserId ? $userId : $friendId;
+            $friend           = User::where('user_id', $user_id)->get();
             $result['friend'] = UserCollection::collection($friend);
-
-            $rule = UserFriendRelationShipRule::select('name', 'score', 'desc')
+            $result['sign']   = $this->getSignInList($friendId);
+            $result['rule']   = UserFriendRelationShipRule::select('name', 'score', 'desc')
                 ->where(['relationship_id'=>$result['relationship_id'], 'is_delete'=>0])
                 ->orderBy('score', 'ASC')->get();
-
-
-            $result['rule'] = $rule;
-
         }
 
         return $result ?? [];
@@ -95,7 +91,8 @@ class UserFriendAffinityController extends BaseController
         $total    = $signDay - ($totalDay - $signDay);
         $total    = $total < 0 ? 0 : $total;
 
-        $data['total'] = $total;
+        $data['total'] = $totalDay;
+        $data['sign']  = $total;
         $data['list']  = array_map(function($val){
             return date('Ymd', $val['sign_day']);
         }, $result);

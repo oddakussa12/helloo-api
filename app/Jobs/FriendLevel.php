@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Custom\Constant\Constant;
 use App\Models\UserFriendLevel;
 use App\Models\UserFriendLevelHistory;
+use App\Models\UserFriendRelationShipRule;
 use App\Models\UserFriendTalk;
 use App\Models\UserFriendTalkList;
 use GPBMetadata\Google\Api\Log;
@@ -14,6 +15,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use function foo\func;
 
 /**
  * Class FriendSignIn
@@ -129,13 +131,18 @@ class FriendLevel implements ShouldQueue
                 $uNum  = $fNum = 0;
                 $score = $score < $star ? $score+1 : $score;
 
-                // 存在特殊关系，且星数小于5时
-                // $data = ['user_id_count'=>$uNum, 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];
-                // dump($data);
-                // UserFriendTalkList::updateOrCreate(['id' => $result['id']], $data);
+                $rule  = UserFriendRelationShipRule::select('id', 'name', 'score', 'desc')
+                    ->where(['relationship_id'=>$isFriendRelation['relationship_id'], 'is_delete'=>0])
+                    ->orderBy('score', 'DESC')->get()->toArray();
+
+                $ruleId = array_filter($rule, function ($value) use ($score) {
+                    if ($score>=$value['score']) {return $value['id'];}
+                });
 
                 // 插入好友关系等级表
-                UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']], ['score'=>$isFriendRelation['score']+1]);
+                UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
+                    ['score'=>$isFriendRelation['score']+1, 'level_id'=>$ruleId]
+                );
 
             }
             //else{
