@@ -19,6 +19,7 @@ use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * Class UserFriendAffinityController
@@ -39,13 +40,16 @@ class UserFriendAffinityController extends BaseController
     public function main($friendId)
     {
         $authUserId = auth()->id();
-        list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
+        list($user_id, $friend_id) = FriendSignIn::sortId($authUserId, $friendId);
 
-        $userFriend = UserFriend::where('user_id', $userId)->where('friend_id' , $friendId)->first();
-        $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $userId)->first();
+        $memKey   = Constant::FRIEND_RELATIONSHIP_MAIN.$user_id.'_'.$friend_id;
+        $memValue = Redis::get($memKey);
+        if (!empty($memValue)) {
+            return json_decode($memValue, true);
+        }
 
-        $result = UserFriendLevel::select('heart_count','relationship_id')
-            ->where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0,'status'=>1])->first();
+        $result   = UserFriendLevel::select('heart_count','relationship_id')
+            ->where(['user_id'=>$user_id,'friend_id'=>$friend_id,'is_delete'=>0,'status'=>1])->first();
 
         if (!empty($result)) {
             $result['sign'] = $this->getSignInList($friendId, false);
@@ -54,13 +58,19 @@ class UserFriendAffinityController extends BaseController
             $result['relationship_id'] = -1;
             $result['sign']['total']   = 0;
         }
+
+        $userFriend = UserFriend::where('user_id', $authUserId)->where('friend_id' , $friendId)->first();
+        $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $authUserId)->first();
+
         $createTime = $userFriend['created_at'] > $friendUser['created_at'] ? $userFriend['created_at'] : $friendUser['created_at'];
         $result['friend_time'] = intval((time() - $createTime)/86400);
 
-        $user_id          = $userId == $authUserId ? $userId : $friendId;
-        $friend           = User::where('user_id', $user_id)->first();
+        $uid              = $user_id == $authUserId ? $user_id : $friendId;
+        $friend           = User::where('user_id', $uid)->first();
         $result['friend'] = new UserCollection($friend);
 
+        Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
+        Redis::expire($memKey, 86400);
         return $result ?? [];
 
     }
@@ -80,6 +90,10 @@ class UserFriendAffinityController extends BaseController
 
     }
 
+    /**
+     * @return array
+     * 等级规则
+     */
     public function rule()
     {
         $json = '{

@@ -61,9 +61,9 @@ class FriendLevel implements ShouldQueue
     }
 
 
-    public static function sortId($user_id, $friend_id)
+    public static function sortId($user_id, $friendId)
     {
-        $arr = [$user_id, $friend_id];
+        $arr = [$user_id, $friendId];
         sort($arr);
         return $arr;
     }
@@ -82,25 +82,25 @@ class FriendLevel implements ShouldQueue
         }
         $isFriendRelation = $this->isFriendRelation($raw['fromUserId'], $raw['toUserId'], false);
 
-        list($userId, $friend_id) = $arr = FriendSignIn::sortId($raw['fromUserId'], $raw['toUserId']);
+        list($userId, $friendId) = $arr = FriendSignIn::sortId($raw['fromUserId'], $raw['toUserId']);
 
         // 插入总表
-        $total = UserFriendTalk::where(['user_id'=>$userId, 'friend_id'=>$friend_id, 'is_delete'=>0])->first();
+        $total = UserFriendTalk::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])->first();
         if (!empty($total)) {
             $uNum  = $total['user_id']   == $raw['fromUserId'] ? $total['user_id_count']+1   : $total['user_id_count'];
             $fNum  = $total['friend_id'] == $raw['fromUserId'] ? $total['friend_id_count']+1 : $total['friend_id_count'];
             UserFriendTalk::updateOrCreate(['id' => $total['id']],
-                ['user_id'=>$userId, 'friend_id'=>$friend_id, 'user_id_count'=>$uNum ?? 0, 'friend_id_count'=>$fNum ?? 0]);
+                ['user_id'=>$userId, 'friend_id'=>$friendId, 'user_id_count'=>$uNum ?? 0, 'friend_id_count'=>$fNum ?? 0]);
         }
 
         $today  = date('Ymd');
-        $result = UserFriendTalkList::where(['user_id'=>$userId, 'friend_id'=>$friend_id, 'is_delete'=>0])->first();
+        $result = UserFriendTalkList::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])->first();
         $uNum   = $fNum = $score = 0;
 
         // 当聊天记录条数为空时，初始化
         if (empty($result) || empty($total)) {
             $raw['fromUserId'] == $userId ? $uNum = 1 : $fNum =1;
-            $data = ['user_id' => $userId, 'friend_id' => $friend_id, 'user_id_count'=>$uNum,
+            $data = ['user_id' => $userId, 'friend_id' => $friendId, 'user_id_count'=>$uNum,
                 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'heart_count'=>$score];
 
             empty($result) && UserFriendTalkList::updateOrCreate(['id' => null], $data);
@@ -135,22 +135,17 @@ class FriendLevel implements ShouldQueue
                     $uNum  = $fNum = 0;
                     $score = $score < $star ? $score+1 : $score;
 
-                    /*$rule  = UserFriendRelationShipRule::select('id', 'name', 'score', 'desc')
-                        ->where(['relationship_id'=>$isFriendRelation['relationship_id'], 'is_delete'=>0])
-                        ->orderBy('score', 'DESC')->get()->toArray();
-
-                    $ruleId = array_filter($rule, function ($value) use ($score) {
-                        if ($score>=$value['score']) {return $value['id'];}
-                    });*/
-
                     // 插入好友关系等级表
                     UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
                         ['heart_count'=>$isFriendRelation['heart_count']+1]
                     );
 
+                    // 升级之后，清空情侣首页缓存
+                    Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
+
                     // 发送升级请求给双方 融云
-                    $this->sendMsgToRongYun($userId, $friend_id, 'Yooul:AffinityFriendLevel', $score);
-                    $this->sendMsgToRongYun($friend_id, $userId, 'Yooul:AffinityFriendLevel', $score);
+                    $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $score);
+                    $this->sendMsgToRongYun($friendId, $userId, 'Yooul:AffinityFriendLevel', $score);
                 }
 
 

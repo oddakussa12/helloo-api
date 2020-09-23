@@ -62,6 +62,11 @@ class Constant {
     // 是否有特殊好友关系 如 情侣 基友等
     const RY_CHAT_FRIEND_RELATIONSHIP="ry_chat_friend_relationship_";
 
+    // 好友主页 数据缓存key
+    const FRIEND_RELATIONSHIP_MAIN="friend_relationship_main_";
+
+
+
 
     const RELATION_LOVER=1;
     const RELATION_FRIEND=2;
