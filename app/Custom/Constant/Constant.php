@@ -35,7 +35,7 @@ class Constant {
 
 
     // 加好友队列
-    const RY_CHAT_FRIEND="friend_tsm";
+    const QUEUE_RY_CHAT_FRIEND="friend_tsm";
 
     // 发送好友请求
     const QUEUE_PUSH_FRIEND="friend_request";

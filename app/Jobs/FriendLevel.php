@@ -172,7 +172,7 @@ class FriendLevel implements ShouldQueue
             'content' => 'friend request',
             'score'   => $score,
             // 'user'    => $user
-        ]))->onQueue(Constant::RY_CHAT_FRIEND));
+        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
     }
 
 }

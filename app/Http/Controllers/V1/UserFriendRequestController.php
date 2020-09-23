@@ -68,7 +68,7 @@ class UserFriendRequestController extends BaseController
         $this->dispatch((new Friend($requests->request_from_id , $requests->request_to_id , 'Yooul:FriendRequest' , [
             'content'=>'friend request',
             'user'=> $user
-        ]))->onQueue(Constant::RY_CHAT_FRIEND));
+        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
         return $this->response->created();
     }
 
@@ -96,7 +96,7 @@ class UserFriendRequestController extends BaseController
             'content'=>'friend response' ,
             'reposed'=>$requestState,
             'user'=> $user
-        ]))->onQueue(Constant::RY_CHAT_FRIEND));
+        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
         return $this->response->accepted();
     }
 
@@ -114,7 +114,7 @@ class UserFriendRequestController extends BaseController
             'content'=>'friend response',
             'reposed'=>$requestState,
             'user'=> $user
-        ]))->onQueue(Constant::RY_CHAT_FRIEND));
+        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
         return $this->response->accepted();
     }
 }
