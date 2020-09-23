@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Custom\Constant\Constant;
 use App\Jobs\Friend;
+use App\Jobs\FriendSignIn;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserFriendRepository;
+use Illuminate\Support\Facades\Redis;
 
 class UserFriendController extends BaseController
 {
@@ -71,17 +74,45 @@ class UserFriendController extends BaseController
         return UserCollection::collection($friends);
     }
 
+    /**
+     * @param $friendId
+     * @return \Dingo\Api\Http\Response
+     * 删除用户及其相关
+     */
     public function destroy($friendId)
     {
         $userId = auth()->id();
-        $myselfSql = <<<DOC
-delete from `f_users_friends` where `user_id`={$userId} and `friend_id`={$friendId};
-DOC;
-        $friendSql = <<<DOC
-delete from `f_users_friends` where `user_id`={$friendId} and `friend_id`={$userId};
-DOC;
-        DB::statement($myselfSql);
-        DB::statement($friendSql);
+        if (empty($userId) || empty($friendId)) {
+            return $this->response->noContent();
+        }
+
+        DB::transaction(function() use ($userId, $friendId) {
+
+            // 删除好友关系
+            DB::delete("delete from `f_users_friends` where `user_id`={$friendId} and `friend_id`={$userId}");
+            DB::delete("delete from `f_users_friends` where `user_id`={$userId}   and `friend_id`={$friendId}");
+
+            // 删除情侣关系相关
+            $time = time();
+
+            list($user_id, $friend_id) = FriendSignIn::sortId($userId, $friendId);
+            Redis::del(Constant::RY_CHAT_FRIEND_SIGN_IN.$user_id.'_'.$friend_id);
+
+            $sql = " set is_delete = 1, deleted_at = $time where user_id= $user_id and friend_id = $friend_id ";
+
+            // 关系等级及历史
+            DB::update("update f_users_friends_level  $sql");
+            DB::update("update f_users_friends_level_history $sql");
+
+            // 签到
+            DB::update("update f_users_friends_sign_in $sql");
+            // DB::update("update f_users_friends_sign_in_month $sql");
+
+            // 聊天记录条数统计
+            DB::update("update f_users_friends_talk $sql");
+            DB::update("update f_users_friends_talk_list $sql");
+
+            });
         $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendRequestReposed' , ['content'=>'friend delete']))->onQueue('friend'));
         return $this->response->noContent();
     }
