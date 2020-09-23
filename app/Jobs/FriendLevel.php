@@ -147,6 +147,10 @@ class FriendLevel implements ShouldQueue
                     UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
                         ['score'=>$isFriendRelation['score']+1]
                     );
+
+                    // 发送升级请求给双方 融云
+                    $this->sendMsgToRongYun($userId, $friend_id, 'Yooul:AffinityFriendLevel', $score);
+                    $this->sendMsgToRongYun($friend_id, $userId, 'Yooul:AffinityFriendLevel', $score);
                 }
 
 
@@ -156,8 +160,19 @@ class FriendLevel implements ShouldQueue
             $data = ['user_id_count'=>$uNum, 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];
             dump($data);
             UserFriendTalkList::updateOrCreate(['id' => $result['id']], $data);
-            return 123;
+            return true;
             //}
         }
     }
+
+    public function sendMsgToRongYun($userId, $friendId, $objectName, $score)
+    {
+        // 融云推送 聊天
+        $this->dispatch((new Friend($userId, $friendId, $objectName, [
+            'content' => 'friend request',
+            'score'   => $score,
+            // 'user'    => $user
+        ]))->onQueue(Constant::RY_CHAT_FRIEND));
+    }
+
 }

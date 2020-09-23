@@ -63,5 +63,22 @@ class Constant {
     const RY_CHAT_FRIEND_RELATIONSHIP="ry_chat_friend_relationship_";
 
 
+    const RELATION_LOVER=1;
+    const RELATION_FRIEND=2;
+    const RELATION_SISTER=3;
+    const RELATION_S=4;
+
+    public static $relation = [
+        self::RELATION_LOVER,
+        self::RELATION_FRIEND,
+        self::RELATION_SISTER,
+        self::RELATION_S,
+    ];
+    public static $relationSum = [
+        self::RELATION_LOVER=>2,
+        self::RELATION_FRIEND=>5,
+        self::RELATION_SISTER=>5,
+        self::RELATION_S=>5,
+    ];
 
 }

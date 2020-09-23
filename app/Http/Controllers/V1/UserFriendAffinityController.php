@@ -17,6 +17,8 @@ use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class UserFriendAffinityController
@@ -108,7 +110,6 @@ class UserFriendAffinityController extends BaseController
     }
 
     /**
-     * @param Request $request
      * @return mixed
      * 获取特殊好友关系列表
      */
@@ -125,17 +126,18 @@ class UserFriendAffinityController extends BaseController
         $friendIds = array_filter($friendIds,
             function($value) use ($userId) {if (!empty($value) && $value != $userId) return $value;
         });
+
         $users     = app(UserRepository::class)->findByMany($friendIds);
         $users     = UserCollection::collection($users);
 
         foreach ($result as $index=>&$value) {
             $user_id         = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
-            $value['sign']   = $this->getSignInList($userId);
-            $value['friend'] = $users->where('user_id', $user_id)->first();;
+            $value['sign']   = $this->getSignInList($user_id);
+            $value['friend'] = $users->where('user_id', $user_id)->first();
         }
 
+
         return $result;
-        dump($friendIds, $result);
 
         /*$friends = app(UserRepository::class)->findByMany($friendIds);
         $userFriendRequests = $result->filter(function ($value, $key) {
@@ -145,12 +147,11 @@ class UserFriendAffinityController extends BaseController
     }
 
     /**
-     * @param StoreUserFriendRequestRequest $request
+     * @param Request $request
      * @return mixed
      */
-    public function store(StoreUserFriendRequestRequest $request)
+    public function store(Request $request)
     {
-
         $friendId    = intval($request->input('friend_id'));
         $relation_id = intval($request->input('relationship_id'));
         $this->validate($request, [
@@ -168,6 +169,16 @@ class UserFriendAffinityController extends BaseController
         }
 
         list($userId, $friendId)   = FriendSignIn::sortId($auth->user_id, $friendId);
+
+        $relationShipFriend = $this->checkFriendLevel($friendId, $relation_id, true);
+        $relationShipUser   = $this->checkFriendLevel($userId  , $relation_id, true);
+
+        if (empty($relationShipFriend) || empty($relationShipUser)) {
+            Log::info('message::关系超限，不能添加');
+            //return $this->response->errorNotFound('关系超限，不能添加');
+            return $this->response->noContent();
+        }
+
         $requests->user_id         = $userId;
         $requests->friend_id       = $friendId;
         $requests->relationship_id = $relation_id;
@@ -205,9 +216,30 @@ class UserFriendAffinityController extends BaseController
         $userFriend = UserFriend::where('user_id', $userId)->where('friend_id' , $friendId)->first();
         $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $userId)->first();
 
+        // 不是双方好友关系，直接返回
         if (empty($userFriend) || empty($friendUser)) {
-            return $this->response->errorNotFound();
+            Log::info('message::不是好友关系');
+            return $this->response->errorNotFound('不是好友关系');
         }
+        $info = UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->first();
+
+        // 邀请关系失效，直接返回
+        if (empty($info)) {
+            // return $this->response->errorNotFound('关系已完成或失效，不能添加');
+            Log::info('关系已完成或失效，不能添加');
+            return $this->response->noContent();
+        }
+
+        $relationShipFriend = $this->checkFriendLevel($friendId, $info['relationship_id'], true);
+        $relationShipUser   = $this->checkFriendLevel($userId  , $info['relationship_id'], true);
+
+        if (empty($relationShipFriend) || empty($relationShipUser)) {
+            Log::info('message::关系超限，不能添加');
+            UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>-2]);
+            // return $this->response->errorNotFound('关系超限，不能添加');
+            return $this->response->noContent();
+        }
+
 
         UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
 
@@ -228,6 +260,41 @@ class UserFriendAffinityController extends BaseController
         $this->dispatch((new Affinity($user, $request->all(), 'accept_friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
 
         return $this->response->accepted();
+    }
+
+    /**
+     * @param $userId
+     * @param string $relationShipId
+     * @param bool $compare
+     * @return int
+     * 查询特殊关系数量
+     */
+    public function checkFriendLevel($userId, $relationShipId='', $compare=false)
+    {
+        $result = UserFriendLevel::select('user_id', 'friend_id', 'score', 'relationship_id')
+            ->where('user_id', $userId)->orWhere('friend_id', $userId);
+        if ($relationShipId)
+            $result->where('relationship_id', 0);
+
+        $data = $result->where(['is_delete'=>0,'status'=>1])->groupBy('relationship_id')->get()->toArray();
+
+        // 判断是否可以新增关系， true为可以 false为数量已满
+        if ($relationShipId) {
+            $count = count($data);
+            if (empty($count)) return true;
+
+            if ($compare) {
+                if (in_array($relationShipId, Constant::$relation) && $count < Constant::$relationSum[$relationShipId]) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return $count;
+            }
+        }
+        return $data;
+
     }
 
     /**
