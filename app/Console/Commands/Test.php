@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Post;
-use App\Services\TencentTranslateService;
 use App\Traits\CachableUser;
+use App\Jobs\Test as TestJob;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
+
 
 
 class Test extends Command
@@ -44,6 +43,8 @@ class Test extends Command
     public function handle()
     {
 
+        TestJob::dispatch()->onConnection('sqs');
+        die;
         $userTags = \Storage::get('userTags/tags.json');
         $userTags = collect(\json_decode($userTags , true));
         dd($userTags);
@@ -70,4 +71,5 @@ class Test extends Command
 //            file_put_contents($file , $str , FILE_APPEND);
 //        });
     }
+
 }
