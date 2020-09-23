@@ -101,7 +101,7 @@ class FriendLevel implements ShouldQueue
         if (empty($result) || empty($total)) {
             $raw['fromUserId'] == $userId ? $uNum = 1 : $fNum =1;
             $data = ['user_id' => $userId, 'friend_id' => $friend_id, 'user_id_count'=>$uNum,
-                'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];
+                'friend_id_count'=>$fNum, 'talk_day'=>$today, 'heart_count'=>$score];
 
             empty($result) && UserFriendTalkList::updateOrCreate(['id' => null], $data);
             empty($total)  && UserFriendTalk::updateOrCreate(['id' => null], $data);
@@ -110,7 +110,7 @@ class FriendLevel implements ShouldQueue
         if (!empty($result)) {
             $uNum  = $result['user_id']   == $raw['fromUserId'] ? $result['user_id_count']+1   : $result['user_id_count'];
             $fNum  = $result['friend_id'] == $raw['fromUserId'] ? $result['friend_id_count']+1 : $result['friend_id_count'];
-            $score = $result['talk_day']  == $today ? $result['score'] : 0;
+            $score = $result['talk_day']  == $today ? $result['heart_count'] : 0;
             $count = array_sum([$uNum, $fNum]);
 
             if (!empty($uNum) && !empty($fNum) && $count>=Constant::CHAT_SUM_STAR) {
@@ -145,7 +145,7 @@ class FriendLevel implements ShouldQueue
 
                     // 插入好友关系等级表
                     UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
-                        ['score'=>$isFriendRelation['score']+1]
+                        ['heart_count'=>$isFriendRelation['heart_count']+1]
                     );
 
                     // 发送升级请求给双方 融云

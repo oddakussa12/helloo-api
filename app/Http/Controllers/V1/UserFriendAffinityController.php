@@ -31,20 +31,6 @@ class UserFriendAffinityController extends BaseController
     public function __construct()
     {
     }
-    /*public function paginateByUser($toId , $perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
-    {
-        $pageName = isset($this->model->paginateParamName)?$this->model->paginateParamName:$pageName;
-        return $this->model->where('request_to_id' , $toId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate($perPage , $columns , $pageName , $page);
-    }*/
-
-    /**
-     * @return mixed
-     * 特殊关系列表
-     */
-    public function index()
-    {
-       return UserFriendRelationship::select('id','name')->where('is_delete', 0)->orderBy('sort', 'ASC')->get();
-    }
 
     /**
      * @param $friendId
@@ -55,22 +41,57 @@ class UserFriendAffinityController extends BaseController
         $authUserId = auth()->id();
         list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
 
-        $result = UserFriendLevel::select('score','relationship_id', 'level_id')
-            ->where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0,'status'=>0])->first();
+        $userFriend = UserFriend::where('user_id', $userId)->where('friend_id' , $friendId)->first();
+        $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $userId)->first();
+
+        $result = UserFriendLevel::select('heart_count','relationship_id')
+            ->where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0,'status'=>1])->first();
 
         if (!empty($result)) {
-            $user_id          = $userId == $authUserId ? $userId : $friendId;
-            $friend           = User::where('user_id', $user_id)->get();
-            $result['friend'] = UserCollection::collection($friend);
-            $result['sign']   = $this->getSignInList($friendId);
-            $result['rule']   = UserFriendRelationShipRule::select('name', 'score', 'desc')
-                ->where(['relationship_id'=>$result['relationship_id'], 'is_delete'=>0])
-                ->orderBy('score', 'ASC')->get();
+            $result['sign'] = $this->getSignInList($friendId, false);
+        } else {
+            $result['heart_count']     = 0;
+            $result['relationship_id'] = -1;
+            $result['sign']['total']   = 0;
         }
+        $createTime = $userFriend['created_at'] > $friendUser['created_at'] ? $userFriend['created_at'] : $friendUser['created_at'];
+        $result['friend_time'] = intval((time() - $createTime)/86400);
+
+        $user_id          = $userId == $authUserId ? $userId : $friendId;
+        $friend           = User::where('user_id', $user_id)->first();
+        $result['friend'] = new UserCollection($friend);
 
         return $result ?? [];
 
+    }
 
+    /**
+     * @param $friendId
+     * @return mixed
+     * 获取心❤的数量
+     */
+    public function heart($friendId)
+    {
+        $authUserId = auth()->id();
+        list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
+
+        return UserFriendLevel::select('heart_count','relationship_id')
+            ->where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0,'status'=>1])->first();
+
+    }
+
+    public function rule()
+    {
+        $json = '{
+            "relationship_id":1,
+            "title":"黑铁情侣",
+            "level":1,
+            "content":"黑铁情侣"
+        }';
+        return [
+            'data'=>json_decode($json, true),
+            'rule'=>'-----------------',
+        ];
     }
 
     /**
@@ -79,12 +100,12 @@ class UserFriendAffinityController extends BaseController
      * @return mixed
      * 获取好友间签到记录
      */
-    public function getSignInList($friendId, $num=false)
+    public function getSignInList($friendId, $list=true)
     {
         $userId = auth()->id();
 
         $result = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
-            ->orderBy('id', 'ASC')->limit(50)->get()->toArray();
+            ->orderBy('id', 'ASC')->limit(30)->get()->toArray();
 
         $firstDay = current($result);
         $endDay   = end($result);
@@ -97,27 +118,26 @@ class UserFriendAffinityController extends BaseController
         $total    = $signDay - ($totalDay - $signDay);
         $total    = $total < 0 ? 0 : $total;
 
-        if (empty($num)) return $total;
-
-        //$data['total']  = $totalDay;
-        $data['signDay']  = $signDay;
-        $data['sign']     = $total;
-        $data['list']     = array_map(function($val){
-            return date('Ymd', $val['sign_day']);
-        }, $result);
+        $data['total']  = $total;
+        if ($list) {
+            $data['list']   = array_map(function($val){
+                return date('Ymd', $val['sign_day']);
+            }, $result);
+        }
 
         return $data;
     }
 
     /**
      * @return mixed
-     * 获取特殊好友关系列表
+     * 获取特殊好友关系列表 TOP5
      */
-    public function list()
+    public function top()
     {
         $userId = auth()->id();
-        $result = UserFriendLevel::select('user_id', 'friend_id', 'score', 'relationship_id')->where('user_id', $userId)->orWhere('friend_id', $userId)
-            ->where(['is_delete'=>0,'status'=>1])->orderBy('score', 'DESC')->limit(5)->get();
+        $result = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')
+            ->where('user_id', $userId)->orWhere('friend_id', $userId)
+            ->where(['is_delete'=>0,'status'=>1])->orderBy('heart_count', 'DESC')->limit(5)->get();
 
         $userIds   = $result->pluck('user_id')->all();
         $friendIds = $result->pluck('friend_id')->all();
@@ -132,10 +152,9 @@ class UserFriendAffinityController extends BaseController
 
         foreach ($result as $index=>&$value) {
             $user_id         = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
-            $value['sign']   = $this->getSignInList($user_id);
+            $value['sign']   = $this->getSignInList($user_id, false);
             $value['friend'] = $users->where('user_id', $user_id)->first();
         }
-
 
         return $result;
 
