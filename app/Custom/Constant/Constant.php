@@ -24,4 +24,44 @@ class Constant {
     const QUEUE_ES_USER="user_es";
 
 
+
+
+    // 融云回调
+    const QUEUE_RY_CHAT='store_ry_msg_tsm';
+
+
+
+    // 好友关系
+
+
+    // 加好友队列
+    const RY_CHAT_FRIEND="friend_tsm";
+
+    // 发送好友请求
+    const QUEUE_PUSH_FRIEND="friend_request";
+
+    // 签到
+    const QUEUE_FRIEND_SIGN_IN='friend_sign_in';
+
+    // 好友关系升级
+    const QUEUE_FRIEND_LEVEL='friend_level';
+
+
+    // REDIS 相关
+
+    //每日获取心❤的数量
+    const DAY_UPPER_STAR=5;
+    const CHAT_SUM_STAR=20;
+
+    // 签到
+    const RY_CHAT_FRIEND_SIGN_IN="ry_chat_friend_sign_in_";
+
+    // 是否是朋友关系
+    const RY_CHAT_FRIEND_IS_FRIEND="ry_chat_friend_is_friend_";
+
+    // 是否有特殊好友关系 如 情侣 基友等
+    const RY_CHAT_FRIEND_RELATIONSHIP="ry_chat_friend_relationship_";
+
+
+
 }

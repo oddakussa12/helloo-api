@@ -104,6 +104,24 @@ $api->group($V1Params , function ($api){
         $api->get('my/friend/request' , 'UserFriendRequestController@my')->name('my.friend.request');//我的好友请求
         /*****好友请求 结束*****/
 
+
+        /*****特殊好友关系请求 开始*****/
+        $api->group(['middleware'=>['blacklist' , 'repeatedSubmit']] , function ($api){
+            $api->post('affinity/request' , 'UserFriendAffinityController@store')->name('user.affinity.request.store');//发起好友请求
+            $api->get('affinity/list', 'UserFriendAffinityController@list')->name('user.affinity.list');//好友请求列表
+            $api->patch('affinity/{friend}/accept' , 'UserFriendAffinityController@accept')->name('user.affinity.request.accept');//好友请求响应接受
+            $api->patch('affinity/{friend}/refuse' , 'UserFriendAffinityController@refuse')->name('user.affinity.request.refuse');//好友请求响应拒绝
+        });
+        //$api->get('my/affinity/request' , 'UserFriendRequestController@my')->name('my.friend.request');//我的好友请求
+
+        $api->get('affinity', 'UserFriendAffinityController@index')->name('user.affinity'); //基础关系列表
+        $api->get('affinity/{friend}/sign', 'UserFriendAffinityController@getSignInList')->name('user.affinity.sign.list');//签到列表
+        $api->get('affinity/{friend}/main', 'UserFriendAffinityController@main')->name('user.affinity.main');//好友关系主页
+
+
+
+        /*****特殊好友关系请求 结束*****/
+
         /*****评论 开始*****/
         $api->get('postComment/myself' , 'PostCommentController@myself')->name('comment.myself');//我的评论
         $api->get('postComment/like' , 'PostCommentController@mylike')->name('comment.mylike');//我的点赞的评论
