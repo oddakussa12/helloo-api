@@ -67,7 +67,6 @@ class UserController extends BaseController
                 return !$this->isBlocked($user['user_id']);
             })->values();
 
-            return $this->response->array(['data' => $users]);
 
             /*$nameUsers = UserCollection::collection($this->user->findByLikeName($name));
             $nicknameUsers = UserCollection::collection($this->user->findByLikeNickName($name));
@@ -80,7 +79,7 @@ class UserController extends BaseController
                 'data'=>$users
             ));*/
         }
-        return UserCollection::collection($users);
+        return $this->response->array(['data' => $users]);
     }
 
     /**
