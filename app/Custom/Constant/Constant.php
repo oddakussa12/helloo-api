@@ -29,10 +29,13 @@ class Constant {
     // 融云回调
     const QUEUE_RY_CHAT='store_ry_msg_tsm';
 
+    const QUEUE_RY_CHAT_SWITCH=0;
 
 
     // 好友关系
 
+
+    const QUEUE_PUSH_TYPE='redis';
 
     // 融云聊天-加好友队列
     const QUEUE_RY_CHAT_FRIEND="friend_tsm";

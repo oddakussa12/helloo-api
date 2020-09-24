@@ -111,20 +111,33 @@ class RyChatController extends BaseController
                 $lock_key = 'ry_room_chat_'.$msgUID;
                 if(Redis::set($lock_key, 1, "nx", "ex", 15))
                 {
-                    //$device = new RyChat($all);
-                    //$this->dispatch($device->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
 
-                    // 签到队列
-                    // FriendSignIn::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_SIGN_IN);
+                    if (Constant::QUEUE_PUSH_TYPE == 'redis') {
+                        if (Constant::QUEUE_RY_CHAT_SWITCH) {
+                            $device = new RyChat($all);
+                            $this->dispatch($device->onQueue(Constant::QUEUE_RY_CHAT));
+                        }
 
-                    $friendSignIn = new FriendSignIn($all);
-                    $this->dispatch($friendSignIn->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
+                        // 签到队列
+                        $friendSignIn = new FriendSignIn($all);
+                        $this->dispatch($friendSignIn->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
 
-                    // 升级队列
-                    // FriendLevel::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
+                        // 升级队列
+                        $friendLevel = new FriendLevel($all);
+                        $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
+                    } else {
+                        if (Constant::QUEUE_RY_CHAT_SWITCH) {
+                            $device = new RyChat($all);
+                            $this->dispatch($device->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
+                        }
+                        // 签到队列
+                         FriendSignIn::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_SIGN_IN);
 
-                    $friendLevel = new FriendLevel($all);
-                    $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
+                        // 升级队列
+                         FriendLevel::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
+
+                    }
+
 
                 }
             }
