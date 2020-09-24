@@ -104,7 +104,7 @@ class UserFriendAffinityController extends BaseController
             "content":"黑铁情侣"
         }';
         return [
-            'data'=>json_decode($json, true),
+            'data'=>[json_decode($json, true)],
             'rule'=>'-----------------',
         ];
     }
