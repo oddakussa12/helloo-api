@@ -26,7 +26,6 @@ class FriendSignIn implements ShouldQueue
     public function __construct($data)
     {
         $this->data = $data;
-        //$this->handle();
     }
 
     /**
@@ -37,8 +36,6 @@ class FriendSignIn implements ShouldQueue
      */
     public function handle()
     {
-        dump($this->data);
-        return true;
         $raw      = $this->data;
         $nextDay  = strtotime(date('Y-m-d',strtotime('+1 day'))); // 获取明天凌晨的时间戳
         $isFriend = self::isFriend($raw['fromUserId'], $raw['toUserId']); // 是否是好友

@@ -115,16 +115,16 @@ class RyChatController extends BaseController
                     //$this->dispatch($device->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
 
                     // 签到队列
-                    FriendSignIn::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_SIGN_IN);
+                    // FriendSignIn::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_SIGN_IN);
 
-                    //$friendSignIn = new FriendSignIn($all);
-                    //$this->dispatch($friendSignIn->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
+                    $friendSignIn = new FriendSignIn($all);
+                    $this->dispatch($friendSignIn->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
 
                     // 升级队列
-                    FriendLevel::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
+                    // FriendLevel::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
 
-                    //$friendLevel = new FriendLevel($all);
-                    //$this->dispatch($friendLevel->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL));
+                    $friendLevel = new FriendLevel($all);
+                    $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
 
                 }
             }
