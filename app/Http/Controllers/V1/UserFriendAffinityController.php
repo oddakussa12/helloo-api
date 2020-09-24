@@ -75,6 +75,7 @@ class UserFriendAffinityController extends BaseController
 
     }
 
+
     /**
      * @param $friendId
      * @return mixed
@@ -228,7 +229,7 @@ class UserFriendAffinityController extends BaseController
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
 
         // 推送通知
-        $this->dispatch((new Affinity($user, $requests, 'friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
+        $this->dispatch((new Affinity($user, $requests, 'friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND)->onConnection('sqs'));
         return $this->response->created();
     }
 

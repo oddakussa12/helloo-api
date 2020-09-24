@@ -34,7 +34,7 @@ class Constant {
     // 好友关系
 
 
-    // 加好友队列
+    // 融云聊天-加好友队列
     const QUEUE_RY_CHAT_FRIEND="friend_tsm";
 
     // 发送好友请求
