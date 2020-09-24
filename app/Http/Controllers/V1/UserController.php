@@ -65,7 +65,7 @@ class UserController extends BaseController
 
             $users = $users->filter(function ($user) {
                 return !$this->isBlocked($user['user_id']);
-            });
+            })->values();
 
             return $this->response->array(['data' => $users]);
 
