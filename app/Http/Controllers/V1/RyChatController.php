@@ -112,15 +112,15 @@ class RyChatController extends BaseController
                 if(Redis::set($lock_key, 1, "nx", "ex", 15))
                 {
                     $device = new RyChat($all);
-                    $this->dispatch($device->onQueue(Constant::QUEUE_RY_CHAT)->onConnection('sqs'));
+                    $this->dispatch($device->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
 
                     // 签到队列
                     $friendSignIn = new FriendSignIn($all);
-                    $this->dispatch($friendSignIn->onQueue(Constant::QUEUE_FRIEND_SIGN_IN)->onConnection('sqs'));
+                    $this->dispatch($friendSignIn->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
 
                     // 升级队列
                     $friendLevel = new FriendLevel($all);
-                    $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL)->onConnection('sqs'));
+                    $this->dispatch($friendLevel->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL));
 
                 }
             }
