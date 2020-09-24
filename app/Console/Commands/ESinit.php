@@ -271,7 +271,7 @@ class ESinit extends Command
      */
     public function postDataInit()
     {
-        $where = " p.post_id>701191";
+        $where = " ";
         //$where = " p.post_id<=701191 and p.post_id>701607";
         //$where = " WHERE p.post_id<=701191 and p.post_id>691341";
         //$where = " WHERE p.post_id<=691341 and p.post_id>675441";
@@ -312,7 +312,7 @@ class ESinit extends Command
 
     public function userDataInit()
     {
-        $where    = "where user_id > 570000 ";
+        $where    = "where user_id > 1 ";
         $countSql = "SELECT count(1) num FROM f_users $where";
         $limitSql = "SELECT user_id,user_name, user_nick_name, user_avatar,user_country_id,user_gender,user_about,user_level,user_birthday FROM f_users $where order by user_id asc ";
 
