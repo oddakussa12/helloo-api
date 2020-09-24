@@ -40,7 +40,7 @@ class PushServer
             }
         }
         if (empty($result)) {
-            Log::info(__FUNCTION__.' params:', $this->params);
+            // Log::info(__FUNCTION__.' params:', $this->params);
         }
 
 
