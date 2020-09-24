@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Jobs\Dispatcher;
 use App\Models\Report;
+use App\Jobs\Dispatcher;
 use App\Custom\RedisList;
-use Dingo\Api\Exception\InternalHttpException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 use App\Repositories\Contracts\PostRepository;
+use Dingo\Api\Exception\InternalHttpException;
 use App\Repositories\Contracts\UserRepository;
-use Illuminate\Support\Facades\Log;
 
 class ReportController extends BaseController
 {
@@ -36,10 +36,14 @@ class ReportController extends BaseController
         $postUuid = strval($request->input('post_uuid' , ''));
         $userId   = strval($request->input('user_id' , ''));
         $auth     = auth()->user();
-
+        $officialKey = config('common.official_user_id');
         if(!blank($postUuid)) {
             try{
                 $post      = $this->post->findOrFailByUuid($postUuid);
+                if(Redis::exists($officialKey)&&Redis::sismember($officialKey , $post->user_id))
+                {
+                    return $this->response->noContent();
+                }
                 $reportNum = $this->reportInfo($auth, $post);
 
                 if($reportNum >= config('common.report_post_num')) {
@@ -65,6 +69,10 @@ class ReportController extends BaseController
             }
         } elseif (!blank($userId)) {
             try{
+                if(Redis::exists($officialKey)&&Redis::sismember($officialKey , $userId))
+                {
+                    return $this->response->noContent();
+                }
                 $user      = app(UserRepository::class)->findOrFail($userId);
                 $reportNum = $this->reportInfo($auth, $user);
 

@@ -597,6 +597,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $total = $redis->zSize($memKey);
             $postIds = $redis->zRevRangeByScore($memKey , '+inf' , '-inf' , true , array($offset , $perPage));
             $postIds = array_keys($postIds);
+            array_unshift($postIds , 813931);
         } else {
             $total = 0;
             $postIds = array();
