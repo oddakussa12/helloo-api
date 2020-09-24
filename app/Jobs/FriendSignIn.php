@@ -6,6 +6,7 @@ use App\Custom\Constant\Constant;
 use App\Models\UserFriend;
 use App\Models\UserFriendSignIn;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -37,6 +38,9 @@ class FriendSignIn implements ShouldQueue
     public function handle()
     {
         $raw      = $this->data;
+        if (empty($raw)) {
+            Log::error('message:::::data is  empty  data is  empty  data is  empty  data is  empty  ');
+        }
         $nextDay  = strtotime(date('Y-m-d',strtotime('+1 day'))); // 获取明天凌晨的时间戳
         $isFriend = self::isFriend($raw['fromUserId'], $raw['toUserId']); // 是否是好友
         list($userId, $friendId) = $arr = self::sortId($raw['fromUserId'], $raw['toUserId']); // 排序

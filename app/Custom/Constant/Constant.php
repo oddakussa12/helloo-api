@@ -35,7 +35,7 @@ class Constant {
     // 好友关系
 
 
-    const QUEUE_PUSH_TYPE='redis';
+    const QUEUE_PUSH_TYPE='redis1';
 
     // 融云聊天-加好友队列
     const QUEUE_RY_CHAT_FRIEND="friend_tsm";
