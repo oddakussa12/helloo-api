@@ -272,17 +272,35 @@ class Promote extends Command
     {
         if($day<=1)
         {
-            $message =  'You have not logged in for a day';
+            $attribute = mt_rand(10 , 100);
         }elseif ($day==7)
         {
-            $message =  'You have not logged in for seven days';
+            $attribute = mt_rand(10 , 1000);
         }elseif ($day==30)
         {
-            $message =  'You have not logged in for seven days';
+            $attribute = mt_rand(10 , 10000);
         }else{
-            $message =  'You haven\'t logged in for a long time';
+            $attribute = mt_rand(10 , 10000);
         }
-        return $message;
+        return $this->getMessage($attribute);
+    }
+
+    public function getMessage(string $attribute='')
+    {
+        $push = [
+            "app_name",
+            "i_like_you_i_want_to_be_friends_with_you_okay",
+            "come_on",
+            "there_are_persons_viewed_your_homepage",
+            "there_are_persons_who_have_viewed_your_posts",
+            "you_people_are_interested_in_you",
+            "your_friend_visited_your_personal_center",
+            "someone_chatted_with_you_privately_go_and_have_a_look",
+            "hi",
+            "can_i_be_your_friend",
+            "i_am_from_america_where_are_you_from"
+        ];
+        return trans('push.'.array_random($push) , array('attribute'=>$attribute));
     }
 
     public function getSupportLanguage($lang)
