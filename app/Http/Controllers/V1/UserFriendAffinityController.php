@@ -97,14 +97,18 @@ class UserFriendAffinityController extends BaseController
      */
     public function rule()
     {
-        $json = '{
-            "relationship_id":1,
-            "title":"黑铁情侣",
-            "level":1,
-            "content":"黑铁情侣"
-        }';
+        for ($i=1;$i<5;$i++) {
+            for ($j=1;$j<4;$j++) {
+                $result[] = [
+                    "relationship_id" => $i,
+                    "title"           => "黑铁".$i.$j,
+                    "level"           => $j,
+                    "content"         =>"黑铁".$i.$j
+                ];
+            }
+        }
         return [
-            'data'=>[json_decode($json, true)],
+            'data'=>$result ?? [],
             'rule'=>'-----------------',
         ];
     }
