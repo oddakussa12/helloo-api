@@ -64,10 +64,10 @@ class UserController extends BaseController
             $users = UserSearchCollection::collection($user);
 
             $users = $users->filter(function ($user) {
-                return !$this->$this->isBlocked($user['user_id']);
+                return !$this->isBlocked($user['user_id']);
             });
 
-            return $users;
+            return $this->response->array(['data' => $users]);
 
             /*$nameUsers = UserCollection::collection($this->user->findByLikeName($name));
             $nicknameUsers = UserCollection::collection($this->user->findByLikeNickName($name));
