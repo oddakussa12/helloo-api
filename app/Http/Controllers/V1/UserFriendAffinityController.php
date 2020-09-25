@@ -233,11 +233,11 @@ class UserFriendAffinityController extends BaseController
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
 
         // 推送通知
-        if (Constant::QUEUE_PUSH_TYPE == 'redis') {
+        /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {
             $this->dispatch((new Affinity($user, $requests, 'friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
         } else {
             $this->dispatch((new Affinity($user, $requests, 'friend_request'))->onConnection('sqs')->onQueue(Constant::QUEUE_PUSH_FRIEND));
-        }
+        }*/
         return $this->response->created();
     }
 
@@ -299,11 +299,11 @@ class UserFriendAffinityController extends BaseController
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
 
         // 推送通知
-        if (Constant::QUEUE_PUSH_TYPE == 'redis') {
+        /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {
             $this->dispatch((new Affinity($user, $request->all(), 'accept_friend_request'))->onQueue(Constant::QUEUE_PUSH_FRIEND));
         } else {
             $this->dispatch((new Affinity($user, $request->all(), 'accept_friend_request'))->onConnection('sqs')->onQueue(Constant::QUEUE_PUSH_FRIEND));
-        }
+        }*/
 
         return $this->response->accepted();
     }
