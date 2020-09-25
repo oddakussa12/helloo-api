@@ -59,8 +59,8 @@ class DisLikeListener
             $this->updateLikeCount($keyValue , 'dislike' , $tmpDislikeNum);
             $this->updateCountry($keyValue , $user->user_country_id);
             $this->updateUserPostDislikeCount($user->user_id);
-            $user->increment('user_score');
-            $this->updateUserScoreRank($user->user_id);
+//            $user->increment('user_score');
+//            $this->updateUserScoreRank($user->user_id);
             notify('user.post_dislike' ,
                 array(
                     'from'=>$user->user_id ,

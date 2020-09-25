@@ -43,7 +43,7 @@ class CalculatingRateLimit extends Command
     public function handle()
     {
         $now = Carbon::now();
-        $oneMonthAgo = $now->subMonths(1)->format('Y-m-d 00:00:00');
+        $oneMonthAgo = $now->subDays(15)->format('Y-m-d 00:00:00');
         $i = intval($now->addMinutes(30)->format('i'));
         $i = $i<=0?1:$i;
         $index = ceil($i/30);

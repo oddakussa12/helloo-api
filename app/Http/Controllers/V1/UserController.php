@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Es;
 use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
+use App\Resources\UserSearchCollection;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
@@ -21,10 +23,15 @@ class UserController extends BaseController
      * @var UserRepository
      */
     private $user;
+    /**
+     * @var \Illuminate\Config\Repository|\Illuminate\Foundation\Application|mixed
+     */
+    private $searchUser;
 
     public function __construct(UserRepository $user)
     {
         $this->user = $user;
+        $this->searchUser = config('scout.elasticsearch.user');
     }
 
     /**
@@ -49,7 +56,19 @@ class UserController extends BaseController
         ];
         $validator = \Validator::make(array('name'=>$name), $rule);
         if (!$validator->fails()) {
-            $nameUsers = UserCollection::collection($this->user->findByLikeName($name));
+
+            $params['keyword'] = mb_str_limit(trim($name), 20, null);
+
+            $user  = (new Es($this->searchUser, ['limit'=>10]))->likeQuery($params, true);
+            $user  = $user->appends($params);
+            $users = UserSearchCollection::collection($user);
+
+            $users = $users->filter(function ($user) {
+                return !$this->isBlocked($user['user_id']);
+            })->values();
+
+
+            /*$nameUsers = UserCollection::collection($this->user->findByLikeName($name));
             $nicknameUsers = UserCollection::collection($this->user->findByLikeNickName($name));
             $users = $nameUsers->merge($nicknameUsers)->unique('user_id');
             $users = $users->filter(function ($user, $key) {
@@ -58,9 +77,9 @@ class UserController extends BaseController
             })->values();
             return $this->response->array(array(
                 'data'=>$users
-            ));
+            ));*/
         }
-        return UserCollection::collection($users);
+        return $this->response->array(['data' => $users]);
     }
 
     /**
@@ -263,7 +282,7 @@ class UserController extends BaseController
 
     public function cancelled($name , $email)
     {
-        
+
     }
 
     public function randRyOnlineUser(Request $request)

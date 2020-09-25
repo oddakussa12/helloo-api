@@ -572,7 +572,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function getCustomEssencePost($posts)
     {
         $key = config('redis-key.post.post_index_essence');
-        return $this->getCachePosts($posts, $key);
+        return $this->getCachePosts($posts, $key , 'post_id');
     }
 
     /**
@@ -597,6 +597,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $total = $redis->zSize($memKey);
             $postIds = $redis->zRevRangeByScore($memKey , '+inf' , '-inf' , true , array($offset , $perPage));
             $postIds = array_keys($postIds);
+            array_unshift($postIds , 818370);
         } else {
             $total = 0;
             $postIds = array();

@@ -81,8 +81,8 @@ class RemoveVoteListener
         }
         if($relation->created_at>config('common.score_date'))
         {
-            $user->decrement('user_score');
-            $this->updateUserScoreRank($user->user_id , -1);
+//            $user->decrement('user_score');
+//            $this->updateUserScoreRank($user->user_id , -1);
         }
     }
 

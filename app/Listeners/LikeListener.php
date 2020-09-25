@@ -37,8 +37,8 @@ class LikeListener
         $extra = array();
         $object = $event->getObject();
         $user = $event->getUser();
-        $user->increment('user_score');
-        $this->updateUserScoreRank($user->user_id);
+//        $user->increment('user_score');
+//        $this->updateUserScoreRank($user->user_id);
         if($object instanceof Post)
         {
             $keyName      = $object->getKeyName();

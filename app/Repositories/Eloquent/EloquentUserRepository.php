@@ -249,50 +249,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         });
     }
 
-
-    public function getUserYesterdayRankByUserId($userId)
-    {
-        return Cache::remember('user_yesterday_rank_'.$userId, 5, function () use ($userId){
-            $chinaNow = Carbon::now()->subDay(1);
-            $sql = <<<DOC
-SELECT
-	b.user_rank_score , b.rank
-FROM
-	(
-		SELECT
-			t.*, @rank := @rank + 1 AS rank
-		FROM
-			(SELECT @rank := 0) r,
-			(
-				SELECT
-					f_users.*,f_yesterday_scores.user_score as user_rank_score
-				FROM
-					f_yesterday_scores
-				INNER JOIN f_users on f_yesterday_scores.user_id=f_users.user_id
-				where f_users.user_is_guest=0
-				and f_yesterday_scores.rank_date=?
-				ORDER BY
-					f_yesterday_scores.user_score DESC,f_yesterday_scores.user_id DESC
-			) AS t
-	) AS b
-WHERE
-	b.user_id = ?
-DOC;
-            return collect(DB::select($sql, [date('Y-m-d' ,strtotime($chinaNow)),$userId]))->first();
-        });
-    }
-
-    public function getUserRankByUserId($userId)
-    {
-        $rank = Cache::remember('user_'.$userId.'_rank', 5, function () use ($userId){
-            return collect(DB::select("SELECT b.rank FROM (SELECT t.*, @rank := @rank + 1 AS rank FROM (SELECT @rank := 0) r,(SELECT * FROM f_users ORDER BY user_score DESC) AS t) AS b WHERE b.user_id = ?;", [$userId]))->pluck('rank')->first();
-        });
-        return $rank*config('common.user_rank_coefficient')-config('common.user_rank_add_num');
-    }
-
-
-
-
     public function getActiveUserId()
     {
         $activeUser = $this->getYesterdayUserRank();

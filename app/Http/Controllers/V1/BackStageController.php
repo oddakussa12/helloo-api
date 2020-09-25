@@ -59,9 +59,9 @@ class BackStageController extends BaseController
         $user = $this->user->find($post->user_id);
         if($post->post_created_at>config('common.score_date'))
         {
-            $user->decrement('user_score' , 2);
-            $userScoreRankKey = config('redis-key.user.score_rank');
-            $redis->zIncrBy($userScoreRankKey , -2 , $user->user_id);
+//            $user->decrement('user_score' , 2);
+//            $userScoreRankKey = config('redis-key.user.score_rank');
+//            $redis->zIncrBy($userScoreRankKey , -2 , $user->user_id);
         }
         $userPostsKey = config('redis-key.user.posts');
         $redis->zIncrBy($userPostsKey , -1 , $user->user_id);

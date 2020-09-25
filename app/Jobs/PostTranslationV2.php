@@ -2,12 +2,12 @@
 
 namespace App\Jobs;
 
-use App\Custom\Constant\Constant;
 use App\Models\User;
 use App\Models\Post;
 use App\Traits\CachableUser;
 use App\Traits\CachablePost;
 use Illuminate\Bus\Queueable;
+use App\Custom\Constant\Constant;
 use App\Services\NiuTranslateService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -16,7 +16,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Models\PostTranslation as PostTranslationModel;
-use Illuminate\Support\Facades\Log;
 
 class PostTranslationV2 implements ShouldQueue
 {
@@ -63,9 +62,9 @@ class PostTranslationV2 implements ShouldQueue
         $this->postTitleDefaultLang = $postTitleDefaultLang;
         $this->postContentDefaultLang = $postContentDefaultLang;
 
-        $user->increment('user_score' , 2);
+//        $user->increment('user_score' , 2);
         $this->updateUserPostCount($user->user_id);
-        $this->updateUserScoreRank($user->user_id , 2);
+//        $this->updateUserScoreRank($user->user_id , 2);
         $this->initPost($post);
 //        $this->handle();
     }

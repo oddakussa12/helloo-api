@@ -1,5 +1,6 @@
 <?php
 return [
+    'official_user_id'=>'official_user_id',
     'cron_switch'=>env('CRON_SWITCH' , false),
     'online_domain'=>[
         'dev.api.yooul.net',

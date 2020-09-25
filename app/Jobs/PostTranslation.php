@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Traits\CachableUser;
 use App\Traits\CachablePost;
 use Illuminate\Bus\Queueable;
+use App\Custom\Constant\Constant;
 use App\Services\TranslateService;
 use App\Services\V3TranslateService;
 use Illuminate\Queue\SerializesModels;
@@ -61,9 +62,9 @@ class PostTranslation implements ShouldQueue
         $this->postTitleDefaultLang = $postTitleDefaultLang;
         $this->postContentDefaultLang = $postContentDefaultLang;
 
-        $user->increment('user_score' , 2);
+//        $user->increment('user_score' , 2);
         $this->updateUserPostCount($user->user_id);
-        $this->updateUserScoreRank($user->user_id , 2);
+//        $this->updateUserScoreRank($user->user_id , 2);
         $this->initPost($post);
     }
     /**
@@ -84,6 +85,7 @@ class PostTranslation implements ShouldQueue
             $translate = app(V3TranslateService::class);
         }
         $languages = $this->languages;
+        $postData = array();
         foreach ($languages as $l)
         {
             if($l=='zh-HK')
@@ -127,14 +129,9 @@ class PostTranslation implements ShouldQueue
 //                }
                 $content = $translate->translate($postContent, array('target' => $t , 'resource'=>$this->postContentLang));
             }
-            $post->fill([
-                "{$l}"  => ['post_title' => $title , 'post_content'=>$content],
-            ]);
-            $post->save();
+            $postData[$l] = ['post_title' => $title , 'post_content'=>$content];
         }
-        $post->fill([
-            "zh-HK"  => ['post_title' => $post->translate('zh-TW')->post_title , 'post_content'=>$post->translate('zh-TW')->post_content],
-        ]);
+        $post->fill($postData);
         $post->save();
         $exceptLanguages = array_unique(array_diff($exceptLanguages , $languages));
         foreach ($exceptLanguages as $l)
@@ -156,5 +153,11 @@ class PostTranslation implements ShouldQueue
                 ['post_title'=>$title , 'post_content'=>$content]
             );
         }
+
+        // 组装数据 插入ES
+        PostEs::dispatch($post)->onQueue(Constant::QUEUE_ES_POST);
+
+        // 批量推送给粉丝
+        PostFans::dispatch($this->user, $post, $postData)->onQueue(Constant::QUEUE_PUSH_POST);
     }
 }
