@@ -68,6 +68,8 @@ class Constant {
     // 好友主页 数据缓存key
     const FRIEND_RELATIONSHIP_MAIN="friend_relationship_main_";
 
+    // 个人主页 top5 数据缓存
+    const FRIEND_RELATIONSHIP_HOME_TOP='friend_relationship_home_top_';
 
 
 

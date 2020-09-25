@@ -138,6 +138,7 @@ class FriendLevel implements ShouldQueue
 
                     // 升级之后，清空情侣首页缓存
                     Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
+                    Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
 
                     // 发送升级请求给双方 融云
                     $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $score);

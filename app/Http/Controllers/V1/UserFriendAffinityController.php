@@ -154,8 +154,14 @@ class UserFriendAffinityController extends BaseController
      */
     public function top($userId)
     {
-        $userId = intval($userId);
+        $userId   = intval($userId);
         if (empty($userId)) return $this->response->array([]);
+
+        $memKey   = Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId;
+        $memValue = Redis::get($memKey);
+        if (!empty($memValue)) {
+            return json_decode($memValue, true);
+        }
 
         $result   = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')
             ->whereRaw("(user_id= $userId or friend_id= $userId)")
@@ -180,13 +186,9 @@ class UserFriendAffinityController extends BaseController
             $value['user_avatar'] = userCover($userInfo['user_avatar'] ?? '');
         }
 
+        Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
+        Redis::expire($memKey, 86400);
         return $result;
-
-        /*$friends = app(UserRepository::class)->findByMany($friendIds);
-        $userFriendRequests = $result->filter(function ($value, $key) {
-            return !blank($value->friend);
-        });
-        return UserFriendCollection::collection($userFriendRequests);*/
     }
 
     /**

@@ -101,6 +101,7 @@ class UserFriendController extends BaseController
             Redis::del(Constant::RY_CHAT_FRIEND_SIGN_IN.$user_id.'_'.$friend_id);
             Redis::del(Constant::RY_CHAT_FRIEND_RELATIONSHIP.$user_id.'_'.$friend_id);
             Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$user_id.'_'.$friend_id);
+            Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$friendId);
 
             $sql = " set is_delete = 1, deleted_at = $time where user_id= $user_id and friend_id = $friend_id ";
 
