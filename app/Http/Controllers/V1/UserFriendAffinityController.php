@@ -215,6 +215,7 @@ class UserFriendAffinityController extends BaseController
 
         $requests = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', '>=', 0)->first();
         if (!empty($request)) {
+            Log::info('message:::', $request);
             return $this->response->accepted();
         }
 
@@ -223,7 +224,7 @@ class UserFriendAffinityController extends BaseController
 
         if (empty($relationShipFriend) || empty($relationShipUser)) {
             Log::info('message::关系超限，不能添加');
-            //return $this->response->errorNotFound('关系超限，不能添加');
+            return $this->response->errorNotFound('关系超限，不能添加');
             return $this->response->noContent();
         }
 
@@ -248,6 +249,8 @@ class UserFriendAffinityController extends BaseController
         } else {
             $this->dispatch((new Affinity($user, $requests, 'friend_request'))->onConnection('sqs')->onQueue(Constant::QUEUE_PUSH_FRIEND));
         }*/
+
+        Log::info('message::: 添加好友结束');
         return $this->response->created();
     }
 
