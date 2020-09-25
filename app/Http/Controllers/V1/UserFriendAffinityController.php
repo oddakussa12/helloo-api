@@ -197,7 +197,7 @@ class UserFriendAffinityController extends BaseController
      */
     public function store(Request $request)
     {
-        $friendId    = intval($request->input('friend_id'));
+        $friend_id   = intval($request->input('friend_id'));
         $relation_id = intval($request->input('relationship_id'));
         $this->validate($request, [
             'relationship_id' => 'required|int',
@@ -207,20 +207,22 @@ class UserFriendAffinityController extends BaseController
         $relation    = UserFriendRelationship::where(['is_delete'=>0,'id'=>$relation_id])->first();
 
         if (empty($relation)) {
-            return $this->response->noContent();
+            //return $this->response->noContent();
             return $this->response->errorNotFound('该关系不存在');
         }
         $auth = auth()->user();
-        list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friendId);
+        $authUserId = $auth->user_id;
+        list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friend_id);
+
 
         $requests = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', '>=', 0)->first();
         if (!empty($request)) {
-            Log::info('message:::', $request);
+            Log::info('message::: is not empty');
             return $this->response->accepted();
         }
 
-        $relationShipFriend = $this->checkFriendLevel($friendId, $relation_id, true);
-        $relationShipUser   = $this->checkFriendLevel($userId  , $relation_id, true);
+        $relationShipFriend = $this->checkFriendLevel($friend_id, $relation_id, true);
+        $relationShipUser   = $this->checkFriendLevel($authUserId  , $relation_id, true);
 
         if (empty($relationShipFriend) || empty($relationShipUser)) {
             Log::info('message::关系超限，不能添加');
@@ -238,8 +240,9 @@ class UserFriendAffinityController extends BaseController
         );
 
         // 融云推送 聊天
-        $this->dispatch((new Friend($auth->user_id, $friendId, 'Yooul:AffinityFriendRequest', [
+        $this->dispatch((new Friend($authUserId, $friendId, 'Yooul:AffinityFriendRequest', [
             'content' => 'friend request',
+            'relationship_id'=>$relation_id,
             'user'    => $user
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
 
@@ -333,7 +336,7 @@ class UserFriendAffinityController extends BaseController
         $result = UserFriendLevel::select('user_id', 'friend_id', 'score', 'relationship_id')
             ->where('user_id', $userId)->orWhere('friend_id', $userId);
         if ($relationShipId)
-            $result->where('relationship_id', 0);
+            $result->where('relationship_id', $relationShipId);
 
         $data = $result->where(['is_delete'=>0,'status'=>1])->groupBy('relationship_id')->get()->toArray();
 

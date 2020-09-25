@@ -48,11 +48,14 @@ class Friend implements ShouldQueue
      */
     public function handle()
     {
-        app('rcloud')->getMessage()->Person()->send(array(
+        $result = app('rcloud')->getMessage()->Person()->send(array(
             'senderId'=> $this->senderId,
             'targetId'=> $this->targetId,
             "objectName"=>$this->objectName,
             'content'=>\json_encode($this->content)
         ));
+
+        dump($result);
+
     }
 }
