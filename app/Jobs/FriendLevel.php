@@ -52,7 +52,7 @@ class FriendLevel implements ShouldQueue
                 return json_decode($memValue, true);
             }
         } else {
-            return UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'status'=>0, 'is_delete'=>0])->first();
+            return UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>1])->first();
         }
     }
 
