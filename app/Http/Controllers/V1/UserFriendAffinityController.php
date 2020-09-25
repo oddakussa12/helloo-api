@@ -148,13 +148,16 @@ class UserFriendAffinityController extends BaseController
     }
 
     /**
+     * @param $userId
      * @return mixed
      * 获取特殊好友关系列表 TOP5
      */
-    public function top()
+    public function top($userId)
     {
-        $userId = auth()->id();
-        $result = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')
+        $userId = intval($userId);
+        if (empty($userId)) return $this->response->array([]);
+
+        $result   = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')
             ->where('user_id', $userId)->orWhere('friend_id', $userId)
             ->where(['is_delete'=>0,'status'=>1])->orderBy('heart_count', 'DESC')->limit(5)->get();
 
