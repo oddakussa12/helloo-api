@@ -200,7 +200,8 @@ class TopicController extends BaseController
         if (empty($userId)) {
             return  [];
         }
-        return DB::table('posts_topics')->select('topic_content')->where('user_id', $userId)
+        $result = DB::table('posts_topics')->select('topic_content')->where('user_id', $userId)
             ->orderBy('topic_created_at', 'DESC')->limit(5)->get();
+        return $this->response->array(['data'=>$result]);
     }
 }
