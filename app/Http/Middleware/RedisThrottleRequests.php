@@ -13,6 +13,14 @@ class RedisThrottleRequests extends Throttle
 
     public function handle($request, Closure $next, $maxAttempts = 1, $decayMinutes = 1)
     {
+        if ($user = $this->getAuth($request)) {
+            $userId = $user->getAuthIdentifier();
+            $officialKey = config('common.official_user_id');
+            if(Redis::exists($officialKey)&&Redis::sismember($officialKey , $userId))
+            {
+                return $next($request);
+            }
+        }
         $decaySeconds = ceil(intval($decayMinutes*60));
 
         $key = $this->resolveRequestSignature($request);
@@ -101,7 +109,7 @@ class RedisThrottleRequests extends Throttle
         $domain = $route->getDomain();
         $ip = getRequestIpAddress();
         $key = $domain.'|'.$ip;
-        if ($user = $request->user()) {
+        if ($user = $this->getAuth($request)) {
             $key .= '|'.$user->getAuthIdentifier();
         }
         if($routeName = $route->getName())
@@ -125,5 +133,10 @@ class RedisThrottleRequests extends Throttle
         }
 
         return $headers;
+    }
+
+    public function getAuth($request)
+    {
+        return $request->user();
     }
 }
