@@ -51,12 +51,12 @@ class PostCommentCreatedListener
             $this->updateTopicPostRate($keyValue , $rate);
         }
         $post->increment('post_comment_num' , $type , $extra);
-        $user->increment('user_score' , 3);
+//        $user->increment('user_score' , 3);
         $this->updateUserPostCommentCount($user->user_id);
         $this->updateCountry($post->post_id , $user->user_country_id);
         $this->updateCommenter($post->post_id , $user->getKey());
         $this->updateCommentCount($post->post_id , $user->getKey());
-        $this->updateUserScoreRank($user->user_id , 3);
+//        $this->updateUserScoreRank($user->user_id , 3);
 
         if($postComment->comment_comment_p_id===0)
         {

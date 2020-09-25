@@ -72,8 +72,8 @@ class PostCommentDeletedListener
         $this->updateUserPostCommentCount($user->getKey() , -1);
         if($object->comment_created_at>config('common.score_date'))
         {
-            $user->decrement('user_score' , 3);
-            $this->updateUserScoreRank($user->user_id , -3);
+//            $user->decrement('user_score' , 3);
+//            $this->updateUserScoreRank($user->user_id , -3);
         }
     }
 }
