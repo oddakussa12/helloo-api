@@ -196,7 +196,7 @@ class TopicController extends BaseController
      */
     public function friendTop($userId)
     {
-        return DB::table('posts_topic')->select('topic_content')->where('user_id', $userId)
+        return DB::table('posts_topics')->select('topic_content')->where('user_id', $userId)
             ->orderBy('topic_created_at', 'DESC')->limit(5)->get();
     }
 }
