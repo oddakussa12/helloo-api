@@ -57,13 +57,13 @@ class Constant {
     const CHAT_SUM_STAR=20;
 
     // 签到
-    const RY_CHAT_FRIEND_SIGN_IN="ry_chat_friend_sign_in_";
+    const RY_CHAT_FRIEND_SIGN_IN="friend_sign_in_";
 
     // 是否是朋友关系
-    const RY_CHAT_FRIEND_IS_FRIEND="ry_chat_friend_is_friend_";
+    const RY_CHAT_FRIEND_IS_FRIEND="friend_is_friend_";
 
     // 是否有特殊好友关系 如 情侣 基友等
-    const RY_CHAT_FRIEND_RELATIONSHIP="ry_chat_friend_relationship_";
+    const RY_CHAT_FRIEND_RELATIONSHIP="friend_relationship_";
 
     // 好友主页 数据缓存key
     const FRIEND_RELATIONSHIP_MAIN="friend_relationship_main_";
