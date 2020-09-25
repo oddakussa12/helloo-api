@@ -169,6 +169,7 @@ class UserFriendAffinityController extends BaseController
             function($value) use ($userId) {if (!empty($value) && $value != $userId) return $value;
         });
 
+        $userInfo  = Redis::hgetAll("user.".strval($userId).'.data');
         $users     = app(UserRepository::class)->findByMany($friendIds);
         $users     = UserCollection::collection($users);
 
@@ -176,6 +177,8 @@ class UserFriendAffinityController extends BaseController
             $user_id         = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
             $value['sign']   = $this->getSignInList($user_id, false);
             $value['friend'] = $users->where('user_id', $user_id)->first();
+            $value['user_avatar'] = userCover($userInfo['user_avatar'] ?? '');
+
         }
 
         return $result;

@@ -1170,4 +1170,17 @@ if (!function_exists('rate_comment_v4')) {
     }
 }
 
+/**
+ * @param $value
+ * @return string
+ * 头像拼接URL
+ */
+function userCover($value='') {
+    $value = empty($value) ? 'default_cover.png' : $value;
+    if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
+        return $value;
+    }
+    return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+}
+
 

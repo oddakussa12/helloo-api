@@ -5,17 +5,14 @@ namespace App\Jobs;
 use App\Custom\Constant\Constant;
 use App\Models\UserFriendLevel;
 use App\Models\UserFriendLevelHistory;
-use App\Models\UserFriendRelationShipRule;
 use App\Models\UserFriendTalk;
 use App\Models\UserFriendTalkList;
-use GPBMetadata\Google\Api\Log;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use function foo\func;
 
 /**
  * Class FriendSignIn
@@ -50,12 +47,12 @@ class FriendLevel implements ShouldQueue
             if (empty($memValue)) {
                 $result = UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>1])->first();
                 if (empty($result)) return false;
-                Redis::set($memKey, 1);
+                Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
             } else {
-                return true;
+                return json_decode($memValue, true);
             }
         } else {
-            return UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])->first();
+            return UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'status'=>0, 'is_delete'=>0])->first();
         }
     }
 
