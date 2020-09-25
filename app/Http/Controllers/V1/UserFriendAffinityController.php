@@ -200,16 +200,19 @@ class UserFriendAffinityController extends BaseController
             'friend_id'       => 'required|int',
         ]);
 
-        $requests    = new UserFriendLevel();
-        $auth        = auth()->user();
         $relation    = UserFriendRelationship::where(['is_delete'=>0,'id'=>$relation_id])->first();
 
         if (empty($relation)) {
             return $this->response->noContent();
             return $this->response->errorNotFound('该关系不存在');
         }
+        $auth = auth()->user();
+        list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friendId);
 
-        list($userId, $friendId)   = FriendSignIn::sortId($auth->user_id, $friendId);
+        $requests = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', '>=', 0)->first();
+        if (!empty($request)) {
+            return $this->response->accepted();
+        }
 
         $relationShipFriend = $this->checkFriendLevel($friendId, $relation_id, true);
         $relationShipUser   = $this->checkFriendLevel($userId  , $relation_id, true);
