@@ -158,7 +158,7 @@ class UserFriendAffinityController extends BaseController
         if (empty($userId)) return $this->response->array([]);
 
         $result   = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')
-            ->where('user_id', $userId)->orWhere('friend_id', $userId)
+            ->whereRaw("(user_id= $userId or friend_id= $userId)")
             ->where(['is_delete'=>0,'status'=>1])->orderBy('heart_count', 'DESC')->limit(5)->get();
 
         $userIds   = $result->pluck('user_id')->all();
@@ -178,7 +178,6 @@ class UserFriendAffinityController extends BaseController
             $value['sign']   = $this->getSignInList($user_id, false);
             $value['friend'] = $users->where('user_id', $user_id)->first();
             $value['user_avatar'] = userCover($userInfo['user_avatar'] ?? '');
-
         }
 
         return $result;
