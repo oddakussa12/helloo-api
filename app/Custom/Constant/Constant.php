@@ -54,6 +54,8 @@ class Constant {
 
     //每日获取心❤的数量
     const DAY_UPPER_STAR=5;
+
+    // 每聊20句可以升一个心
     const CHAT_SUM_STAR=20;
 
     // 签到
@@ -73,6 +75,8 @@ class Constant {
 
 
 
+
+    // 特殊关系对应表 如 情侣  闺蜜等
     const RELATION_LOVER=1;
     const RELATION_FRIEND=2;
     const RELATION_SISTER=3;
@@ -85,7 +89,7 @@ class Constant {
         self::RELATION_S,
     ];
     public static $relationSum = [
-        self::RELATION_LOVER=>2,
+        self::RELATION_LOVER=>1,
         self::RELATION_FRIEND=>5,
         self::RELATION_SISTER=>5,
         self::RELATION_S=>5,
