@@ -216,7 +216,7 @@ class UserFriendAffinityController extends BaseController
 
 
         $requests = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', '>=', 0)->first();
-        if (!empty($request)) {
+        if (!$request->isEmpty()) {
             Log::info('message::: is not empty');
             return $this->response->accepted();
         }
