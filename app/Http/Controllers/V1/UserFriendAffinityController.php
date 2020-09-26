@@ -42,6 +42,11 @@ class UserFriendAffinityController extends BaseController
     public function main($friendId)
     {
         $authUserId = auth()->id();
+
+        if ($authUserId == $friendId) {
+            //return $this->response->noContent();
+        }
+
         list($user_id, $friend_id) = FriendSignIn::sortId($authUserId, $friendId);
 
         $memKey   = Constant::FRIEND_RELATIONSHIP_MAIN.$user_id.'_'.$friend_id;
@@ -70,8 +75,7 @@ class UserFriendAffinityController extends BaseController
         }
         $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400) : 0;
 
-        $uid              = $user_id == $authUserId ? $user_id : $friendId;
-        $friend           = User::where('user_id', $uid)->first();
+        $friend           = User::where('user_id', $friendId)->first();
         $result['friend'] = new UserCollection($friend);
 
         Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
@@ -209,8 +213,13 @@ class UserFriendAffinityController extends BaseController
         $relation_id = intval($request->input('relationship_id'));
         $this->validate($request, [
             'relationship_id' => 'required|int',
-            'friend_id'       => 'required|int',
+            'friend_id'       => 'required|int|min:2',
         ]);
+
+        if (empty($authUserId)) {
+            Log::info('message::: auth()->user()->user_id 不为空');
+            return $this->response->errorForbidden();
+        }
 
         $isFriend = FriendSignIn::isFriend($authUserId, $friend_id);
         // 不是双方好友关系，直接返回
@@ -219,9 +228,7 @@ class UserFriendAffinityController extends BaseController
             return $this->response->errorNotFound('不是好友关系');
         }
 
-        $relation    = UserFriendRelationship::where(['is_delete'=>0,'id'=>$relation_id])->first();
-
-        if (empty($relation)) {
+        if (!in_array($relation_id, Constant::$relation)) {
             //return $this->response->noContent();
             return $this->response->errorNotFound('该关系不存在');
         }
