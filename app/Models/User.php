@@ -142,7 +142,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return userCover($this->user_avatar);
     }
-    
+
     public function getUserCoverLinkAttribute()
     {
         return userCover($this->user_cover, 'cover');

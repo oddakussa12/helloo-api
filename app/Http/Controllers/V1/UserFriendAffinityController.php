@@ -64,7 +64,8 @@ class UserFriendAffinityController extends BaseController
         if (!empty($result)) {
             $result['sign'] = $this->getSignInList($friendId, false);
         } else {
-            $result['heart_count']     = UserFriendTalkList::where(array_merge($baseWhere, ['score'=>1]))->first();
+            $talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
+            $result['heart_count']     = !empty($talk) ? 1 : 0;
             $result['relationship_id'] = -1;
             $result['sign']['total']   = 0;
         }

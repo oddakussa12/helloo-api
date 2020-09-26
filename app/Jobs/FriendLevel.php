@@ -119,8 +119,6 @@ class FriendLevel implements ShouldQueue
                 //星数>5时，直接返回
                 if ($score>$star) return false;
 
-                $score = $isFriendRelation ? $score : 1;
-
                 if (!empty($isFriendRelation) && $score<=$star) {
 
                     // 插入升级历史表
@@ -146,6 +144,11 @@ class FriendLevel implements ShouldQueue
                     // 发送升级请求给双方 融云
                     $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $score);
                     $this->sendMsgToRongYun($friendId, $userId, 'Yooul:AffinityFriendLevel', $score);
+                }
+
+                if (empty($isFriendRelation)) {
+                    $score = $isFriendRelation ? $score : 1;
+                    $uNum  = $fNum = 0;
                 }
 
             }
