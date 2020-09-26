@@ -89,7 +89,10 @@ class FriendSignIn implements ShouldQueue
             $userFriend = UserFriend::where('user_id', $userId)->where('friend_id', $friendId)->first();
             $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id', $userId)->first();
             if (empty($userFriend) || empty($friendUser)) return false;
-            Redis::set($mKey, 1);
+            $mValue['user']   = $userFriend;
+            $mValue['friend'] = $friendUser;
+
+            Redis::set($mKey, json_encode($mValue, JSON_UNESCAPED_UNICODE));
             return true;
         } else {
             return $mValue;

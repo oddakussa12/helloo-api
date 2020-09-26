@@ -66,8 +66,8 @@ class UserFriendRequestController extends BaseController
             'devicePlatformName'=>'Server'
         );
         $this->dispatch((new Friend($requests->request_from_id , $requests->request_to_id , 'Yooul:FriendRequest' , [
-            'content'=>'friend request',
-            'user'=> $user
+            'content'  => 'friend request',
+            'userInfo' => $user
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
         return $this->response->created();
     }
@@ -93,9 +93,9 @@ class UserFriendRequestController extends BaseController
             'devicePlatformName'=>'Server'
         );
         $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendRequestReposed' , [
-            'content'=>'friend response' ,
-            'reposed'=>$requestState,
-            'user'=> $user
+            'content'  => 'friend response' ,
+            'reposed'  => $requestState,
+            'userInfo' => $user
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
         return $this->response->accepted();
     }
