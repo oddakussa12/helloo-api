@@ -240,9 +240,18 @@ class UserFriendAffinityController extends BaseController
         $relationShipFriend = $this->checkFriendLevel($friend_id, $relation_id, true);
         $relationShipUser   = $this->checkFriendLevel($authUserId  , $relation_id, true);
 
-        if (empty($relationShipFriend) || empty($relationShipUser)) {
+
+        if (empty($relationShipUser)) {
+            $content = $this->isFriendStatus(1, $relation_id);
             Log::info('message::关系超限，不能添加');
-            return $this->response->errorNotFound('关系超限，不能添加');
+            return $this->response->errorNotFound($content);
+            return $this->response->noContent();
+        }
+        if (empty($relationShipFriend) ) {
+            $content = $this->isFriendStatus(2, $relation_id);
+
+            Log::info('message::关系超限，不能添加');
+            return $this->response->errorNotFound($content);
             return $this->response->noContent();
         }
 
@@ -268,6 +277,19 @@ class UserFriendAffinityController extends BaseController
 
         Log::info('message::: 添加好友结束');
         return $this->response->created();
+    }
+
+    /**
+     * @param $type
+     * @param $relationShipId
+     * @return string
+     * 词条反馈
+     */
+    public function isFriendStatus($type, $relationShipId)
+    {
+        $locate = locale();
+        return '关系超限，不能添加';
+
     }
 
     /**
