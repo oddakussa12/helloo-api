@@ -172,7 +172,7 @@ class UserFriendAffinityController extends BaseController
         $memKey   = Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId;
         $memValue = Redis::get($memKey);
         if (!empty($memValue)) {
-            return json_decode($memValue, true);
+            //return json_decode($memValue, true);
         }
 
         $result   = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')

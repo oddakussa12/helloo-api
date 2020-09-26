@@ -140,16 +140,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function getUserAvatarLinkAttribute()
     {
-        $value = $this->user_avatar;
-        $value = empty($value)?'default_avatar.jpg':$value;
-        if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
-            return $value;
-        }
-        return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+        return userCover($this->user_avatar);
     }
+    
     public function getUserCoverLinkAttribute()
     {
-        return userCover($this->user_cover);
+        return userCover($this->user_cover, 'cover');
     }
 
     public function getUserPictureLinkAttribute($value)
