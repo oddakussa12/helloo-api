@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Custom\Constant\Constant;
 use App\Jobs\Affinity;
 use App\Jobs\Friend;
+use App\Jobs\FriendLevel;
 use App\Jobs\FriendSignIn;
 use App\Models\User;
 use App\Models\UserFriend;
@@ -227,7 +228,7 @@ class UserFriendAffinityController extends BaseController
 
         list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friend_id);
 
-        $userFriend = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', 1)->first();
+        $userFriend = FriendLevel::isFriendRelation($userId, $friendId);
         // 已是好友，直接返回
         if (!empty($userFriend)) {
             Log::info('11111111111111111111');
