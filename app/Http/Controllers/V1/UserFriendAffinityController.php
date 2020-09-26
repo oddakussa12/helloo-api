@@ -232,6 +232,7 @@ class UserFriendAffinityController extends BaseController
         if (!empty($userFriend)) {
             Log::info('11111111111111111111');
             Log::info('message::: is not empty');
+            return $this->response->errorNotFound('关系已经存在，不能添加');
             return $this->response->accepted();
         }
 
@@ -249,8 +250,6 @@ class UserFriendAffinityController extends BaseController
         $requests->friend_id       = $friendId;
         $requests->relationship_id = $relation_id;
         $requests->save();
-
-        $auth->userAgent = userAgent(new Agent());
 
         // 融云推送 聊天
         $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriendRequest', [
@@ -308,11 +307,6 @@ class UserFriendAffinityController extends BaseController
         }
 
         UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
-
-        $user = new UserCollection($user);
-        $user->extra = array(
-            'devicePlatformName'=>'Server'
-        );
 
         // 融云推送 聊天
         $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendRequestReposed', [
