@@ -14,6 +14,7 @@ use App\Models\UserFriendRelationRule;
 use App\Models\UserFriendRelationship;
 use App\Models\UserFriendRelationShipRule;
 use App\Models\UserFriendSignIn;
+use App\Models\UserFriendTalkList;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Repositories\Contracts\UserRepository;
@@ -52,16 +53,18 @@ class UserFriendAffinityController extends BaseController
         $memKey   = Constant::FRIEND_RELATIONSHIP_MAIN.$user_id.'_'.$friend_id;
         $memValue = Redis::get($memKey);
         if (!empty($memValue)) {
-            return json_decode($memValue, true);
+            //return json_decode($memValue, true);
         }
 
+        $baseWhere= ['user_id'=>$user_id,'friend_id'=>$friend_id,'is_delete'=>0];
+
         $result   = UserFriendLevel::select('heart_count','relationship_id')
-            ->where(['user_id'=>$user_id,'friend_id'=>$friend_id,'is_delete'=>0,'status'=>1])->first();
+            ->where(array_merge($baseWhere, ['status'=>1]))->first();
 
         if (!empty($result)) {
             $result['sign'] = $this->getSignInList($friendId, false);
         } else {
-            $result['heart_count']     = 0;
+            $result['heart_count']     = UserFriendTalkList::where(array_merge($baseWhere, ['score'=>1]))->first();
             $result['relationship_id'] = -1;
             $result['sign']['total']   = 0;
         }
