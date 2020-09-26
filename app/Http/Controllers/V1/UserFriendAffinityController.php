@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Custom\Constant\Constant;
 use App\Jobs\Affinity;
 use App\Jobs\Friend;
+use App\Jobs\FriendLevel;
 use App\Jobs\FriendSignIn;
 use App\Models\User;
 use App\Models\UserFriend;
@@ -20,6 +21,7 @@ use App\Http\Requests\StoreUserFriendRequestRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Jenssegers\Agent\Agent;
 
 /**
  * Class UserFriendAffinityController
@@ -59,11 +61,14 @@ class UserFriendAffinityController extends BaseController
             $result['sign']['total']   = 0;
         }
 
-        $userFriend = UserFriend::where('user_id', $authUserId)->where('friend_id' , $friendId)->first();
-        $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $authUserId)->first();
+        $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
 
-        $createTime = $userFriend['created_at'] > $friendUser['created_at'] ? $userFriend['created_at'] : $friendUser['created_at'];
-        $result['friend_time'] = intval((time() - $createTime)/86400);
+        // 不是双方好友关系
+        if (!empty($isFriend)) {
+            $isFriend   = json_decode($isFriend, true);
+            $createTime = $isFriend['user']['created_at'] > $isFriend['friend']['created_at'] ? $isFriend['user']['created_at'] : $isFriend['friend']['created_at'];
+        }
+        $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400) : 0;
 
         $uid              = $user_id == $authUserId ? $user_id : $friendId;
         $friend           = User::where('user_id', $uid)->first();
@@ -197,6 +202,9 @@ class UserFriendAffinityController extends BaseController
      */
     public function store(Request $request)
     {
+        $auth        = auth()->user();
+        $authUserId  = $auth->user_id;
+
         $friend_id   = intval($request->input('friend_id'));
         $relation_id = intval($request->input('relationship_id'));
         $this->validate($request, [
@@ -204,30 +212,46 @@ class UserFriendAffinityController extends BaseController
             'friend_id'       => 'required|int',
         ]);
 
+        $isFriend = FriendSignIn::isFriend($authUserId, $friend_id);
+        // 不是双方好友关系，直接返回
+        if (empty($isFriend)) {
+            Log::info('message::不是好友关系');
+            return $this->response->errorNotFound('不是好友关系');
+        }
+
         $relation    = UserFriendRelationship::where(['is_delete'=>0,'id'=>$relation_id])->first();
 
         if (empty($relation)) {
             //return $this->response->noContent();
             return $this->response->errorNotFound('该关系不存在');
         }
-        $auth = auth()->user();
-        $authUserId = $auth->user_id;
+
         list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friend_id);
 
-
-        $requests = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', '>=', 0)->first();
-        if (!$request) {
+        $userFriend = FriendLevel::isFriendRelation($userId, $friendId);
+        // 已是好友，直接返回
+        if (!empty($userFriend)) {
             Log::info('11111111111111111111');
             Log::info('message::: is not empty');
+            return $this->response->errorNotFound('关系已经存在，不能添加');
             return $this->response->accepted();
         }
 
         $relationShipFriend = $this->checkFriendLevel($friend_id, $relation_id, true);
         $relationShipUser   = $this->checkFriendLevel($authUserId  , $relation_id, true);
 
-        if (empty($relationShipFriend) || empty($relationShipUser)) {
+
+        if (empty($relationShipUser)) {
+            $content = $this->isFriendStatus(1, $relation_id);
             Log::info('message::关系超限，不能添加');
-            return $this->response->errorNotFound('关系超限，不能添加');
+            return $this->response->errorNotFound($content);
+            return $this->response->noContent();
+        }
+        if (empty($relationShipFriend) ) {
+            $content = $this->isFriendStatus(2, $relation_id);
+
+            Log::info('message::关系超限，不能添加');
+            return $this->response->errorNotFound($content);
             return $this->response->noContent();
         }
 
@@ -236,16 +260,12 @@ class UserFriendAffinityController extends BaseController
         $requests->friend_id       = $friendId;
         $requests->relationship_id = $relation_id;
         $requests->save();
-        $user = new UserCollection($auth);
-        $user->extra = array(
-            'devicePlatformName'=>'Server'
-        );
 
         // 融云推送 聊天
-        $this->dispatch((new Friend($authUserId, $friendId, 'Yooul:AffinityFriendRequest', [
-            'content' => 'friend request',
-            'relationship_id'=>$relation_id,
-            'user'    => $user
+        $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriend', [
+            'content'        => 'friend request',
+            'relationship_id'=> $relation_id,
+            'userInfo'       => $auth
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
 
         // 推送通知
@@ -260,24 +280,33 @@ class UserFriendAffinityController extends BaseController
     }
 
     /**
+     * @param $type
+     * @param $relationShipId
+     * @return string
+     * 词条反馈
+     */
+    public function isFriendStatus($type, $relationShipId)
+    {
+        $locate = locale();
+        return '关系超限，不能添加';
+
+    }
+
+    /**
      * @param $friendId
-     * @param Request $request
      * @return \Dingo\Api\Http\Response
      * 接受特殊关系请求
      */
-    public function accept($friendId, Request $request)
+    public function accept($friendId)
     {
         $user   = auth()->user();
         $userId = $user->user_id;
-        $arr    = [$user->user_id, $friendId];
-        sort($arr);
-        list($user_id, $friend_id) = $arr;
+        list($user_id, $friend_id) = $arr = FriendSignIn::sortId($userId, $friendId);
 
-        $userFriend = UserFriend::where('user_id', $userId)->where('friend_id' , $friendId)->first();
-        $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id' , $userId)->first();
+        $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
 
         // 不是双方好友关系，直接返回
-        if (empty($userFriend) || empty($friendUser)) {
+        if (empty($isFriend)) {
             Log::info('message::不是好友关系');
             return $this->response->errorNotFound('不是好友关系');
         }
@@ -285,7 +314,7 @@ class UserFriendAffinityController extends BaseController
 
         // 邀请关系失效，直接返回
         if (empty($info)) {
-            // return $this->response->errorNotFound('关系已完成或失效，不能添加');
+            return $this->response->errorNotFound('关系已完成或失效，不能添加');
             Log::info('关系已完成或失效，不能添加');
             return $this->response->noContent();
         }
@@ -296,24 +325,18 @@ class UserFriendAffinityController extends BaseController
         if (empty($relationShipFriend) || empty($relationShipUser)) {
             Log::info('message::关系超限，不能添加');
             UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>-2]);
-            // return $this->response->errorNotFound('关系超限，不能添加');
+            return $this->response->errorNotFound('关系超限，不能添加');
             return $this->response->noContent();
         }
 
-
         UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
 
-        $user = new UserCollection($user);
-        $user->extra = array(
-            'devicePlatformName'=>'Server'
-        );
-
-
         // 融云推送 聊天
-        $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendRequestReposed', [
-            'content' => 'friend response',
-            'reposed' => 1,
-            'user'    => $user
+        $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendReposed', [
+            'content'        => 'friend response',
+            'reposed'        => 1,
+            'relationship_id'=> $info['relationship_id'],
+            'userInfo'       => $user
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
 
         // 推送通知

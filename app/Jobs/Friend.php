@@ -7,6 +7,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Jenssegers\Agent\Agent;
 
 class Friend implements ShouldQueue
 {
@@ -33,12 +34,23 @@ class Friend implements ShouldQueue
     private $objectName;
 
 
-    public function __construct($senderId , $targetId , $objectName , $content)
+    public function __construct($senderId, $targetId, $objectName, $content)
     {
-        $this->senderId = $senderId;
-        $this->targetId = $targetId;
-        $this->content = $content;
-        $this->objectName = $objectName;
+        $extra['extra'] = [
+            'un' => $content['userInfo']->user_nick_name ?? ($content['userInfo']->user_name ?? ''),
+            'ua' => userCover($content['userInfo']->user_avatar ?? ''),
+            'ui' => $content['userInfo']->user_id,
+            'uc' => $content['userInfo']->user_country,
+            'ul' => $content['userInfo']->user_level,
+            'ug' => $content['userInfo']->user_gender,
+            'devicePlatformName' => userAgent(new Agent()) ?? '',
+        ];
+        $content['userInfo'] = [];
+        $content['userInfo'] = $extra;
+        $this->senderId      = $senderId;
+        $this->targetId      = $targetId;
+        $this->content       = $content;
+        $this->objectName    = $objectName;
     }
 
     /**
@@ -49,13 +61,12 @@ class Friend implements ShouldQueue
     public function handle()
     {
         $result = app('rcloud')->getMessage()->Person()->send(array(
-            'senderId'=> $this->senderId,
-            'targetId'=> $this->targetId,
-            "objectName"=>$this->objectName,
-            'content'=>\json_encode($this->content)
+            'senderId'   => $this->senderId,
+            'targetId'   => $this->targetId,
+            "objectName" => $this->objectName,
+            'content'    => \json_encode($this->content)
         ));
 
         dump($result);
-
     }
 }

@@ -82,6 +82,8 @@ class UserFriendController extends BaseController
     public function destroy($friendId)
     {
         $userId = auth()->id();
+        $user   = auth()->user();
+
         if (empty($userId) || empty($friendId)) {
             return $this->response->noContent();
         }
@@ -118,7 +120,7 @@ class UserFriendController extends BaseController
             DB::update("update f_users_friends_talk_list $sql");
 
             });
-        $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendRequestReposed' , ['content'=>'friend delete']))->onQueue('friend'));
+        $this->dispatch((new Friend($userId, $friendId, 'Yooul:FriendRequestReposed', ['content'=>'friend delete', 'userInfo'=>$user]))->onQueue('friend'));
         return $this->response->noContent();
     }
 }
