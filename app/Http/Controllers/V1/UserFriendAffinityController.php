@@ -89,6 +89,8 @@ class UserFriendAffinityController extends BaseController
     }
 
 
+
+
     /**
      * @param $friendId
      * @return mixed
@@ -99,8 +101,16 @@ class UserFriendAffinityController extends BaseController
         $authUserId = auth()->id();
         list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
 
-        return UserFriendLevel::select('heart_count','relationship_id')
-            ->where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0,'status'=>1])->first();
+        $baseWhere = ['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0];
+        $result    =  UserFriendLevel::select('heart_count','relationship_id')
+            ->where(array_merge($baseWhere, ['status'=>1]))->first();
+
+        $count = UserFriendTalkList::select('user_id','user_id_count', 'friend_id', 'friend_id_count')->where($baseWhere)->first();
+
+        $count['heart_count']     = !empty($result) ? $result['heart_count'] : 0;
+        $count['relationship_id'] = !empty($result) ? $result['heart_count'] : -1;
+
+        return ['data'=>$count];
 
     }
 
