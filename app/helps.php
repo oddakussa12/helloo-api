@@ -1183,4 +1183,17 @@ function userCover($value='') {
     return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
 }
 
+/**
+ * @param $agent
+ * @return string
+ */
+function userAgent($agent) {
+    if ($agent->match('YooulAndroid')) {
+        $referer = 'android';
+    } elseif ($agent->match('YoouliOS')) {
+        $referer = 'ios';
+    }
+    return $referer ?? 'web';
+}
+
 

@@ -20,6 +20,7 @@ use App\Http\Requests\StoreUserFriendRequestRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Jenssegers\Agent\Agent;
 
 /**
  * Class UserFriendAffinityController
@@ -200,6 +201,9 @@ class UserFriendAffinityController extends BaseController
      */
     public function store(Request $request)
     {
+        $auth        = auth()->user();
+        $authUserId  = $auth->user_id;
+
         $friend_id   = intval($request->input('friend_id'));
         $relation_id = intval($request->input('relationship_id'));
         $this->validate($request, [
@@ -207,19 +211,24 @@ class UserFriendAffinityController extends BaseController
             'friend_id'       => 'required|int',
         ]);
 
+        $isFriend = FriendSignIn::isFriend($authUserId, $friend_id);
+        // 不是双方好友关系，直接返回
+        if (empty($isFriend)) {
+            Log::info('message::不是好友关系');
+            return $this->response->errorNotFound('不是好友关系');
+        }
+
         $relation    = UserFriendRelationship::where(['is_delete'=>0,'id'=>$relation_id])->first();
 
         if (empty($relation)) {
             //return $this->response->noContent();
             return $this->response->errorNotFound('该关系不存在');
         }
-        $auth = auth()->user();
-        $authUserId = $auth->user_id;
+
         list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friend_id);
 
-
-        $requests = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', 1)->first();
-        if (!$request) {
+        $userFriend = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', 1)->first();
+        if (!$userFriend) {
             Log::info('11111111111111111111');
             Log::info('message::: is not empty');
             return $this->response->accepted();
@@ -239,16 +248,14 @@ class UserFriendAffinityController extends BaseController
         $requests->friend_id       = $friendId;
         $requests->relationship_id = $relation_id;
         $requests->save();
-        $user = new UserCollection($auth);
-        $user->extra = array(
-            'devicePlatformName'=>'Server'
-        );
+
+        $auth->userAgent = userAgent(new Agent());
 
         // 融云推送 聊天
         $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriendRequest', [
             'content'        => 'friend request',
             'relationship_id'=> $relation_id,
-            'userInfo'       => $user
+            'userInfo'       => $auth
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
 
         // 推送通知

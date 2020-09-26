@@ -48,6 +48,9 @@ class Friend implements ShouldQueue
      */
     public function handle()
     {
+        $content = $this->content;
+        $content['userInfo']->extra = [
+            'devicePlatformName'=>'Server'];
         $result = app('rcloud')->getMessage()->Person()->send(array(
             'senderId'=> $this->senderId,
             'targetId'=> $this->targetId,
