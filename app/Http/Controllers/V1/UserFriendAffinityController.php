@@ -252,7 +252,7 @@ class UserFriendAffinityController extends BaseController
         $requests->save();
 
         // 融云推送 聊天
-        $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriendRequest', [
+        $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriend', [
             'content'        => 'friend request',
             'relationship_id'=> $relation_id,
             'userInfo'       => $auth
@@ -309,7 +309,7 @@ class UserFriendAffinityController extends BaseController
         UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
 
         // 融云推送 聊天
-        $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendRequestReposed', [
+        $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendReposed', [
             'content'        => 'friend response',
             'reposed'        => 1,
             'relationship_id'=> $info['relationship_id'],
