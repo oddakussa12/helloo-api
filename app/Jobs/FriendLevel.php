@@ -142,8 +142,15 @@ class FriendLevel implements ShouldQueue
                     Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
 
                     // 发送升级请求给双方 融云
-                    $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $score);
-                    $this->sendMsgToRongYun($friendId, $userId, 'Yooul:AffinityFriendLevel', $score);
+                    $ryData = [
+                        'heart_count'     => $isFriendRelation['heart_count']+1,
+                        'relationship_id' => $isFriendRelation['relationship_id'],
+                        'count'           => 0,
+                        ];
+                   // $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
+                   // $this->sendMsgToRongYun($friendId, $userId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
+                    $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
+                    $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
                 }
 
                 if (empty($isFriendRelation)) {
@@ -162,14 +169,28 @@ class FriendLevel implements ShouldQueue
         }
     }
 
-    public function sendMsgToRongYun($userId, $friendId, $objectName, $score)
+    public function sendMsgToRongYun($userId, $friendId, $objectName, $data)
     {
+        $user = Redis::hgetall('user.'.$userId.'.data');
         // 融云推送 聊天
-        $this->dispatch((new Friend($userId, $friendId, $objectName, [
+        $this->dispatch((new RySystem($userId, $friendId, $objectName, [
             'content' => 'friend request',
-            'score'   => $score,
-            // 'user'    => $user
+            'data'    => $data,
+            'user'    => $user
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
     }
+
+
+    /*public function sendMsgToRongYun($userId, $friendId, $objectName, $relationship_id, $score)
+    {
+        $user = Redis::hgetall('user.'.$userId.'.data');
+        // 融云推送 聊天
+        $this->dispatch((new Friend($userId, $friendId, $objectName, [
+            'content'         => 'friend request',
+            'score'           => $score,
+            'relationship_id' => $relationship_id,
+            'user'            => $user
+        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
+    }*/
 
 }
