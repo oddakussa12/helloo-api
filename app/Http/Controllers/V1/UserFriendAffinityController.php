@@ -62,7 +62,7 @@ class UserFriendAffinityController extends BaseController
 
         $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
 
-        // 不是双方好友关系，直接返回
+        // 不是双方好友关系
         if (!empty($isFriend)) {
             $isFriend   = json_decode($isFriend, true);
             $createTime = $isFriend['user']['created_at'] > $isFriend['friend']['created_at'] ? $isFriend['user']['created_at'] : $isFriend['friend']['created_at'];
@@ -228,7 +228,8 @@ class UserFriendAffinityController extends BaseController
         list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friend_id);
 
         $userFriend = UserFriendLevel::where(['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0])->where('status', 1)->first();
-        if (!$userFriend) {
+        // 已是好友，直接返回
+        if (!empty($userFriend)) {
             Log::info('11111111111111111111');
             Log::info('message::: is not empty');
             return $this->response->accepted();
