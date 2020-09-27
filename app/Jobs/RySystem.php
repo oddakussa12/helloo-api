@@ -72,6 +72,6 @@ class RySystem implements ShouldQueue
             'content'    => \json_encode($this->content)
         ));
 
-        dump($result);
+        dump('System', $result, $result);
     }
 }
