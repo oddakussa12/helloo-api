@@ -156,7 +156,6 @@ class FriendLevel implements ShouldQueue
                 $ryData = [
                     'heart_count'     => $isFriendRelation['heart_count']+1,
                     'relationship_id' => $isFriendRelation['relationship_id'],
-                    'count'           => 0,
                 ];
 
                 $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);

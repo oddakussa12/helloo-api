@@ -7,6 +7,7 @@ use App\Jobs\Affinity;
 use App\Jobs\Friend;
 use App\Jobs\FriendLevel;
 use App\Jobs\FriendSignIn;
+use App\Jobs\RySystem;
 use App\Models\User;
 use App\Models\UserFriend;
 use App\Models\UserFriendLevel;
@@ -121,25 +122,35 @@ class UserFriendAffinityController extends BaseController
     }
 
     /**
-     * @return array
+     * @param Request $request
+     * @return void 等级规则
      * 等级规则
      */
-    public function rule()
+    public function rule(Request $request)
     {
-        for ($i=1;$i<5;$i++) {
-            for ($j=1;$j<4;$j++) {
-                $result[] = [
-                    "relationship_id" => $i,
-                    "title"           => "黑铁".$i.$j,
-                    "level"           => $j,
-                    "content"         =>"黑铁".$i.$j
-                ];
-            }
-        }
-        return [
-            'data'=>$result ?? [],
-            'rule'=>'-----------------',
+        $userId   = intval($request->input('user_id'));
+        $friendId = intval($request->input('friend_id'));
+        // 发送升级请求给双方 融云
+        $ryData = [
+            'heart_count'     => rand(1,10),
+            'relationship_id' => rand(1,4),
         ];
+
+        $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
+        $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+    }
+
+    
+    public function sendMsgToRongYun($userId, $friendId, $objectName, $data)
+    {
+        $user = Redis::hgetall('user.'.$userId.'.data');
+        // 融云推送 聊天
+        $this->dispatch((new RySystem($userId, $friendId, $objectName, [
+            'content'  => 'friend request',
+            'name'     => 'HEART_UPGRADE',
+            'data'     => $data,
+            'userInfo' => $user
+        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
     }
 
     /**
