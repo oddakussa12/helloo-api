@@ -99,7 +99,6 @@ class UserFriendAffinityController extends BaseController
     public function heart($friendId)
     {
         $authUserId = auth()->id();
-        dump($authUserId);
         list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
 
         $baseWhere = ['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0];
