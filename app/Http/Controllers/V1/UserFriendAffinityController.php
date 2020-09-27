@@ -247,7 +247,7 @@ class UserFriendAffinityController extends BaseController
             return $this->response->errorNotFound('该关系不存在');
         }
 
-        list($userId, $friendId) = FriendSignIn::sortId($auth->user_id, $friend_id);
+        list($userId, $friendId) = FriendSignIn::sortId($authUserId, $friend_id);
 
         $userFriend = FriendLevel::isFriendRelation($userId, $friendId);
         // 已是好友，直接返回

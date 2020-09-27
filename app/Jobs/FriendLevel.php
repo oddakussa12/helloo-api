@@ -39,10 +39,10 @@ class FriendLevel implements ShouldQueue
      */
     public static function isFriendRelation($userId, $friendId, $cache=true)
     {
-        $arr     = self::sortId($userId, $friendId);
-        list($userId, $friendId) = $arr;
+        list($userId, $friendId) = $arr = self::sortId($userId, $friendId);
+
         if ($cache) {
-            $memKey   = Constant::RY_CHAT_FRIEND_RELATIONSHIP. explode('_', $arr);
+            $memKey   = Constant::RY_CHAT_FRIEND_RELATIONSHIP.$userId.'_'.$friendId;
             $memValue = Redis::get($memKey);
             if (empty($memValue)) {
                 $result = UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>1])->first();
@@ -174,9 +174,10 @@ class FriendLevel implements ShouldQueue
         $user = Redis::hgetall('user.'.$userId.'.data');
         // 融云推送 聊天
         $this->dispatch((new RySystem($userId, $friendId, $objectName, [
-            'content' => 'friend request',
-            'data'    => $data,
-            'user'    => $user
+            'content'  => 'friend request',
+            'name'     => 'HEART_UPGRADE',
+            'data'     => $data,
+            'userInfo' => $user
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
     }
 

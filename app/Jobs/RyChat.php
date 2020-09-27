@@ -83,18 +83,19 @@ class RyChat implements ShouldQueue
         $validator = \Validator::make($raw, $rule);
         if ($validator->fails()) {
             $data = array(
-                'raw'=>\json_encode($raw , JSON_UNESCAPED_UNICODE),
-                'errors'=>\json_encode($validator->errors() , JSON_UNESCAPED_UNICODE)
+                'raw'    => \json_encode($raw , JSON_UNESCAPED_UNICODE),
+                'errors' => \json_encode($validator->errors() , JSON_UNESCAPED_UNICODE)
             );
             RyChatFailed::create($data);
-        }else{
+        } else {
             $data = array(
-                'chat_msg_uid'=>$raw['msgUID'],
-                'chat_from_id'=>$raw['fromUserId'],
-                'chat_to_id'=>$raw['toUserId'],
-                'chat_msg_type'=>$raw['objectName'],
+                'chat_msg_uid'  => $raw['msgUID'],
+                'chat_from_id'  => $raw['fromUserId'],
+                'chat_to_id'    => $raw['toUserId'],
+                'chat_msg_type' => $raw['objectName'],
+                'chat_time'     => $raw['msgTimestamp'],
+
 //                'chat_channel_type'=>$raw['channelType'],
-                'chat_time'=>$raw['msgTimestamp'],
 //                'chat_sensitive_type'=>$raw['sensitiveType']
             );
             if(isset($raw['source']))
