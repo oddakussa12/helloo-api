@@ -98,6 +98,9 @@ class UserFriendAffinityController extends BaseController
      */
     public function heart($friendId)
     {
+        if (empty(intval($friendId))) {
+            return $this->response->noContent();
+        }
         $authUserId = auth()->id();
         list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
 
@@ -331,7 +334,6 @@ class UserFriendAffinityController extends BaseController
 
         // 邀请关系失效，直接返回
         if (empty($info)) {
-            trans('FriendBig.The relationship does not exist');
             return $this->response->errorNotFound(trans('FriendBig.the_request_has_expired_please_resend_the_request'));
             Log::info('关系已完成或失效，不能添加');
             return $this->response->noContent();
