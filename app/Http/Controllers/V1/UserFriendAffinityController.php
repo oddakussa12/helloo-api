@@ -283,7 +283,7 @@ class UserFriendAffinityController extends BaseController
         $baseWhere = ['user_id'=>$userId, 'friend_id'=>$friendId, 'relationship_id'=>$relation_id, 'status'=>0, 'is_delete'=>0];
         $level  = UserFriendLevel::where($baseWhere)->first();
 
-        $ddd = UserFriendLevel::updateOrCreate(['id' => $level['id'] ?? null], $baseWhere);
+        UserFriendLevel::updateOrCreate(['id' => $level['id'] ?? null], array_merge($baseWhere, ['heart_count'=>1]));
 
         // 融云推送 聊天
         $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriend', [

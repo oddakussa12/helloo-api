@@ -23,6 +23,6 @@ class UserFriendLevel extends Model
 
     protected $primaryKey = 'id';
 
-    protected $fillable = ['relationship_id', 'score', 'level_id', 'user_id', 'friend_id', 'status', 'is_delete', 'updated_at'];
+    protected $fillable = ['relationship_id', 'heart_count', 'score', 'level_id', 'user_id', 'friend_id', 'status', 'is_delete', 'updated_at'];
 
 }
