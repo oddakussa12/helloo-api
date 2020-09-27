@@ -140,13 +140,12 @@ class UserFriendAffinityController extends BaseController
         $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
     }
 
-    
+
     public function sendMsgToRongYun($userId, $friendId, $objectName, $data)
     {
         $user = Redis::hgetall('user.'.$userId.'.data');
         // 融云推送 聊天
         $this->dispatch((new RySystem($userId, $friendId, $objectName, [
-            'content'  => 'friend request',
             'name'     => 'HEART_UPGRADE',
             'data'     => $data,
             'userInfo' => $user

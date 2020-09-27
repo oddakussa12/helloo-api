@@ -116,6 +116,8 @@ class FriendLevel implements ShouldQueue
 
             if (!empty($uNum) && !empty($fNum) && $count>=Constant::CHAT_SUM_STAR) {
 
+                $score = $score <= $star ? $score+1 : $score;
+
                 //星数>5时，直接返回
                 if ($score>$star) return false;
 
@@ -130,7 +132,7 @@ class FriendLevel implements ShouldQueue
                     }
 
                     $uNum  = $fNum = 0;
-                    $score = $score < $star ? $score+1 : $score;
+
 
                     // 插入好友关系等级表
                     UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
