@@ -99,6 +99,7 @@ class UserFriendAffinityController extends BaseController
     public function heart($friendId)
     {
         $authUserId = auth()->id();
+        dump($authUserId);
         list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
 
         $baseWhere = ['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0];
@@ -109,7 +110,8 @@ class UserFriendAffinityController extends BaseController
         $count = UserFriendTalkList::select('user_id','user_id_count', 'friend_id', 'friend_id_count', DB::RAW('score as heart_count'))
             ->where($baseWhere)->first();
 
-        $count['heart_count']     = !empty($result) ? $result['heart_count'] : $count['heart_count'];
+        $heartCount = !empty($result) ? $result['heart_count'] : $count['heart_count'];
+        $count['heart_count']     = intval($heartCount);
         $count['relationship_id'] = !empty($result) ? $result['relationship_id'] : -1;
 
         return ['data'=>$count];
