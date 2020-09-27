@@ -52,7 +52,7 @@ class RySystem implements ShouldQueue
 
         $content['userInfo'] = $extra ?? [];
 
-        unsert($content['userInfo'], $content['content']);
+        unset($content['userInfo'], $content['content']);
 
         $this->senderId      = $senderId;
         $this->targetId      = $targetId;
