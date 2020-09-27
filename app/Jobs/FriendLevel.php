@@ -133,6 +133,7 @@ class FriendLevel implements ShouldQueue
                     $score = $score < $star ? $score+1 : $score;
 
                     // 插入好友关系等级表
+                    dump($isFriendRelation);
                     UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
                         ['heart_count'=>$isFriendRelation['heart_count']+1]
                     );
