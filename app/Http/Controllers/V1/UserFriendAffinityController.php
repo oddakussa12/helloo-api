@@ -276,11 +276,16 @@ class UserFriendAffinityController extends BaseController
             return $this->response->noContent();
         }
 
-        $requests = new UserFriendLevel();
+        /*$requests = new UserFriendLevel();
         $requests->user_id         = $userId;
         $requests->friend_id       = $friendId;
         $requests->relationship_id = $relation_id;
-        $requests->save();
+        $requests->save();*/
+
+        $baseWhere = ['user_id'=>$userId, 'friend_id'=>$friendId, 'relationship_id'=>$relation_id, 'status'=>0, 'is_delete'=>0];
+        $level  = UserFriendLevel::where($baseWhere)->first();
+
+        UserFriendLevel::updateOrCreate(['id' => $level['id'] ?? null], $baseWhere);
 
         // 融云推送 聊天
         $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriend', [
