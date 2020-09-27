@@ -101,7 +101,8 @@ class UserFriendAffinityController extends BaseController
         $authUserId = auth()->id();
         list($userId, $friendId)   = FriendSignIn::sortId($authUserId, $friendId);
 
-        $baseWhere = ['user_id'=>$userId,'friend_id'=>$friendId,'is_delete'=>0];
+        $baseWhere = ['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0];
+
         $result    =  UserFriendLevel::select('heart_count','relationship_id')
             ->where(array_merge($baseWhere, ['status'=>1]))->first();
 
@@ -239,12 +240,13 @@ class UserFriendAffinityController extends BaseController
         // 不是双方好友关系，直接返回
         if (empty($isFriend)) {
             Log::info('message::不是好友关系');
-            return $this->response->errorNotFound('不是好友关系');
+            return $this->response->errorNotFound(trans('you_are_not_friends_yet'));
         }
 
         if (!in_array($relation_id, Constant::$relation)) {
             //return $this->response->noContent();
-            return $this->response->errorNotFound('该关系不存在');
+            Log::info('message::该关系不存在::relationship_id::'.$relation_id);
+            return $this->response->errorNotFound(trans('the_relationship_does_not_exist'));
         }
 
         list($userId, $friendId) = FriendSignIn::sortId($authUserId, $friend_id);
@@ -253,26 +255,17 @@ class UserFriendAffinityController extends BaseController
         // 已是好友，直接返回
         if (!empty($userFriend)) {
             Log::info('11111111111111111111');
-            Log::info('message::: is not empty');
-            return $this->response->errorNotFound('关系已经存在，不能添加');
-            return $this->response->accepted();
+            Log::info('message::: is not empty 关系已经存在，不能添加');
+            return $this->response->errorNotFound(trans('there_can_only_be_one_relationship'));
         }
 
         $relationShipFriend = $this->checkFriendLevel($friend_id, $relation_id, true);
         $relationShipUser   = $this->checkFriendLevel($authUserId  , $relation_id, true);
 
 
-        if (empty($relationShipUser)) {
-            $content = $this->isFriendStatus(1, $relation_id);
+        if (empty($relationShipUser) || empty($relationShipFriend)) {
             Log::info('message::关系超限，不能添加');
-            return $this->response->errorNotFound($content);
-            return $this->response->noContent();
-        }
-        if (empty($relationShipFriend) ) {
-            $content = $this->isFriendStatus(2, $relation_id);
-
-            Log::info('message::关系超限，不能添加');
-            return $this->response->errorNotFound($content);
+            return $this->response->errorNotFound('关系超限，不能添加');
             return $this->response->noContent();
         }
 
@@ -285,7 +278,7 @@ class UserFriendAffinityController extends BaseController
         $baseWhere = ['user_id'=>$userId, 'friend_id'=>$friendId, 'relationship_id'=>$relation_id, 'status'=>0, 'is_delete'=>0];
         $level  = UserFriendLevel::where($baseWhere)->first();
 
-        UserFriendLevel::updateOrCreate(['id' => $level['id'] ?? null], $baseWhere);
+        $ddd = UserFriendLevel::updateOrCreate(['id' => $level['id'] ?? null], $baseWhere);
 
         // 融云推送 聊天
         $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriend', [
@@ -306,56 +299,56 @@ class UserFriendAffinityController extends BaseController
     }
 
     /**
-     * @param $type
-     * @param $relationShipId
-     * @return string
-     * 词条反馈
-     */
-    public function isFriendStatus($type, $relationShipId)
-    {
-        $locate = locale();
-        return '关系超限，不能添加';
-
-    }
-
-    /**
      * @param $friendId
+     * @param Request $request
      * @return \Dingo\Api\Http\Response
      * 接受特殊关系请求
      */
-    public function accept($friendId)
+    public function accept($friendId, Request $request)
     {
         $user   = auth()->user();
         $userId = $user->user_id;
+
         list($user_id, $friend_id) = $arr = FriendSignIn::sortId($userId, $friendId);
+
+        $relation_id = intval($request->input('relationship_id'));
+        if (!in_array($relation_id, Constant::$relation)) {
+            //return $this->response->noContent();
+            return $this->response->errorNotFound(trans('you_are_not_friends_yet'));
+        }
 
         $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
 
         // 不是双方好友关系，直接返回
         if (empty($isFriend)) {
             Log::info('message::不是好友关系');
-            return $this->response->errorNotFound('不是好友关系');
+            return $this->response->errorNotFound(trans('you_are_not_friends_yet'));
         }
-        $info = UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->first();
+        $baseWhere = ['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0];
+        $info      = UserFriendLevel::where(array_merge($baseWhere, ['relationship_id'=> $relation_id]))->first();
 
         // 邀请关系失效，直接返回
         if (empty($info)) {
-            return $this->response->errorNotFound('关系已完成或失效，不能添加');
+            return $this->response->errorNotFound(trans('the_request_has_expired_please_resend_the_request'));
             Log::info('关系已完成或失效，不能添加');
             return $this->response->noContent();
         }
 
-        $relationShipFriend = $this->checkFriendLevel($friendId, $info['relationship_id'], true);
-        $relationShipUser   = $this->checkFriendLevel($userId  , $info['relationship_id'], true);
+        $relationShipFriend = $this->checkFriendLevel($friendId, $relation_id, true);
+        $relationShipUser   = $this->checkFriendLevel($userId  , $relation_id, true);
 
         if (empty($relationShipFriend) || empty($relationShipUser)) {
             Log::info('message::关系超限，不能添加');
-            UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>-2]);
+            UserFriendLevel::where($baseWhere)->update(['status'=>-2]);
             return $this->response->errorNotFound('关系超限，不能添加');
             return $this->response->noContent();
         }
 
-        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>1]);
+        // 修改关系为已同意
+        $result = UserFriendLevel::where(array_merge($baseWhere, ['relationship_id'=> $relation_id]))->update(['status'=>1]);
+
+        // 删除和该用户的，其他已存在的请求
+        $result && UserFriendLevel::where($baseWhere)->update(['is_delete'=>-1]);
 
         // 融云推送 聊天
         $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendReposed', [
@@ -412,17 +405,23 @@ class UserFriendAffinityController extends BaseController
 
     /**
      * @param $friendId
+     * @param Request $request
      * @return \Dingo\Api\Http\Response
      * 拒绝/忽略邀请
      */
-    public function refuse($friendId)
+    public function refuse($friendId, Request $request)
     {
-        $auth = auth()->user();
-        $arr  = [$auth->user_id, $friendId];
-        sort($arr);
-        list($user_id, $friendId) = $arr;
+        $auth        = auth()->user();
+        $userId      = $auth->user_id;
+        $relation_id = intval($request->input('relationship_id'));
 
-        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>0])->update(['status'=>-1,'is_delete'=>-1]);
+        if (empty($userId) || empty($relation_id)) {
+            return $this->response->errorForbidden();
+        }
+
+        list($user_id, $friend_id) = FriendSignIn::sortId($userId, $friendId);
+
+        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'relation_id'=>$relation_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>-1,'is_delete'=>-1]);
         return $this->response->accepted();
     }
 }
