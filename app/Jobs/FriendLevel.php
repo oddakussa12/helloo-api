@@ -133,11 +133,12 @@ class FriendLevel implements ShouldQueue
                     $score = $score < $star ? $score+1 : $score;
 
                     // 插入好友关系等级表
-                    dump($isFriendRelation);
-                    UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
+                    dump($isFriendRelation, $isFriendRelation['id'], $isFriendRelation['heart_count']+1);
+                    $sss =  UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
                         ['heart_count'=>$isFriendRelation['heart_count']+1]
                     );
 
+                   dump($sss);
                     // 升级之后，清空情侣首页缓存
                     Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
                     Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
