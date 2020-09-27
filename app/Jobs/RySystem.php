@@ -52,6 +52,7 @@ class RySystem implements ShouldQueue
 
         $content['userInfo'] = $extra ?? [];
 
+
         $this->senderId      = $senderId;
         $this->targetId      = $targetId;
         $this->content       = $content;
@@ -72,6 +73,6 @@ class RySystem implements ShouldQueue
             'content'    => \json_encode($this->content)
         ));
 
-        dump('System', $result, $result);
+        dump('System', $result, $this->content);
     }
 }
