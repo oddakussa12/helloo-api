@@ -110,7 +110,7 @@ class FriendLevel implements ShouldQueue
             }
             $uNum  = $result['user_id']   == $raw['fromUserId'] ? $result['user_id_count']+1   : $result['user_id_count'];
             $fNum  = $result['friend_id'] == $raw['fromUserId'] ? $result['friend_id_count']+1 : $result['friend_id_count'];
-            $score = $result['talk_day']  == $today ? $result['heart_count'] : 0;
+            $score = $result['talk_day']  == $today ? $result['score'] : 0;
             $count = array_sum([$uNum, $fNum]);
 
 
@@ -133,12 +133,10 @@ class FriendLevel implements ShouldQueue
                     $score = $score < $star ? $score+1 : $score;
 
                     // 插入好友关系等级表
-                    dump($isFriendRelation, $isFriendRelation['id'], $isFriendRelation['heart_count']+1);
-                    $sss =  UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
+                    UserFriendLevel::updateOrCreate(['id'=>$isFriendRelation['id']],
                         ['heart_count'=>$isFriendRelation['heart_count']+1]
                     );
 
-                   dump($sss);
                     // 升级之后，清空情侣首页缓存
                     Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
                     Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
