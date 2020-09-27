@@ -106,10 +106,11 @@ class UserFriendAffinityController extends BaseController
         $result    =  UserFriendLevel::select('heart_count','relationship_id')
             ->where(array_merge($baseWhere, ['status'=>1]))->first();
 
-        $count = UserFriendTalkList::select('user_id','user_id_count', 'friend_id', 'friend_id_count')->where($baseWhere)->first();
+        $count = UserFriendTalkList::select('user_id','user_id_count', 'friend_id', 'friend_id_count', DB::RAW('score as heart_count'))
+            ->where($baseWhere)->first();
 
-        $count['heart_count']     = !empty($result) ? $result['heart_count'] : 0;
-        $count['relationship_id'] = !empty($result) ? $result['heart_count'] : -1;
+        $count['heart_count']     = !empty($result) ? $result['heart_count'] : $count['heart_count'];
+        $count['relationship_id'] = !empty($result) ? $result['relationship_id'] : -1;
 
         return ['data'=>$count];
 
