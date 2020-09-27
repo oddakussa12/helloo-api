@@ -317,9 +317,10 @@ class UserFriendAffinityController extends BaseController
         list($user_id, $friend_id) = $arr = FriendSignIn::sortId($userId, $friendId);
 
         $relation_id = intval($request->input('relationship_id'));
+
         if (!in_array($relation_id, Constant::$relation)) {
             //return $this->response->noContent();
-            return $this->response->errorNotFound(trans('FriendBig.you_are_not_friends_yet'));
+            return $this->response->errorNotFound(trans('FriendBig.the_relationship_does_not_exist'));
         }
 
         $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
