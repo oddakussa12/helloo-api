@@ -240,13 +240,13 @@ class UserFriendAffinityController extends BaseController
         // 不是双方好友关系，直接返回
         if (empty($isFriend)) {
             Log::info('message::不是好友关系');
-            return $this->response->errorNotFound(trans('you_are_not_friends_yet'));
+            return $this->response->errorNotFound(trans('FriendBig.you_are_not_friends_yet'));
         }
 
         if (!in_array($relation_id, Constant::$relation)) {
             //return $this->response->noContent();
             Log::info('message::该关系不存在::relationship_id::'.$relation_id);
-            return $this->response->errorNotFound(trans('the_relationship_does_not_exist'));
+            return $this->response->errorNotFound(trans('FriendBig.the_relationship_does_not_exist'));
         }
 
         list($userId, $friendId) = FriendSignIn::sortId($authUserId, $friend_id);
@@ -256,7 +256,7 @@ class UserFriendAffinityController extends BaseController
         if (!empty($userFriend)) {
             Log::info('11111111111111111111');
             Log::info('message::: is not empty 关系已经存在，不能添加');
-            return $this->response->errorNotFound(trans('there_can_only_be_one_relationship'));
+            return $this->response->errorNotFound(trans('FriendBig.there_can_only_be_one_relationship'));
         }
 
         $relationShipFriend = $this->checkFriendLevel($friend_id, $relation_id, true);
@@ -314,7 +314,7 @@ class UserFriendAffinityController extends BaseController
         $relation_id = intval($request->input('relationship_id'));
         if (!in_array($relation_id, Constant::$relation)) {
             //return $this->response->noContent();
-            return $this->response->errorNotFound(trans('you_are_not_friends_yet'));
+            return $this->response->errorNotFound(trans('FriendBig.you_are_not_friends_yet'));
         }
 
         $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
@@ -322,14 +322,15 @@ class UserFriendAffinityController extends BaseController
         // 不是双方好友关系，直接返回
         if (empty($isFriend)) {
             Log::info('message::不是好友关系');
-            return $this->response->errorNotFound(trans('you_are_not_friends_yet'));
+            return $this->response->errorNotFound(trans('FriendBig.you_are_not_friends_yet'));
         }
         $baseWhere = ['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0];
         $info      = UserFriendLevel::where(array_merge($baseWhere, ['relationship_id'=> $relation_id]))->first();
 
         // 邀请关系失效，直接返回
         if (empty($info)) {
-            return $this->response->errorNotFound(trans('the_request_has_expired_please_resend_the_request'));
+            trans('FriendBig.The relationship does not exist');
+            return $this->response->errorNotFound(trans('FriendBig.the_request_has_expired_please_resend_the_request'));
             Log::info('关系已完成或失效，不能添加');
             return $this->response->noContent();
         }
