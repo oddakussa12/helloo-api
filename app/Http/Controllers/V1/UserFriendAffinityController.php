@@ -43,7 +43,7 @@ class UserFriendAffinityController extends BaseController
      */
     public function main($friendId)
     {
-        $authUserId = auth()->id();
+        $authUserId = 31666; auth()->id();
 
         if ($authUserId == $friendId) {
             //return $this->response->noContent();
@@ -154,7 +154,7 @@ class UserFriendAffinityController extends BaseController
 
     /**
      * @param $friendId
-     * @param bool $num
+     * @param bool $list
      * @return mixed
      * 获取好友间签到记录
      */
@@ -162,6 +162,7 @@ class UserFriendAffinityController extends BaseController
     {
         $userId = auth()->id();
 
+        list($userId, $friendId)  = FriendSignIn::sortId($userId, $friendId);
         $result = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
             ->orderBy('id', 'ASC')->limit(30)->get()->toArray();
 
