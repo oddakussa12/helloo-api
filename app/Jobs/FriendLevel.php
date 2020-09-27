@@ -141,22 +141,26 @@ class FriendLevel implements ShouldQueue
                     Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
                     Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
 
-                    // 发送升级请求给双方 融云
-                    $ryData = [
-                        'heart_count'     => $isFriendRelation['heart_count']+1,
-                        'relationship_id' => $isFriendRelation['relationship_id'],
-                        'count'           => 0,
-                        ];
                    // $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
                    // $this->sendMsgToRongYun($friendId, $userId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
-                    $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
-                    $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+
+
                 }
 
                 if (empty($isFriendRelation)) {
                     $score = $isFriendRelation ? $score : 1;
                     $uNum  = $fNum = 0;
                 }
+
+                // 发送升级请求给双方 融云
+                $ryData = [
+                    'heart_count'     => $isFriendRelation['heart_count']+1,
+                    'relationship_id' => $isFriendRelation['relationship_id'],
+                    'count'           => 0,
+                ];
+
+                $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
+                $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
 
             }
             //else{
