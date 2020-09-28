@@ -224,18 +224,11 @@ class FriendLevel implements ShouldQueue
     {
         dump(__FILE__. __FUNCTION__);
 
-        $user    = Redis::hgetall('user.'.$userId.'.data');
-        $content = [
-            'name'     => 'HEART_UPGRADE',
-            'data'     => $data,
-            'userInfo' => $user
-        ];
-
         // 融云推送 聊天
         if (Constant::QUEUE_PUSH_TYPE=='redis') {
-            $result = Friend::dispatch($userId, $friendId, $objectName, $content)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            $result = Friend::dispatch($userId, $friendId, $objectName, $data)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         } else {
-            $result = Friend::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            $result = Friend::dispatch($userId, $friendId, $objectName, $data)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
 
         dump($result);
