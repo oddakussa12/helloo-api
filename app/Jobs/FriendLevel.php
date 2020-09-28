@@ -184,11 +184,12 @@ class FriendLevel implements ShouldQueue
     {
         $user = Redis::hgetall('user.'.$userId.'.data');
         // 融云推送 聊天
-        $this->dispatch((new RySystem($userId, $friendId, $objectName, [
+       $result = $this->dispatch((new RySystem($userId, $friendId, $objectName, [
             'name'     => 'HEART_UPGRADE',
             'data'     => $data,
             'userInfo' => $user
         ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
+        dump($result);
     }
 
 
