@@ -164,6 +164,7 @@ class UserFriendAffinityController extends BaseController
 
             $result   = (new FriendLevel($raw))->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
             $result2  = (new FriendLevel($raw))->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+            dump(array_merge($result, $result2));
         } else {
             // 发送升级请求给双方 融云
             $ryData = [
