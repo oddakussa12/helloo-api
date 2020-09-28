@@ -128,16 +128,25 @@ class UserFriendAffinityController extends BaseController
      */
     public function rule(Request $request)
     {
+        $type     = intval($request->input('type'));
         $userId   = intval($request->input('user_id'));
         $friendId = intval($request->input('friend_id'));
-        // 发送升级请求给双方 融云
-        $ryData = [
-            'heart_count'     => rand(1,10),
-            'relationship_id' => rand(1,4),
-        ];
 
-        $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
-        $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+        if (empty($type)) {
+            $raw['fromUserId'] = $userId;
+            $raw['toUserId']   = $friendId;
+            (new FriendLevel($raw))->handle();
+        } else {
+            // 发送升级请求给双方 融云
+            $ryData = [
+                'heart_count'     => rand(1,10),
+                'relationship_id' => rand(1,4),
+            ];
+
+            $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
+            $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+        }
+
     }
 
 

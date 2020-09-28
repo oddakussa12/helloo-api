@@ -119,7 +119,10 @@ class FriendLevel implements ShouldQueue
                 $score = $score <= $star ? $score+1 : $score;
 
                 //星数>5时，直接返回
-                if ($score>$star) return false;
+                if ($score>$star) {
+                    dump('心大于5，结束。');
+                    return false;
+                }
 
                 if (!empty($isFriendRelation) && $score<=$star) {
 
@@ -179,7 +182,6 @@ class FriendLevel implements ShouldQueue
         $user = Redis::hgetall('user.'.$userId.'.data');
         // 融云推送 聊天
         $this->dispatch((new RySystem($userId, $friendId, $objectName, [
-            'content'  => 'friend request',
             'name'     => 'HEART_UPGRADE',
             'data'     => $data,
             'userInfo' => $user
