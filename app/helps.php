@@ -1178,7 +1178,7 @@ if (!function_exists('rate_comment_v4')) {
  */
 function userCover($value='', $type='avatar') {
     if ($type=='avatar') {
-        $value = empty($value) ? 'default_avatar.png' : $value;
+        $value = empty($value) ? 'default_avatar.jpg' : $value;
     } else {
         $value = empty($value) ? 'default_cover.png' : $value;
     }
