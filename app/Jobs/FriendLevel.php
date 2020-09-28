@@ -8,6 +8,7 @@ use App\Models\UserFriendLevelHistory;
 use App\Models\UserFriendTalk;
 use App\Models\UserFriendTalkList;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -74,6 +75,7 @@ class FriendLevel implements ShouldQueue
         $star     = Constant::DAY_UPPER_STAR;
         $isFriend = FriendSignIn::isFriend($raw['fromUserId'], $raw['toUserId']);
         if (empty($isFriend)) {
+            Log::info('不是好友');
             return false;
         }
         $isFriendRelation = $this->isFriendRelation($raw['fromUserId'], $raw['toUserId'], false);
@@ -106,6 +108,7 @@ class FriendLevel implements ShouldQueue
         if (!empty($result)) {
             // 当特殊好友关系不存在，且有一颗心时，直接返回
             if (empty($isFriendRelation) && $result['score']>=1) {
+                dump('当特殊好友关系不存在，且有一颗心');
                 return true;
             }
             $uNum  = $result['user_id']   == $raw['fromUserId'] ? $result['user_id_count']+1   : $result['user_id_count'];
