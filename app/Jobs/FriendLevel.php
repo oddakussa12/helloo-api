@@ -184,6 +184,7 @@ class FriendLevel implements ShouldQueue
 
     public function sendMsgToRongYun($userId, $friendId, $objectName, $data)
     {
+        dump(__FILE__. __FUNCTION__);
         $user = Redis::hgetall('user.'.$userId.'.data');
         // 融云推送 聊天
        $result = $this->dispatch((new RySystem($userId, $friendId, $objectName, [
