@@ -36,6 +36,11 @@ class UserFriendAffinityController extends BaseController
     public function main($friendId)
     {
         $authUserId = auth()->id();
+        $friendId   = intval($friendId);
+
+        if (empty($authUserId) || empty($friendId)) {
+            return $this->response->errorForbidden();
+        }
 
         if ($authUserId == $friendId) {
             //return $this->response->noContent();
@@ -52,26 +57,26 @@ class UserFriendAffinityController extends BaseController
         $baseWhere = ['user_id'=>$user_id,'friend_id'=>$friend_id,'is_delete'=>0];
 
         $result = UserFriendLevel::select('heart_count','relationship_id')
-            ->where(array_merge($baseWhere, ['status'=>1]))->first()->toArray();
+            ->where(array_merge($baseWhere, ['status'=>1]))->first();
 
         $count  = UserFriendTalkList::select('user_id','user_id_count', 'friend_id', 'friend_id_count', DB::RAW('score as heart_count'))
-            ->where($baseWhere)->first()->toArray();
+            ->where($baseWhere)->first();
 
-        $result = array_merge($count, $result);
+        $result = !empty($result) ? $result->toArray() : [];
+        $count  = !empty($count)  ? $count->toArray()  : [];
 
         if (!empty($result)) {
             $result['sign'] = $this->getSignInList($friendId, false);
         } else {
-            /*$talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
-            $result['heart_count']     = !empty($talk) ? 1 : 0;*/
+            $talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
+            $result['heart_count']     = !empty($talk) ? 1 : 0;
             $result['relationship_id'] = -1;
             $result['sign']['total']   = 0;
         }
 
+        //$result = collect($count)->merge(collect($result))->toArray();
 
-
-
-
+        $result   = array_merge($result, $count);
         $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
 
         // 不是双方好友关系
@@ -81,10 +86,11 @@ class UserFriendAffinityController extends BaseController
         }
         $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400) : 0;
 
-        $friend           = User::where('user_id', $friendId)->first();
-        $result['friend'] = new UserCollection($friend);
+        $friend = Redis::hgetall("user.".$friendId.'.data');
+        $friend = !empty($friend) ? array_merge($friend, ['user_id'=>$friendId]) : User::where('user_id', $friendId)->first();
+        $friend['user_avatar'] = userCover($friend['user_avatar'] ?? '');
 
-
+        $result['friend'] = $friend;
 
         Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
         Redis::expire($memKey, 86400);
