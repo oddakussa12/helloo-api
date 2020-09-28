@@ -166,8 +166,10 @@ class FriendLevel implements ShouldQueue
                     'relationship_id' => $isFriendRelation['relationship_id'],
                 ];
 
+                dump("发送融云推送  start");
                 $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
                 $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+                dump("发送融云推送  end");
 
             }
             //else{
