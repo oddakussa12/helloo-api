@@ -133,7 +133,7 @@ class UserFriendAffinityController extends BaseController
         $friendId = intval($request->input('friend_id'));
 
         dump($userId, $friendId);
-        if (!empty($type)) {
+        if ($type==1) {
             $raw['fromUserId'] = $userId;
             $raw['toUserId']   = $friendId;
             dump('第一次：'.$userId. '>>>>>>'. $friendId);
@@ -143,6 +143,16 @@ class UserFriendAffinityController extends BaseController
             dump('第二次：'.$friendId. '>>>>>>'. $userId);
 
             (new FriendLevel($raw))->handle();
+        } elseif($type==2) {
+            $raw['fromUserId'] = $userId;
+            $raw['toUserId']   = $friendId;
+            dump('队列第一次：'.$userId. '>>>>>>'. $friendId);
+            $result = FriendLevel::dispatch($raw)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
+            $raw['fromUserId'] = $friendId;
+            $raw['toUserId']   = $userId;
+            dump('队列第二次：'.$friendId. '>>>>>>'. $userId);
+           $result = FriendLevel::dispatch($raw)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
+
         } else {
             // 发送升级请求给双方 融云
             $ryData = [
