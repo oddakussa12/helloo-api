@@ -207,8 +207,6 @@ class FriendLevel implements ShouldQueue
         } else {
             $result = RySystem::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
-
-        dump($result);
     }
 
 
@@ -230,8 +228,6 @@ class FriendLevel implements ShouldQueue
         } else {
             $result = Friend::dispatch($userId, $friendId, $objectName, $data)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
-
-        dump($result);
     }
 
 
