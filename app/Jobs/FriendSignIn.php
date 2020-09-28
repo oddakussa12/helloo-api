@@ -39,15 +39,16 @@ class FriendSignIn implements ShouldQueue
     {
         $raw      = $this->data;
         if (empty($raw)) {
-            Log::error('message:::::data is  empty  data is  empty  data is  empty  data is  empty  ');
+            Log::error(__FILE__. ' message:::::data is  empty  data is  empty');
         }
+
+        list($userId, $friendId) = self::sortId($raw['fromUserId'], $raw['toUserId']); // 排序
+
         $nextDay  = strtotime(date('Y-m-d',strtotime('+1 day'))); // 获取明天凌晨的时间戳
         $isFriend = self::isFriend($raw['fromUserId'], $raw['toUserId']); // 是否是好友
-        list($userId, $friendId) = $arr = self::sortId($raw['fromUserId'], $raw['toUserId']); // 排序
 
-        $friend_uuid = implode('_', $arr);
-        $memKey      = Constant::RY_CHAT_FRIEND_SIGN_IN. $friend_uuid;
-        $value       = Redis::get($memKey);
+        $memKey   = Constant::RY_CHAT_FRIEND_SIGN_IN. $userId.'_'.$friendId;
+        $value    = Redis::get($memKey);
 
         if (!empty($value)) {
             $value = json_decode($value, true);
@@ -57,6 +58,7 @@ class FriendSignIn implements ShouldQueue
                 Redis::set($memKey, json_encode($value, JSON_UNESCAPED_UNICODE));
                 Redis::expire($memKey, $nextDay - time());
 
+                dump($value);
                 // 签到成功 清空好友首页缓存
                 Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
 
@@ -68,7 +70,7 @@ class FriendSignIn implements ShouldQueue
         } else {
             $memValue['signUser'] = [$raw['fromUserId']];
             $memValue['status']   = 0;
-
+            dump($memValue);
             Redis::set($memKey, json_encode($memValue, JSON_UNESCAPED_UNICODE));
             Redis::expire($memKey, $nextDay - time());
         }
