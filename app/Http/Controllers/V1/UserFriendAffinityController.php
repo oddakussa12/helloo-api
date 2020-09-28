@@ -43,7 +43,7 @@ class UserFriendAffinityController extends BaseController
      */
     public function main($friendId)
     {
-        $authUserId = 31666; auth()->id();
+        $authUserId = auth()->id();
 
         if ($authUserId == $friendId) {
             //return $this->response->noContent();
