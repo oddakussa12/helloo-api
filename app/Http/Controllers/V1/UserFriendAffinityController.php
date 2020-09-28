@@ -246,7 +246,7 @@ class UserFriendAffinityController extends BaseController
         ]);
 
         if (empty($authUserId)) {
-            Log::info('message::: auth()->user()->user_id 不为空');
+            Log::info('message::: auth()->user()->user_id 为空');
             return $this->response->errorForbidden();
         }
 
@@ -407,7 +407,8 @@ class UserFriendAffinityController extends BaseController
     public function checkFriendLevel($userId, $relationShipId='', $compare=false)
     {
         $result = UserFriendLevel::select('user_id', 'friend_id', 'score', 'relationship_id')
-            ->where('user_id', $userId)->orWhere('friend_id', $userId);
+        ->whereRaw("(user_id= $userId or friend_id= $userId)");
+
         if ($relationShipId)
             $result->where('relationship_id', $relationShipId);
 
