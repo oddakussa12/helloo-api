@@ -191,7 +191,7 @@ class FriendLevel implements ShouldQueue
             'name'     => 'HEART_UPGRADE',
             'data'     => $data,
             'userInfo' => $user
-        ])->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
+        ])->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         dump($result);
     }
 
