@@ -320,7 +320,7 @@ class UserFriendAffinityController extends BaseController
 
         if (empty($relationShipUser) || empty($relationShipFriend)) {
             Log::info('message::关系超限，不能添加');
-            return $this->response->errorNotFound('关系超限，不能添加');
+            return $this->response->errorNotFound(trans('FriendBig.the_relationship_has_exceeded_the_limitt'));
             return $this->response->noContent();
         }
 
@@ -380,14 +380,29 @@ class UserFriendAffinityController extends BaseController
             Log::info('message::不是好友关系');
             return $this->response->errorNotFound(trans('FriendBig.you_are_not_friends_yet'));
         }
+
         $baseWhere = ['user_id'=>$user_id,'friend_id'=>$friend_id, 'is_delete'=>0, 'status'=>0];
-        $info      = UserFriendLevel::where(array_merge($baseWhere, ['relationship_id'=> $relation_id]))->first();
+        $relWhere  = array_merge($baseWhere, ['relationship_id'=> $relation_id]);
+
+        // 查询两人之间是否已有关系
+        $relInfo   = FriendLevel::isFriendRelation($user_id, $friend_id);
+        if ($relInfo) {
+            if ($relInfo['relationship_id'] == $relation_id) {
+                // 多次点击同意时，可能触发
+                return $this->response->accepted();
+            } else {
+                // 同时发送多个关系，且有一个已经同意时，触发
+                Log::info('message:::只能有一种关系');
+                return $this->response->errorNotFound(trans('FriendBig.there_can_only_be_one_relationship'));
+            }
+        }
+
 
         // 邀请关系失效，直接返回
+        $info = UserFriendLevel::where($relWhere)->first();
         if (empty($info)) {
-            return $this->response->errorNotFound(trans('FriendBig.the_request_has_expired_please_resend_the_request'));
             Log::info('关系已完成或失效，不能添加');
-            return $this->response->noContent();
+            return $this->response->errorNotFound(trans('FriendBig.the_request_has_expired_please_resend_the_request'));
         }
 
         $relationShipFriend = $this->checkFriendLevel($friendId, $relation_id, true);
@@ -395,16 +410,15 @@ class UserFriendAffinityController extends BaseController
 
         if (empty($relationShipFriend) || empty($relationShipUser)) {
             Log::info('message::关系超限，不能添加');
-            UserFriendLevel::where($baseWhere)->update(['status'=>-2]);
-            return $this->response->errorNotFound('关系超限，不能添加');
-            return $this->response->noContent();
+            UserFriendLevel::where($relWhere)->update(['status'=>-2, 'is_delete'=>1]);
+            return $this->response->errorNotFound(trans('FriendBig.the_relationship_has_exceeded_the_limitt'));
         }
 
         // 修改关系为已同意
-        $result = UserFriendLevel::where(array_merge($baseWhere, ['relationship_id'=> $relation_id]))->update(['status'=>1]);
+        $result = UserFriendLevel::where($relWhere)->update(['status'=>1]);
 
         // 删除和该用户的，其他已存在的请求
-        $result && UserFriendLevel::where($baseWhere)->update(['is_delete'=>-1]);
+        $result && UserFriendLevel::where($baseWhere)->where('relationship_id', '!=', $relation_id)->update(['is_delete'=>-1]);
 
         // 融云推送 聊天
         $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendReposed', [
