@@ -132,7 +132,8 @@ class UserFriendAffinityController extends BaseController
         $userId   = intval($request->input('user_id'));
         $friendId = intval($request->input('friend_id'));
 
-        if (empty($type)) {
+        dump($userId, $friendId);
+        if (!empty($type)) {
             $raw['fromUserId'] = $userId;
             $raw['toUserId']   = $friendId;
             (new FriendLevel($raw))->handle();
