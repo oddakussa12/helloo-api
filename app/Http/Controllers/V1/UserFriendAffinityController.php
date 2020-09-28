@@ -46,22 +46,31 @@ class UserFriendAffinityController extends BaseController
         $memKey   = Constant::FRIEND_RELATIONSHIP_MAIN.$user_id.'_'.$friend_id;
         $memValue = Redis::get($memKey);
         if (!empty($memValue)) {
-            return json_decode($memValue, true);
+            //return json_decode($memValue, true);
         }
 
-        $baseWhere= ['user_id'=>$user_id,'friend_id'=>$friend_id,'is_delete'=>0];
+        $baseWhere = ['user_id'=>$user_id,'friend_id'=>$friend_id,'is_delete'=>0];
 
-        $result   = UserFriendLevel::select('heart_count','relationship_id')
-            ->where(array_merge($baseWhere, ['status'=>1]))->first();
+        $result = UserFriendLevel::select('heart_count','relationship_id')
+            ->where(array_merge($baseWhere, ['status'=>1]))->first()->toArray();
+
+        $count  = UserFriendTalkList::select('user_id','user_id_count', 'friend_id', 'friend_id_count', DB::RAW('score as heart_count'))
+            ->where($baseWhere)->first()->toArray();
+
+        $result = array_merge($count, $result);
 
         if (!empty($result)) {
             $result['sign'] = $this->getSignInList($friendId, false);
         } else {
-            $talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
-            $result['heart_count']     = !empty($talk) ? 1 : 0;
+            /*$talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
+            $result['heart_count']     = !empty($talk) ? 1 : 0;*/
             $result['relationship_id'] = -1;
             $result['sign']['total']   = 0;
         }
+
+
+
+
 
         $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
 
@@ -74,6 +83,8 @@ class UserFriendAffinityController extends BaseController
 
         $friend           = User::where('user_id', $friendId)->first();
         $result['friend'] = new UserCollection($friend);
+
+
 
         Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
         Redis::expire($memKey, 86400);
