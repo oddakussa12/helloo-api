@@ -109,7 +109,7 @@ class UserFriendRequestController extends BaseController
         $user         = auth()->user();
         $userId       = $user->user_id;
         UserFriendRequest::where('request_from_id', $friendId)->where('request_to_id', $userId)->update(['request_state'=>$requestState]);
-        
+
         // 融云推送 聊天
         FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
             'content'  => 'friend response',

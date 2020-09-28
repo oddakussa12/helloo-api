@@ -3,27 +3,19 @@
 namespace App\Http\Controllers\V1;
 
 use App\Custom\Constant\Constant;
-use App\Jobs\Affinity;
-use App\Jobs\Friend;
 use App\Jobs\FriendLevel;
 use App\Jobs\FriendSignIn;
-use App\Jobs\RySystem;
 use App\Models\User;
-use App\Models\UserFriend;
 use App\Models\UserFriendLevel;
 use App\Models\UserFriendRelationRule;
-use App\Models\UserFriendRelationship;
-use App\Models\UserFriendRelationShipRule;
 use App\Models\UserFriendSignIn;
 use App\Models\UserFriendTalkList;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Repositories\Contracts\UserRepository;
-use App\Http\Requests\StoreUserFriendRequestRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use Jenssegers\Agent\Agent;
 
 /**
  * Class UserFriendAffinityController
@@ -126,7 +118,7 @@ class UserFriendAffinityController extends BaseController
      * @return void 等级规则
      * 等级规则
      */
-   /* public function rule(Request $request)
+    public function rule(Request $request)
     {
         $type     = intval($request->input('type'));
         $userId   = intval($request->input('user_id'));
@@ -143,30 +135,20 @@ class UserFriendAffinityController extends BaseController
             dump('第二次：'.$friendId. '>>>>>>'. $userId);
 
             $result2 = (new FriendLevel($raw))->handle();
-        } elseif($type==2) {
-            $raw['fromUserId'] = $userId;
-            $raw['toUserId']   = $friendId;
-            dump('队列第一次：'.$userId. '>>>>>>'. $friendId);
-            $result = FriendLevel::dispatch($raw)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
-            $raw['fromUserId'] = $friendId;
-            $raw['toUserId']   = $userId;
-            dump('队列第二次：'.$friendId. '>>>>>>'. $userId);
-           $result2 = FriendLevel::dispatch($raw)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
-
-        }else {
+        } else {
             // 发送升级请求给双方 融云
             $ryData = [
                 'heart_count'     => rand(1,10),
                 'relationship_id' => rand(1,4),
             ];
 
-            $result  = FriendLevel::sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
-            $result2 = FriendLevel::sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+            $result  = FriendLevel::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData);
+            $result2 = FriendLevel::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData);
         }
 
         dump($result, $result2);
 
-    }*/
+    }
 
     /**
      * @param $friendId

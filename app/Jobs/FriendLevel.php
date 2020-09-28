@@ -167,8 +167,8 @@ class FriendLevel implements ShouldQueue
                 ];
 
                 dump("发送融云推送  start");
-                self::sendMsgToRongYunBySystem($userId, $friendId, 'RC:CmdMsg', $ryData);
-                self::sendMsgToRongYunBySystem($friendId, $userId, 'RC:CmdMsg', $ryData);
+                self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData);
+                self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData);
                 dump("发送融云推送  end");
 
             }
@@ -190,7 +190,7 @@ class FriendLevel implements ShouldQueue
      *
      * 发送系统消息给融云
      */
-    public static function sendMsgToRongYunBySystem($userId, $friendId, $objectName, $data)
+    public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $data)
     {
         dump(__FILE__. __FUNCTION__);
 
