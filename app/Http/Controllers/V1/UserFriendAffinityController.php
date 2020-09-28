@@ -136,6 +136,12 @@ class UserFriendAffinityController extends BaseController
         if (!empty($type)) {
             $raw['fromUserId'] = $userId;
             $raw['toUserId']   = $friendId;
+            dump('第一次：'.$userId. '>>>>>>'. $friendId);
+            (new FriendLevel($raw))->handle();
+            $raw['fromUserId'] = $friendId;
+            $raw['toUserId']   = $userId;
+            dump('第二次：'.$friendId. '>>>>>>'. $userId);
+
             (new FriendLevel($raw))->handle();
         } else {
             // 发送升级请求给双方 融云
