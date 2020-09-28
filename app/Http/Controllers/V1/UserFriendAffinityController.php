@@ -137,12 +137,12 @@ class UserFriendAffinityController extends BaseController
             $raw['fromUserId'] = $userId;
             $raw['toUserId']   = $friendId;
             dump('第一次：'.$userId. '>>>>>>'. $friendId);
-            (new FriendLevel($raw))->handle();
+            $result = (new FriendLevel($raw))->handle();
             $raw['fromUserId'] = $friendId;
             $raw['toUserId']   = $userId;
             dump('第二次：'.$friendId. '>>>>>>'. $userId);
 
-            (new FriendLevel($raw))->handle();
+            $result2 = (new FriendLevel($raw))->handle();
         } elseif($type==2) {
             $raw['fromUserId'] = $userId;
             $raw['toUserId']   = $friendId;
@@ -151,8 +151,19 @@ class UserFriendAffinityController extends BaseController
             $raw['fromUserId'] = $friendId;
             $raw['toUserId']   = $userId;
             dump('队列第二次：'.$friendId. '>>>>>>'. $userId);
-           $result = FriendLevel::dispatch($raw)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
+           $result2 = FriendLevel::dispatch($raw)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
 
+        } elseif($type==3) {
+            $raw['fromUserId'] = $friendId;
+            $raw['toUserId']   = $userId;
+            // 发送升级请求给双方 融云
+            $ryData = [
+                'heart_count'     => rand(1,10),
+                'relationship_id' => rand(1,4),
+            ];
+
+            $result   = (new FriendLevel($raw))->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
+            $result2  = (new FriendLevel($raw))->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
         } else {
             // 发送升级请求给双方 融云
             $ryData = [
@@ -160,9 +171,11 @@ class UserFriendAffinityController extends BaseController
                 'relationship_id' => rand(1,4),
             ];
 
-            $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
-            $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+            $result  = $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
+            $result2 = $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
         }
+
+        return array_merge($result, $result2);
 
     }
 
