@@ -167,8 +167,8 @@ class FriendLevel implements ShouldQueue
                 ];
 
                 dump("发送融云推送  start");
-                $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
-                $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+                self::sendMsgToRongYunBySystem($userId, $friendId, 'RC:CmdMsg', $ryData);
+                self::sendMsgToRongYunBySystem($friendId, $userId, 'RC:CmdMsg', $ryData);
                 dump("发送融云推送  end");
 
             }
@@ -182,30 +182,64 @@ class FriendLevel implements ShouldQueue
         }
     }
 
-    public function sendMsgToRongYun($userId, $friendId, $objectName, $data)
+    /**
+     * @param $userId
+     * @param $friendId
+     * @param $objectName
+     * @param $data
+     *
+     * 发送系统消息给融云
+     */
+    public static function sendMsgToRongYunBySystem($userId, $friendId, $objectName, $data)
     {
         dump(__FILE__. __FUNCTION__);
-        $user = Redis::hgetall('user.'.$userId.'.data');
-        // 融云推送 聊天
-       $result = RySystem::dispatch($userId, $friendId, $objectName, [
+
+        $user    = Redis::hgetall('user.'.$userId.'.data');
+        $content = [
             'name'     => 'HEART_UPGRADE',
             'data'     => $data,
             'userInfo' => $user
-        ])->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+        ];
+
+        // 融云推送 聊天
+        if (Constant::QUEUE_PUSH_TYPE=='redis') {
+            $result = RySystem::dispatch($userId, $friendId, $objectName, $content)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+        } else {
+            $result = RySystem::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+        }
+
         dump($result);
     }
 
 
-    /*public function sendMsgToRongYun($userId, $friendId, $objectName, $relationship_id, $score)
+    /**
+     * @param $userId
+     * @param $friendId
+     * @param $objectName
+     * @param $data
+     *
+     * 发送自定义消息给融云
+     */
+    public static function sendMsgToRyByPerson($userId, $friendId, $objectName, $data)
     {
-        $user = Redis::hgetall('user.'.$userId.'.data');
+        dump(__FILE__. __FUNCTION__);
+
+        $user    = Redis::hgetall('user.'.$userId.'.data');
+        $content = [
+            'name'     => 'HEART_UPGRADE',
+            'data'     => $data,
+            'userInfo' => $user
+        ];
+
         // 融云推送 聊天
-        $this->dispatch((new Friend($userId, $friendId, $objectName, [
-            'content'         => 'friend request',
-            'score'           => $score,
-            'relationship_id' => $relationship_id,
-            'user'            => $user
-        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
-    }*/
+        if (Constant::QUEUE_PUSH_TYPE=='redis') {
+            $result = Friend::dispatch($userId, $friendId, $objectName, $content)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+        } else {
+            $result = Friend::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+        }
+
+        dump($result);
+    }
+
 
 }

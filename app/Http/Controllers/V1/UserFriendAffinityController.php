@@ -126,7 +126,7 @@ class UserFriendAffinityController extends BaseController
      * @return void 等级规则
      * 等级规则
      */
-    public function rule(Request $request)
+   /* public function rule(Request $request)
     {
         $type     = intval($request->input('type'));
         $userId   = intval($request->input('user_id'));
@@ -153,43 +153,20 @@ class UserFriendAffinityController extends BaseController
             dump('队列第二次：'.$friendId. '>>>>>>'. $userId);
            $result2 = FriendLevel::dispatch($raw)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
 
-        } elseif($type==3) {
-            $raw['fromUserId'] = $friendId;
-            $raw['toUserId']   = $userId;
+        }else {
             // 发送升级请求给双方 融云
             $ryData = [
                 'heart_count'     => rand(1,10),
                 'relationship_id' => rand(1,4),
             ];
 
-            $result   = (new FriendLevel($raw))->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
-            $result2  = (new FriendLevel($raw))->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
-        } else {
-            // 发送升级请求给双方 融云
-            $ryData = [
-                'heart_count'     => rand(1,10),
-                'relationship_id' => rand(1,4),
-            ];
-
-            $result  = $this->sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
-            $result2 = $this->sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
+            $result  = FriendLevel::sendMsgToRongYun($userId, $friendId, 'RC:CmdMsg', $ryData);
+            $result2 = FriendLevel::sendMsgToRongYun($friendId, $userId, 'RC:CmdMsg', $ryData);
         }
 
         dump($result, $result2);
 
-    }
-
-
-    public function sendMsgToRongYun($userId, $friendId, $objectName, $data)
-    {
-        $user = Redis::hgetall('user.'.$userId.'.data');
-        // 融云推送 聊天
-        $this->dispatch((new RySystem($userId, $friendId, $objectName, [
-            'name'     => 'HEART_UPGRADE',
-            'data'     => $data,
-            'userInfo' => $user
-        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
-    }
+    }*/
 
     /**
      * @param $friendId
@@ -336,11 +313,11 @@ class UserFriendAffinityController extends BaseController
         UserFriendLevel::updateOrCreate(['id' => $level['id'] ?? null], array_merge($baseWhere, ['heart_count'=>1]));
 
         // 融云推送 聊天
-        $this->dispatch((new Friend($authUserId, $friend_id, 'Yooul:AffinityFriend', [
+        FriendLevel::sendMsgToRyByPerson($authUserId, $friend_id, 'Yooul:AffinityFriend', [
             'content'        => 'friend request',
             'relationship_id'=> $relation_id,
             'userInfo'       => $auth
-        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
+        ]);
 
         // 推送通知
         /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {
@@ -421,12 +398,12 @@ class UserFriendAffinityController extends BaseController
         $result && UserFriendLevel::where($baseWhere)->where('relationship_id', '!=', $relation_id)->update(['is_delete'=>-1]);
 
         // 融云推送 聊天
-        $this->dispatch((new Friend($userId, $friendId, 'Yooul:AffinityFriendReposed', [
+        FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:AffinityFriendReposed', [
             'content'        => 'friend response',
             'reposed'        => 1,
             'relationship_id'=> $info['relationship_id'],
             'userInfo'       => $user
-        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
+        ]);
 
         // 推送通知
         /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {

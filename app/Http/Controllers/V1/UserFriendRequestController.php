@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\Constant\Constant;
 use App\Jobs\Friend;
+use App\Jobs\FriendLevel;
 use App\Models\UserFriend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
@@ -64,10 +65,11 @@ class UserFriendRequestController extends BaseController
         $requests->request_to_id = $friendId;
         $requests->save();
 
-        $this->dispatch((new Friend($requests->request_from_id, $requests->request_to_id, 'Yooul:FriendRequest' , [
+        // 融云推送 聊天
+        FriendLevel::sendMsgToRyByPerson($requests->request_from_id, $requests->request_to_id, 'Yooul:FriendRequest', [
             'content'  => 'friend request',
             'userInfo' => $user
-        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
+        ]);
 
         return $this->response->created();
     }
@@ -92,12 +94,12 @@ class UserFriendRequestController extends BaseController
             UserFriend::insert($friends);
         }
 
-        $this->dispatch((new Friend($userId, $friendId, 'Yooul:FriendRequestReposed', [
+        // 融云推送 聊天
+        FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
             'content'  => 'friend response',
             'reposed'  => $state,
             'userInfo' => $user
-        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
-
+        ]);
         return $this->response->accepted();
     }
 
@@ -107,12 +109,13 @@ class UserFriendRequestController extends BaseController
         $user         = auth()->user();
         $userId       = $user->user_id;
         UserFriendRequest::where('request_from_id', $friendId)->where('request_to_id', $userId)->update(['request_state'=>$requestState]);
-
-        $this->dispatch((new Friend($userId, $friendId, 'Yooul:FriendRequestReposed', [
+        
+        // 融云推送 聊天
+        FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
             'content'  => 'friend response',
             'reposed'  => $requestState,
             'userInfo' => $user
-        ]))->onQueue(Constant::QUEUE_RY_CHAT_FRIEND));
+        ]);
         return $this->response->accepted();
     }
 }
