@@ -58,15 +58,15 @@ class FriendSignIn implements ShouldQueue
                 Redis::set($memKey, json_encode($value, JSON_UNESCAPED_UNICODE));
                 Redis::expire($memKey, $nextDay - time());
 
-                dump($value);
+                dump('签到设置缓存');
                 // 签到成功 清空好友首页缓存
                 Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
 
                 // 签到成功  ----  入库操作
                 $data = ['user_id'=>$userId,'friend_id'=>$friendId,'created_at'=>time(),'sign_month'=>date('Ym'),'sign_day'=>strtotime(date('Ymd'))];
                 $isFriend && UserFriendSignIn::insert($data);
-
             }
+            dump('签到读取缓存', $value);
         } else {
             $memValue['signUser'] = [$raw['fromUserId']];
             $memValue['status']   = 0;
