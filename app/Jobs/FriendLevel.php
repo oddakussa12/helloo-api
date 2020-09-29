@@ -195,13 +195,15 @@ class FriendLevel implements ShouldQueue
     {
         dump(__FILE__. __FUNCTION__);
 
-        $user    = Redis::hgetall('user.'.$userId.'.data');
+        /*$user    = Redis::hgetall('user.'.$userId.'.data');
         if (!empty($user)) {
             $user['user_id']     = $user['user_id'] ?? $userId;
             $user['user_avatar'] = userCover($user['user_avatar'] ?? '');
         } else {
             $user = User::where('user_id', $userId)->first();
-        }
+        }*/
+        
+        $user = User::where('user_id', $userId)->first();
 
         $content = [
             'name'     => 'HEART_UPGRADE',
