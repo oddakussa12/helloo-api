@@ -36,23 +36,22 @@ class RySystem implements ShouldQueue
 
     public function __construct($senderId, $targetId, $objectName, $content)
     {
-        if (!empty($content['userInfo'])) {
+        $user = $content['userInfo'] ?? [];
+        if (!empty($user)) {
+            $user = gettype($user) == 'array' ? (object)$user : $user;
             $extra['extra'] = [
-                'un' => !empty($content['userInfo']->user_nick_name) ? $content['userInfo']->user_nick_name : ($content['userInfo']->user_name ?? ''),
-                'ua' => userCover($content['userInfo']->user_avatar ?? ''),
-                'ui' => $content['userInfo']->user_id,
-                'uc' => $content['userInfo']->user_country,
-                'ul' => $content['userInfo']->user_level,
-                'ug' => $content['userInfo']->user_gender,
+                'un' => !empty($user->user_nick_name) ? $user->user_nick_name : ($user->user_name ?? ''),
+                'ua' => userCover($user->user_avatar ?? ''),
+                'ui' => $user->user_id,
+                'uc' => $user->user_country,
+                'ul' => $user->user_level,
+                'ug' => $user->user_gender,
                 'devicePlatformName' => userAgent(new Agent()) ?? '',
             ];
             $content['userInfo'] = [];
-            $content['userInfo'] = $extra;
         }
 
         $content['userInfo'] = $extra ?? [];
-
-        unset($content['userInfo'], $content['content']);
 
         $this->senderId      = $senderId;
         $this->targetId      = $targetId;
