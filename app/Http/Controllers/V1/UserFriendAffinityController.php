@@ -468,7 +468,7 @@ class UserFriendAffinityController extends BaseController
 
         list($user_id, $friend_id) = FriendSignIn::sortId($userId, $friendId);
 
-        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'relation_id'=>$relation_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>-1,'is_delete'=>-1]);
+        UserFriendLevel::where(['user_id'=>$user_id,'friend_id'=>$friend_id, 'relationship_id'=>$relation_id, 'is_delete'=>0, 'status'=>0])->update(['status'=>-1,'is_delete'=>-1]);
         return $this->response->accepted();
     }
 }
