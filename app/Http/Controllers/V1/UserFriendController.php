@@ -13,6 +13,7 @@ use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserFriendRepository;
 use Illuminate\Support\Facades\Redis;
+use Jenssegers\Agent\Agent;
 
 class UserFriendController extends BaseController
 {
@@ -128,7 +129,7 @@ class UserFriendController extends BaseController
         FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendDelete', [
             'content'        => 'friend delete',
             'userInfo'       => $user
-        ]);
+        ], userAgent(new Agent()));
         return $this->response->noContent();
     }
 }

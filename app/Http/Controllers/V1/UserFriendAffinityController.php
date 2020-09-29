@@ -16,6 +16,7 @@ use App\Repositories\Contracts\UserRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Jenssegers\Agent\Agent;
 
 /**
  * Class UserFriendAffinityController
@@ -25,8 +26,11 @@ use Illuminate\Support\Facades\Redis;
 class UserFriendAffinityController extends BaseController
 {
 
+    private $agent;
+
     public function __construct()
     {
+        $this->agent = userAgent(new Agent(), false);
     }
 
     /**
@@ -316,7 +320,7 @@ class UserFriendAffinityController extends BaseController
             'content'        => 'friend request',
             'relationship_id'=> $relation_id,
             'userInfo'       => $auth
-        ]);
+        ], $this->agent);
 
         // 推送通知
         /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {
@@ -402,7 +406,7 @@ class UserFriendAffinityController extends BaseController
             'reposed'        => 1,
             'relationship_id'=> $info['relationship_id'],
             'userInfo'       => $user
-        ]);
+        ], $this->agent);
 
         // 推送通知
         /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {

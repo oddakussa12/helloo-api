@@ -34,7 +34,7 @@ class RySystem implements ShouldQueue
     private $objectName;
 
 
-    public function __construct($senderId, $targetId, $objectName, $content)
+    public function __construct($senderId, $targetId, $objectName, $content, $userAgent='')
     {
         $user = $content['userInfo'] ?? [];
         if (!empty($user)) {
@@ -46,7 +46,7 @@ class RySystem implements ShouldQueue
                 'uc' => $user->user_country,
                 'ul' => $user->user_level,
                 'ug' => $user->user_gender,
-                'devicePlatformName' => userAgent(new Agent()) ?? '',
+                'devicePlatformName' => userAgentMobile($userAgent) ?? '',
             ];
             $content['userInfo'] = [];
         }
@@ -70,7 +70,7 @@ class RySystem implements ShouldQueue
             'senderId'   => $this->senderId,
             'targetId'   => $this->targetId,
             "objectName" => $this->objectName,
-            'content'    => ($this->content)
+            'content'    => $this->content
         ));
 
         dump('System', $result, $this->content);

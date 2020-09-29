@@ -22,6 +22,7 @@ class UserFriendRequestController extends BaseController
      * @var UserFriendRequestRepository
      */
     private $userFriendRequest;
+    private $agent;
 
 
     /**
@@ -31,6 +32,7 @@ class UserFriendRequestController extends BaseController
     public function __construct(UserFriendRequestRepository $userFriendRequest)
     {
         $this->userFriendRequest = $userFriendRequest;
+        $this->agent = userAgent(new Agent(), false);
     }
 
     /**
@@ -69,7 +71,7 @@ class UserFriendRequestController extends BaseController
         FriendLevel::sendMsgToRyByPerson($requests->request_from_id, $requests->request_to_id, 'Yooul:FriendRequest', [
             'content'  => 'friend request',
             'userInfo' => $user
-        ]);
+        ], $this->agent);
 
         return $this->response->created();
     }
@@ -99,7 +101,7 @@ class UserFriendRequestController extends BaseController
             'content'  => 'friend response',
             'reposed'  => $state,
             'userInfo' => $user
-        ]);
+        ], $this->agent);
         return $this->response->accepted();
     }
 
@@ -115,7 +117,7 @@ class UserFriendRequestController extends BaseController
             'content'  => 'friend response',
             'reposed'  => $requestState,
             'userInfo' => $user
-        ]);
+        ], $this->agent);
         return $this->response->accepted();
     }
 }

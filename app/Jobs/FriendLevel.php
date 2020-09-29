@@ -168,8 +168,9 @@ class FriendLevel implements ShouldQueue
                 ];
 
                 dump("发送融云推送  start");
-                self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData);
-                self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData);
+                $userAgent = $raw['source'] ?? '';
+                self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData, $userAgent);
+                self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData, $userAgent);
                 dump("发送融云推送  end");
 
             }
@@ -190,8 +191,9 @@ class FriendLevel implements ShouldQueue
      * @param $data
      *
      * 发送系统消息给融云
+     * @param string $userAgent
      */
-    public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $data)
+    public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $data, $userAgent='mobile')
     {
         dump(__FILE__. __FUNCTION__);
 
@@ -214,9 +216,9 @@ class FriendLevel implements ShouldQueue
 
         // 融云推送 聊天
         if (Constant::QUEUE_PUSH_TYPE=='redis') {
-            RySystem::dispatch($userId, $friendId, $objectName, $content)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            RySystem::dispatch($userId, $friendId, $objectName, $content, $userAgent)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         } else {
-            RySystem::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            RySystem::dispatch($userId, $friendId, $objectName, $content, $userAgent)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
     }
 
@@ -228,16 +230,17 @@ class FriendLevel implements ShouldQueue
      * @param $data
      *
      * 发送自定义消息给融云
+     * @param string $userAgent
      */
-    public static function sendMsgToRyByPerson($userId, $friendId, $objectName, $data)
+    public static function sendMsgToRyByPerson($userId, $friendId, $objectName, $data, $userAgent='mobile')
     {
         dump(__FILE__. __FUNCTION__);
 
         // 融云推送 聊天
         if (Constant::QUEUE_PUSH_TYPE=='redis') {
-            Friend::dispatch($userId, $friendId, $objectName, $data)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            Friend::dispatch($userId, $friendId, $objectName, $data, $userAgent)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         } else {
-            Friend::dispatch($userId, $friendId, $objectName, $data)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            Friend::dispatch($userId, $friendId, $objectName, $data, $userAgent)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
     }
 
