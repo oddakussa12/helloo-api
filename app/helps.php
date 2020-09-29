@@ -1017,7 +1017,7 @@ if (!function_exists('getUserCountryName')) {
     function getUserCountryName($countryId, $default=true)
     {
         $country_code = config('countries');
-        $country = ($this->user_country_id-1);
+        $country = ($countryId-1);
         if(array_key_exists($country , $country_code))
         {
             return strtolower($country_code[$country]);
