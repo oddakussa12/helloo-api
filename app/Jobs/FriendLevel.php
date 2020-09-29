@@ -82,7 +82,7 @@ class FriendLevel implements ShouldQueue
             Log::info('不是好友');
             return false;
         }
-        $isFriendRelation = $this->isFriendRelation($raw['fromUserId'], $raw['toUserId']);
+        $isFriendRelation = $this->isFriendRelation($raw['fromUserId'], $raw['toUserId'], false);
 
         list($userId, $friendId) = $arr = FriendSignIn::sortId($raw['fromUserId'], $raw['toUserId']);
 
@@ -150,7 +150,7 @@ class FriendLevel implements ShouldQueue
                     );
 
                     // 升级之后，清空情侣首页缓存
-                    Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
+                    // Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
                     Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
 
                    // $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
