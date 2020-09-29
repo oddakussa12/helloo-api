@@ -184,6 +184,7 @@ class UserFriendAffinityController extends BaseController
         $result = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
             ->orderBy('id', 'ASC')->limit(30)->get()->toArray();
 
+
         $firstDay = current($result);
         $endDay   = end($result);
         $today    = strtotime(date('Ymd'));
@@ -218,7 +219,7 @@ class UserFriendAffinityController extends BaseController
         $memKey   = Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId;
         $memValue = Redis::get($memKey);
         if (!empty($memValue)) {
-            return json_decode($memValue, true);
+            // return json_decode($memValue, true);
         }
 
         $result   = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')
@@ -400,6 +401,8 @@ class UserFriendAffinityController extends BaseController
         $result && UserFriendLevel::where($baseWhere)->where('relationship_id', '!=', $relation_id)->update(['is_delete'=>-1]);
 
         Redis::del(Constant::RY_CHAT_FRIEND_RELATIONSHIP.$user_id.'_'.$friend_id);
+        Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$user_id.'_'.$friend_id);
+        Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$user_id.'_'.$friend_id);
 
         // 融云推送 聊天
         FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:AffinityFriendReposed', [
