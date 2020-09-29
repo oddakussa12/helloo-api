@@ -59,7 +59,8 @@ class Test extends Command
             {
                 $postKey = 'post.'.$postId.'.data';
                 $after = $this->likeCount($postId);
-                Redis::hmset($postKey , array('temp_like'=>fakeLike($after['like'] , 80)));
+                $coefficient = intval(Redis::get('fake_like_coefficient'));
+                Redis::hmset($postKey , array('temp_like'=>fakeLike($after['like'] , $coefficient)));
             }
         }
     }
