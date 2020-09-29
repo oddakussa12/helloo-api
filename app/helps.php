@@ -1165,8 +1165,78 @@ if (!function_exists('rate_comment_v4')) {
             + round(floatval($commenterWeight) , 5)*$commenters
             + round(floatval($postCountryWeight) , 5)*$countries
             + 1;
-        $numerator = $numerator + round(floatval($likeWeight) , 5)*$likes;
+        if($intervals<86400)
+        {
+            $numerator = $numerator + round(floatval($likeWeight) , 5)*$likes
+                + round(floatval($commentWeight) , 5)*$comments
+                + round(floatval($commenterWeight) , 5)*$commenters
+                + round(floatval($postCountryWeight) , 5)*$countries
+                + 1;
+        }
         return $numerator / pow(floor((time()-$ctime)/3600) + 2, $gravity);
+    }
+}
+
+if (!function_exists('tempPostLikeNum')) {
+    /**
+     * get post temp like num
+     *
+     * @param $count
+     * @return int
+     */
+    function tempPostLikeNum($count)
+    {
+        return $count;
+        $multiple = 0;
+        while ($multiple<=0.1)
+        {
+            $multiple = randFloat();
+        }
+        if($count>0&&$count<=5)
+        {
+            $coefficient = 2.68;
+        }elseif ($count>5&&$count<=10)
+        {
+            $coefficient = 3.19;
+        }elseif ($count>10&&$count<=30)
+        {
+            $coefficient = 1.24;
+        }elseif ($count>30&&$count<=150)
+        {
+            $coefficient = 0.85;
+        }elseif ($count>150&&$count<=800)
+        {
+            $coefficient = 0.47;
+        }else{
+            $coefficient = 0.21;
+        }
+        return round(($count+$multiple)*$coefficient);
+    }
+}
+
+if (! function_exists('randFloat')) {
+    /**
+     * Random decimal
+     *
+     * @param int $min
+     * @param int $max
+     * @return int
+     */
+    function randFloat($min=0, $max=1){
+        return $min + mt_rand()/mt_getrandmax() * ($max-$min);
+    }
+}
+
+if (! function_exists('fakeLike')) {
+    /**
+     * fake like
+     * @param $num
+     * @param $coefficient
+     * @return int
+     */
+    function fakeLike($num , $coefficient=99){
+        $coefficient = $coefficient<=0?99:$coefficient;
+        return intval($num*$coefficient*(1-pow(1-randFloat(0.9 , 1) , 3)));
     }
 }
 

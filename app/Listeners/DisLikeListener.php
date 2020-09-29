@@ -42,7 +42,7 @@ class DisLikeListener
         if($object instanceof Post)
         {
             $keyName = $object->getKeyName();
-            $tmpDislikeNum = $event->getTmpDislikeNum();
+//            $tmpDislikeNum = $event->getTmpDislikeNum();
             $keyValue = $object->getKey();
             $commenterNum = $this->commenterCount($keyValue);
             $countryNum = $this->countryNum($keyValue);
@@ -56,7 +56,7 @@ class DisLikeListener
                 $this->updateTopicPostRate($keyValue , $rate);
             }
             $object->increment('post_like_num' , $event->getType() , $extra);
-            $this->updateLikeCount($keyValue , 'dislike' , $tmpDislikeNum);
+            $this->updateLikeCount($keyValue , 'dislike');
             $this->updateCountry($keyValue , $user->user_country_id);
             $this->updateUserPostDislikeCount($user->user_id);
 //            $user->increment('user_score');

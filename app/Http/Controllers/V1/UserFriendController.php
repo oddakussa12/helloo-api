@@ -82,7 +82,7 @@ delete from `f_users_friends` where `user_id`={$friendId} and `friend_id`={$user
 DOC;
         DB::statement($myselfSql);
         DB::statement($friendSql);
-        $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendRequestReposed' , ['content'=>'friend delete']))->onQueue('friend'));
+        $this->dispatch((new Friend($userId, $friendId , 'Yooul:FriendDelete' , ['content'=>'friend delete']))->onQueue('friend'));
         return $this->response->noContent();
     }
 }

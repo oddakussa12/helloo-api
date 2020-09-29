@@ -117,6 +117,10 @@ class SetController extends BaseController
         {
             $switches['emoji_md5'] = config('common.emoji_md5');
         }
+        if(strpos($fieldStr ,'index_switch'))
+        {
+            $switches['index_switch'] = (bool)Redis::get('index_switch');
+        }
 
         if(strpos($fieldStr ,'app_version'))
         {

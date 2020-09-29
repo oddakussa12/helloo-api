@@ -42,7 +42,7 @@ class LikeListener
         if($object instanceof Post)
         {
             $keyName      = $object->getKeyName();
-            $tmpLikeNum   = $event->getTmpLikeNum();
+            $tmpLikeNum   = tempPostLikeNum($object->post_like_num);
             $keyValue     = $object->getKey();
             $commenterNum = $this->commenterCount($keyValue);
             $countryNum   = $this->countryNum($keyValue);

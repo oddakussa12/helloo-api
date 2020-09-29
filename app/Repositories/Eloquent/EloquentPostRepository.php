@@ -484,8 +484,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $i     = intval($now->format('i'));
         $i     = $i <= 0 ? 1 : $i;
         $index = ceil($i/30);
-        $key   = 'post_index_rate_'.$index;
-
+        $indexSwitch = (bool)Redis::get('index_switch');
+        if($indexSwitch)
+        {
+            $key   = 'post_index_rate_v2_'.$index;
+            if(!Redis::exists($key))
+            {
+                $key = 'post_index_rate_'.$index;
+            }
+        }else{
+            $key   = 'post_index_rate_'.$index;
+        }
         return $this->getCachePosts($posts, $key);
     }
 
@@ -597,7 +606,6 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $total = $redis->zSize($memKey);
             $postIds = $redis->zRevRangeByScore($memKey , '+inf' , '-inf' , true , array($offset , $perPage));
             $postIds = array_keys($postIds);
-            array_unshift($postIds , 818370);
         } else {
             $total = 0;
             $postIds = array();
@@ -788,6 +796,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
         $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
+        $rateV2KeyOne = config('redis-key.post.post_index_rate_v2').'_1';
+        $rateV2KeyTwo = config('redis-key.post.post_index_rate_v2').'_2';
         $nonRateKey = config('redis-key.post.post_index_non_rate');
         $essencePostKey = config('redis-key.post.post_index_essence');
         $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
@@ -796,6 +806,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             Redis::sadd($nonRateKey , $postId);
             Redis::zrem($rateKeyOne , $postId);
             Redis::zrem($rateKeyTwo , $postId);
+            Redis::zrem($rateV2KeyOne , $postId);
+            Redis::zrem($rateV2KeyTwo , $postId);
             Redis::zrem($essencePostKey , $postId);
             Redis::zrem($essenceManualPostKey , $postId);
         }else{

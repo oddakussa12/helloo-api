@@ -44,13 +44,19 @@ trait CachablePost
     public function likeCount($id)
     {
         $postKey = 'post.'.$id.'.data';
-        $field = array('real_like' , 'real_dislike' , 'tmp_like' , 'tmp_dislike');
-        $viewField = array('like' , 'dislike' , 'tmp_like' , 'tmp_dislike');
+        $field = array('temp_like' , 'real_like' , 'real_dislike' , 'tmp_like' , 'tmp_dislike');
+        $viewField = array('temp_like' , 'like' , 'dislike' , 'tmp_like' , 'tmp_dislike');
         $likeData = Redis::hmget($postKey, $field);
-        return array_map(function ($v){
+        $likeData = array_map(function ($v){
             return intval($v);
         },array_combine($viewField , $likeData));
-
+        $indexSwitch = (bool)Redis::get('index_switch');
+        if($indexSwitch)
+        {
+            $likeData['tmp_like'] = $likeData['temp_like'];
+        }
+        unset($likeData['temp_like']);
+        return $likeData;
 //        $postKey = 'post.'.$id.'.data';
 //        $field = 'like';
 //        if(Redis::exists($postKey)&&Redis::hexists($postKey , $field))
@@ -218,10 +224,15 @@ trait CachablePost
             if(in_array($type , array('like' , 'dislike')))
             {
                 $likeType = 'real_'.$type;
-                Redis::hincrby($postKey , $likeType , 1);
+                $after = Redis::hincrby($postKey , $likeType , 1);
                 if($tmpNum>0)
                 {
                     Redis::hincrby($postKey , 'tmp_'.$type , $tmpNum);
+                }
+                if($type=='like')
+                {
+                    $coefficient = intval(Redis::get('fake_like_coefficient'));
+                    Redis::hmset($postKey , array('temp_like'=>fakeLike($after , $coefficient)));
                 }
             }
         }

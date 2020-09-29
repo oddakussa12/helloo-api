@@ -43,6 +43,11 @@ return [
     'commenter_weight'=>env('COMMENTER_WEIGHT', 0),
     'post_country_weight'=>env('POST_COUNTRY_WEIGHT', 0),
 
+    'like_weight_v2'=>env('LIKE_WEIGHT_V2', 0.2),
+    'comment_weight_v2'=>env('COMMENT_WEIGHT_V2', 0.8),
+    'commenter_weight_v2'=>env('COMMENTER_WEIGHT_V2', 0.5),
+    'post_country_weight_v2'=>env('POST_COUNTRY_WEIGHT_V2', 0.5),
+
     'sign_up_throttle_num' =>env('SIGN_UP_THROTTLE_NUM', 2),
     'sign_up_throttle_expired' =>env('SIGN_UP_THROTTLE_EXPIRED', 60),
     'forget_password_throttle_num' =>env('FORGET_PASSWORD_THROTTLE_NUM', 2),
