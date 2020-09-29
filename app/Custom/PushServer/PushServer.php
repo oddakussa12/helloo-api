@@ -26,7 +26,7 @@ class PushServer
         if ($this->params['registerType'] == 'fcm') {
             $result = $this->fcmPush();
         } else {
-            if (in_array($deviceBrand, ['huawei', 'honer'])) {
+            if (in_array($deviceBrand, ['huawei', 'honor'])) {
                 Log::info('message:::华为:::'.$deviceBrand);
                 $result = $this->huaweiPush();
             }
@@ -39,6 +39,9 @@ class PushServer
             if ($deviceBrand == 'vivo') {
 
             }
+
+
+
         }
         if (empty($result)) {
             // Log::info(__FUNCTION__.' params:', $this->params);
