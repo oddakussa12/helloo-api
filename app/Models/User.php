@@ -140,21 +140,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function getUserAvatarLinkAttribute()
     {
-        $value = $this->user_avatar;
-        $value = empty($value)?'default_avatar.jpg':$value;
-        if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
-            return $value;
-        }
-        return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+        return userCover($this->user_avatar);
     }
+
     public function getUserCoverLinkAttribute()
     {
-        $value = $this->user_cover;
-        $value = empty($value)?'default_cover.png':$value;
-        if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
-            return $value;
-        }
-        return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+        return userCover($this->user_cover, 'cover');
     }
 
     public function getUserPictureLinkAttribute($value)
@@ -231,13 +222,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function getUserCountryAttribute()
     {
-        $country_code = config('countries');
-        $country = ($this->user_country_id-1);
-        if(array_key_exists($country , $country_code))
-        {
-            return strtolower($country_code[$country]);
-        }
-        return strtolower($country_code[235]);
+        return getUserCountryName($this->user_country_id);
     }
 
     public function setUserCountryIdAttribute($value)

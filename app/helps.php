@@ -993,10 +993,10 @@ if (!function_exists('getUserCountryId'))
 }
 
 /**
- * 通过countryId 获取 countryName
+ * 通过countryId 获取帖子的 countryName
  */
-if (!function_exists('getCountryName')) {
-    function getCountryName($countryId, $default=true)
+if (!function_exists('getPostCountryName')) {
+    function getPostCountryName($countryId, $default=true)
     {
         $country_code = config('countries');
         $country      = ($countryId - 1);
@@ -1009,6 +1009,23 @@ if (!function_exists('getCountryName')) {
         return $default ? strtolower($country_code[235]) : 'world';
     }
 }
+
+/**
+ * 通过countryId 获取用户的 countryName
+ */
+if (!function_exists('getUserCountryName')) {
+    function getUserCountryName($countryId, $default=true)
+    {
+        $country_code = config('countries');
+        $country = ($countryId-1);
+        if(array_key_exists($country , $country_code))
+        {
+            return strtolower($country_code[$country]);
+        }
+        return strtolower($country_code[235]);
+    }
+}
+
 /**
  * 日期转换
  */
@@ -1235,10 +1252,43 @@ if (! function_exists('fakeLike')) {
      * @param $coefficient
      * @return int
      */
-    function fakeLike($num , $coefficient=99){
-        $coefficient = $coefficient<=0?99:$coefficient;
-        return intval($num*$coefficient*(1-pow(1-randFloat(0.9 , 1) , 3)));
+    function fakeLike($num, $coefficient = 99)
+    {
+        $coefficient = $coefficient <= 0 ? 99 : $coefficient;
+        return intval($num * $coefficient * (1 - pow(1 - randFloat(0.9, 1), 3)));
     }
+}
+    /**
+     * @param string $value
+     * @param string $type
+     * @return string
+     * 头像拼接URL
+     */
+function userCover($value='', $type='avatar') {
+    if ($type=='avatar') {
+        $value = empty($value) ? 'default_avatar.jpg' : $value;
+    } else {
+        $value = empty($value) ? 'default_cover.png' : $value;
+    }
+    
+    if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
+        return $value;
+    }
+    return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+}
+
+
+/**
+ * @param $agent
+ * @return string
+ */
+function userAgent($agent) {
+    if ($agent->match('YooulAndroid')) {
+        $referer = 'android';
+    } elseif ($agent->match('YoouliOS')) {
+        $referer = 'ios';
+    }
+    return $referer ?? 'web';
 }
 
 
