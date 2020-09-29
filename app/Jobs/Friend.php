@@ -37,7 +37,7 @@ class Friend implements ShouldQueue
     public function __construct($senderId, $targetId, $objectName, $content)
     {
         $extra['extra'] = [
-            'un' => $content['userInfo']->user_nick_name ?? ($content['userInfo']->user_name ?? ''),
+            'un' => !empty($content['userInfo']->user_nick_name) ? $content['userInfo']->user_nick_name : ($content['userInfo']->user_name ?? ''),
             'ua' => userCover($content['userInfo']->user_avatar ?? ''),
             'ui' => $content['userInfo']->user_id,
             'uc' => $content['userInfo']->user_country,
