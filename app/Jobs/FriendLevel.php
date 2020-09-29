@@ -155,7 +155,6 @@ class FriendLevel implements ShouldQueue
                    // $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
                    // $this->sendMsgToRongYun($friendId, $userId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
 
-
                 }
 
                 if (empty($isFriendRelation)) {
@@ -176,6 +175,9 @@ class FriendLevel implements ShouldQueue
                 dump("发送融云推送  end");
 
             }
+
+            Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
+
             //else{
             // 未加特殊关系或未满20条时  叠加聊天条数
             $data = ['user_id_count'=>$uNum, 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];

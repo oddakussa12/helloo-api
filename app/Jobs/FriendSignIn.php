@@ -91,11 +91,13 @@ class FriendSignIn implements ShouldQueue
         $mKey    = Constant::RY_CHAT_FRIEND_IS_FRIEND. implode('_', $arr);
         $mValue  = Redis::get($mKey);
         if (empty($mValue)) {
+            $mValue     = [];
             $userFriend = UserFriend::where('user_id', $userId)->where('friend_id', $friendId)->first();
             $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id', $userId)->first();
-            if (empty($userFriend) || empty($friendUser)) return false;
-            $mValue['user']   = $userFriend;
-            $mValue['friend'] = $friendUser;
+            if (!empty($userFriend) && !empty($friendUser)) {
+                $mValue['user']   = $userFriend;
+                $mValue['friend'] = $friendUser;
+            }
 
             Redis::set($mKey, json_encode($mValue, JSON_UNESCAPED_UNICODE));
             Redis::expire($mKey, 86400);
