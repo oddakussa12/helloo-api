@@ -109,13 +109,13 @@ class UserFriendController extends BaseController
 
             $sql = " set is_delete = 1, deleted_at = $time where user_id= $user_id and friend_id = $friend_id ";
 
-            // 关系等级及历史
-            DB::update("update f_users_friends_level  $sql");
-            DB::update("update f_users_friends_level_history $sql");
-
             // 签到
             DB::update("update f_users_friends_sign_in $sql");
             // DB::update("update f_users_friends_sign_in_month $sql");
+
+            // 关系等级及历史
+            DB::update("update f_users_friends_level  $sql");
+            DB::update("update f_users_friends_level_history $sql");
 
             // 聊天记录条数统计
             DB::update("update f_users_friends_talk $sql");
