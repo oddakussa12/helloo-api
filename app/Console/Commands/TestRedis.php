@@ -46,7 +46,8 @@ class TestRedis extends Command
     {
         $arr = [
             Constant::RY_CHAT_FRIEND_SIGN_IN. '*',
-            Constant::RY_CHAT_FRIEND_IS_FRIEND. '*'
+            Constant::RY_CHAT_FRIEND_IS_FRIEND. '*',
+            Constant::RY_CHAT_FRIEND_RELATIONSHIP. '*'
         ];
         foreach ($arr as $item) {
             $value1 = Redis::keys($item);

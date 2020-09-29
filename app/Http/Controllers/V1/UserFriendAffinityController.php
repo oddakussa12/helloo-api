@@ -399,6 +399,8 @@ class UserFriendAffinityController extends BaseController
         // 删除和该用户的，其他已存在的请求
         $result && UserFriendLevel::where($baseWhere)->where('relationship_id', '!=', $relation_id)->update(['is_delete'=>-1]);
 
+        Redis::del(Constant::RY_CHAT_FRIEND_RELATIONSHIP.$user_id.'_'.$friend_id);
+
         // 融云推送 聊天
         FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:AffinityFriendReposed', [
             'content'        => 'friend response',
