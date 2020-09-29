@@ -46,6 +46,9 @@ class FriendSignIn implements ShouldQueue
 
         $nextDay  = strtotime(date('Y-m-d',strtotime('+1 day'))); // 获取明天凌晨的时间戳
         $isFriend = self::isFriend($raw['fromUserId'], $raw['toUserId']); // 是否是好友
+        if (empty($isFriend)) {
+            return false;
+        }
 
         $memKey   = Constant::RY_CHAT_FRIEND_SIGN_IN. $userId.'_'.$friendId;
         $value    = Redis::get($memKey);
@@ -64,7 +67,7 @@ class FriendSignIn implements ShouldQueue
 
                 // 签到成功  ----  入库操作
                 $data = ['user_id'=>$userId,'friend_id'=>$friendId,'created_at'=>time(),'sign_month'=>date('Ym'),'sign_day'=>strtotime(date('Ymd'))];
-                $isFriend && UserFriendSignIn::insert($data);
+                UserFriendSignIn::insert($data);
             }
             dump('签到读取缓存', $value);
         } else {

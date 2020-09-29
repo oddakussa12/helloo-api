@@ -24,8 +24,6 @@ class Constant {
     const QUEUE_ES_USER="user_es";
 
 
-
-
     // 融云回调
     const QUEUE_RY_CHAT='store_ry_msg_tsm';
 
