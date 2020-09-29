@@ -66,7 +66,7 @@ class PushServer
                     return true;
                 } else {
                     if (!empty($result['tokensToDelete'])) {
-                         //Log::info(__FUNCTION__.' Push message tokensToDelete:'.__FUNCTION__, $result);
+                         Log::info(__FUNCTION__.' Push message tokensToDelete:'.__FUNCTION__, $result);
                         return true;
                     } else {
                         Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
@@ -105,7 +105,7 @@ class PushServer
         try {
             $result = (new MiPush($this->params))->send();
             if ($result['code'] == 0) {
-                // Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
+                Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
                 Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
@@ -121,7 +121,7 @@ class PushServer
         try {
             $result = (new OPush($this->params))->send();
             if ($result['code'] == 0) {
-                // Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
+                Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
                 Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
