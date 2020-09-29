@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\Constant\Constant;
 use App\Jobs\Friend;
+use App\Jobs\FriendLevel;
 use App\Jobs\FriendSignIn;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
@@ -122,7 +123,12 @@ class UserFriendController extends BaseController
             DB::update("update f_users_friends_talk_list $sql");
 
         });
-        $this->dispatch((new Friend($userId, $friendId, 'Yooul:FriendDelete', ['content'=>'friend delete', 'userInfo'=>$user]))->onQueue('friend'));
+
+        // 融云推送 聊天
+        FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendDelete', [
+            'content'        => 'friend delete',
+            'userInfo'       => $user
+        ]);
         return $this->response->noContent();
     }
 }
