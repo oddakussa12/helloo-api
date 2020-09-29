@@ -93,7 +93,7 @@ class PushServer
         try {
             $result = (new HPush($this->params))->send();
             if ($result['code'] == '80000000') {
-                 Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
+                // Log::info(__FUNCTION__.' Push message success:'.__FUNCTION__, $result);
                 return true;
             } else {
                 Log::info(__FUNCTION__.' Push message fail:'.__FUNCTION__, $result);
