@@ -90,8 +90,8 @@ class RyChatController extends BaseController
      */
     public function store(Request $request)
     {
-        $rand = rand(100000, 999999);
-        Log::debug('message:: start '.$rand. '  time:'.microtime());
+        // $rand = rand(100000, 999999);
+        // Log::debug('message:: start '.$rand. '  time:'.microtime());
         $all = $request->all();
         $response = $this->response->noContent();
         $rule = [
@@ -145,7 +145,7 @@ class RyChatController extends BaseController
                 }
             }
         }
-        Log::debug('message:: end '.$rand. '  time:'.microtime());
+        // Log::debug('message:: end '.$rand. '  time:'.microtime());
 
         return $response->setStatusCode(200);
     }

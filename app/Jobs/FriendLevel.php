@@ -81,7 +81,7 @@ class FriendLevel implements ShouldQueue
             Log::info('不是好友');
             return false;
         }
-        $isFriendRelation = $this->isFriendRelation($raw['fromUserId'], $raw['toUserId'], false);
+        $isFriendRelation = $this->isFriendRelation($raw['fromUserId'], $raw['toUserId']);
 
         list($userId, $friendId) = $arr = FriendSignIn::sortId($raw['fromUserId'], $raw['toUserId']);
 
