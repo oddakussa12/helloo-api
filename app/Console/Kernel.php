@@ -39,9 +39,13 @@ class Kernel extends ConsoleKernel
 //                return config('common.cron_switch');
 //            });
         $schedule->command('calculating:rate_limit_v2')
-            ->hourlyAt('20');
+            ->hourlyAt('20')->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('calculating:rate_limit_v2')
-            ->hourlyAt('50');
+            ->hourlyAt('50')->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('calculating:rate_limit')
             ->hourlyAt('15')->when(function(){
                 return config('common.cron_switch');
