@@ -159,14 +159,14 @@ class FriendLevel implements ShouldQueue
                 }
 
                 if (empty($isFriendRelation)) {
-                    $score = $isFriendRelation ? $score : 1;
+                    $score = 1;
                     $uNum  = $fNum = 0;
                 }
 
                 // 发送升级请求给双方 融云
                 $ryData = [
-                    'heart_count'     => $isFriendRelation['heart_count']+1,
-                    'relationship_id' => $isFriendRelation['relationship_id']  ?? -1,
+                    'heart_count'     => ($isFriendRelation['heart_count'] ?? 0) +1,
+                    'relationship_id' => $isFriendRelation['relationship_id'] ?? -1,
                 ];
 
                 dump("发送融云推送  start");
