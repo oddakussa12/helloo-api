@@ -50,6 +50,8 @@ class FriendLevel implements ShouldQueue
                 $result = UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>1])->first();
                 if (empty($result)) return false;
                 Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
+                Redis::expire($memKey, 86400);
+
             } else {
                 return json_decode($memValue, true);
             }
