@@ -85,7 +85,6 @@ class UserFriendAffinityController extends BaseController
 
         // 不是双方好友关系
         if (!empty($isFriend)) {
-            $isFriend   = json_decode($isFriend, true);
             $createTime = $isFriend['user']['created_at'] > $isFriend['friend']['created_at'] ? $isFriend['user']['created_at'] : $isFriend['friend']['created_at'];
         }
         $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400) : 0;
