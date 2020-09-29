@@ -195,15 +195,16 @@ class FriendLevel implements ShouldQueue
     {
         dump(__FILE__. __FUNCTION__);
 
-        /*$user    = Redis::hgetall('user.'.$userId.'.data');
+        $user = Redis::hgetall('user.'.$userId.'.data');
         if (!empty($user)) {
-            $user['user_id']     = $user['user_id'] ?? $userId;
-            $user['user_avatar'] = userCover($user['user_avatar'] ?? '');
+            $user['user_id']      = $user['user_id'] ?? $userId;
+            $user['user_avatar']  = userCover($user['user_avatar'] ?? '');
+            $user['user_country'] = getUserCountryName($user['user_country_id'] ?? '');
         } else {
             $user = User::where('user_id', $userId)->first();
-        }*/
-        
-        $user = User::where('user_id', $userId)->first();
+        }
+
+       // $user = User::where('user_id', $userId)->first();
 
         $content = [
             'name'     => 'HEART_UPGRADE',
@@ -213,9 +214,9 @@ class FriendLevel implements ShouldQueue
 
         // 融云推送 聊天
         if (Constant::QUEUE_PUSH_TYPE=='redis') {
-            $result = RySystem::dispatch($userId, $friendId, $objectName, $content)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            RySystem::dispatch($userId, $friendId, $objectName, $content)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         } else {
-            $result = RySystem::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            RySystem::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
     }
 

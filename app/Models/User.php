@@ -222,13 +222,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function getUserCountryAttribute()
     {
-        $country_code = config('countries');
-        $country = ($this->user_country_id-1);
-        if(array_key_exists($country , $country_code))
-        {
-            return strtolower($country_code[$country]);
-        }
-        return strtolower($country_code[235]);
+        return getUserCountryName($this->user_country_id);
     }
 
     public function setUserCountryIdAttribute($value)

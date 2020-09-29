@@ -328,7 +328,7 @@ class Post extends Model
 
     public function getPostEventCountryAttribute()
     {
-        return getCountryName($this->post_event_country_id, false);
+        return getPostCountryName($this->post_event_country_id, false);
     }
 
     public function calculatingRate()

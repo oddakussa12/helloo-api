@@ -993,10 +993,10 @@ if (!function_exists('getUserCountryId'))
 }
 
 /**
- * 通过countryId 获取 countryName
+ * 通过countryId 获取帖子的 countryName
  */
-if (!function_exists('getCountryName')) {
-    function getCountryName($countryId, $default=true)
+if (!function_exists('getPostCountryName')) {
+    function getPostCountryName($countryId, $default=true)
     {
         $country_code = config('countries');
         $country      = ($countryId - 1);
@@ -1009,6 +1009,23 @@ if (!function_exists('getCountryName')) {
         return $default ? strtolower($country_code[235]) : 'world';
     }
 }
+
+/**
+ * 通过countryId 获取用户的 countryName
+ */
+if (!function_exists('getUserCountryName')) {
+    function getUserCountryName($countryId, $default=true)
+    {
+        $country_code = config('countries');
+        $country = ($this->user_country_id-1);
+        if(array_key_exists($country , $country_code))
+        {
+            return strtolower($country_code[$country]);
+        }
+        return strtolower($country_code[235]);
+    }
+}
+
 /**
  * 日期转换
  */
