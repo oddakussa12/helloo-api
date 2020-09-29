@@ -42,34 +42,27 @@ class Test extends Command
      */
     public function handle()
     {
-
-        TestJob::dispatch()->onConnection('sqs');
-        die;
-        $userTags = \Storage::get('userTags/tags.json');
-        $userTags = collect(\json_decode($userTags , true));
-        dd($userTags);
-//        $tags_id = array_filter($tag_slug ,function($v) use ($userTags){
-//            return is_int($v);
-//        });
-        die;
-        $tags = \DB::table("users_tags")->select('tag_id' , "tag_slug")->get();
-
-        $userTags = array();
-        $tags->each(function($tag , $index) use (&$userTags){
-            $userTags[$tag->tag_id] = $tag;
-        });
-        $userTags = collect($userTags)->map(function ($value) {return (array)$value;})->toArray();
-        \Storage::put('userTags/tags.json' , \json_encode($userTags , JSON_PRETTY_PRINT));
-//        $file = storage_path('app/tmp/count.csv');
-//        Post::where('post_created_at' , '>' , "2020-07-01 00:00:00")->where('post_type' , 'image')->chunk(1000 , function($posts) use ($file){
-//            $str = '';
-//            foreach ($posts as $post)
-//            {
-//                $image = $post->post_media;
-//                $str .= strval($post->post_id).','.$image['image']['image_count'].PHP_EOL;
-//            }
-//            file_put_contents($file , $str , FILE_APPEND);
-//        });
+        $now = Carbon::now();
+        $oneMonthAgo = $now->subDays(3)->format('Y-m-d 00:00:00');
+        $newKey = config('redis-key.post.post_index_new');
+        $perPage = 10;
+        $count = Redis::zcard($newKey);
+        $redis = new RedisList();
+        $lastPage = ceil($count/$perPage);
+        for ($page=1;$page<=$lastPage;$page++) {
+            $offset = ($page - 1) * $perPage;
+            $posts = $redis->zRevRangeByScore($newKey, '+inf', strtotime($oneMonthAgo), true, array($offset, $perPage));
+            if (empty($posts)) {
+                break;
+            }
+            foreach ($posts as $postId=>$time)
+            {
+                $postKey = 'post.'.$postId.'.data';
+                $after = $this->likeCount($postId);
+                $coefficient = intval(Redis::get('fake_like_coefficient'));
+                Redis::hmset($postKey , array('temp_like'=>fakeLike($after['like'] , $coefficient)));
+            }
+        }
     }
 
 }
