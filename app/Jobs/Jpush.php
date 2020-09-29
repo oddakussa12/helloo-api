@@ -59,9 +59,11 @@ class Jpush implements ShouldQueue
         if(empty($device)) return false;
 
         if ($device->device_type==2 && in_array(strtolower($device->device_register_type), $this->deviceBrand)) {
+            Log::info('message:::NpushService::commonPush');
             NpushService::commonPush($device, $this->formName, $this->userId, $this->type, $this->extra, $this->content);
 
         } else {
+            Log::info('message:::JpushService::commonPush');
             JpushService::commonPush($device, $this->formName, $this->userId, $this->type , $this->content, $this->app, $this->version);
         }
     }
