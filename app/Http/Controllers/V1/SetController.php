@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Custom\Constant\Constant;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -89,32 +90,37 @@ class SetController extends BaseController
     {
         $agent = new Agent();
         $key = 'commonSwitch';
-        if(!Redis::exists($key))
-        {
-            Redis::hmset($key , array('free_translator'=>1,'refer_friend'=>1 , 'carousel'=>0 , 'test_translator'=>0 , 'emoji_md5'=>config('common.emoji_md5')));
+        if(!Redis::exists($key)) {
+            $value = [
+                'free_translator' => 1,
+                'refer_friend'    => 1 ,
+                'carousel'        => 0 ,
+                'test_translator' => 0 ,
+                'heart_progress'  => Constant::CHAT_SUM_STAR,
+                'emoji_md5'       => config('common.emoji_md5')
+            ];
+            Redis::hmset($key , $value);
         }
         $fieldStr = (string)$request->input('include' , '');
-        $fields = explode(',' , $fieldStr);
-        $values = Redis::hmget($key , $fields);
+        $fields   = explode(',' , $fieldStr);
+        $values   = Redis::hmget($key , $fields);
         $switches = array_combine($fields , $values);
         $switches = array_filter ($switches , function($v , $k) {
             return !empty($k)&&$v!==null;
         } , ARRAY_FILTER_USE_BOTH );
-        if($agent->match('YooulAndroid'))
-        {
-            $appVersion = 1;
+
+        if ($agent->match('YooulAndroid')) {
+            $appVersion  = 1;
             $dxSwitchKey = 'dxSwitchAndroid';
-        }else{
-            $appVersion = 0;
+        } else {
+            $appVersion  = 0;
             $dxSwitchKey = 'dxSwitchIos';
         }
 
-        if(in_array('dx_switch' , $fields))
-        {
-            $switches['dx_switch']=array_merge(dx_uuid(), dx_switch($key) , array('type'=>$dxSwitchKey));
+        if (in_array('dx_switch', $fields)) {
+            $switches['dx_switch'] = array_merge(dx_uuid(), dx_switch($key) , array('type'=>$dxSwitchKey));
         }
-        if(strpos($fieldStr ,'emoji_md5'))
-        {
+        if (strpos($fieldStr ,'emoji_md5')) {
             $switches['emoji_md5'] = config('common.emoji_md5');
         }
         if(strpos($fieldStr ,'index_switch'))
@@ -122,12 +128,11 @@ class SetController extends BaseController
             $switches['index_switch'] = (bool)Redis::get('index_switch');
         }
 
-        if(strpos($fieldStr ,'app_version'))
-        {
-            $version = (string)$request->input('version' , $agent->getHttpHeader('YooulVersion'));
-            $app = app(AppController::class)->getFirstApp();
-            $platform = $app[$appVersion];
-            $platform->isUpgrade = version_compare($version , $platform['version'] , '<');
+        if(strpos($fieldStr ,'app_version')) {
+            $version                 = (string)$request->input('version' , $agent->getHttpHeader('YooulVersion'));
+            $app                     = app(AppController::class)->getFirstApp();
+            $platform                = $app[$appVersion];
+            $platform->isUpgrade     = version_compare($version , $platform['version'] , '<');
             $switches['app_version'] = $platform;
         }
         return $this->response->array($switches);

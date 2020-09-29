@@ -2,15 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Carbon\Carbon;
-use App\Custom\RedisList;
-use App\Traits\CachablePost;
+use App\Traits\CachableUser;
+use App\Jobs\Test as TestJob;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Redis;
+
+
 
 class Test extends Command
 {
-    use CachablePost;
+    use CachableUser;
     /**
      * The name and signature of the console command.
      *
@@ -64,4 +64,5 @@ class Test extends Command
             }
         }
     }
+
 }

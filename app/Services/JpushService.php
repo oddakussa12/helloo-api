@@ -202,6 +202,12 @@ class JpushService
             case 'follow':
                 $title = trans('notifynder.user.follow' , [] , $lang);
                 break;
+            case 'friend_request': // 发出好友请求
+                $title = trans('notifynder.user.friend_request' , [] , $lang);
+                break;
+            case 'accept_friend_request': // 接受好友请求
+                $title = trans('notifynder.user.accept_friend_request' , [] , $lang);
+                break;
             default:
                 $title = trans('notifynder.user.private_message' , [] , $lang);
                 break;

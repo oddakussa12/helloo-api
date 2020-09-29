@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\User;
 use Carbon\Carbon;
 use App\Models\Topic;
 use App\Models\HotTopic;
@@ -186,5 +187,21 @@ class TopicController extends BaseController
         }
 
         return !empty($result) ? \json_decode($result , true) : [];
+    }
+
+    /**
+     * @param $userId
+     * @return mixed
+     * 拉取UserId 最新的五個topic
+     */
+    public function friendTop($userId)
+    {
+        $userId = intval($userId);
+        if (empty($userId)) {
+            return  [];
+        }
+        $result = DB::table('posts_topics')->select('topic_content')->where('user_id', $userId)
+            ->orderBy('topic_created_at', 'DESC')->limit(5)->get();
+        return $this->response->array(['data'=>$result]);
     }
 }
