@@ -1280,15 +1280,30 @@ function userCover($value='', $type='avatar') {
 
 /**
  * @param $agent
+ * @param bool $default
  * @return string
  */
-function userAgent($agent) {
+function userAgent($agent, $default=true) {
     if ($agent->match('YooulAndroid')) {
         $referer = 'android';
     } elseif ($agent->match('YoouliOS')) {
         $referer = 'ios';
     }
-    return $referer ?? 'web';
+
+    if ($default) {
+        $referer = $referer ?? 'web';
+    } else {
+        $referer = $referer ?? '';
+    }
+    return $referer;
 }
 
-
+/**
+ * @param $agent
+ * @return string
+ */
+function userAgentMobile($agent) {
+    $agent = strtolower($agent);
+    $agent = in_array($agent, ['ios', 'android']) ? $agent : 'mobile';
+    return ucfirst($agent);
+}

@@ -16,6 +16,7 @@ use App\Repositories\Contracts\UserRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Jenssegers\Agent\Agent;
 
 /**
  * Class UserFriendAffinityController
@@ -25,8 +26,11 @@ use Illuminate\Support\Facades\Redis;
 class UserFriendAffinityController extends BaseController
 {
 
+    private $agent;
+
     public function __construct()
     {
+        $this->agent = userAgent(new Agent(), false);
     }
 
     /**
@@ -81,7 +85,6 @@ class UserFriendAffinityController extends BaseController
 
         // 不是双方好友关系
         if (!empty($isFriend)) {
-            $isFriend   = json_decode($isFriend, true);
             $createTime = $isFriend['user']['created_at'] > $isFriend['friend']['created_at'] ? $isFriend['user']['created_at'] : $isFriend['friend']['created_at'];
         }
         $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400) : 0;
@@ -316,7 +319,7 @@ class UserFriendAffinityController extends BaseController
             'content'        => 'friend request',
             'relationship_id'=> $relation_id,
             'userInfo'       => $auth
-        ]);
+        ], $this->agent);
 
         // 推送通知
         /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {
@@ -396,13 +399,15 @@ class UserFriendAffinityController extends BaseController
         // 删除和该用户的，其他已存在的请求
         $result && UserFriendLevel::where($baseWhere)->where('relationship_id', '!=', $relation_id)->update(['is_delete'=>-1]);
 
+        Redis::del(Constant::RY_CHAT_FRIEND_RELATIONSHIP.$user_id.'_'.$friend_id);
+
         // 融云推送 聊天
         FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:AffinityFriendReposed', [
             'content'        => 'friend response',
             'reposed'        => 1,
             'relationship_id'=> $info['relationship_id'],
             'userInfo'       => $user
-        ]);
+        ], $this->agent);
 
         // 推送通知
         /*if (Constant::QUEUE_PUSH_TYPE == 'redis') {

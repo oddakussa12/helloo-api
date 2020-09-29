@@ -47,9 +47,12 @@ class FriendLevel implements ShouldQueue
             $memKey   = Constant::RY_CHAT_FRIEND_RELATIONSHIP.$userId.'_'.$friendId;
             $memValue = Redis::get($memKey);
             if (empty($memValue)) {
-                $result = UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>1])->first();
-                if (empty($result)) return false;
-                Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
+                $result   = UserFriendLevel::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0, 'status'=>1])->first();
+                $memValue = !empty($result) ? $result : [];
+
+                Redis::set($memKey, json_encode($memValue, JSON_UNESCAPED_UNICODE));
+                Redis::expire($memKey, 86400);
+
             } else {
                 return json_decode($memValue, true);
             }
@@ -147,32 +150,35 @@ class FriendLevel implements ShouldQueue
                     );
 
                     // 升级之后，清空情侣首页缓存
-                    Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
+                    // Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
                     Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
 
                    // $this->sendMsgToRongYun($userId, $friendId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
                    // $this->sendMsgToRongYun($friendId, $userId, 'Yooul:AffinityFriendLevel', $isFriendRelation['relationship_id'], $score);
 
-
                 }
 
                 if (empty($isFriendRelation)) {
-                    $score = $isFriendRelation ? $score : 1;
+                    $score = 1;
                     $uNum  = $fNum = 0;
                 }
 
                 // 发送升级请求给双方 融云
                 $ryData = [
-                    'heart_count'     => $isFriendRelation['heart_count']+1,
-                    'relationship_id' => $isFriendRelation['relationship_id']  ?? -1,
+                    'heart_count'     => ($isFriendRelation['heart_count'] ?? 0) +1,
+                    'relationship_id' => $isFriendRelation['relationship_id'] ?? -1,
                 ];
 
                 dump("发送融云推送  start");
-                self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData);
-                self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData);
+                $userAgent = $raw['source'] ?? '';
+                self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData, $userAgent);
+                self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData, $userAgent);
                 dump("发送融云推送  end");
 
             }
+
+            Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$userId.'_'.$friendId);
+
             //else{
             // 未加特殊关系或未满20条时  叠加聊天条数
             $data = ['user_id_count'=>$uNum, 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];
@@ -190,8 +196,9 @@ class FriendLevel implements ShouldQueue
      * @param $data
      *
      * 发送系统消息给融云
+     * @param string $userAgent
      */
-    public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $data)
+    public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $data, $userAgent='mobile')
     {
         dump(__FILE__. __FUNCTION__);
 
@@ -214,9 +221,9 @@ class FriendLevel implements ShouldQueue
 
         // 融云推送 聊天
         if (Constant::QUEUE_PUSH_TYPE=='redis') {
-            RySystem::dispatch($userId, $friendId, $objectName, $content)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            RySystem::dispatch($userId, $friendId, $objectName, $content, $userAgent)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         } else {
-            RySystem::dispatch($userId, $friendId, $objectName, $content)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            RySystem::dispatch($userId, $friendId, $objectName, $content, $userAgent)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
     }
 
@@ -228,16 +235,17 @@ class FriendLevel implements ShouldQueue
      * @param $data
      *
      * 发送自定义消息给融云
+     * @param string $userAgent
      */
-    public static function sendMsgToRyByPerson($userId, $friendId, $objectName, $data)
+    public static function sendMsgToRyByPerson($userId, $friendId, $objectName, $data, $userAgent='mobile')
     {
         dump(__FILE__. __FUNCTION__);
 
         // 融云推送 聊天
         if (Constant::QUEUE_PUSH_TYPE=='redis') {
-            Friend::dispatch($userId, $friendId, $objectName, $data)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            Friend::dispatch($userId, $friendId, $objectName, $data, $userAgent)->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         } else {
-            Friend::dispatch($userId, $friendId, $objectName, $data)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
+            Friend::dispatch($userId, $friendId, $objectName, $data, $userAgent)->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT_FRIEND);
         }
     }
 

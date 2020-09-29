@@ -11,7 +11,6 @@ class PushServer
 {
     private $type;
     private $params;
-    private $uniqid;
 
     public function __construct($params)
     {
@@ -21,7 +20,7 @@ class PushServer
 
     public function Send()
     {
-        Log::info('message', $this->params);
+        // Log::info('message', $this->params);
         $deviceBrand = strtolower($this->params['deviceBrand']);
         if ($this->params['registerType'] == 'fcm') {
             $result = $this->fcmPush();
@@ -37,14 +36,12 @@ class PushServer
                 $result = $this->oppoPush();
             }
             if ($deviceBrand == 'vivo') {
-
+                $result = true;
             }
 
-
-
         }
-        if (empty($result)) {
-            // Log::info(__FUNCTION__.' params:', $this->params);
+        if ($result==false) {
+            Log::info(__FUNCTION__.' params:', $this->params);
         }
 
 
@@ -81,6 +78,7 @@ class PushServer
 
         } catch (\Exception $e) {
             Log::error(__FUNCTION__.' Push message Exception'.__FUNCTION__, ['code'=>$e->getCode(), 'msg'=> $e->getMessage()]);
+            return false;
         }
     }
 
@@ -101,6 +99,7 @@ class PushServer
             }
         } catch (\Exception $e) {
             Log::error(__FUNCTION__.' Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
+            return false;
         }
     }
 
@@ -117,6 +116,7 @@ class PushServer
             }
         } catch (\Exception $e) {
             Log::error(__FUNCTION__.' Push message Exception'.__FUNCTION__, ['code'=>$e->getMessage(), 'msg'=> $e->getMessage()]);
+            return false;
         }
     }
 

@@ -9,6 +9,7 @@ use App\Jobs\FriendSignIn;
 use App\Jobs\Test as TestJob;
 use Carbon\Carbon;
 use App\Jobs\RyChat;
+use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\Uuid;
 use App\Models\RyRoomChat;
 use App\Models\RyChatFailed;
@@ -89,6 +90,8 @@ class RyChatController extends BaseController
      */
     public function store(Request $request)
     {
+        // $rand = rand(100000, 999999);
+        // Log::debug('message:: start '.$rand. '  time:'.microtime());
         $all = $request->all();
         $response = $this->response->noContent();
         $rule = [
@@ -142,6 +145,8 @@ class RyChatController extends BaseController
                 }
             }
         }
+        // Log::debug('message:: end '.$rand. '  time:'.microtime());
+
         return $response->setStatusCode(200);
     }
 
