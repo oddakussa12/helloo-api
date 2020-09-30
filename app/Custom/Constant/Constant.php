@@ -25,7 +25,7 @@ class Constant {
 
 
     // 融云回调
-    const QUEUE_RY_CHAT='store_ry_msg_tsm';
+    const QUEUE_RY_CHAT='store_ry_msg';
 
     // 当等于 true时 执行 融云聊天写入数据库操作
     const QUEUE_RY_CHAT_SWITCH=1;
@@ -37,7 +37,7 @@ class Constant {
     const QUEUE_PUSH_TYPE='sqs';
 
     // 融云聊天-加好友队列
-    const QUEUE_RY_CHAT_FRIEND="friend_tsm";
+    const QUEUE_RY_CHAT_FRIEND="friend";
 
     // 发送好友请求
     const QUEUE_PUSH_FRIEND="friend_request";

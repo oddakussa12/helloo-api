@@ -179,11 +179,9 @@ class UserFriendAffinityController extends BaseController
      */
     public function getSignInList($userId, $friendId, $list=true)
     {
-        //$userId = auth()->id();
-
         list($userId, $friendId)  = FriendSignIn::sortId($userId, $friendId);
         $result = UserFriendSignIn::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
-            ->orderBy('id', 'ASC')->limit(30)->pluck('sign_day')->toArray();
+            ->orderBy('id', 'ASC')->limit(50)->pluck('sign_day')->toArray();
 
         $result   = array_unique($result);
         sort($result);
@@ -299,11 +297,16 @@ class UserFriendAffinityController extends BaseController
         $relationShipFriend = $this->checkFriendLevel($friend_id, $relation_id, true);
         $relationShipUser   = $this->checkFriendLevel($authUserId  , $relation_id, true);
 
-
-        if (empty($relationShipUser) || empty($relationShipFriend)) {
+        $str = ['', 'love', 'gui', 'zhi', 'baba'];
+        
+        if (empty($relationShipUser)) {
             Log::info('message::关系超限，不能添加');
-            return $this->response->errorNotFound(trans('FriendBig.the_relationship_has_exceeded_the_limitt'));
-            return $this->response->noContent();
+            return $this->response->errorNotFound(trans('FriendBig.self_'.$str[$relation_id]."_message"));
+        }
+
+        if (empty($relationShipFriend)) {
+            Log::info('message::关系超限，不能添加');
+            return $this->response->errorNotFound(trans('FriendBig.other_'.$str[$relation_id]."_message"));
         }
 
         /*$requests = new UserFriendLevel();
@@ -390,10 +393,18 @@ class UserFriendAffinityController extends BaseController
         $relationShipFriend = $this->checkFriendLevel($friendId, $relation_id, true);
         $relationShipUser   = $this->checkFriendLevel($userId  , $relation_id, true);
 
-        if (empty($relationShipFriend) || empty($relationShipUser)) {
+        $str = ['', 'love', 'gui', 'zhi', 'baba'];
+
+        if (empty($relationShipUser)) {
             Log::info('message::关系超限，不能添加');
             UserFriendLevel::where($relWhere)->update(['status'=>-2, 'is_delete'=>1]);
-            return $this->response->errorNotFound(trans('FriendBig.the_relationship_has_exceeded_the_limitt'));
+            return $this->response->errorNotFound(trans('FriendBig.self_'.$str[$relation_id]."_message"));
+        }
+
+        if (empty($relationShipFriend)) {
+            Log::info('message::关系超限，不能添加');
+            UserFriendLevel::where($relWhere)->update(['status'=>-2, 'is_delete'=>1]);
+            return $this->response->errorNotFound(trans('FriendBig.other_'.$str[$relation_id]."_message"));
         }
 
         // 修改关系为已同意
