@@ -1254,8 +1254,13 @@ if (! function_exists('fakeLike')) {
      */
     function fakeLike($num, $coefficient = 99)
     {
-        $coefficient = $coefficient <= 0 ? 99 : $coefficient;
-        return intval($num * $coefficient * (1 - pow(1 - randFloat(0.9, 1), 3)));
+        if($num>=7)
+        {
+            $coefficient = $coefficient <= 0 ? 99 : $coefficient;
+            return intval($num * $coefficient * (1 - pow(1 - randFloat(0.9, 1), 3)));
+        }else{
+            return round($num * $num * randFloat(0.51, 1));
+        }
     }
 }
     /**

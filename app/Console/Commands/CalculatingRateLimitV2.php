@@ -7,6 +7,7 @@ use App\Custom\RedisList;
 use App\Traits\CachablePost;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Storage;
 
 class CalculatingRateLimitV2 extends Command
 {
@@ -77,8 +78,10 @@ class CalculatingRateLimitV2 extends Command
                 $likeCount = isset($posts['real_like'])?$posts['real_like']:0;
                 $commenterCount= $this->commenterCount($postId);
                 $countryCount = $this->countryNum($postId);
+                $rate = rate_comment_v4($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $postGravity);
+                Storage::prepend('rate_'.strval($index).'.log', strval($postId).'--rate:'.$rate.'--postGravity:'.$postGravity.PHP_EOL);
 //                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount) , $postId);
-                Redis::zadd($rateV2Key , rate_comment_v4($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $postGravity) , $postId);
+                Redis::zadd($rateV2Key , $rate , $postId);
             }
         }
     }
