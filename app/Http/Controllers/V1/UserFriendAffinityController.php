@@ -450,7 +450,7 @@ class UserFriendAffinityController extends BaseController
         if ($relationShipId)
             $result->where('relationship_id', $relationShipId);
 
-        $data = $result->where(['is_delete'=>0,'status'=>1])->groupBy('relationship_id')->get()->toArray();
+        $data = $result->where(['is_delete'=>0,'status'=>1])->get()->toArray();
 
         // 判断是否可以新增关系， true为可以 false为数量已满
         if ($relationShipId) {
