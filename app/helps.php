@@ -614,13 +614,15 @@ if (!function_exists('post_gravity'))
 {
     function post_gravity(float $rate=0)
     {
-        if($rate>0)
+        if($rate!=0)
         {
-            \Cache::forget('post_gravity');
+            $postRate = $rate;
+            \Redis::set('post_rate' , $rate);
+        }else{
+            $postRate = floatval(\Redis::get('post_rate'));
+            $postRate = $postRate<=0||$postRate>=2?1:$postRate;
         }
-        return \Cache::rememberForever('post_gravity' , function() use ($rate){
-            return $rate>0?$rate:config('common.rate_coefficient');
-        });
+        return $postRate;
     }
 }
 

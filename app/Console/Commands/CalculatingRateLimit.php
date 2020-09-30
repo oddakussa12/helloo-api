@@ -43,7 +43,7 @@ class CalculatingRateLimit extends Command
     public function handle()
     {
         $now = Carbon::now();
-        $oneMonthAgo = $now->subDays(15)->format('Y-m-d 00:00:00');
+        $oneMonthAgo = $now->subDays(7)->format('Y-m-d 00:00:00');
         $i = intval($now->addMinutes(30)->format('i'));
         $i = $i<=0?1:$i;
         $index = ceil($i/30);
@@ -55,6 +55,7 @@ class CalculatingRateLimit extends Command
         $count = Redis::zcard($newKey);
         $redis = new RedisList();
         $lastPage = ceil($count/$perPage);
+        $post_gravity = post_gravity();
         for ($page=1;$page<=$lastPage;$page++) {
             $offset = ($page-1)*$perPage;
             $posts = $redis->zRevRangeByScore($newKey , '+inf', strtotime($oneMonthAgo) , true, array($offset, $perPage));
@@ -73,7 +74,7 @@ class CalculatingRateLimit extends Command
                 $likeCount = isset($posts['real_like'])?$posts['real_like']:0;
                 $commenterCount= $this->commenterCount($postId);
                 $countryCount = $this->countryNum($postId);
-                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount) , $postId);
+                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $$post_gravity) , $postId);
             }
         }
     }
