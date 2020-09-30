@@ -1256,12 +1256,39 @@ if (! function_exists('fakeLike')) {
      */
     function fakeLike($num, $coefficient = 99)
     {
-        if($num>=7)
+        return 0;
+        if($num<7)
         {
+//            return ceil($num * $num * randFloat(0.51, 1)+mt_rand(0,2));
+            switch ($num){
+                case 1:
+                    $like = mt_rand(1 , 3);
+                    break;
+                case 2:
+                    $like = mt_rand(4 , 8);
+                    break;
+                case 3:
+                    $like = mt_rand(9 , 19);
+                    break;
+                case 4:
+                    $like = mt_rand(20 , 40);
+                    break;
+                case 5:
+                    $like = mt_rand(41 , 80);
+                    break;
+                case 6:
+                    $like = mt_rand(81 , 160);
+                    break;
+                default:
+                    $like = mt_rand(161 , 320);
+                    break;
+            }
+            return $like;
+        }elseif($num>=7&&$num<=2000){
             $coefficient = $coefficient <= 0 ? 99 : $coefficient;
-            return intval($num * $coefficient * (1 - pow(1 - randFloat(0.9, 1), 3)));
+            return intval($num * $coefficient * randFloat(0.91, 1));
         }else{
-            return round($num * $num * randFloat(0.51, 1));
+            return ($coefficient-1)*2000+$num;
         }
     }
 }
