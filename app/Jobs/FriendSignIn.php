@@ -101,7 +101,7 @@ class FriendSignIn implements ShouldQueue
 
             Redis::set($mKey, json_encode($mValue, JSON_UNESCAPED_UNICODE));
             Redis::expire($mKey, 86400);
-            return true;
+            return $mValue;
         } else {
             return json_decode($mValue, true);
         }
