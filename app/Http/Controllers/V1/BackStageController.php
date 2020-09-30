@@ -191,6 +191,14 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function setPostRate(Request $request)
+    {
+        $key = 'post_rate';
+        $postRate = floatval($request->input('post_rate' , 1));
+        Redis::set($key , strval($postRate));
+        return $this->response->noContent();
+    }
+
     public function setPostGravity(Request $request)
     {
         $key = 'post_gravity';
