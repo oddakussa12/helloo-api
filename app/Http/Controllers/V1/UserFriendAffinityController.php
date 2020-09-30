@@ -185,7 +185,7 @@ class UserFriendAffinityController extends BaseController
             ->orderBy('id', 'ASC')->limit(30)->pluck('sign_day')->toArray();
 
         $result   = array_unique($result);
-        $result   = sort($result);
+        sort($result);
         $firstDay = current($result);
         $endDay   = end($result);
         $today    = strtotime(date('Ymd'));
