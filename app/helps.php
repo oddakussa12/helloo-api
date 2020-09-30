@@ -1284,16 +1284,14 @@ if (! function_exists('fakeLike')) {
                     $like = mt_rand(9 , 19);
                     break;
                 case 4:
-                    $like = mt_rand(20 , 40);
+                    $like = mt_rand(20 , 80);
                     break;
                 case 5:
-                    $like = mt_rand(41 , 80);
-                    break;
-                case 6:
                     $like = mt_rand(81 , 160);
                     break;
                 default:
-                    $like = mt_rand(161 , 320);
+                    $max = 7*$coefficient;
+                    $like = mt_rand(161 , $max-1);
                     break;
             }
             return $like;
