@@ -181,16 +181,16 @@ class UserFriendAffinityController extends BaseController
         $userId = auth()->id();
 
         list($userId, $friendId)  = FriendSignIn::sortId($userId, $friendId);
-        $result = UserFriendSignIn::select('sign_day')->where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
-            ->orderBy('id', 'ASC')->limit(30)->get()->toArray();
+        $result = UserFriendSignIn::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
+            ->orderBy('id', 'ASC')->limit(30)->pluck('sign_day')->toArray();
 
-
+        $result   = array_unique($result);
         $firstDay = current($result);
         $endDay   = end($result);
         $today    = strtotime(date('Ymd'));
 
-        $totalDay = ($today - $firstDay['sign_day'])/86400;
-        $totalDay = $today == $endDay['sign_day'] ? $totalDay +1 : $totalDay;
+        $totalDay = ($today - $firstDay)/86400;
+        $totalDay = $today == $endDay ? $totalDay +1 : $totalDay;
 
         $signDay  = count($result);
         $total    = $signDay - ($totalDay - $signDay);
@@ -199,7 +199,7 @@ class UserFriendAffinityController extends BaseController
         $data['total']  = $total;
         if ($list) {
             $data['list']   = array_map(function($val){
-                return date('Ymd', $val['sign_day']);
+                return date('Ymd', $val);
             }, $result);
         }
 
