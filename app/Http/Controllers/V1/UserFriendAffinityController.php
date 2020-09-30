@@ -179,11 +179,9 @@ class UserFriendAffinityController extends BaseController
      */
     public function getSignInList($userId, $friendId, $list=true)
     {
-        //$userId = auth()->id();
-
         list($userId, $friendId)  = FriendSignIn::sortId($userId, $friendId);
         $result = UserFriendSignIn::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
-            ->orderBy('id', 'ASC')->limit(30)->pluck('sign_day')->toArray();
+            ->orderBy('id', 'ASC')->limit(50)->pluck('sign_day')->toArray();
 
         $result   = array_unique($result);
         sort($result);
