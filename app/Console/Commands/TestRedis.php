@@ -51,10 +51,11 @@ class TestRedis extends Command
         $yestday = strtotime(date('Ymd')) -86400;
         for ($i=0;$i<10;$i++) {
             $data['sign_day'] = $yestday - ($i*86400);
+            $result = UserFriendSignIn::updateOrCreate(['id'=>null], $data);
+            dump($result);
         }
 
-       $result = UserFriendSignIn::updateOrCreate(['id'=>null], $data);
-        dump($result);
+
         exit;
         $arr = [
             Constant::RY_CHAT_FRIEND_SIGN_IN. '*',
