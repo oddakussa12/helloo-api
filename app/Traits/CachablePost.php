@@ -50,7 +50,7 @@ trait CachablePost
         $likeData = array_map(function ($v){
             return intval($v);
         },array_combine($viewField , $likeData));
-        $indexSwitch = (bool)Redis::get('index_switch');
+        $indexSwitch = (bool)index_switch();
         if($indexSwitch)
         {
             $likeData['tmp_like'] = $likeData['temp_like'];

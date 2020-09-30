@@ -220,6 +220,7 @@ class BackStageController extends BaseController
         $key = 'index_switch';
         $indexSwitch = (bool)$request->input('index_switch' , 1);
         Redis::set($key , intval($indexSwitch));
+        apcu_delete($key);
         return $this->response->noContent();
     }
 

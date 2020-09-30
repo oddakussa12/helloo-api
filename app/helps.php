@@ -626,6 +626,20 @@ if (!function_exists('post_gravity'))
     }
 }
 
+if (!function_exists('index_switch'))
+{
+    function index_switch()
+    {
+        if(apcu_exists('index_switch'))
+        {
+            return apcu_fetch('index_switch');
+        }
+        $indexSwitch = \Redis::get('index_switch');
+        apcu_add('index_switch' , $indexSwitch);
+        return $indexSwitch;
+    }
+}
+
 if (!function_exists('dx_switch'))
 {
     function dx_switch($key='dx_switch' , $switch=null)
