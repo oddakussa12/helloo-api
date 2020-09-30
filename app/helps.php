@@ -1270,7 +1270,6 @@ if (! function_exists('fakeLike')) {
      */
     function fakeLike($num, $coefficient = 99)
     {
-        return 0;
         if($num<7)
         {
 //            return ceil($num * $num * randFloat(0.51, 1)+mt_rand(0,2));
