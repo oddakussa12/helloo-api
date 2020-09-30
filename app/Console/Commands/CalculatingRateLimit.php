@@ -55,7 +55,7 @@ class CalculatingRateLimit extends Command
         $count = Redis::zcard($newKey);
         $redis = new RedisList();
         $lastPage = ceil($count/$perPage);
-        $post_gravity = post_gravity();
+        $post_gravity = floatval(Redis::get('post_rate'));
         for ($page=1;$page<=$lastPage;$page++) {
             $offset = ($page-1)*$perPage;
             $posts = $redis->zRevRangeByScore($newKey , '+inf', strtotime($oneMonthAgo) , true, array($offset, $perPage));
@@ -74,7 +74,7 @@ class CalculatingRateLimit extends Command
                 $likeCount = isset($posts['real_like'])?$posts['real_like']:0;
                 $commenterCount= $this->commenterCount($postId);
                 $countryCount = $this->countryNum($postId);
-                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $$post_gravity) , $postId);
+                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $post_gravity) , $postId);
             }
         }
     }

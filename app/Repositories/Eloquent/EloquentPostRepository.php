@@ -484,18 +484,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $i     = intval($now->format('i'));
         $i     = $i <= 0 ? 1 : $i;
         $index = ceil($i/30);
-//        $indexSwitch = (bool)Redis::get('index_switch');
-//        if($indexSwitch)
-//        {
-//            $key   = 'post_index_rate_v2_'.$index;
-//            if(!Redis::exists($key))
-//            {
-//                $key = 'post_index_rate_'.$index;
-//            }
-//        }else{
-//            $key   = 'post_index_rate_'.$index;
-//        }
-        $key   = 'post_index_rate_'.$index;
+        $indexSwitch = (bool)Redis::get('index_switch');
+        if($indexSwitch)
+        {
+            $key   = 'post_index_rate_v2_'.$index;
+            if(!Redis::exists($key))
+            {
+                $key = 'post_index_rate_'.$index;
+            }
+        }else{
+            $key   = 'post_index_rate_'.$index;
+        }
         return $this->getCachePosts($posts, $key);
     }
 
