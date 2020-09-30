@@ -189,6 +189,7 @@ class TopicController extends BaseController
         return !empty($result) ? \json_decode($result , true) : [];
     }
 
+
     /**
      * @param $userId
      * @return mixed
@@ -201,7 +202,7 @@ class TopicController extends BaseController
             return  [];
         }
         $result = DB::table('posts_topics')->select('topic_content')->where('user_id', $userId)
-            ->orderBy('topic_created_at', 'DESC')->limit(5)->get();
+            ->orderBy('topic_created_at', 'DESC')->groupBy('topic_content')->limit(5)->get();
         return $this->response->array(['data'=>$result]);
     }
 }
