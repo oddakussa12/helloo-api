@@ -191,4 +191,28 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function setPostGravity(Request $request)
+    {
+        $key = 'post_gravity';
+        $postGravity = floatval($request->input('post_gravity' , 1));
+        Redis::set($key , strval($postGravity));
+        return $this->response->noContent();
+    }
+
+    public function setFakeLikeCoefficient(Request $request)
+    {
+        $key = 'fake_like_coefficient';
+        $fakeLikeCoefficient = floatval($request->input('fake_like_coefficient' , 99));
+        Redis::set($key , floatval($fakeLikeCoefficient));
+        return $this->response->noContent();
+    }
+
+    public function setIndexSwitch(Request $request)
+    {
+        $key = 'index_switch';
+        $indexSwitch = (bool)$request->input('index_switch' , 1);
+        Redis::set($key , intval($indexSwitch));
+        return $this->response->noContent();
+    }
+
 }

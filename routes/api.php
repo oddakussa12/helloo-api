@@ -277,6 +277,9 @@ $api->group($V1Params , function ($api){
         $api->get('bk/get/topic/hot' , 'BackStageController@getHotTopic')->name('bk.get.topic.hot');
         $api->post('bk/get/topic/hot' , 'BackStageController@getHotTopic')->name('bk.get.topic.hot');
         $api->post('bk/set/search/hot' , 'BackStageController@setHotSearch')->name('bk.set.search.hot');
+        $api->post('bk/set/index/switch' , 'BackStageController@setIndexSwitch')->name('bk.set.index.switch');
+        $api->post('bk/set/post/gravity' , 'BackStageController@setPostGravity')->name('bk.set.post.gravity');
+        $api->post('bk/set/fake/like/coefficient' , 'BackStageController@setFakeLikeCoefficient')->name('bk.set.fake.like.coefficient');
     });
     $api->group(['middleware'=>['appAuth']] , function($api){
         $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');

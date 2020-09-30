@@ -231,7 +231,7 @@ trait CachablePost
                 }
                 if($type=='like')
                 {
-                    $coefficient = intval(Redis::get('fake_like_coefficient'));
+                    $coefficient = floatval(Redis::get('fake_like_coefficient'));
                     Redis::hmset($postKey , array('temp_like'=>fakeLike($after , $coefficient)));
                 }
             }
