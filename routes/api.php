@@ -114,7 +114,7 @@ $api->group($V1Params , function ($api){
         });
 
         $api->get('affinity/{friend}/heart', 'UserFriendAffinityController@heart')->name('user.affinity.heart'); //获取心的数量
-        $api->get('affinity/{friend}/sign', 'UserFriendAffinityController@getSignInList')->name('user.affinity.sign.list');//签到列表
+        $api->get('affinity/{user}/{friend}/sign', 'UserFriendAffinityController@getSignInList')->name('user.affinity.sign.list');//签到列表
         $api->get('affinity/{friend}/main', 'UserFriendAffinityController@main')->name('user.affinity.main');//好友关系主页
         $api->get('topic/{friend}/top', 'TopicController@FriendTop')->name('user.topic.top');//好友关系主页
 

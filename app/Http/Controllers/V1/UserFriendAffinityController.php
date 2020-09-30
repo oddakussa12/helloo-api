@@ -70,7 +70,7 @@ class UserFriendAffinityController extends BaseController
         $count  = !empty($count)  ? $count->toArray()  : [];
 
         if (!empty($result)) {
-            $result['sign'] = $this->getSignInList($friendId, false);
+            $result['sign'] = $this->getSignInList($authUserId, $friendId, false);
         } else {
             $talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
             $result['heart_count']     = !empty($talk) ? 1 : 0;
@@ -171,14 +171,15 @@ class UserFriendAffinityController extends BaseController
     }
 
     /**
+     * @param $userId
      * @param $friendId
      * @param bool $list
      * @return mixed
      * 获取好友间签到记录
      */
-    public function getSignInList($friendId, $list=true)
+    public function getSignInList($userId, $friendId, $list=true)
     {
-        $userId = auth()->id();
+        //$userId = auth()->id();
 
         list($userId, $friendId)  = FriendSignIn::sortId($userId, $friendId);
         $result = UserFriendSignIn::where(['user_id'=>$userId, 'friend_id'=>$friendId, 'is_delete'=>0])
@@ -241,7 +242,7 @@ class UserFriendAffinityController extends BaseController
 
         foreach ($result as $index=>&$value) {
             $user_id         = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
-            $value['sign']   = $this->getSignInList($user_id, false);
+            $value['sign']   = $this->getSignInList($value['user_id'], $value['friend_id'], false);
             $value['friend'] = $users->where('user_id', $user_id)->first();
             $value['user_avatar'] = userCover($userInfo['user_avatar'] ?? '');
         }
