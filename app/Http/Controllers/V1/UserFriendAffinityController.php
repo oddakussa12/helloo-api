@@ -87,7 +87,7 @@ class UserFriendAffinityController extends BaseController
         if (!empty($isFriend)) {
             $createTime = $isFriend['user']['created_at'] > $isFriend['friend']['created_at'] ? $isFriend['user']['created_at'] : $isFriend['friend']['created_at'];
         }
-        $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400) : 0;
+        $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400)+1 : 0;
 
         $friend = Redis::hgetall("user.".$friendId.'.data');
         $friend = !empty($friend) ? array_merge($friend, ['user_id'=>$friendId]) : User::where('user_id', $friendId)->first();
