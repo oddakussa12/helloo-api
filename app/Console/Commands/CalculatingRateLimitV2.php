@@ -58,7 +58,7 @@ class CalculatingRateLimitV2 extends Command
         $perPage = 10;
         $count = Redis::zcard($newKey);
         $redis = new RedisList();
-        $postGravity = intval(Redis::get('post_gravity'));
+        $postGravity = floatval(Redis::get('post_gravity'));
         $postGravity = $postGravity<=0||$postGravity>=2?1:$postGravity;
         $lastPage = ceil($count/$perPage);
         for ($page=1;$page<=$lastPage;$page++) {
@@ -80,7 +80,7 @@ class CalculatingRateLimitV2 extends Command
                 $commenterCount= $this->commenterCount($postId);
                 $countryCount = $this->countryNum($postId);
                 $rate = rate_comment_v4($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $postGravity);
-                Storage::prepend('rate_'.strval($index).'.log', strval($postId).','.strval($rate).','.strval($likeCount).','.str($postGravity).PHP_EOL);
+                Storage::prepend('rate_'.strval($index).'.log', strval($postId).','.strval($rate).','.strval($likeCount).','.strval($postGravity).PHP_EOL);
 //                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount) , $postId);
                 Redis::zadd($rateV2Key , $rate , $postId);
             }
