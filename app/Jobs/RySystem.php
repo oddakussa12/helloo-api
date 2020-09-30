@@ -73,6 +73,6 @@ class RySystem implements ShouldQueue
             'content'    => $this->content
         ));
 
-        dump('System', $result, $this->content);
+        // dump('System', $result, $this->content);
     }
 }

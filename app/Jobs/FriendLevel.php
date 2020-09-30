@@ -79,7 +79,7 @@ class FriendLevel implements ShouldQueue
         $star     = Constant::DAY_UPPER_STAR;
         $isFriend = FriendSignIn::isFriend($raw['fromUserId'], $raw['toUserId']);
         if (empty($isFriend)) {
-            Log::info('不是好友');
+            // Log::info('不是好友');
             return false;
         }
         $isFriendRelation = $this->isFriendRelation($raw['fromUserId'], $raw['toUserId'], false);
@@ -112,7 +112,7 @@ class FriendLevel implements ShouldQueue
         if (!empty($result)) {
             // 当特殊好友关系不存在，且有一颗心时，直接返回
             if (empty($isFriendRelation) && $result['score']>=1) {
-                dump('当特殊好友关系不存在，且有一颗心');
+                // dump('当特殊好友关系不存在，且有一颗心');
                 return true;
             }
             $uNum  = $result['user_id']   == $raw['fromUserId'] ? $result['user_id_count']+1   : $result['user_id_count'];
@@ -169,11 +169,11 @@ class FriendLevel implements ShouldQueue
                     'relationship_id' => $isFriendRelation['relationship_id'] ?? -1,
                 ];
 
-                dump("发送融云推送  start");
+                // dump("发送融云推送  start");
                 $userAgent = $raw['source'] ?? '';
                 self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData, $userAgent);
                 self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData, $userAgent);
-                dump("发送融云推送  end");
+                // dump("发送融云推送  end");
 
             }
 
@@ -182,7 +182,7 @@ class FriendLevel implements ShouldQueue
             //else{
             // 未加特殊关系或未满20条时  叠加聊天条数
             $data = ['user_id_count'=>$uNum, 'friend_id_count'=>$fNum, 'talk_day'=>$today, 'score'=>$score];
-            dump($data);
+            // dump($data);
             UserFriendTalkList::updateOrCreate(['id' => $result['id']], $data);
             return true;
             //}
@@ -200,7 +200,7 @@ class FriendLevel implements ShouldQueue
      */
     public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $data, $userAgent='mobile')
     {
-        dump(__FILE__. __FUNCTION__);
+        // dump(__FILE__. __FUNCTION__);
 
         $user = Redis::hgetall('user.'.$userId.'.data');
         if (!empty($user)) {
@@ -239,7 +239,7 @@ class FriendLevel implements ShouldQueue
      */
     public static function sendMsgToRyByPerson($userId, $friendId, $objectName, $data, $userAgent='mobile')
     {
-        dump(__FILE__. __FUNCTION__);
+        // dump(__FILE__. __FUNCTION__);
 
         // 融云推送 聊天
         if (Constant::QUEUE_PUSH_TYPE=='redis') {
