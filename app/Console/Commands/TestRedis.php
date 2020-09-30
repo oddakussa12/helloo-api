@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Custom\Constant\Constant;
 use App\Jobs\FriendSignIn;
+use App\Models\UserFriendSignIn;
 use App\Traits\CachableUser;
 use App\Jobs\Test as TestJob;
 use Illuminate\Console\Command;
@@ -44,6 +45,17 @@ class TestRedis extends Command
      */
     public function handle()
     {
+        $data['user_id'] = 28480;
+        $data['friend_id'] = 422887;
+        $data['sign_month'] = 202009;
+        $yestday = strtotime(date('Ymd')) -86400;
+        for ($i=0;$i<10;$i++) {
+            $data['sign_day'] = $yestday - ($i*86400);
+        }
+
+       $result = UserFriendSignIn::updateOrCreate(['id'=>null], $data);
+        dump($result);
+        exit;
         $arr = [
             Constant::RY_CHAT_FRIEND_SIGN_IN. '*',
             Constant::RY_CHAT_FRIEND_IS_FRIEND. '*',
