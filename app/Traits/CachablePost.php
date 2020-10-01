@@ -211,7 +211,7 @@ trait CachablePost
         return $num;
     }
 
-    public function updateLikeCount($id , $type='like' , $tmpNum=0)
+    public function updateLikeCount($id , $type='like' , $tmpNum=0 , $isAuth=false)
     {
         $postKey = 'post.'.$id.'.data';
         if($type=='revokeLike'){
@@ -229,7 +229,7 @@ trait CachablePost
                 {
                     Redis::hincrby($postKey , 'tmp_'.$type , $tmpNum);
                 }
-                if($type=='like')
+                if($type=='like'&&!$isAuth)
                 {
                     $coefficient = floatval(Redis::get('fake_like_coefficient'));
                     Redis::hmset($postKey , array('temp_like'=>fakeLike($after , $coefficient)));
