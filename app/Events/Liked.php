@@ -27,7 +27,7 @@ class Liked
      */
     private $type;
 
-//    private $post_like_temp_num;
+    private $post_like_temp_num;
 
 
     public function __construct($user , $object , $type=1)
@@ -35,7 +35,7 @@ class Liked
         $this->user = $user;
         $this->object = $object;
         $this->type = $type;
-//        $this->post_like_temp_num = request()->input('post_like_temp_num' , 0);
+        $this->post_like_temp_num = 0;
     }
 
     public function getUser()
@@ -53,9 +53,9 @@ class Liked
         return $this->type;
     }
 
-//    public function getTmpLikeNum()
-//    {
-//        return $this->post_like_temp_num;
-//    }
+    public function getTmpLikeNum()
+    {
+        return $this->post_like_temp_num;
+    }
 
 }

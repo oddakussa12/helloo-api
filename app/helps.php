@@ -1220,7 +1220,7 @@ if (!function_exists('tempPostLikeNum')) {
      */
     function tempPostLikeNum($count)
     {
-        return $count;
+        return 0;
         $multiple = 0;
         while ($multiple<=0.1)
         {
