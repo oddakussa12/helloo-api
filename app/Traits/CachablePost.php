@@ -306,8 +306,8 @@ trait CachablePost
                 return array('country_code'=>strtolower($countries[$key-1]) , 'country_num'=>$item);
             })->sortByDesc('country_num')->values();
         }
-        $version = request()->header('YooulVersion' , 0);
-        if(version_compare($version,'1.6.7','>=')&&$count<=3)
+//        $version = request()->header('YooulVersion' , 0);
+        if($count<=3)
         {
             $country = array();
             $count = 0;
