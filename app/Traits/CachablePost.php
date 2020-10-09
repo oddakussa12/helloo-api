@@ -211,7 +211,7 @@ trait CachablePost
         return $num;
     }
 
-    public function updateLikeCount($id , $type='like' , $tmpNum=0)
+    public function updateLikeCount($id , $type='like' , $tmpNum=0 , $isAuth=false)
     {
         $postKey = 'post.'.$id.'.data';
         if($type=='revokeLike'){
@@ -229,7 +229,7 @@ trait CachablePost
                 {
                     Redis::hincrby($postKey , 'tmp_'.$type , $tmpNum);
                 }
-                if($type=='like')
+                if($type=='like'&&!$isAuth)
                 {
                     $coefficient = floatval(Redis::get('fake_like_coefficient'));
                     Redis::hmset($postKey , array('temp_like'=>fakeLike($after , $coefficient)));
@@ -306,8 +306,8 @@ trait CachablePost
                 return array('country_code'=>strtolower($countries[$key-1]) , 'country_num'=>$item);
             })->sortByDesc('country_num')->values();
         }
-        $version = request()->header('YooulVersion' , 0);
-        if(version_compare($version,'1.6.7','>=')&&$count<=3)
+//        $version = request()->header('YooulVersion' , 0);
+        if($count<=3)
         {
             $country = array();
             $count = 0;

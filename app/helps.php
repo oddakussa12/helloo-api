@@ -630,12 +630,12 @@ if (!function_exists('index_switch'))
 {
     function index_switch()
     {
-        if(apcu_exists('index_switch'))
-        {
-            return apcu_fetch('index_switch');
-        }
+//        if(apcu_exists('index_switch'))
+//        {
+//            return apcu_fetch('index_switch');
+//        }
         $indexSwitch = \Redis::get('index_switch');
-        apcu_add('index_switch' , $indexSwitch);
+//        apcu_add('index_switch' , $indexSwitch);
         return $indexSwitch;
     }
 }
@@ -1220,7 +1220,7 @@ if (!function_exists('tempPostLikeNum')) {
      */
     function tempPostLikeNum($count)
     {
-        return $count;
+        return 0;
         $multiple = 0;
         while ($multiple<=0.1)
         {

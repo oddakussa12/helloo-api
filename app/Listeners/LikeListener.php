@@ -55,7 +55,8 @@ class LikeListener
                 $this->updateTopicPostRate($keyValue , $rate);
             }
             $object->increment('post_like_num' , $event->getType() , $extra);
-            $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum);
+            $isAuth = $user->user_id==$object->user_id;
+            $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum , $isAuth);
             $this->updateCountry($keyValue , $user->user_country_id);
             $this->updateUserPostLikeCount($user->user_id);
             notify('user.post_like',
