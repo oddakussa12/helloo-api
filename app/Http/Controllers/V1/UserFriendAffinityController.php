@@ -72,21 +72,22 @@ class UserFriendAffinityController extends BaseController
         if (!empty($result)) {
             $result['sign'] = $this->getSignInList($authUserId, $friendId, false);
         } else {
-            $talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
-            $result['heart_count']     = !empty($talk) ? 1 : 0;
+            //$talk = UserFriendTalkList::select('score')->where(array_merge($baseWhere, ['score'=>1]))->first();
+            //$result['heart_count']     = !empty($talk) ? 1 : 0;
             $result['relationship_id'] = -1;
             $result['sign']['total']   = 0;
         }
 
         //$result = collect($count)->merge(collect($result))->toArray();
 
-        $result   = array_merge($result, $count);
+        $result   = array_merge($count, $result);
         $isFriend = FriendSignIn::isFriend($user_id, $friend_id);
 
         // 不是双方好友关系
         if (!empty($isFriend)) {
             $createTime = $isFriend['user']['created_at'] > $isFriend['friend']['created_at'] ? $isFriend['user']['created_at'] : $isFriend['friend']['created_at'];
         }
+        $result['heart_count'] = !empty($result['heart_count']) ? $result['heart_count'] : 0;
         $result['friend_time'] = !empty($createTime) ? intval((time() - $createTime)/86400)+1 : 0;
 
         $friend = Redis::hgetall("user.".$friendId.'.data');
