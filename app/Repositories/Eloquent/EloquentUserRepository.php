@@ -514,7 +514,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $user_country_id = $user_country===false?0:$user_country+1;
             $operator = $country_op===0?'!=':'=';
             $usedUser = (array)request()->input('used' , array());
-            $userAge = (array)request()->input('user_age' , "0,0");
+            $userAge = strval(request()->input('user_age' , "0,0"));
             $usedUser = array_slice($usedUser , 0 , 29);
             array_push($usedUser , $selfUser);
             $usedUser = array_unique($usedUser);
