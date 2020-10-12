@@ -514,6 +514,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $user_country_id = $user_country===false?0:$user_country+1;
             $operator = $country_op===0?'!=':'=';
             $usedUser = (array)request()->input('used' , array());
+            $userAge = (array)request()->input('user_age' , "0,0");
             $usedUser = array_slice($usedUser , 0 , 29);
             array_push($usedUser , $selfUser);
             $usedUser = array_unique($usedUser);
@@ -529,6 +530,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             if(!blank($userIds))
             {
                 $where .= " AND u1.user_id not in ({$userIds})";
+            }
+            if($userAge!='0,0')
+            {
+                $userAge = $userAge.",";
+                list ($userStartAge , $userEndAge) = explode(',' , $userAge);
+                $userStartAge = intval($userStartAge);
+                $userEndAge = intval($userEndAge);
+                if($userStartAge>0&&$userStartAge<$userEndAge&&$userEndAge<=100)
+                {
+                    $where .= " AND u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
+                }
             }
 
             $onlineSql = <<<DOC

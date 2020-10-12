@@ -1087,7 +1087,7 @@ if (!function_exists('postMedia')) {
             $value = gettype($value)=='array'?$value:\json_decode($value , true);
             $domain = domain() == 'api.mmantou.cn' ? $videoDomainCn : $videoDomain;
             $value[$type]['video_url'] = $domain . $value[$type]['video_url'];
-            $value[$type]['video_thumbnail_url'] = $thumbDomain . $value[$type]['video_thumbnail_url'];
+            $value[$type]['video_thumbnail_url'] = $domain . $value[$type]['video_thumbnail_url'];
             $video_subtitle = (array)$value[$type]['video_subtitle_url'];
             $video_subtitle = \array_filter($video_subtitle, function ($v, $k) {
                 return !empty($v) && !empty($k);
