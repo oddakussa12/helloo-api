@@ -1309,18 +1309,21 @@ if (! function_exists('fakeLike')) {
      * @return string
      * 头像拼接URL
      */
-function userCover($value='', $type='avatar') {
-    if ($type=='avatar') {
-        $value = empty($value) ? 'default_avatar.jpg' : $value;
-    } else {
-        $value = empty($value) ? 'default_cover.png' : $value;
+if (!function_exists('userCover')) {
+    function userCover($value='', $type='avatar') {
+        if ($type=='avatar') {
+            $value = empty($value) ? 'default_avatar.jpg' : $value;
+        } else {
+            $value = empty($value) ? 'default_cover.png' : $value;
+        }
+
+        if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
+            return $value;
+        }
+        return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
     }
-    
-    if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
-        return $value;
-    }
-    return config('common.qnUploadDomain.avatar_domain').$value.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
 }
+
 
 
 /**
@@ -1328,27 +1331,52 @@ function userCover($value='', $type='avatar') {
  * @param bool $default
  * @return string
  */
-function userAgent($agent, $default=true) {
-    if ($agent->match('YooulAndroid')) {
-        $referer = 'android';
-    } elseif ($agent->match('YoouliOS')) {
-        $referer = 'ios';
-    }
+if (!function_exists('userAgent')) {
+    function userAgent($agent, $default=true) {
+        if ($agent->match('YooulAndroid')) {
+            $referer = 'android';
+        } elseif ($agent->match('YoouliOS')) {
+            $referer = 'ios';
+        }
 
-    if ($default) {
-        $referer = $referer ?? 'web';
-    } else {
-        $referer = $referer ?? '';
+        if ($default) {
+            $referer = $referer ?? 'web';
+        } else {
+            $referer = $referer ?? '';
+        }
+        return $referer;
     }
-    return $referer;
 }
 
 /**
  * @param $agent
  * @return string
  */
-function userAgentMobile($agent) {
-    $agent = strtolower($agent);
-    $agent = in_array($agent, ['ios', 'android']) ? $agent : 'mobile';
-    return ucfirst($agent);
+if (!function_exists('userAgentMobile')) {
+    function userAgentMobile($agent) {
+        $agent = strtolower($agent);
+        $agent = in_array($agent, ['ios', 'android']) ? $agent : 'mobile';
+        return ucfirst($agent);
+    }
 }
+
+
+
+if (!function_exists('age')) {
+    function age($birthday){
+        $birthday = strval($birthday);
+        $time = strtotime($birthday);
+        if(strval(date('Y-m-d' , $time))!==$birthday)
+        {
+            $birthday = date('Y-m-d');
+        }
+        list($year,$month,$day) = explode("-",$birthday);
+        $year_diff = date("Y") - $year;
+        $month_diff = date("m") - $month;
+        $day_diff  = date("d") - $day;
+        if ($day_diff < 0 || $month_diff < 0)
+            $year_diff--;
+        return $year_diff;
+    }
+}
+
