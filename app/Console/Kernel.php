@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\AllUserNotification;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -23,6 +24,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GeneratePostEssenceRank::class,
         \App\Console\Commands\AutoUpdateOnlineUser::class,
         \App\Console\Commands\Promote::class,
+        \App\Console\Commands\AllUserNotification::class,
         \Torann\GeoIP\Console\Update::class,
     ];
 
@@ -38,6 +40,10 @@ class Kernel extends ConsoleKernel
 //            ->hourlyAt('30')->when(function(){
 //                return config('common.cron_switch');
 //            });
+        $schedule->command('all:user_notification')
+            ->everyTenMinutes()->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('calculating:rate_limit_v2')
             ->hourlyAt('20')->when(function(){
                 return config('common.cron_switch');

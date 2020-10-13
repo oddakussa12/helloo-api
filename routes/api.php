@@ -267,6 +267,7 @@ $api->group($V1Params , function ($api){
         $api->get('bk/essence/post' , 'BackStageController@getCustomEssencePost')->name('bk.post.essence.post');
         $api->patch('bk/essence/post/{post}' , 'BackStageController@setCustomEssencePost')->name('bk.post.essence.update');
         $api->patch('bk/carousel/post/{post}' , 'BackStageController@setCarousel')->name('bk.post.carousel.update');
+        $api->patch('bk/service/message' , 'BackStageController@setServiceMessage')->name('bk.service.message.update');
         $api->patch('bk/banner' , 'BackStageController@setBanner')->name('bk.banner.update');
         $api->patch('bk/event' , 'BackStageController@setEvent')->name('bk.event.update');
         $api->delete('bk/postComment/{postComment}' , 'BackStageController@destroyComment')->name('bk.postComment.delete');

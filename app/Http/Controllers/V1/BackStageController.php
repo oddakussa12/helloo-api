@@ -102,6 +102,17 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function setServiceMessage(Request $request)
+    {
+        $id = intval($request->input('message_id' , 0));
+        if($id>0)
+        {
+            $key = 'yooul_all_message';
+            Redis::set($key , $id);
+        }
+        return $this->response->noContent();
+    }
+
     public function setEvent(Request $request)
     {
         $redis = new RedisList();
