@@ -22,6 +22,7 @@ return [
         "post_index_rate"=>'post_index_rate',//最热贴子
         "post_index_rate_v2"=>'post_index_rate_v2',//最热贴子v2
         "post_index_non_rate"=>'post_index_non_rate',//非最热贴子
+        "post_preheat_propaganda"=>'post_preheat_propaganda',//预热贴子
     ],
     'topic'=>[
         'topic_post_count'=>'topic_post_count',

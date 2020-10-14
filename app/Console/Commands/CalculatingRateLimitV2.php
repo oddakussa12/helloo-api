@@ -5,14 +5,13 @@ namespace App\Console\Commands;
 use Carbon\Carbon;
 use App\Custom\RedisList;
 use App\Traits\CachablePost;
+use App\Traits\CachableUser;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Storage;
-use function GuzzleHttp\Psr7\str;
 
 class CalculatingRateLimitV2 extends Command
 {
-    use CachablePost;
+    use CachablePost,CachableUser;
     /**
      * The name and signature of the console command.
      *
@@ -53,9 +52,12 @@ class CalculatingRateLimitV2 extends Command
         $rateV2Key = config('redis-key.post.post_index_rate_v2').'_'.$index;
         $newKey = config('redis-key.post.post_index_new');
         $nonRateKey = config('redis-key.post.post_index_non_rate');
+        $preheatPropagandaKey = config('redis-key.post.post_preheat_propaganda');
 //        Redis::del($rateKey);
         Redis::del($rateV2Key);
         $perPage = 10;
+        $userKolX = intval(Redis::get('user_kol_x'));
+        $postInitCommentNum = intval(Redis::get('post_init_comment_num'));
         $count = Redis::zcard($newKey);
         $redis = new RedisList();
         $postGravity = floatval(Redis::get('post_gravity'));
@@ -74,12 +76,20 @@ class CalculatingRateLimitV2 extends Command
                 {
                     continue;
                 }
-                $posts = $this->getPost($postId , array('comment_num' , 'real_like'));
+                $posts = $this->getPost($postId , array('user_id' , 'comment_num' , 'real_like'));
                 $commentCount = isset($posts['comment_num'])?$posts['comment_num']:0;
                 $likeCount = isset($posts['real_like'])?$posts['real_like']:0;
                 $commenterCount= $this->commenterCount($postId);
                 $countryCount = $this->countryNum($postId);
-                $rate = rate_comment_v4($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $postGravity);
+                $index = Redis::zrank($preheatPropagandaKey , $postId);
+                if($index===null)
+                {
+                    $commentCount = $commentCount + $postInitCommentNum;
+                }
+                $user = $this->getUser($posts['user_id'] , array('user_level'));
+                $x = $user['user_level']==1?$userKolX:1;
+                $x = $x<0?1:$x;
+                $rate = rate_comment_v4($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $postGravity , $x);
 //                Storage::prepend('rate_'.strval($index).'.log', strval($postId).','.strval($rate).','.strval($likeCount).','.strval($postGravity).PHP_EOL);
 //                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount) , $postId);
                 Redis::zadd($rateV2Key , $rate , $postId);
