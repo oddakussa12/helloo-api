@@ -235,4 +235,31 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function setUserAndPostPreheatCoefficient(Request $request)
+    {
+        $userKolX = intval($request->input('user_kol_x' , -1));
+        $postInitCommentNum = intval($request->input('post_init_comment_num' , -1));
+        if($userKolX!=-1)
+        {
+            $key = 'user_kol_x';
+            $userKolX = $userKolX<0||$userKolX>50?1:$userKolX;
+            Redis::set($key , $userKolX);
+        }
+        if($postInitCommentNum!=-1)
+        {
+            $key = 'post_init_comment_num';
+            $postInitCommentNum = $postInitCommentNum<0||$postInitCommentNum>200?0:$postInitCommentNum;
+            Redis::set($key , $postInitCommentNum);
+        }
+        return $this->response->noContent();
+    }
+
+    public function setUserLevel(Request $request)
+    {
+        $userId = intval($request->input('user_id' , 0));
+        $user = app(UserRepository::class)->findOrFail($userId);
+        $this->updateUser($user);
+        return $this->response->noContent();
+    }
+
 }
