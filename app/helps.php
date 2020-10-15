@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Jenssegers\Agent\Agent;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 if (! function_exists('locale')) {
     function locale($locale = null)
@@ -617,9 +618,9 @@ if (!function_exists('post_gravity'))
         if($rate!=0)
         {
             $postRate = $rate;
-            \Redis::set('post_rate' , $rate);
+            Redis::set('post_rate' , $rate);
         }else{
-            $postRate = floatval(\Redis::get('post_rate'));
+            $postRate = floatval(Redis::get('post_rate'));
             $postRate = $postRate<=0||$postRate>=2?1:$postRate;
         }
         return $postRate;
@@ -634,9 +635,8 @@ if (!function_exists('index_switch'))
 //        {
 //            return apcu_fetch('index_switch');
 //        }
-        $indexSwitch = \Redis::get('index_switch');
-//        apcu_add('index_switch' , $indexSwitch);
-        return $indexSwitch;
+        //        apcu_add('index_switch' , $indexSwitch);
+        return Redis::get('index_switch');
     }
 }
 
