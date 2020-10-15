@@ -6,6 +6,7 @@ use App\Custom\Constant\Constant;
 use App\Jobs\Friend;
 use App\Jobs\FriendLevel;
 use App\Jobs\FriendSignIn;
+use App\Models\UserFriend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,28 @@ class UserFriendController extends BaseController
             $friend->make_friend_created_at = $userFriends->where('friend_id' , $friend->user_id)->pluck('created_at')->first();
         });
         return UserCollection::collection($friends);
+    }
+
+    /**
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response|void
+     * 修改好友备注名称
+     */
+    public function update(Request $request)
+    {
+        $userId   = auth()->id();
+        $friendId = $request->input('friend_id');
+        $nickName = $request->input('nick_name');
+
+        $this->validate($request, [
+            'friend_id' => 'required|int',
+            'nick_name' => 'required|string|min:1',
+        ]);
+        if(!auth()->check()) {
+          //  return $this->response->errorNotFound();
+        }
+        UserFriend::where(['user_id'=>$userId, 'friend_id'=>$friendId])->update('friend_nick_name', $nickName);
+        return $this->response->accepted();
     }
 
     /**

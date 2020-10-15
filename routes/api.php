@@ -92,6 +92,7 @@ $api->group($V1Params , function ($api){
 
         /*****好友 开始*****/
         $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');//我的好友
+        $api->post('my/friend' , 'UserFriendController@update')->name('my.friend.update');//好友备注
         $api->delete('my/friend/{friend}' , 'UserFriendController@destroy')->name('my.friend.destroy');//删除我的好友
         /*****好友 结束*****/
 
