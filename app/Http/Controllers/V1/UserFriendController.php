@@ -92,10 +92,8 @@ class UserFriendController extends BaseController
             'friend_id' => 'required|int',
             'nick_name' => 'required|string|min:1',
         ]);
-        if(!auth()->check()) {
-          //  return $this->response->errorNotFound();
-        }
-        UserFriend::where(['user_id'=>$userId, 'friend_id'=>$friendId])->update('friend_nick_name', $nickName);
+
+        UserFriend::where(['user_id'=>$userId, 'friend_id'=>$friendId])->update(['friend_nick_name'=>$nickName]);
         return $this->response->accepted();
     }
 
