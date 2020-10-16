@@ -82,7 +82,7 @@ class CalculatingRateLimitV2 extends Command
                 $commenterCount= $this->commenterCount($postId);
                 $countryCount = $this->countryNum($postId);
                 $index = Redis::zrank($preheatPropagandaKey , $postId);
-                if($index===null)
+                if($index!==null)
                 {
                     $commentCount = $commentCount + $postInitCommentNum;
                 }

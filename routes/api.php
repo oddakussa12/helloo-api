@@ -290,6 +290,7 @@ $api->group($V1Params , function ($api){
         $api->post('bk/set/post/rate' , 'BackStageController@setPostRate')->name('bk.set.post.rate');
         $api->post('bk/set/user/post/preheat/coefficient' , 'BackStageController@setUserAndPostPreheatCoefficient')->name('bk.set.user.and.post.preheat.coefficient');
         $api->post('bk/set/user/level' , 'BackStageController@setUserLevel')->name('bk.set.user.level');
+        $api->post('bk/set/post/preheat' , 'BackStageController@setPostPreheat')->name('bk.set.post.preheat');
         $api->post('bk/set/fake/like/coefficient' , 'BackStageController@setFakeLikeCoefficient')->name('bk.set.fake.like.coefficient');
     });
     $api->group(['middleware'=>['appAuth']] , function($api){

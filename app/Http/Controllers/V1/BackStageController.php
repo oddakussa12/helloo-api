@@ -254,6 +254,22 @@ class BackStageController extends BaseController
         return $this->response->noContent();
     }
 
+    public function setPostPreheat(Request $request)
+    {
+        $postId = intval($request->input('post_id' , 0));
+        $time = intval($request->input('time' , 0));
+        $postPreheat = intval($request->input('post_preheat' , 0));
+        $time = $time==0?time():$time;
+        $preheatPropagandaKey = config('redis-key.post.post_preheat_propaganda');
+        if($postPreheat===0)
+        {
+            Redis::zrem($preheatPropagandaKey , $postId);
+        }else{
+            Redis::zadd($preheatPropagandaKey , $time , $postId);
+        }
+        return $this->response->noContent();
+    }
+
     public function setUserLevel(Request $request)
     {
         $userId = intval($request->input('user_id' , 0));
