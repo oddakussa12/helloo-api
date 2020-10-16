@@ -7,6 +7,7 @@
  */
 namespace App\Repositories\Eloquent;
 
+use App\Jobs\RyOnline;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
@@ -630,13 +631,17 @@ DOC;
             Redis::zadd($lastActivityTime , $time , intval($k));
         });
         Redis::expire($dynamicKey,900);
+        RyOnline::dispatch(array(
+            'offlineUsers'=>$offlineUsers,
+            'onlineUsers'=>$onlineUsers,
+        ))->onConnection('sqs')->onQueue('ry_online');
     }
 
     public function isOnline($id)
     {
         $bitKey = 'ry_user_online_state_bit';
         $statue = Redis::getBit($bitKey , $id);
-        return intval($statue);
+        return (bool)intval($statue);
     }
 
     protected function cacheUserData($id)
