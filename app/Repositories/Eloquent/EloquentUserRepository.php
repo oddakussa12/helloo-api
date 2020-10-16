@@ -635,8 +635,9 @@ DOC;
     public function isOnline($id)
     {
         $bitKey = 'ry_user_online_state_bit';
+        $bitKey = 'ry_user_online_status_bit';
         $statue = Redis::getBit($bitKey , $id);
-        return intval($statue);
+        return (bool)intval($statue);
     }
 
     protected function cacheUserData($id)

@@ -487,7 +487,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $indexSwitch = (bool)Redis::get('index_switch');
         if($indexSwitch)
         {
-            $key   = 'post_index_rate_v2_'.$index;
+            $key   = config('redis-key.post.post_index_rate_v2').'_'.$index;
             if(!Redis::exists($key))
             {
                 $key = 'post_index_rate_'.$index;
