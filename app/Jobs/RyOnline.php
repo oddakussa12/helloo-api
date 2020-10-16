@@ -83,9 +83,9 @@ class RyOnline implements ShouldQueue
         }
         if(!blank($offlineUsers))
         {
-            $offlineUsers = join(',' , $offlineUsers);
-            $offlineUsers = rtrim($offlineUsers , ',');
-            \DB::statement("delete from `f_ry_online_users` where user_id in ({$offlineUsers});");
+            $userIds = join(',' , $offlineUsers);
+            $userIds = rtrim($userIds , ',');
+            \DB::statement("delete from `f_ry_online_users` where user_id in ({$userIds});");
         };
         $allUsers = array_unique(array_merge($onlineUsers , $offlineUsers));
         $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
