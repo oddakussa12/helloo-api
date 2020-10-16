@@ -606,12 +606,12 @@ DOC;
 
     public function updateUserOnlineState($users)
     {
-        $currentMinute = date('i');
-        $index = floor($currentMinute/5);
+//        $currentMinute = date('i');
+//        $index = floor($currentMinute/5);
         $lastActivityTime = 'ry_user_last_activity_time';
         $key = 'ry_user_online_status';
         $bitKey = 'ry_user_online_status_bit';
-        $dynamicKey = config('redis-key.user.ry_update_online_status')."_".strval($index);
+//        $dynamicKey = config('redis-key.user.ry_update_online_status')."_".strval($index);
         $users = \array_filter($users , function($v , $k){
             return in_array($v , array(0 , 1 , 2))&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH );
@@ -624,13 +624,13 @@ DOC;
         !blank($onlineUsers)&&Redis::sadd($key , array_keys($onlineUsers));
         !blank($offlineUsers)&&Redis::srem($key , array_keys($offlineUsers));
         $time = time();
-        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $dynamicKey , $lastActivityTime , $time){
+        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $lastActivityTime , $time){
             $v = intval($v)>0?0:1;
             Redis::setBit($bitKey , intval($k) , intval($v));
-            Redis::zadd($dynamicKey , intval($v) , intval($k));
+//            Redis::zadd($dynamicKey , intval($v) , intval($k));
             Redis::zadd($lastActivityTime , $time , intval($k));
         });
-        Redis::expire($dynamicKey,900);
+//        Redis::expire($dynamicKey,900);
         RyOnline::dispatch(array(
             'offlineUsers'=>$offlineUsers,
             'onlineUsers'=>$onlineUsers,
