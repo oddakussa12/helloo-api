@@ -634,7 +634,7 @@ DOC;
         RyOnline::dispatch(array(
             'offlineUsers'=>$offlineUsers,
             'onlineUsers'=>$onlineUsers,
-        ))->onConnection('sqs')->onQueue('ry_online');
+        ))->onConnection('sqs')->onQueue('ry_user_online');
     }
 
     public function isOnline($id)

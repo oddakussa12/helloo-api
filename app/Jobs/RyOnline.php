@@ -2,17 +2,20 @@
 
 namespace App\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Facades\Redis;
 
 class RyOnline implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private $chinaNow;
 
     private $users;
     /**
@@ -26,7 +29,8 @@ class RyOnline implements ShouldQueue
 
     public function __construct($users)
     {
-        $this->time = time();
+        $this->chinaNow = Carbon::now('Asia/Shanghai');
+        $this->time = $this->chinaNow->timestamp;
         $this->date = date('Y-m-d H:i:s' , $this->time);
         $this->users = $users;
     }
@@ -38,6 +42,7 @@ class RyOnline implements ShouldQueue
      */
     public function handle()
     {
+        $chinaNow = $this->chinaNow;
         $users = $this->users;
         $offlineUsers = $users['offlineUsers'];
         $onlineUsers = $users['onlineUsers'];
@@ -82,6 +87,24 @@ class RyOnline implements ShouldQueue
             $offlineUsers = rtrim($offlineUsers , ',');
             \DB::statement("delete from `f_ry_online_users` where user_id in ({$offlineUsers});");
         };
+        $allUsers = array_unique(array_merge($onlineUsers , $offlineUsers));
+        $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
+        foreach ($allUsers as $userId)
+        {
+            if(!Redis::setbit($key , $userId , 1))
+            {
+                $view = DB::table('views_logs')->where('user_id' , $userId)->orderBy('id' , 'DESC')->first();
+                if(empty($view)||Carbon::parse($view->created_at , 'Asia/Shanghai')->endOfDay()->timestamp<$chinaNow->endOfDay()->timestamp)
+                {
+                    DB::table('views_logs')->insert(array(
+                        'user_id'=>$userId,
+                        'ip'=>getRequestIpAddress(),
+                        'referer'=>'ry',
+                        'created_at'=>$chinaNow->toDateTimeString()
+                    ));
+                }
+            }
+        }
     }
 
 }
