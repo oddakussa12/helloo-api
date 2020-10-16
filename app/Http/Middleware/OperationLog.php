@@ -21,7 +21,7 @@ class OperationLog extends BaseMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if(auth()->check()&&($request->routeIs('post.index')||$request->routeIs('myself.update')))
+        if(auth()->check())
         {
             $chinaNow = Carbon::now('Asia/Shanghai');
             $now = $chinaNow->toDateTimeString();

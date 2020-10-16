@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GenerateYesterdayUserRank::class,
 //        \App\Console\Commands\AutoIncreasePostView::class,
         \App\Console\Commands\GeneratePostEssenceRank::class,
-        \App\Console\Commands\AutoUpdateOnlineUser::class,
+//        \App\Console\Commands\AutoUpdateOnlineUser::class,
         \App\Console\Commands\Promote::class,
         \App\Console\Commands\AllUserNotification::class,
         \Torann\GeoIP\Console\Update::class,
@@ -88,10 +88,10 @@ class Kernel extends ConsoleKernel
             ->sundays()->dailyAt('20:00')->when(function(){
                 return config('common.cron_switch');
             });
-        $schedule->command('auto:update_online_user')
-            ->everyFiveMinutes()->when(function(){
-                return config('common.cron_switch');
-            });
+//        $schedule->command('auto:update_online_user')
+//            ->everyFiveMinutes()->when(function(){
+//                return config('common.cron_switch');
+//            });
         $schedule->command('promote:push')
             ->dailyAt('12:00')->when(function(){
                 return config('common.cron_switch');
