@@ -27,12 +27,15 @@ class RyOnline implements ShouldQueue
      */
     private $date;
 
+    private $topics;
+
     public function __construct($users)
     {
         $this->chinaNow = Carbon::now('Asia/Shanghai');
         $this->time = $this->chinaNow->timestamp;
         $this->date = date('Y-m-d H:i:s' , $this->time);
         $this->users = $users;
+        $this->topics = config('topics');
     }
 
     /**
@@ -42,6 +45,7 @@ class RyOnline implements ShouldQueue
      */
     public function handle()
     {
+        $topics = $this->topics;
         $chinaNow = $this->chinaNow;
         $users = $this->users;
         $offlineUsers = $users['offlineUsers'];
@@ -52,6 +56,12 @@ class RyOnline implements ShouldQueue
         {
             foreach ($onlineUsers as $userId)
             {
+                $kpop = 0;
+                $anime = 0;
+                $sad = 0;
+                $music = 0;
+                $games = 0;
+                $sports = 0;
                 $userTopicKey = 'user.'.$userId.'.topics';
                 $userKey = "user.".strval($userId).'.data';
                 $user = Redis::hgetAll($userKey);
@@ -65,6 +75,19 @@ class RyOnline implements ShouldQueue
                 $user = \DB::table('ry_online_users')->where('user_id' , $userId)->first();
                 if(blank($user))
                 {
+                    foreach ($topics as $topic=>$data)
+                    {
+                        foreach ($data as $t)
+                        {
+                            $t = strval($t);
+                            if(Redis::zrank($userTopicKey , $t)!==null)
+                            {
+                                $$topic = 1;
+                                break;
+                            }
+                        }
+                    }
+
                     \DB::table('ry_online_users')->insert(
                         array(
                             'user_id'=>$userId,
@@ -74,8 +97,14 @@ class RyOnline implements ShouldQueue
                             'user_gender'=>$user_gender??0,
                             'user_country_id'=>$user_country_id??246,
                             'user_avatar'=>$user_avatar??'default_avatar.jpg',
-                            'user_created_at'=>$user_created_at??$this->date,
+                            'kpop' => $kpop,
+                            'anime' => $anime,
+                            'sad' => $sad,
+                            'music' => $music,
+                            'games' => $games,
+                            'sports' => $sports,
                             'created_at'=>$this->time,
+                            'user_created_at'=>$user_created_at??$this->date,
                         )
                     );
                 }
