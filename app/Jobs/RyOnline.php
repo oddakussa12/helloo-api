@@ -104,6 +104,7 @@ class RyOnline implements ShouldQueue
                     ));
                 }
             }
+            Redis::rpush($key."_op_list" , strval($userId).'.'.strval($this->time));//20201017
         }
     }
 
