@@ -371,11 +371,19 @@ class PostController extends BaseController
         $userPostsKey = config('redis-key.user.posts');
         $redis->zIncrBy($userPostsKey , -1 , $user->user_id);
         $postKey = config('redis-key.post.post_index_new');
+        $essencePostKey = config('redis-key.post.post_index_essence');
+        $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
+//        $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
+//        $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
         $redis->zRem($postKey , $post->getKey());
+//        $redis->zRem($rateKeyOne , $post->getKey());
+//        $redis->zRem($rateKeyTwo , $post->getKey());
+        $redis->zRem($essencePostKey , $post->getKey());
+        $redis->zRem($essenceManualPostKey , $post->getKey());
+
         $topics = $post->getPostTopics($post->post_id);
         $topicPostCountKey = config('redis-key.topic.topic_post_count');
-        $topicNewKey = config('redis-key.topic.topic_index_new');
-        !empty($topics)&&array_walk($topics , function($item , $index) use($topicPostCountKey , $topicNewKey , $post){
+        !empty($topics)&&array_walk($topics , function($item , $index) use($topicPostCountKey , $post){
             $key = strval($item);
             Redis::zincrby($topicPostCountKey , -1 , $key);
             Redis::zrem($key."_new" , $post->post_id);
