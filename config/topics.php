@@ -1,0 +1,27 @@
+<?php
+return [
+    "kpop"=>[
+        'kpop',
+        'Kpop',
+    ],
+    "anime"=>[
+        'anime',
+        'Anime',
+    ],
+    "sad"=>[
+        'sad',
+        'Sad',
+    ],
+    "music"=>[
+        'music',
+        'Music',
+    ],
+    "games"=>[
+        'games',
+        'Games',
+    ],
+    "sports"=>[
+        'sports',
+        'Sports',
+    ],
+];

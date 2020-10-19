@@ -29,6 +29,9 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
             $api->resource('post', 'PostController', ['only' => ['index']]);
+            /*****热门话题 开始*****/
+            $api->get('topic/hot', 'TopicController@hot')->name('topic.hot');
+            /*****热门话题 结束*****/
         });
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
@@ -42,9 +45,7 @@ $api->group($V1Params , function ($api){
         $api->get('postComment/locate/{commentId}' , 'PostCommentController@locateComment')->name('show.locate.comment');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
 
-        /*****热门话题 开始*****/
-        $api->get('topic/hot', 'TopicController@hot')->name('topic.hot');
-        /*****热门话题 结束*****/
+
 
         /*****话题下贴子 开始*****/
         $api->get('topic/{topic}/post', 'TopicController@post')->name('topic.post');
