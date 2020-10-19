@@ -127,7 +127,7 @@ class RyOnline implements ShouldQueue
                 {
                     DB::table('views_logs')->insert(array(
                         'user_id'=>$userId,
-                        'ip'=>getRequestIpAddress(),
+                        'ip'=>'127.0.0.1',
                         'referer'=>'ry',
                         'created_at'=>$chinaNow->toDateTimeString()
                     ));
