@@ -40,12 +40,13 @@ class PostCommentController extends BaseController
     public function __construct(PostCommentRepository $postComment , AzureTranslateService $azureTranslateService , TranslateService $translateService)
     {
         $this->postComment = $postComment;
-        if(config('common.translation_version')==='niu')
-        {
-            $this->translate = $azureTranslateService;
-        }else{
-            $this->translate = $translateService;
-        }
+//        if(config('common.translation_version')==='niu')
+//        {
+//            $this->translate = $azureTranslateService;
+//        }else{
+//            $this->translate = $translateService;
+//        }
+        $this->translate = $translateService;
     }
     public function index()
     {

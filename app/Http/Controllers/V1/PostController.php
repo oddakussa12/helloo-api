@@ -43,12 +43,13 @@ class PostController extends BaseController
     public function __construct(PostRepository $post,AzureTranslateService $azureTranslateService , TranslateService $translateService)
     {
         $this->post = $post;
-        if(config('common.translation_version')==='niu')
-        {
-            $this->translate = $azureTranslateService;
-        }else{
-            $this->translate = $translateService;
-        }
+//        if(config('common.translation_version')==='niu')
+//        {
+//            $this->translate = $azureTranslateService;
+//        }else{
+//            $this->translate = $translateService;
+//        }
+        $this->translate = $translateService;
     }
 
     public function index(Request $request)

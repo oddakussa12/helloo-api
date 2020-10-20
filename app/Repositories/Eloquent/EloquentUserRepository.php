@@ -501,6 +501,50 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return Redis::srandmember($key);
     }
 
+    public function randDiffRyOnlineUserByHobby()
+    {
+        $selfUser = intval(request()->input('self'));
+        if($selfUser>0)
+        {
+            $where = '';
+            $country_code = config('countries');
+            $usedUser = (array)request()->input('used' , array());
+            $usedUser = array_slice($usedUser , 0 , 29);
+            array_push($usedUser , $selfUser);
+            $usedUser = array_unique($usedUser);
+            $usedUser = array_filter($usedUser , function($v){
+                return !empty($v);
+            });
+            $usedUser = array_merge($usedUser , [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
+            $userIds = join(',' , $usedUser);
+            if(!blank($userIds))
+            {
+                $where .= " AND u1.user_id not in ({$userIds})";
+            }
+            $hobby = strval(request()->has('hobby'));
+            if(!blank($hobby)&&in_array($hobby , array('kpop' , 'anime' , 'sad' , 'music' , 'games' , 'sports')))
+            {
+                $where .= " AND u1.{$hobby} = 1";
+            }
+            $onlineSql = <<<DOC
+SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE u1.user_id >= u2.user_id {$where} ORDER BY u1.user_id LIMIT 1;
+DOC;
+            $user = collect(\DB::select($onlineSql))->first();
+            if(blank($user))
+            {
+                return $this->findOrFail($this->randRyOnlineUser());
+            }
+            $country_id = intval($user->user_country_id-1);
+            $user->user_level = 0;
+            $user->user_country = strtolower($country_code[$country_id]);
+            $user->user_avatar_link = config('common.qnUploadDomain.avatar_domain').$user->user_avatar.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+            $user->user_continent = getContinentByCountry($user->user_country);
+            return $user;
+        }else{
+            return $this->randRyOnlineUser();
+        }
+    }
+
     public function randDiffRyOnlineUserV2()
     {
         $selfUser = intval(request()->input('self'));
@@ -865,6 +909,43 @@ DOC;
     {
         $key = 'ry_user_online_status';
         return Redis::scard($key);
+    }
+
+    public function filter()
+    {
+        $country_code = config('countries');
+        $users = DB::table('ry_online_users');
+        $user_gender = intval(request()->input('user_gender' , 2));
+        $country = strval(request()->input('country' , 0));
+        $country_op = intval(request()->input('country_op' , 2));
+        $user_country = array_search(strtoupper($country) , $country_code);
+        $userAge = strval(request()->input('user_age' , "0,0"));
+        $user_country_id = $user_country===false?0:$user_country+1;
+        if($country_op==1)
+        {
+            $users = $users->where('user_country_id' , $user_country_id);
+        }elseif ($country_op==0)
+        {
+            $users = $users->where('user_country_id' , '!='  , $user_country_id);
+        }
+        if(in_array($user_gender , array(0 , 1)))
+        {
+            $users = $users->where('user_gender' , $user_gender);
+        }
+
+        if($userAge!='0,0')
+        {
+            $userAge = $userAge.",";
+            list ($userStartAge , $userEndAge) = explode(',' , $userAge);
+            $userStartAge = intval($userStartAge);
+            $userEndAge = intval($userEndAge);
+            if($userStartAge>0&&$userStartAge<$userEndAge&&$userEndAge<=100)
+            {
+                $users = $users->whereBetween('user_age' , array($userStartAge , $userEndAge));
+            }
+        }
+        $userIds = $users->inRandomOrder()->take(10)->get()->pluck('user_id')->toArray();
+        return $this->findByMany($userIds);
     }
 
     public function planet()

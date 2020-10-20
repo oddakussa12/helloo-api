@@ -54,7 +54,7 @@ class UserCollection extends Resource
                     'user_gender'=>$this->user_gender
                 ]);
             }),
-            $this->mergeWhen($request->routeIs('user.ry.online.planet'), function (){
+            $this->mergeWhen($request->routeIs('user.ry.online.planet')||$request->routeIs('user.ry.online.filter'), function (){
                 return collect([
                     'user_about'=>$this->user_about
                 ]);

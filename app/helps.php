@@ -924,6 +924,38 @@ if (!function_exists('niuAzureToGoogle'))
     }
 }
 
+if(!function_exists('googleToNiu'))
+{
+    function googleToNiu($language)
+    {
+        switch ($language)
+        {
+            case 'hmn':
+                $lang = 'mww';
+                break;
+            case 'iw':
+                $lang = 'he';
+                break;
+            case 'jw':
+                $lang = 'jv';
+                break;
+            case 'tl':
+                $lang = 'fil';
+                break;
+            case 'zh-CN':
+                $lang = 'zh';
+                break;
+            case 'zh-TW':
+                $lang = 'cht';
+                break;
+            default:
+                $lang = $language;
+                break;
+        }
+        return $lang;
+    }
+}
+
 if(!function_exists('azureToNiu'))
 {
     function azureToNiu($language)
