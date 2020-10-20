@@ -18,6 +18,9 @@ class Constant {
     // 翻译 队列
     const QUEUE_POST_TRANSLATION="post_translation";
 
+    // 用户自定义表情
+    const CUSTOM_USER_EMOJI='custom_user_emoji_';
+
     // ES 队列
     const QUEUE_ES_POST="post_es";
     const QUEUE_ES_TOPIC="topic_es";

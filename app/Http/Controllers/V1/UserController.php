@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Custom\Constant\Constant;
 use App\Models\Es;
 use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
+use App\Models\UserEmoji;
 use App\Resources\UserSearchCollection;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Contracts\UserRepository;
 
@@ -133,6 +136,56 @@ class UserController extends BaseController
         //
     }
 
+    /**
+     * @return \Dingo\Api\Http\Response
+     * 保存用户自定义表情
+     */
+    public function getEmoji()
+    {
+        $userId = auth()->id();
+        $memKey = Constant::CUSTOM_USER_EMOJI.$userId;
+        $result = Redis::get($memKey);
+        $result = !empty($result) ? json_decode($result, true) : [];
+
+        if (empty($result)) {
+            $result = UserEmoji::select('id','emoji')->where('user_id', $userId)->orderByDesc('updated_at')->get();
+            $result = $result->isEmpty() ? [] : $result->toArray();
+            Redis::set($memKey, json_encode($result));
+            Redis::expire($memKey, 86400*7);
+        }
+        return $result;
+    }
+
+    /**
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     * 保存用户自定义表情
+     */
+    public function setEmoji(Request $request)
+    {
+        $userId = auth()->id();
+        $emoji  = $request->input('emoji');
+        UserEmoji::create(['user_id'=>$userId, 'emoji'=>$emoji]);
+        Redis::del(Constant::CUSTOM_USER_EMOJI.$userId);
+        return $this->response->accepted();
+    }
+
+
+    /**
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     * 保存用户自定义表情
+     */
+    public function updateEmoji(Request $request)
+    {
+        $userId = auth()->id();
+        $id     = $request->input('id');
+        if (!empty($id)) {
+            UserEmoji::where(['id'=>$id, 'user_id'=>$userId])->update();
+            Redis::del(Constant::CUSTOM_USER_EMOJI.$userId);
+        }
+        return $this->response->accepted();
+    }
     /**
      * Update the specified resource in storage.
      *
