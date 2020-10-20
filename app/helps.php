@@ -1179,21 +1179,23 @@ if (!function_exists('rate_comment_v4')) {
      *
      * @param $comments
      * @param $create_time
-     * @param $likes
-     * @param $commenters
-     * @param $countries
-     * @param $gravity
+     * @param int $likes
+     * @param int $commenters
+     * @param int $countries
+     * @param int $gravity
+     * @param int $x
      * @return float
      */
-    function rate_comment_v4($comments, $create_time, $likes=0 , $commenters=0 , $countries=0 , $gravity = 0)
+    function rate_comment_v4($comments, $create_time, $likes=0 , $commenters=0 , $countries=0 , $gravity = 0 , $x = 1)
     {
         $gravity = $gravity==0?post_gravity():$gravity;
+        $x = intval($x);
         $ctime = strtotime($create_time);
-        $intervals = time()-$ctime;
-        $likeWeight = config('common.like_weight_v2');
-        $commentWeight = config('common.comment_weight_v2');
-        $commenterWeight = config('common.commenter_weight_v2');
-        $postCountryWeight = config('common.post_country_weight_v2');
+//        $intervals = time()-$ctime;
+        $likeWeight = config('common.like_weight_v2')*$x;
+        $commentWeight = config('common.comment_weight_v2')*$x;
+        $commenterWeight = config('common.commenter_weight_v2')*$x;
+        $postCountryWeight = config('common.post_country_weight_v2')*$x;
         $numerator = round(floatval($likeWeight) , 5)*$likes
             +round(floatval($commentWeight) , 5)*$comments
             + round(floatval($commenterWeight) , 5)*$commenters
