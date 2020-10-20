@@ -135,6 +135,7 @@ $api->group($V1Params , function ($api){
                 $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
             });
             $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
+            $api->get('user/ry/filter' , 'UserController@filter')->name('user.ry.online.filter');
             $api->post('user/update/myself/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
             $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
             $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');

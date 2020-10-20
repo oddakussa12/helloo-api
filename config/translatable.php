@@ -25,6 +25,10 @@ return [
 		'fr',
 		'de',
 		'ru',
+        'ur',
+        'ms',
+        'am',
+        'ha',
 
 //        'es' => [
 		//            'MX', // mexican spanish

@@ -293,6 +293,8 @@ class UserController extends BaseController
             $user = $this->user->randDiffRyOnlineUserV2();
             $user->user_country_id = $this->getUser($user->user_id , array('user_country_id'))['user_country_id'];
             return new UserCollection($user);
+        }elseif ($request->has('hobby')){
+            $userId = intval($this->user->randDiffRyOnlineUserByHobby());
         }else{
             $userId = intval($this->user->randDiffRyOnlineUser());
         }
@@ -335,6 +337,16 @@ class UserController extends BaseController
         $userId = intval(auth()->id());
         $data = array_diff($data , [$userId, 35525, 219367, 28583, 28527, 69684, 97623, 28761]);
         $users = $this->user->findByMany($data);
+        $total = $this->user->onlineUsersCount();
+        $users = UserCollection::collection($users)->additional(array(
+            'total'=>$total
+        ));
+        return $users;
+    }
+
+    public function filter()
+    {
+        $users = $this->user->filter();
         $total = $this->user->onlineUsersCount();
         $users = UserCollection::collection($users)->additional(array(
             'total'=>$total
