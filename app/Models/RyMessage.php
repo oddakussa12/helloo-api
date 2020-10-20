@@ -19,6 +19,7 @@ class RyMessage extends Model
     protected $fillable = [
         'message_id',
         'message_content',
+        'message_type',
         'message_time',
     ];
 
