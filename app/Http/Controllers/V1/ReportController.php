@@ -44,6 +44,11 @@ class ReportController extends BaseController
                 {
                     return $this->response->noContent();
                 }
+                $user = app(UserRepository::class)->findOrFail($post->user_id);
+                if($user->user_level==1)
+                {
+                    return $this->response->noContent();
+                }
                 $reportNum = $this->reportInfo($auth, $post);
 
                 if($reportNum >= config('common.report_post_num')) {
@@ -74,6 +79,10 @@ class ReportController extends BaseController
                     return $this->response->noContent();
                 }
                 $user      = app(UserRepository::class)->findOrFail($userId);
+                if($user->user_level==1)
+                {
+                    return $this->response->noContent();
+                }
                 $reportNum = $this->reportInfo($auth, $user);
 
                 if($reportNum >= config('common.report_user_num')) {

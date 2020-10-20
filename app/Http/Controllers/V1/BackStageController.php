@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\PostEs;
 use App\Custom\RedisList;
 use App\Traits\CachableUser;
 use Dingo\Api\Http\Response;
@@ -68,13 +69,22 @@ class BackStageController extends BaseController
         $postKey = config('redis-key.post.post_index_new');
         $essencePostKey = config('redis-key.post.post_index_essence');
         $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
-        $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
-        $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
+//        $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
+//        $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
         $redis->zRem($postKey , $post->getKey());
-        $redis->zRem($rateKeyOne , $post->getKey());
-        $redis->zRem($rateKeyTwo , $post->getKey());
+//        $redis->zRem($rateKeyOne , $post->getKey());
+//        $redis->zRem($rateKeyTwo , $post->getKey());
         $redis->zRem($essencePostKey , $post->getKey());
         $redis->zRem($essenceManualPostKey , $post->getKey());
+        $topics = $post->getPostTopics($post->post_id);
+        $topicPostCountKey = config('redis-key.topic.topic_post_count');
+        !empty($topics)&&array_walk($topics , function($item , $index) use($topicPostCountKey , $post){
+            $key = strval($item);
+            Redis::zincrby($topicPostCountKey , -1 , $key);
+            Redis::zrem($key."_new" , $post->post_id);
+            Redis::zrem($key."_rate" , $post->post_id);
+        });
+        PostEs::dispatch($post , 'delete')->onQueue('post_es')->delay(now()->addSeconds(120));
         return $this->response->noContent();
     }
 
