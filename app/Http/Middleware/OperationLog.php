@@ -21,12 +21,13 @@ class OperationLog extends BaseMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if(auth()->check()&&($request->routeIs('post.index')||$request->routeIs('myself.update')))
+        if(auth()->check())
         {
             $chinaNow = Carbon::now('Asia/Shanghai');
             $now = $chinaNow->toDateTimeString();
             $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
             $user_id = (int) auth()->id();
+            Redis::rpush($key."_op_list" , strval($user_id).'.'.strval($chinaNow->timestamp));//20201017
             if(!Redis::setbit($key , $user_id , 1))
             {
                 $view = DB::table('views_logs')->where('user_id' , $user_id)->orderBy('id' , 'DESC')->first();

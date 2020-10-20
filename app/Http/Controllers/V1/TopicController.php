@@ -167,6 +167,7 @@ class TopicController extends BaseController
      */
     protected function getHotByDb()
     {
+        return [];
         $now       = Carbon::now();
         $today     = Carbon::today();
         $startTime = $today->subDays(3)->timestamp;

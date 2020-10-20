@@ -7,6 +7,7 @@
  */
 namespace App\Repositories\Eloquent;
 
+use App\Jobs\RyOnline;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
@@ -514,6 +515,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $user_country_id = $user_country===false?0:$user_country+1;
             $operator = $country_op===0?'!=':'=';
             $usedUser = (array)request()->input('used' , array());
+            $userAge = strval(request()->input('user_age' , "0,0"));
             $usedUser = array_slice($usedUser , 0 , 29);
             array_push($usedUser , $selfUser);
             $usedUser = array_unique($usedUser);
@@ -529,6 +531,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             if(!blank($userIds))
             {
                 $where .= " AND u1.user_id not in ({$userIds})";
+            }
+            if($userAge!='0,0')
+            {
+                $userAge = $userAge.",";
+                list ($userStartAge , $userEndAge) = explode(',' , $userAge);
+                $userStartAge = intval($userStartAge);
+                $userEndAge = intval($userEndAge);
+                if($userStartAge>0&&$userStartAge<$userEndAge&&$userEndAge<=100)
+                {
+                    $where .= " AND u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
+                }
             }
 
             $onlineSql = <<<DOC
@@ -593,12 +606,12 @@ DOC;
 
     public function updateUserOnlineState($users)
     {
-        $currentMinute = date('i');
-        $index = floor($currentMinute/5);
+//        $currentMinute = date('i');
+//        $index = floor($currentMinute/5);
         $lastActivityTime = 'ry_user_last_activity_time';
         $key = 'ry_user_online_status';
         $bitKey = 'ry_user_online_status_bit';
-        $dynamicKey = config('redis-key.user.ry_update_online_status')."_".strval($index);
+//        $dynamicKey = config('redis-key.user.ry_update_online_status')."_".strval($index);
         $users = \array_filter($users , function($v , $k){
             return in_array($v , array(0 , 1 , 2))&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH );
@@ -611,20 +624,24 @@ DOC;
         !blank($onlineUsers)&&Redis::sadd($key , array_keys($onlineUsers));
         !blank($offlineUsers)&&Redis::srem($key , array_keys($offlineUsers));
         $time = time();
-        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $dynamicKey , $lastActivityTime , $time){
+        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $lastActivityTime , $time){
             $v = intval($v)>0?0:1;
             Redis::setBit($bitKey , intval($k) , intval($v));
-            Redis::zadd($dynamicKey , intval($v) , intval($k));
+//            Redis::zadd($dynamicKey , intval($v) , intval($k));
             Redis::zadd($lastActivityTime , $time , intval($k));
         });
-        Redis::expire($dynamicKey,900);
+//        Redis::expire($dynamicKey,900);
+        RyOnline::dispatch(array(
+            'offlineUsers'=>$offlineUsers,
+            'onlineUsers'=>$onlineUsers,
+        ))->onConnection('sqs')->onQueue('ry_user_online');
     }
 
     public function isOnline($id)
     {
         $bitKey = 'ry_user_online_state_bit';
         $statue = Redis::getBit($bitKey , $id);
-        return intval($statue);
+        return (bool)intval($statue);
     }
 
     protected function cacheUserData($id)

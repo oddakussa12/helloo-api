@@ -29,6 +29,9 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
             $api->resource('post', 'PostController', ['only' => ['index']]);
+            /*****热门话题 开始*****/
+            $api->get('topic/hot', 'TopicController@hot')->name('topic.hot');
+            /*****热门话题 结束*****/
         });
         $api->get('post/user/{user}' , 'PostController@showPostByUser')->name('show.post.by.user');
 
@@ -42,9 +45,7 @@ $api->group($V1Params , function ($api){
         $api->get('postComment/locate/{commentId}' , 'PostCommentController@locateComment')->name('show.locate.comment');
         $api->get('postComment/post/{uuid}' , 'PostCommentController@showByPostUuid')->name('show.comment.by.post');
 
-        /*****热门话题 开始*****/
-        $api->get('topic/hot', 'TopicController@hot')->name('topic.hot');
-        /*****热门话题 结束*****/
+
 
         /*****话题下贴子 开始*****/
         $api->get('topic/{topic}/post', 'TopicController@post')->name('topic.post');
@@ -129,19 +130,24 @@ $api->group($V1Params , function ($api){
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
-        $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
-            $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
+        $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
+            $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
+            $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
+                $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
+            });
+            $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
+            $api->post('user/update/myself/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
+            $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
+            $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
+            $api->post('user/update/myself/email' , 'AuthController@updateUserEmail')->name('myself.update.email');
+            $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_phone_code_throttle_num').','.config('common.user_update_send_phone_code_throttle_expired') , 'blacklist']] , function ($api){
+                $api->post('user/update/phone/code' , 'AuthController@sendUpdatePhoneCode')->name('myself.update.send.phone.code');
+            });
+            $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_email_code_throttle_num').','.config('common.user_update_send_email_code_throttle_expired') , 'blacklist']] , function ($api){
+                $api->post('user/update/email/code' , 'AuthController@sendUpdateEmailCode')->name('myself.update.send.email.code');
+            });
         });
-        $api->post('user/update/myself/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
-        $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
-        $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
-        $api->post('user/update/myself/email' , 'AuthController@updateUserEmail')->name('myself.update.email');
-        $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_phone_code_throttle_num').','.config('common.user_update_send_phone_code_throttle_expired') , 'blacklist']] , function ($api){
-            $api->post('user/update/phone/code' , 'AuthController@sendUpdatePhoneCode')->name('myself.update.send.phone.code');
-        });
-        $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_email_code_throttle_num').','.config('common.user_update_send_email_code_throttle_expired') , 'blacklist']] , function ($api){
-            $api->post('user/update/email/code' , 'AuthController@sendUpdateEmailCode')->name('myself.update.send.email.code');
-        });
+
         $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
         $api->get('user/getqntoken' , 'UserController@getQiniuUploadToken')->name('qn.token');
         $api->get('user/myfollowrandtwo' , 'UserController@myFollowRandTwo')->name('follow.two');
@@ -210,7 +216,7 @@ $api->group($V1Params , function ($api){
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
 
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
-        $api->group(['middleware'=>['lastActive' , 'redisThrottle:'.config('common.notification_throttle_num').','.config('common.notification_throttle_expired')]] , function ($api){
+        $api->group(['middleware'=>['operationLog' , 'lastActive' , 'redisThrottle:'.config('common.notification_throttle_num').','.config('common.notification_throttle_expired')]] , function ($api){
             $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
         });
         $api->put('notification/type/{type}' , 'NotificationController@readAll')->name('notice.readAll');
@@ -229,16 +235,19 @@ $api->group($V1Params , function ($api){
 
         $api->get('postComment/like/{user}' , 'PostCommentController@showPostCommentLikeByUser')->name('show.like.comment.by.user');
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]);
-        $api->get('post/{uuid}' , 'PostController@showByUuid')->name('post.show');
+        $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
+            $api->get('post/{uuid}' , 'PostController@showByUuid')->name('post.show');
+        });
         $api->get('notification' , 'NotificationController@index')->name('notification.index');
         $api->resource('tag' , 'TagController' , ['only' => ['index' , 'store']]);
         $api->get('tag/hot' , 'TagController@hot')->name('tag.hot');
         $api->get('event' , 'EventController@index')->name('event.index');
-        $api->resource('user' , 'UserController' , ['only' => ['show']]);
+        $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
+            $api->resource('user' , 'UserController' , ['only' => ['show']]);
+        });
     });
     $api->post('message/translate' , 'PrivateMessageController@translate')->name('private.message.translate');
 
-    $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
 
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
     $api->get('device', 'DeviceController@index');
@@ -249,7 +258,7 @@ $api->group($V1Params , function ($api){
     $api->get('user/name/{name}/email/{email}/cancelled' , 'UserController@cancelled')->name('user.account.cancelled');
     $api->get('app/clear/cache' , 'AppController@clearCache')->name('app.clear.cache');
     $api->get('app/version' , 'AppController@index')->name('app.index');
-    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('ry.user.is_online');
+//    $api->get('rong/state/user/{id}' , 'RySetController@userCheckOnline')->name('ry.user.is_online');
     $api->get('set/post/rate' , 'SetController@postRate')->name('set.post.rate');
     $api->get('set/dx/switch' , 'SetController@dxSwitch')->name('set.dx.switch');
     $api->post('set/dx/clearDxCache' , 'SetController@clearDxCache')->name('set.dx.switch.clear.cache');
@@ -257,7 +266,6 @@ $api->group($V1Params , function ($api){
     $api->get('user/{id}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
-    $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
     $api->get('user/ry/refer' , 'UserController@referFriend')->name('user.ry.online.refer');
     $api->get('ry/user' , 'RyChatController@user')->name('user.ry.user');
     $api->get('ry/chat' , 'RyChatController@index')->name('user.ry.message.index');

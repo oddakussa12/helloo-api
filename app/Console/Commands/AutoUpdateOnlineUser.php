@@ -73,7 +73,7 @@ class AutoUpdateOnlineUser extends Command
                         $user = Redis::hgetAll($userKey);
                         $user_name = $user['user_name'];
                         $user_nick_name = $user['user_nick_name'];
-//                        $user_age = $user['user_age'];
+                        $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
                         $user_gender = $user['user_gender'];
                         $user_country_id = $user['user_country_id'];
                         $user_avatar = $user['user_avatar'];
@@ -86,6 +86,7 @@ class AutoUpdateOnlineUser extends Command
                                     'user_id'=>$userId,
                                     'user_name'=>$user_name??'guest',
                                     'user_nick_name'=>$user_nick_name??'guest',
+                                    'user_age'=>$user_age,
                                     'user_gender'=>$user_gender??0,
                                     'user_country_id'=>$user_country_id??246,
                                     'user_avatar'=>$user_avatar??'default_avatar.jpg',
