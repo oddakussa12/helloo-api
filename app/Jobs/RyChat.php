@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\RyMessage;
 use App\Models\RyChatRaw;
 use App\Models\RyChatFailed;
 use Illuminate\Bus\Queueable;
