@@ -20,7 +20,7 @@ return [
         "post_index_top"=>'post_index_top',//置顶贴子
         "post_index_new"=>'post_index_new',//最新贴子
         "post_index_rate"=>'post_index_rate',//最热贴子
-        "post_index_rate_v2"=>'post_index_rate_v2',//最热贴子v2
+        "post_index_rate_v2"=>env('POST_INDEX_RATE_V2' , 'post_index_rate_v2'),//最热贴子v2
         "post_index_non_rate"=>'post_index_non_rate',//非最热贴子
     ],
     'topic'=>[
