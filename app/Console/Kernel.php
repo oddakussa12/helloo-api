@@ -25,6 +25,7 @@ class Kernel extends ConsoleKernel
 //        \App\Console\Commands\AutoUpdateOnlineUser::class,
         \App\Console\Commands\Promote::class,
         \App\Console\Commands\AllUserNotification::class,
+        \App\Console\Commands\StoreVisitLog::class,
         \Torann\GeoIP\Console\Update::class,
     ];
 
@@ -60,6 +61,10 @@ class Kernel extends ConsoleKernel
 //            ->hourlyAt('45')->when(function(){
 //                return config('common.cron_switch');
 //            });
+        $schedule->command('store:visit_log')
+            ->dailyAt('17:00')->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('generate:post_view')
             ->dailyAt('01:00')->when(function(){
                 return config('common.cron_switch');
