@@ -521,7 +521,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             {
                 $where .= " AND u1.user_id not in ({$userIds})";
             }
-            $hobby = strval(request()->has('hobby'));
+            $hobby = strval(request()->input('hobby'));
             if(!blank($hobby)&&in_array($hobby , array('kpop' , 'anime' , 'sad' , 'music' , 'games' , 'sports')))
             {
                 $where .= " AND u1.{$hobby} = 1";
@@ -557,7 +557,7 @@ DOC;
             $country_op = intval(request()->input('country_op' , 0));
             $user_country = array_search(strtoupper($country) , config('countries'));
             $user_country_id = $user_country===false?0:$user_country+1;
-            $operator = $country_op===0?'!=':'=';
+//            $operator = $country_op===0?'!=':'=';
             $usedUser = (array)request()->input('used' , array());
             $userAge = strval(request()->input('user_age' , "0,0"));
             $usedUser = array_slice($usedUser , 0 , 29);
@@ -570,11 +570,26 @@ DOC;
             $userIds = join(',' , $usedUser);
             if(in_array($user_gender , array(0 , 1)))
             {
-                $where .= " AND u1.user_gender = {$user_gender}";
+                if(blank($where))
+                {
+                    $where .= "u1.user_gender = {$user_gender}";
+                }else{
+                    $where .= " AND u1.user_gender = {$user_gender}";
+                }
+            }
+            if(in_array($country_op , array(0 , 1)))
+            {
+                $operator = $country_op===0?'!=':'=';
+                $where .= "u1.user_country_id {$operator} {$user_country_id}";
             }
             if(!blank($userIds))
             {
-                $where .= " AND u1.user_id not in ({$userIds})";
+                if(blank($where))
+                {
+                    $where .= "u1.user_id not in ({$userIds})";
+                }else{
+                    $where .= " AND u1.user_id not in ({$userIds})";
+                }
             }
             if($userAge!='0,0')
             {
@@ -584,12 +599,17 @@ DOC;
                 $userEndAge = intval($userEndAge);
                 if($userStartAge>0&&$userStartAge<$userEndAge&&$userEndAge<=100)
                 {
-                    $where .= " AND u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
+                    if(blank($where))
+                    {
+                        $where .= "u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
+                    }else{
+                        $where .= " AND u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
+                    }
                 }
             }
-
+            !blank($where)&&$where = $where." AND";
             $onlineSql = <<<DOC
-SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE u1.user_country_id {$operator} {$user_country_id} {$where} and u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
+SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
 DOC;
             $user = collect(\DB::select($onlineSql))->first();
             if(blank($user))
