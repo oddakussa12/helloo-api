@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\RyChatRaw;
+use App\Models\RyMessage;
 use App\Models\RyChatFailed;
 use Illuminate\Bus\Queueable;
 use Illuminate\Validation\Rule;
@@ -30,6 +30,7 @@ class RyChat implements ShouldQueue
      */
     public function handle()
     {
+        $messageContent = array();
         $raw = $this->data;
         $rule = [
             'fromUserId' => [
@@ -88,6 +89,9 @@ class RyChat implements ShouldQueue
             );
             RyChatFailed::create($data);
         } else {
+            $messageContent['message_id'] = $raw['msgUID'];
+            $messageContent['message_time'] = $raw['msgTimestamp'];
+            $messageContent['message_type'] = $raw['objectName'];
             $data = array(
                 'chat_msg_uid'  => $raw['msgUID'],
                 'chat_from_id'  => $raw['fromUserId'],
@@ -111,14 +115,14 @@ class RyChat implements ShouldQueue
 
                 $data['chat_default'] = $raw ['objectName'] == 'RC:TxtMsg' ? $this->chatContentType($content['content']) : 0;
 
-//                if(isset($content['content']))
-//                {
-//                    $data['chat_content'] = $content['content'];
-//                }
-//                if(isset($content['imageUri']))
-//                {
-//                    $data['chat_image'] = $content['imageUri'];
-//                }
+                if(isset($content['content']))
+                {
+                    $messageContent['message_content'] = $content['content'];
+                }
+                if(isset($content['imageUri']))
+                {
+                    $messageContent['message_content'] = $content['imageUri'];
+                }
                 if(isset($content['user'])) {
                     $data['chat_from_name'] = $content['user']['name'];
                 }
@@ -126,6 +130,14 @@ class RyChat implements ShouldQueue
 //                {
 //                    $data['chat_from_extra'] = \json_encode($content['user']['extra'] , JSON_UNESCAPED_UNICODE);
 //                }
+                try{
+                    RyMessage::create(
+                        $messageContent
+                    );
+                }catch (\Exception $e)
+                {
+                    \Log::error('insert ry message fail,reason:'.\json_encode($e->getMessage()));
+                }
 
             }
             $ryChat = RyChats::create($data);
