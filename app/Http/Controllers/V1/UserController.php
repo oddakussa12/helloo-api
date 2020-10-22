@@ -347,10 +347,10 @@ class UserController extends BaseController
             $user->user_country_id = $this->getUser($user->user_id , array('user_country_id'))['user_country_id'];
             return new UserCollection($user);
         }elseif ($request->has('hobby')){
-            $userId = intval($this->user->randDiffRyOnlineUserByHobby());
-        }else{
-            $user = $this->user->randDiffRyOnlineUser();
+            $user = $this->user->randDiffRyOnlineUserByHobby();
             return new UserCollection($user);
+        }else{
+            $userId = $this->user->randDiffRyOnlineUser();
         }
         if($userId>0)
         {
