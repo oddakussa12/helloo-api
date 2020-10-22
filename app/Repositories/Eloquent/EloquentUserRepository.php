@@ -943,10 +943,10 @@ DOC;
         $user_country_id = $user_country===false?0:$user_country+1;
         if($country_op==1)
         {
-            $users = $users->where('user_country_id' , $user_country_id);
+            !empty($user_country_id)&&$users = $users->where('user_country_id' , $user_country_id);
         }elseif ($country_op==0)
         {
-            $users = $users->where('user_country_id' , '!='  , $user_country_id);
+            !empty($user_country_id)&&$users = $users->where('user_country_id' , '!='  , $user_country_id);
         }
         if(in_array($user_gender , array(0 , 1)))
         {
