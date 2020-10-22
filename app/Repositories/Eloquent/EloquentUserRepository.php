@@ -580,7 +580,12 @@ DOC;
             if(in_array($country_op , array(0 , 1)))
             {
                 $operator = $country_op===0?'!=':'=';
-                $where .= "u1.user_country_id {$operator} {$user_country_id}";
+                if(blank($where))
+                {
+                    $where .= "u1.user_country_id {$operator} {$user_country_id}";
+                }else{
+                    $where .= " AND u1.user_country_id {$operator} {$user_country_id}";
+                }
             }
             if(!blank($userIds))
             {
