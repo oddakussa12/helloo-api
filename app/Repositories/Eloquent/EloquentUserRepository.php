@@ -541,7 +541,7 @@ DOC;
             $user->user_continent = getContinentByCountry($user->user_country);
             return $user;
         }else{
-            return $this->randRyOnlineUser();
+            return $this->findOrFail($this->randRyOnlineUser());
         }
     }
 

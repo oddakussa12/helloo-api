@@ -74,7 +74,7 @@ class RyOnline implements ShouldQueue
                     $user_gender = $user['user_gender'];
                     $user_country_id = $user['user_country_id'];
                     $user_avatar = $user['user_avatar'];
-                    $user_created_at= $user['user_created_at'];
+                    $user_created_at= strtotime($user['user_created_at']);
                 }else{
                     $user_name = $user['user_name'];
                     $user_nick_name = $user['user_nick_name'];

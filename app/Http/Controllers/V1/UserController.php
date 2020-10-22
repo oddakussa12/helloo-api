@@ -349,7 +349,8 @@ class UserController extends BaseController
         }elseif ($request->has('hobby')){
             $userId = intval($this->user->randDiffRyOnlineUserByHobby());
         }else{
-            $userId = intval($this->user->randDiffRyOnlineUser());
+            $user = $this->user->randDiffRyOnlineUser();
+            return new UserCollection($user);
         }
         if($userId>0)
         {
