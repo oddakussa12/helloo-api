@@ -39,6 +39,8 @@ class LikeListener
         $user = $event->getUser();
 //        $user->increment('user_score');
 //        $this->updateUserScoreRank($user->user_id);
+        $isAuth = $user->user_id==$object->user_id;
+
         if($object instanceof Post)
         {
             $keyName      = $object->getKeyName();
@@ -55,11 +57,10 @@ class LikeListener
                 $this->updateTopicPostRate($keyValue , $rate);
             }
             $object->increment('post_like_num' , $event->getType() , $extra);
-            $isAuth = $user->user_id==$object->user_id;
             $this->updateLikeCount($keyValue , 'like' , $tmpLikeNum , $isAuth);
             $this->updateCountry($keyValue , $user->user_country_id);
             $this->updateUserPostLikeCount($user->user_id);
-            notify('user.post_like',
+            !$isAuth && notify('user.post_like',
                 [
                     'from'     => $user->user_id ,
                     'to'       => $object->user_id ,
@@ -80,7 +81,7 @@ class LikeListener
             }
             $object->increment('comment_like_num' , $event->getType() , $extra);
             $this->updateUserPostCommentLikeCount($user->user_id);
-            notify('user.like',
+            !$isAuth && notify('user.like',
                 [
                     'from' => $user->user_id ,
                     'to'   => $object->user_id ,

@@ -40,6 +40,12 @@ class UserCollection extends Resource
                     return auth()->check()?auth()->user()->isFollowingUser($this->user_id):false;
                 }
             }),
+
+            //'friend_nick_name'=>!empty($this->friend_nick_name) ? $this->friend_nick_name : '',
+
+            /*'friend_nick_name'=>$this->when(isset($this->friend_nick_name) , function (){
+                return $this->friend_nick_name;
+            }),*/
             'make_friend_created_at'=>$this->when(isset($this->make_friend_created_at) , function (){
                return $this->make_friend_created_at;
             }),

@@ -7,6 +7,7 @@ use Jenssegers\Agent\Agent;
 use Illuminate\Support\Facades\Cache;
 use \Illuminate\Support\Facades\Redis;
 
+
 if (! function_exists('locale')) {
     function locale($locale = null)
     {
@@ -638,6 +639,7 @@ if (!function_exists('index_switch'))
         return Redis::get('index_switch');
 //        apcu_add('index_switch' , $indexSwitch);
 //        return $indexSwitch;
+
     }
 }
 

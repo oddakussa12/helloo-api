@@ -93,6 +93,7 @@ $api->group($V1Params , function ($api){
 
         /*****好友 开始*****/
         $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');//我的好友
+        $api->post('my/friend' , 'UserFriendController@update')->name('my.friend.update');//好友备注
         $api->delete('my/friend/{friend}' , 'UserFriendController@destroy')->name('my.friend.destroy');//删除我的好友
         /*****好友 结束*****/
 
@@ -209,6 +210,9 @@ $api->group($V1Params , function ($api){
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe')->name('other.followMe');
+        $api->get('user/emoji', 'UserController@getEmoji')->name('user.getEmoji');
+        $api->post('user/emoji', 'UserController@setEmoji')->name('user.setEmoji');
+        $api->put('user/emoji', 'UserController@updateEmoji')->name('user.updateEmoji');
 
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
 
