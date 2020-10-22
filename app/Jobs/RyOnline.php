@@ -65,14 +65,26 @@ class RyOnline implements ShouldQueue
                 $userTopicKey = 'user.'.$userId.'.topics';
                 $userKey = "user.".strval($userId).'.data';
                 $user = Redis::hgetAll($userKey);
-                $user_name = $user['user_name'];
-                $user_nick_name = $user['user_nick_name'];
-                $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
-                $user_gender = $user['user_gender'];
-                $user_country_id = $user['user_country_id'];
-                $user_avatar = $user['user_avatar'];
-                $user_created_at= $user['user_created_at'];
-                $user = \DB::table('ry_online_users')->where('user_id' , $userId)->first();
+                if(empty($user['user_name']))
+                {
+                    $user = DB::table('users')->where('user_id' , $userId)->first();
+                    $user_name = $user['user_name'];
+                    $user_nick_name = $user['user_nick_name'];
+                    $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
+                    $user_gender = $user['user_gender'];
+                    $user_country_id = $user['user_country_id'];
+                    $user_avatar = $user['user_avatar'];
+                    $user_created_at= $user['user_created_at'];
+                }else{
+                    $user_name = $user['user_name'];
+                    $user_nick_name = $user['user_nick_name'];
+                    $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
+                    $user_gender = $user['user_gender'];
+                    $user_country_id = $user['user_country_id'];
+                    $user_avatar = $user['user_avatar'];
+                    $user_created_at= $user['user_created_at'];
+                }
+                $user = DB::table('ry_online_users')->where('user_id' , $userId)->first();
                 if(blank($user))
                 {
                     foreach ($topics as $topic=>$data)
