@@ -1,140 +1,168 @@
 <?php
-return    array (
-  'accepted' => 'The: sifa dole ne a karɓa.',
-  'active_url' => 'The: sifa ba ingantaccen URL bane.',
-  'after' => 'The: sifa dole ne ta kasance kwanan wata bayan: kwanan wata.',
-  'after_or_equal' => 'The: sifa dole ne ta zama kwanan wata bayan ko daidai da: kwanan wata.',
-  'alpha' => 'The: sifa yana iya ƙunsar da haruffa kawai.',
-  'alpha_dash' => 'The: sifa yana iya ƙunsar haruffa, lambobi, da zane kawai.',
-  'alpha_num' => 'The: sifa yana iya ƙunsar haruffa da lambobi kawai.',
-  'array' => 'The: sifa dole ne ya zama tsararru.',
-  'before' => 'The: sifa dole ne ta kasance kwanan wata kafin: kwanan wata.',
-  'before_or_equal' => 'The: sifa dole ne ta kasance kwanan wata kafin ko daidai da: kwanan wata.',
-  'between' => 
-  array (
-    'numeric' => 'The: sifa dole ne ya kasance tsakanin: min da: max.',
-    'file' => 'The: sifa dole ne ya kasance tsakanin: min da: max kilobytes.',
-    'string' => 'The: sifa dole ne ya kasance tsakanin: min da: max haruffa.',
-    'array' => 'The: sifa dole ne ya kasance tsakanin: min da: max abubuwa.',
-  ),
-  'boolean' => 'Filin: sifa dole ne ya zama gaskiya ko ƙarya.',
-  'confirmed' => 'Tabbataccen sifa bai daidaita ba.',
-  'date' => 'The: sifa ba kwanan wata ba ce mai aiki.',
-  'date_format' => 'The: sifa bai dace da tsari ba: tsari.',
-  'different' => 'The: sifa da: sauran dole ne su zama daban.',
-  'digits' => 'Dole ne: sifa ya kasance: lambobi lambobi.',
-  'digits_between' => 'The: sifa dole ne ya kasance tsakanin: min da: max lambobi.',
-  'dimensions' => 'A: sifa yana da girman girman hoto.',
-  'distinct' => 'Filin: sifa yana da ƙididdiga biyu.',
-  'email' => 'The: sifa dole ne ya zama adireshin imel mai aiki.',
-  'exists' => 'Aka zaɓa: sifa ba daidai ba ce',
-  'file' => 'The: sifa dole ne ya zama fayil.',
-  'filled' => 'Filin: sifa dole ne ya kasance yana da daraja.',
-  'image' => 'The: sifa dole ne ya zama hoto.',
-  'in' => 'Aka zaɓa: sifa ba daidai ba ce',
-  'in_array' => 'Filin fili: ba ya wanzu a cikin: wasu.',
-  'integer' => 'The: sifa dole ne ya zama lamba.',
-  'ip' => 'The: sifa dole ne ya zama adireshin IP mai aiki.',
-  'ipv4' => 'The: sifa dole ne ya zama ingantaccen adireshin IPv4.',
-  'ipv6' => 'The: sifa dole ne ya zama adireshin IPv6 mai inganci.',
-  'json' => 'The: sifa dole ne ya zama ingantaccen zaren JSON.',
-  'max' => 
-  array (
-    'numeric' => 'The: sifayar bazai wuce girman: max ba.',
-    'file' => 'The: sifa bazai yuwu ya fi girma ba: max kilobytes.',
-    'string' => 'The: sifayar bazai wuce girman haruffa ba.',
-    'array' => 'The: sifayar ba za ta sami fiye da: abubuwa max ba.',
-  ),
-  'mimes' => 'The: sifa dole ne ya kasance fayil na nau\'in: dabi\'u.',
-  'mimetypes' => 'The: sifa dole ne ya kasance fayil na nau\'in: dabi\'u.',
-  'min' => 
-  array (
-    'numeric' => 'The: sifa dole ne ya zama aƙalla: min.',
-    'file' => 'The: sifa dole ne ya zama aƙalla: min kilobytes.',
-    'string' => 'The: sifa dole ne ya zama aƙalla: haruffa min.',
-    'array' => 'The: sifa dole ne ya kasance yana da aƙalla: abubuwa na min.',
-  ),
-  'not_in' => 'Aka zaɓa: sifa ba daidai ba ce',
-  'numeric' => 'The: sifa dole ne ya zama lamba.',
-  'present' => 'Filin: sifa dole ne ya kasance.',
-  'regex' => 'Tsarin: sifa bai dace ba.',
-  'required' => 'The: sifa filin ake bukata.',
-  'required_if' => 'The: sifa filin da ake bukata a lokacin da: sauran ne: darajar.',
-  'required_unless' => 'Ana buƙatar filin sifa sai dai: wanin yana cikin: ƙimomin.',
-  'required_with' => 'Ana buƙatar: filin sifa lokacin da: ƙimomin suke.',
-  'required_with_all' => 'Ana buƙatar: filin sifa lokacin da: ƙimomin suke.',
-  'required_without' => 'Ana buƙatar filin sifa lokacin da: ƙimar ba ta halin yanzu.',
-  'required_without_all' => 'A: ana buƙatar filin sifa lokacin da babu ɗaya daga: ƙimomin da suke a yanzu.',
-  'same' => 'A: sifa ce da: sauran dole ne su dace.',
-  'size' => 
-  array (
-    'numeric' => 'Dole ne: sifa ya kasance: girma.',
-    'file' => 'Dole ne: sifa ya kasance: girman kilobytes.',
-    'string' => 'Dole ne: sifa ya zama: girman haruffa.',
-    'array' => 'The: sifa dole ne ya ƙunshi: abubuwa masu girma.',
-  ),
-  'string' => 'The: sifa dole ne ya zama kirtani.',
-  'timezone' => 'The: sifa dole ne ya zama yanki mai inganci.',
-  'unique' => 'The: an riga an ɗauki sifa.',
-  'uploaded' => 'The: sifa ta kasa lodawa.',
-  'url' => 'Tsarin: sifa bai dace ba.',
-  'custom' => 
-  array (
-    'attribute-name' => 
-    array (
-      'rule-name' => 'saƙon al\'ada',
-    ),
-    'phone' => 
-    array (
-      'wrong_format' => 'Da fatan za a yi amfani da lambar waya mai inganci',
-      'unique' => 'An yi rijistar wannan lambar wayar.',
-    ),
-    'name' => 
-    array (
-      'regex' => 'Da fatan a yi amfani da haruffa da lambobi, misali. abcdef123',
-      'unique' => 'An yi rijistar wannan asusun, da fatan za a shiga!',
-    ),
-    'email' => 
-    array (
-      'unique' => 'An yi rijistar wannan akwatin wasikun, da fatan za a shiga!',
-    ),
-  ),
-  'attributes' => 
-  array (
-    'name' => 'Sannan',
-    'nick_name' => 'laƙabi',
-    'username' => 'sunan mai amfani',
-    'email' => 'imel',
-    'first_name' => 'sunan rana',
-    'last_name' => 'sunan mahaifa',
-    'password' => 'kalmar wucewa',
-    'password_confirmation' => 'kalmar sirri-tabbaci',
-    'city' => 'birni',
-    'country' => 'ƙasa',
-    'address' => 'adireshin',
-    'phone' => 'waya',
-    'mobile' => 'na hannu',
-    'age' => 'shekaru',
-    'sex' => 'jima\'i',
-    'gender' => 'jinsi',
-    'day' => 'rana',
-    'month' => 'wata',
-    'year' => 'shekara',
-    'hour' => 'awa',
-    'minute' => 'minti',
-    'second' => 'na biyu',
-    'title' => 'take',
-    'content' => 'abun ciki',
-    'description' => 'bayanin',
-    'excerpt' => 'wanda aka cire',
-    'date' => 'kwanan wata',
-    'time' => 'lokaci',
-    'available' => 'akwai',
-    'size' => 'girma',
-    'post_title' => 'Matsayi na Post',
-    'post_content' => 'Sanya abun ciki',
-    'tag_slug' => 'Post rana',
-    'comment_content' => 'tsokaci',
-    'user_birthday' => 'ranar haihuwa',
-  ),
-);
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines contain the default error messages used by
+    | the validator class. Some of these rules have multiple versions such
+    | as the size rules. Feel free to tweak each of these messages here.
+    |
+    */
+
+    'accepted'             => 'The :attribute must be accepted.',
+    'active_url'           => 'The :attribute is not a valid URL.',
+    'after'                => 'The :attribute must be a date after :date.',
+    'after_or_equal'       => 'The :attribute must be a date after or equal to :date.',
+    'alpha'                => 'The :attribute may only contain letters.',
+    'alpha_dash'           => 'The :attribute may only contain letters, numbers, and dashes.',
+    'alpha_num'            => 'The :attribute may only contain letters and numbers.',
+    'array'                => 'The :attribute must be an array.',
+    'before'               => 'The :attribute must be a date before :date.',
+    'before_or_equal'      => 'The :attribute must be a date before or equal to :date.',
+    'between'              => [
+        'numeric' => 'The :attribute must be between :min and :max.',
+        'file'    => 'The :attribute must be between :min and :max kilobytes.',
+        'string'  => 'The :attribute must be between :min and :max characters.',
+        'array'   => 'The :attribute must have between :min and :max items.',
+    ],
+    'boolean'              => 'The :attribute field must be true or false.',
+    'confirmed'            => 'The :attribute confirmation does not match.',
+    'date'                 => 'The :attribute is not a valid date.',
+    'date_format'          => 'The :attribute does not match the format :format.',
+    'different'            => 'The :attribute and :other must be different.',
+    'digits'               => 'The :attribute must be :digits digits.',
+    'digits_between'       => 'The :attribute must be between :min and :max digits.',
+    'dimensions'           => 'The :attribute has invalid image dimensions.',
+    'distinct'             => 'The :attribute field has a duplicate value.',
+    'email'                => 'The :attribute must be a valid email address.',
+    'exists'               => 'The selected :attribute is invalid.',
+    'file'                 => 'The :attribute must be a file.',
+    'filled'               => 'The :attribute field must have a value.',
+    'image'                => 'The :attribute must be an image.',
+    'in'                   => 'The selected :attribute is invalid.',
+    'in_array'             => 'The :attribute field does not exist in :other.',
+    'integer'              => 'The :attribute must be an integer.',
+    'ip'                   => 'The :attribute must be a valid IP address.',
+    'ipv4'                 => 'The :attribute must be a valid IPv4 address.',
+    'ipv6'                 => 'The :attribute must be a valid IPv6 address.',
+    'json'                 => 'The :attribute must be a valid JSON string.',
+    'max'                  => [
+        'numeric' => 'The :attribute may not be greater than :max.',
+        'file'    => 'The :attribute may not be greater than :max kilobytes.',
+        'string'  => 'The :attribute may not be greater than :max characters.',
+        'array'   => 'The :attribute may not have more than :max items.',
+    ],
+    'mimes'                => 'The :attribute must be a file of type: :values.',
+    'mimetypes'            => 'The :attribute must be a file of type: :values.',
+    'min'                  => [
+        'numeric' => 'The :attribute must be at least :min.',
+        'file'    => 'The :attribute must be at least :min kilobytes.',
+        'string'  => 'The :attribute must be at least :min characters.',
+        'array'   => 'The :attribute must have at least :min items.',
+    ],
+    'not_in'               => 'The selected :attribute is invalid.',
+    'numeric'              => 'The :attribute must be a number.',
+    'present'              => 'The :attribute field must be present.',
+    'regex'                => 'The :attribute format is invalid.',
+    'required'             => 'The :attribute field is required.',
+    'required_if'          => 'The :attribute field is required when :other is :value.',
+    'required_unless'      => 'The :attribute field is required unless :other is in :values.',
+    'required_with'        => 'The :attribute field is required when :values is present.',
+    'required_with_all'    => 'The :attribute field is required when :values is present.',
+    'required_without'     => 'The :attribute field is required when :values is not present.',
+    'required_without_all' => 'The :attribute field is required when none of :values are present.',
+    'same'                 => 'The :attribute and :other must match.',
+    'size'                 => [
+        'numeric' => 'The :attribute must be :size.',
+        'file'    => 'The :attribute must be :size kilobytes.',
+        'string'  => 'The :attribute must be :size characters.',
+        'array'   => 'The :attribute must contain :size items.',
+    ],
+    'string'               => 'The :attribute must be a string.',
+    'timezone'             => 'The :attribute must be a valid zone.',
+    'unique'               => 'The :attribute has already been taken.',
+    'uploaded'             => 'The :attribute failed to upload.',
+    'url'                  => 'The :attribute format is invalid.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Validation Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify custom validation messages for attributes using the
+    | convention "attribute.rule" to name the lines. This makes it quick to
+    | specify a specific custom language line for a given attribute rule.
+    |
+    */
+
+    'custom' => [
+        'attribute-name' => [
+            'rule-name' => 'custom-message',
+        ],
+        'phone' => [
+            'wrong_format' => 'Please use a valid phone number',
+            'unique'=>'This phone number has been registered.'
+        ],
+        'name' => [
+            'regex' => 'Please use letters and numbers, eg. abcdef123',
+            'unique' => 'This account has been registered, please log in!',
+        ],
+        'email' => [
+            'unique' => 'This mailbox has been registered, please log in!',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Validation Attributes
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used to swap attribute place-holders
+    | with something more reader friendly such as E-Mail Address instead
+    | of "email". This simply helps us make messages a little cleaner.
+    |
+    */
+
+    'attributes' => [
+        'name'                  => 'name',
+        'nick_name'             => 'nickname',
+        'username'              => 'username',
+        'email'                 => 'email',
+        'first_name'            => 'first_name',
+        'last_name'             => 'last_name',
+        'password'              => 'password',
+        'password_confirmation' => 'password_confirmation',
+        'city'                  => 'city',
+        'country'               => 'country',
+        'address'               => 'address',
+        'phone'                 => 'phone',
+        'mobile'                => 'mobile',
+        'age'                   => 'age',
+        'sex'                   => 'sex',
+        'gender'                => 'gender',
+        'day'                   => 'day',
+        'month'                 => 'month',
+        'year'                  => 'year',
+        'hour'                  => 'hour',
+        'minute'                => 'minute',
+        'second'                => 'second',
+        'title'                 => 'title',
+        'content'               => 'content',
+        'description'           => 'description',
+        'excerpt'               => 'excerpt',
+        'date'                  => 'date',
+        'time'                  => 'time',
+        'available'             => 'available',
+        'size'                  => 'size',
+        'post_title'            => 'Post title',
+        'post_content'          => 'Post content',
+        'tag_slug'              => 'Post tag',
+        'comment_content'       => 'comments',
+        'user_birthday'         => 'birthday',
+    ],
+
+];

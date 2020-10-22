@@ -1,140 +1,168 @@
 <?php
-return    array (
-  'accepted' => 'ባህሪው ተቀባይነት ሊኖረው ይገባል።',
-  'active_url' => 'ባህሪው ትክክለኛ ዩአርኤል አይደለም።',
-  'after' => 'ባህሪው-ቀን በኋላ መሆን አለበት።',
-  'after_or_equal' => 'ባህሪው ከ ‹ቀን› በኋላ ወይም እኩል መሆን አለበት ፡፡',
-  'alpha' => 'ባህሪው ፊደሎችን ብቻ ሊኖረው ይችላል ፡፡',
-  'alpha_dash' => 'ባህሪው ፊደሎችን ፣ ቁጥሮችን እና ሰረዞችን ብቻ ሊኖረው ይችላል ፡፡',
-  'alpha_num' => 'ባህሪው ፊደሎችን እና ቁጥሮችን ብቻ ሊኖረው ይችላል ፡፡',
-  'array' => 'ባህሪው ድርድር መሆን አለበት።',
-  'before' => 'ባህሪው ቀን በፊት መሆን አለበት።',
-  'before_or_equal' => 'ባህሪው ቀኑ በፊት ወይም እኩል መሆን አለበት ከ: ቀን።',
-  'between' => 
-  array (
-    'numeric' => 'ባህሪው በደቂቃ እና በከፍተኛው መካከል መሆን አለበት።',
-    'file' => 'ባህሪው በደቂቃ እና በከፍተኛው ኪሎቢይት መሆን አለበት ፡፡',
-    'string' => 'ባህሪው በደቂቃ እና በከፍተኛው ቁምፊዎች መካከል መሆን አለበት።',
-    'array' => 'ባህሪው በደቂቃ እና በከፍተኛው ንጥሎች መካከል ሊኖረው ይገባል።',
-  ),
-  'boolean' => 'የባህሪ መስክ እውነት ወይም ሐሰት መሆን አለበት ፡፡',
-  'confirmed' => 'የባህሪ ማረጋገጫ አይዛመድም ፡፡',
-  'date' => 'ባህሪው ትክክለኛ ቀን አይደለም።',
-  'date_format' => 'ባህሪው ከቅርጸቱ ቅርጸት ጋር አይዛመድም።',
-  'different' => 'ባህሪው እና ሌላኛው የተለየ መሆን አለበት ፡፡',
-  'digits' => 'ባህሪው መሆን አለበት-አሃዞች አሃዞች።',
-  'digits_between' => 'ባህሪው በደቂቃ እና በከፍተኛው አሃዞች መካከል መሆን አለበት።',
-  'dimensions' => 'ባህሪው ልክ ያልሆኑ የምስል ልኬቶች አሉት።',
-  'distinct' => 'የባህሪ መስክ የተባዛ እሴት አለው።',
-  'email' => 'ባህሪው ትክክለኛ የኢሜል አድራሻ መሆን አለበት ፡፡',
-  'exists' => 'የተመረጠው ባህሪ አይሰራም ፡፡',
-  'file' => 'ባህሪው ፋይል መሆን አለበት።',
-  'filled' => 'የባህሪ መስክ ዋጋ ሊኖረው ይገባል ፡፡',
-  'image' => 'ባህሪው ምስል መሆን አለበት።',
-  'in' => 'የተመረጠው ባህሪ አይሰራም ፡፡',
-  'in_array' => 'የባህሪ መስክ በሌላው ውስጥ የለም ፡፡',
-  'integer' => 'ባህሪው ኢንቲጀር መሆን አለበት።',
-  'ip' => 'ባህሪው ትክክለኛ የአይፒ አድራሻ መሆን አለበት ፡፡',
-  'ipv4' => 'ባህሪው ትክክለኛ IPv4 አድራሻ መሆን አለበት።',
-  'ipv6' => 'ባህሪው ትክክለኛ IPv6 አድራሻ መሆን አለበት።',
-  'json' => 'ባህሪው ትክክለኛ የ JSON ገመድ መሆን አለበት።',
-  'max' => 
-  array (
-    'numeric' => 'ባህሪው ከ ‹ከፍተኛ› ላይበልጥ ይችላል ፡፡',
-    'file' => 'ባህሪው ከ ‹ከፍተኛ ኪሎባይት› ሊበልጥ ይችላል ፡፡',
-    'string' => 'ባህሪው ከ: ከፍተኛ ቁምፊዎች አይበልጥም ይሆናል።',
-    'array' => 'ባህሪው ከ ‹ከፍተኛ ዕቃዎች› በላይ ላይሆን ይችላል ፡፡',
-  ),
-  'mimes' => 'ባህሪው የዓይነት ፋይል መሆን አለበት-እሴቶች።',
-  'mimetypes' => 'ባህሪው የዓይነት ፋይል መሆን አለበት-እሴቶች።',
-  'min' => 
-  array (
-    'numeric' => 'ባህሪው ቢያንስ መሆን አለበት ደቂቃ',
-    'file' => 'ባህሪው ቢያንስ መሆን አለበት-ደቂቃ ኪሎባይት።',
-    'string' => 'ባህሪው ቢያንስ መሆን አለበት-ደቂቃ ቁምፊዎች።',
-    'array' => 'ባህሪው ቢያንስ ሊኖረው ይገባል-ደቂቃ ንጥሎች።',
-  ),
-  'not_in' => 'የተመረጠው ባህሪ አይሰራም ፡፡',
-  'numeric' => 'ባህሪው ቁጥር መሆን አለበት።',
-  'present' => 'የባህሪ መስክ መኖር አለበት።',
-  'regex' => 'የባህሪ ቅርጸት ልክ ያልሆነ ነው።',
-  'required' => 'የባህሪ መስክ ያስፈልጋል።',
-  'required_if' => 'የ “አይነታ” መስክ ሲፈለግ ሌላኛው እሴት ነው።',
-  'required_unless' => 'የ “አይነታ” መስክ ይፈለጋል ሌላኛው በ እሴቶች ካልሆነ በስተቀር።',
-  'required_with' => 'እሴቶች በሚኖሩበት ጊዜ የባህሪ መስክ ያስፈልጋል።',
-  'required_with_all' => 'እሴቶች በሚኖሩበት ጊዜ የባህሪ መስክ ያስፈልጋል።',
-  'required_without' => 'እሴቶች በማይኖሩበት ጊዜ የባህሪ መስክ ያስፈልጋል።',
-  'required_without_all' => 'የ ‹አይነታ መስክ› የሚፈለገው አንዳቸውም ሲሆኑ እሴቶች በማይኖሩበት ጊዜ ነው ፡፡',
-  'same' => 'ባህሪው እና ሌሎች መመሳሰል አለባቸው።',
-  'size' => 
-  array (
-    'numeric' => 'ባህሪው መጠኑ መሆን አለበት ፡፡',
-    'file' => 'ባህሪው መጠኑ ኪባባይቶች መሆን አለበት ፡፡',
-    'string' => 'ባህሪው የመጠን ቁምፊዎች መሆን አለበት።',
-    'array' => 'ባህሪው መያዝ አለበት-የመጠን ንጥሎች ፡፡',
-  ),
-  'string' => 'ባህሪው ሕብረቁምፊ መሆን አለበት።',
-  'timezone' => 'ባህሪው ትክክለኛ ዞን መሆን አለበት።',
-  'unique' => 'ባህሪው ቀድሞውኑ ተወስዷል።',
-  'uploaded' => 'የ: አይነታ መስቀል አልተሳካም።',
-  'url' => 'የባህሪ ቅርጸት ልክ ያልሆነ ነው።',
-  'custom' => 
-  array (
-    'attribute-name' => 
-    array (
-      'rule-name' => 'ብጁ መልእክት',
-    ),
-    'phone' => 
-    array (
-      'wrong_format' => 'እባክዎ ትክክለኛ የስልክ ቁጥር ይጠቀሙ',
-      'unique' => 'ይህ የስልክ ቁጥር ተመዝግቧል',
-    ),
-    'name' => 
-    array (
-      'regex' => 'እባክዎን ፊደሎችን እና ቁጥሮችን ይጠቀሙ ፣ ለምሳሌ abcdef123',
-      'unique' => 'ይህ መለያ ተመዝግቧል ፣ እባክዎ ይግቡ!',
-    ),
-    'email' => 
-    array (
-      'unique' => 'ይህ የመልዕክት ሳጥን ተመዝግቧል ፣ እባክህ ግባ!',
-    ),
-  ),
-  'attributes' => 
-  array (
-    'name' => 'ከዚያ',
-    'nick_name' => 'ቅጽል ስም',
-    'username' => 'የተጠቃሚ ስም',
-    'email' => 'ኢሜል',
-    'first_name' => 'የመጀመሪያ ስም',
-    'last_name' => 'የአያት ሥም',
-    'password' => 'የይለፍ ቃል',
-    'password_confirmation' => 'የይለፍ ቃል_ ማረጋገጫ',
-    'city' => 'ከተማ',
-    'country' => 'ሀገር',
-    'address' => 'አድራሻ',
-    'phone' => 'ስልክ',
-    'mobile' => 'ተንቀሳቃሽ',
-    'age' => 'ዕድሜ',
-    'sex' => 'ወሲብ',
-    'gender' => 'ፆታ',
-    'day' => 'ቀን',
-    'month' => 'ወር',
-    'year' => 'አመት',
-    'hour' => 'ሰአት',
-    'minute' => 'ደቂቃ',
-    'second' => 'ሁለተኛ',
-    'title' => 'ርዕስ',
-    'content' => 'ይዘት',
-    'description' => 'መግለጫ',
-    'excerpt' => 'የተቀነጨበ',
-    'date' => 'ቀን',
-    'time' => 'ጊዜ',
-    'available' => 'ይገኛል',
-    'size' => 'መጠን',
-    'post_title' => 'የልጥፍ ርዕስ',
-    'post_content' => 'ይዘት ይለጥፉ',
-    'tag_slug' => 'የልጥፍ ቀን',
-    'comment_content' => 'አስተያየቶች',
-    'user_birthday' => 'የልደት ቀን',
-  ),
-);
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines contain the default error messages used by
+    | the validator class. Some of these rules have multiple versions such
+    | as the size rules. Feel free to tweak each of these messages here.
+    |
+    */
+
+    'accepted'             => 'The :attribute must be accepted.',
+    'active_url'           => 'The :attribute is not a valid URL.',
+    'after'                => 'The :attribute must be a date after :date.',
+    'after_or_equal'       => 'The :attribute must be a date after or equal to :date.',
+    'alpha'                => 'The :attribute may only contain letters.',
+    'alpha_dash'           => 'The :attribute may only contain letters, numbers, and dashes.',
+    'alpha_num'            => 'The :attribute may only contain letters and numbers.',
+    'array'                => 'The :attribute must be an array.',
+    'before'               => 'The :attribute must be a date before :date.',
+    'before_or_equal'      => 'The :attribute must be a date before or equal to :date.',
+    'between'              => [
+        'numeric' => 'The :attribute must be between :min and :max.',
+        'file'    => 'The :attribute must be between :min and :max kilobytes.',
+        'string'  => 'The :attribute must be between :min and :max characters.',
+        'array'   => 'The :attribute must have between :min and :max items.',
+    ],
+    'boolean'              => 'The :attribute field must be true or false.',
+    'confirmed'            => 'The :attribute confirmation does not match.',
+    'date'                 => 'The :attribute is not a valid date.',
+    'date_format'          => 'The :attribute does not match the format :format.',
+    'different'            => 'The :attribute and :other must be different.',
+    'digits'               => 'The :attribute must be :digits digits.',
+    'digits_between'       => 'The :attribute must be between :min and :max digits.',
+    'dimensions'           => 'The :attribute has invalid image dimensions.',
+    'distinct'             => 'The :attribute field has a duplicate value.',
+    'email'                => 'The :attribute must be a valid email address.',
+    'exists'               => 'The selected :attribute is invalid.',
+    'file'                 => 'The :attribute must be a file.',
+    'filled'               => 'The :attribute field must have a value.',
+    'image'                => 'The :attribute must be an image.',
+    'in'                   => 'The selected :attribute is invalid.',
+    'in_array'             => 'The :attribute field does not exist in :other.',
+    'integer'              => 'The :attribute must be an integer.',
+    'ip'                   => 'The :attribute must be a valid IP address.',
+    'ipv4'                 => 'The :attribute must be a valid IPv4 address.',
+    'ipv6'                 => 'The :attribute must be a valid IPv6 address.',
+    'json'                 => 'The :attribute must be a valid JSON string.',
+    'max'                  => [
+        'numeric' => 'The :attribute may not be greater than :max.',
+        'file'    => 'The :attribute may not be greater than :max kilobytes.',
+        'string'  => 'The :attribute may not be greater than :max characters.',
+        'array'   => 'The :attribute may not have more than :max items.',
+    ],
+    'mimes'                => 'The :attribute must be a file of type: :values.',
+    'mimetypes'            => 'The :attribute must be a file of type: :values.',
+    'min'                  => [
+        'numeric' => 'The :attribute must be at least :min.',
+        'file'    => 'The :attribute must be at least :min kilobytes.',
+        'string'  => 'The :attribute must be at least :min characters.',
+        'array'   => 'The :attribute must have at least :min items.',
+    ],
+    'not_in'               => 'The selected :attribute is invalid.',
+    'numeric'              => 'The :attribute must be a number.',
+    'present'              => 'The :attribute field must be present.',
+    'regex'                => 'The :attribute format is invalid.',
+    'required'             => 'The :attribute field is required.',
+    'required_if'          => 'The :attribute field is required when :other is :value.',
+    'required_unless'      => 'The :attribute field is required unless :other is in :values.',
+    'required_with'        => 'The :attribute field is required when :values is present.',
+    'required_with_all'    => 'The :attribute field is required when :values is present.',
+    'required_without'     => 'The :attribute field is required when :values is not present.',
+    'required_without_all' => 'The :attribute field is required when none of :values are present.',
+    'same'                 => 'The :attribute and :other must match.',
+    'size'                 => [
+        'numeric' => 'The :attribute must be :size.',
+        'file'    => 'The :attribute must be :size kilobytes.',
+        'string'  => 'The :attribute must be :size characters.',
+        'array'   => 'The :attribute must contain :size items.',
+    ],
+    'string'               => 'The :attribute must be a string.',
+    'timezone'             => 'The :attribute must be a valid zone.',
+    'unique'               => 'The :attribute has already been taken.',
+    'uploaded'             => 'The :attribute failed to upload.',
+    'url'                  => 'The :attribute format is invalid.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Validation Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify custom validation messages for attributes using the
+    | convention "attribute.rule" to name the lines. This makes it quick to
+    | specify a specific custom language line for a given attribute rule.
+    |
+    */
+
+    'custom' => [
+        'attribute-name' => [
+            'rule-name' => 'custom-message',
+        ],
+        'phone' => [
+            'wrong_format' => 'Please use a valid phone number',
+            'unique'=>'This phone number has been registered.'
+        ],
+        'name' => [
+            'regex' => 'Please use letters and numbers, eg. abcdef123',
+            'unique' => 'This account has been registered, please log in!',
+        ],
+        'email' => [
+            'unique' => 'This mailbox has been registered, please log in!',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Validation Attributes
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used to swap attribute place-holders
+    | with something more reader friendly such as E-Mail Address instead
+    | of "email". This simply helps us make messages a little cleaner.
+    |
+    */
+
+    'attributes' => [
+        'name'                  => 'name',
+        'nick_name'             => 'nickname',
+        'username'              => 'username',
+        'email'                 => 'email',
+        'first_name'            => 'first_name',
+        'last_name'             => 'last_name',
+        'password'              => 'password',
+        'password_confirmation' => 'password_confirmation',
+        'city'                  => 'city',
+        'country'               => 'country',
+        'address'               => 'address',
+        'phone'                 => 'phone',
+        'mobile'                => 'mobile',
+        'age'                   => 'age',
+        'sex'                   => 'sex',
+        'gender'                => 'gender',
+        'day'                   => 'day',
+        'month'                 => 'month',
+        'year'                  => 'year',
+        'hour'                  => 'hour',
+        'minute'                => 'minute',
+        'second'                => 'second',
+        'title'                 => 'title',
+        'content'               => 'content',
+        'description'           => 'description',
+        'excerpt'               => 'excerpt',
+        'date'                  => 'date',
+        'time'                  => 'time',
+        'available'             => 'available',
+        'size'                  => 'size',
+        'post_title'            => 'Post title',
+        'post_content'          => 'Post content',
+        'tag_slug'              => 'Post tag',
+        'comment_content'       => 'comments',
+        'user_birthday'         => 'birthday',
+    ],
+
+];
