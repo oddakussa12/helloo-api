@@ -96,10 +96,10 @@ class Kernel extends ConsoleKernel
 //            ->everyFiveMinutes()->when(function(){
 //                return config('common.cron_switch');
 //            });
-        $schedule->command('promote:push')
-            ->dailyAt('12:00')->when(function(){
-                return config('common.cron_switch');
-            });
+//        $schedule->command('promote:push')
+//            ->dailyAt('12:00')->when(function(){
+//                return config('common.cron_switch');
+//            });
         $schedule->command('geoip:update')
             ->daily();
     }

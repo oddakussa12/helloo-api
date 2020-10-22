@@ -67,7 +67,8 @@ class LikeListener
                     'extra'    => [$keyName => $keyValue, 'value' => $object->post_uuid ?? ''],
                     'setField' => array('contact_id' , $keyValue),
                     'url'      => '/notification/post/'.$keyValue,
-                ]
+                ],
+                false
             );
         }else if($object instanceof PostComment)
         {
@@ -92,7 +93,8 @@ class LikeListener
                     ],
                     'setField' =>['contact_id', $keyValue],
                     'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$keyValue,
-                ]
+                ],
+                false
             );
 
         }
