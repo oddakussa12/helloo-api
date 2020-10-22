@@ -67,7 +67,7 @@ class RyOnline implements ShouldQueue
                 $user = Redis::hgetAll($userKey);
                 if(empty($user['user_name']))
                 {
-                    $user = DB::table('users')->where('user_id' , $userId)->first();
+                    $user = collect(DB::table('users')->where('user_id' , $userId)->first())->toArray();
                     $user_name = $user['user_name'];
                     $user_nick_name = $user['user_nick_name'];
                     $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
