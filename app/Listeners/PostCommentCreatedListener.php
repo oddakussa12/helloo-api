@@ -58,37 +58,43 @@ class PostCommentCreatedListener
         $this->updateCommentCount($post->post_id , $user->getKey());
 //        $this->updateUserScoreRank($user->user_id , 3);
 
-        if(($postComment->comment_comment_p_id===0) && ($user->user_id != $post->user_id))
+        if(($postComment->comment_comment_p_id===0))
         {
-            notify('user.post_comment' ,
-                array(
-                    'from'=>$user->user_id ,
-                    'to'=>$post->user_id ,
-                    'extra'=>array(
-                        'comment_id'=>$postComment->getKey(),
-                        'post_id'=>$post->post_id,
-                    ) ,
-                    'setField'=>array('contact_id' , $post->post_id),
-                    'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->getKey(),
-                )
-            );
-        }else{
-            $parent = $postComment->parent;
-            if ($user->user_id != $parent->user_id) {
-                notify('user.comment' ,
+            if ($user->user_id != $post->user_id) {
+                notify('user.post_comment' ,
                     array(
                         'from'=>$user->user_id ,
-                        'to'=>$parent->user_id ,
+                        'to'=>$post->user_id ,
                         'extra'=>array(
                             'comment_id'=>$postComment->getKey(),
                             'post_id'=>$post->post_id,
-                            'comment_comment_p_id'=>$postComment->comment_comment_p_id
                         ) ,
-                        'setField'=>array('contact_id' , $parent->getKey()),
+                        'setField'=>array('contact_id' , $post->post_id),
                         'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->getKey(),
                     )
                 );
             }
+
+        }else{
+            $parent = $postComment->parent;
+            if (!empty($parent)) {
+                if ($user->user_id != $parent->user_id) {
+                    notify('user.comment' ,
+                        array(
+                            'from'=>$user->user_id ,
+                            'to'=>$parent->user_id ,
+                            'extra'=>array(
+                                'comment_id'=>$postComment->getKey(),
+                                'post_id'=>$post->post_id,
+                                'comment_comment_p_id'=>$postComment->comment_comment_p_id
+                            ),
+                            'setField'=>array('contact_id' , $parent->getKey()),
+                            'url'=>'/notification/post/'.$post->post_id.'/postComment/'.$postComment->getKey(),
+                        )
+                    );
+                }
+            }
+
 
         }
 
