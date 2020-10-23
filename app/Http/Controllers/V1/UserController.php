@@ -400,6 +400,7 @@ class UserController extends BaseController
 
     public function filter()
     {
+        return $this->planet();
         $users = $this->user->filter();
         $total = $this->user->onlineUsersCount();
         $users = UserCollection::collection($users)->additional(array(
