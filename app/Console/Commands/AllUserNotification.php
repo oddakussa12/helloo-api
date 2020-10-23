@@ -95,6 +95,19 @@ class AllUserNotification extends Command
                     )
                 );
                 $content = array_merge($content , $msg);
+
+
+                /**test start**/
+//                $userIds = array(31666 , 28752 , 28134 , 31619);
+//                $result = $person->send(array(
+//                    'senderId'   => $senderId,
+//                    'targetId'   => $userIds,
+//                    "objectName" => $objectName,
+//                    'content'    => \json_encode($content)
+//                ));
+                /**test end**/
+
+
                 for ($page=1;$page<=$lastPage;$page++)
                 {
                     $userIds = array();
@@ -116,6 +129,8 @@ class AllUserNotification extends Command
                         ));
                     }
                 }
+
+
                 $message->status=3;
                 $message->save();
             }
