@@ -57,7 +57,7 @@ class AllUserNotification extends Command
                 $message->save();
                 $senderId = 97623;
                 $lastActivityTime = 'ry_user_last_activity_time';
-                $pushTime = $this->pushTime(500);
+                $pushTime = $this->pushTime(30);
                 $start = $pushTime['start'];
                 $end = $pushTime['end'];
                 $options = array('withScores'=>true);
@@ -126,7 +126,7 @@ class AllUserNotification extends Command
     private function pushTime(int $day=1)
     {
         $start = Carbon::now()->subDays($day)->startOfDay()->timestamp;
-        $end = Carbon::now()->subDays($day)->endOfDay()->timestamp;
+        $end = Carbon::now()->endOfDay()->timestamp;
         return compact('start' , 'end');
     }
 
