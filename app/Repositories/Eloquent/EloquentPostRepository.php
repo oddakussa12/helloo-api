@@ -174,21 +174,30 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }
 
             if(auth()->check()) {
-                $user        = auth()->user();
-                $hiddenPosts = app(UserRepository::class)->hiddenPosts($user->user_id);
-                $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
-                $keys        = $postIds = [];
+                if($follow === null)
+                {
+                    $user        = auth()->user();
+                    $hiddenPosts = app(UserRepository::class)->hiddenPosts($user->user_id);
+                    $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
+                    $keys        = $postIds = [];
 
-                $posts->each(function ($post, $key) use ($hiddenPosts, $hiddenUsers, &$keys, &$postIds) {
-                    if(in_array($post->post_uuid, $hiddenPosts) || in_array($post->user_id, $hiddenUsers)) {
-                        array_push($keys, $key);
-                    } else {
-                        array_push($postIds, $post->post_id);
+                    $posts->each(function ($post, $key) use ($hiddenPosts, $hiddenUsers, &$keys, &$postIds) {
+                        if(in_array($post->post_uuid, $hiddenPosts) || in_array($post->user_id, $hiddenUsers)) {
+                            array_push($keys, $key);
+                        } else {
+                            array_push($postIds, $post->post_id);
+                        }
+                    });
+                    $posts->offsetUnset($keys);
+                    $posts = $posts->setCollection($posts->values());
+                    if($posts->isEmpty())
+                    {
+                        $request->query->set($this->pageName , intval($request->query->get($this->pageName))+1);
+                        return $this->paginateAll($request);
                     }
-                });
-                $posts->offsetUnset($keys);
-                $posts = $posts->setCollection($posts->values());
-
+                }else{
+                    $postIds = $posts->pluck('post_id')->toArray();
+                }
                 $postLikes    = $this->userPostLike($postIds);
                 $postDisLikes = $this->userPostDislike($postIds);
 
