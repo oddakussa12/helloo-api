@@ -90,12 +90,17 @@ class AllUserNotification extends Command
                     unset($msg['image']);
                 }else{
                     $domain = config('common.qnUploadDomain.thumbnail_domain');
-                    $images = $msg['image'];
-                    foreach ($images as $lang=>$image)
+                    $images = \json_decode($msg['image'] , true);
+                    if(!empty($images))
                     {
-                        $images[$lang] = $domain.$image."?imageMogr2/auto-orient/interlace/1|imageslim";
+                        foreach ($images as $lang=>$image)
+                        {
+                            $images[$lang] = $domain.$image."?imageMogr2/auto-orient/interlace/1|imageslim";
+                        }
+                        $msg['image'] = $images;
+                    }else{
+                        unset($msg['image']);
                     }
-                    $msg['image'] = $images;
                 }
                 $content = array(
                     'userInfo'=>array(
@@ -104,16 +109,18 @@ class AllUserNotification extends Command
                 );
                 $content = array_merge($content , $msg);
 
-//
-//                /**test start**/
-//                $userIds = array(31666 , 28752 , 28134 , 31619);
+
+                /**test start**/
+//                $userIds = array(31666 , 28752 , 27134 , 31619);
+//                \Log::error('conent:'.\json_encode($content));
 //                $result = $person->send(array(
 //                    'senderId'   => $senderId,
 //                    'targetId'   => $userIds,
 //                    "objectName" => $objectName,
 //                    'content'    => \json_encode($content)
 //                ));
-//                /**test end**/
+//                die;
+                /**test end**/
 
 
                 for ($page=1;$page<=$lastPage;$page++)
@@ -137,7 +144,6 @@ class AllUserNotification extends Command
                         ));
                     }
                 }
-
 
                 $message->status=3;
                 $message->save();

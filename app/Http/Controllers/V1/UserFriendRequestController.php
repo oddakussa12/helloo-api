@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Custom\Constant\Constant;
-use App\Jobs\Friend;
 use App\Jobs\FriendLevel;
 use App\Models\UserFriend;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
-use App\Resources\UserCollection;
+use App\Custom\Constant\Constant;
 use App\Models\UserFriendRequest;
+use Illuminate\Support\Facades\Redis;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
 use App\Repositories\Contracts\UserFriendRequestRepository;
-use Illuminate\Support\Facades\Redis;
-use Jenssegers\Agent\Agent;
 
 class UserFriendRequestController extends BaseController
 {
@@ -62,6 +60,17 @@ class UserFriendRequestController extends BaseController
     {
         $friendId = intval($request->input('friend_id'));
         $user     = auth()->user();
+        $userName = $user->user_name;
+        $userNickName = $user->user_nick_name;
+        $key = "temp_account";
+        if(Redis::exists($key))
+        {
+            $users = array_values(Redis::smembers($key));
+            if(str_contains(strtolower($userName) , $users)||str_contains(strtolower($userNickName) , $users))
+            {
+                return $this->response->created();
+            }
+        }
         $userId   = $user->user_id;
         $requests = new UserFriendRequest();
         $requests->request_from_id = $userId;
