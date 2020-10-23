@@ -119,6 +119,8 @@ class AllUserNotification extends Command
 //                    "objectName" => $objectName,
 //                    'content'    => \json_encode($content)
 //                ));
+//                $message->status=3;
+//                $message->save();
 //                die;
                 /**test end**/
 
