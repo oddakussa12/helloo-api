@@ -116,6 +116,7 @@ class RyOnline implements ShouldQueue
                             'games' => $games,
                             'sports' => $sports,
                             'created_at'=>$this->time,
+                            'updated_at'=>$this->time,
                             'user_created_at'=>$user_created_at??$this->date,
                         )
                     );
