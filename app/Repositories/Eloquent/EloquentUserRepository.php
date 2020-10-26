@@ -7,17 +7,18 @@
  */
 namespace App\Repositories\Eloquent;
 
-use App\Jobs\RyOnline;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
 use App\Models\User;
+use App\Jobs\RyOnline;
 use App\Models\BlockUser;
 use App\Models\BlackUser;
 use App\Models\BlockPost;
 use App\Models\UserRegion;
 use App\Models\PostComment;
 use App\Models\UserTaggable;
+use App\Jobs\RyOnlineExplore;
 use App\Models\YesterdayScore;
 use Illuminate\Support\Facades\DB;
 use App\Events\UserProfileLikeEvent;
@@ -550,6 +551,7 @@ DOC;
         $selfUser = intval(request()->input('self'));
         if($selfUser>0)
         {
+            RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
             $where = '';
             $country_code = config('countries');
             $user_gender = intval(request()->input('user_gender' , 2));
