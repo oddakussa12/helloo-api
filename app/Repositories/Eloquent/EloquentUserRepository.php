@@ -7,17 +7,18 @@
  */
 namespace App\Repositories\Eloquent;
 
-use App\Jobs\RyOnline;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
 use App\Models\User;
+use App\Jobs\RyOnline;
 use App\Models\BlockUser;
 use App\Models\BlackUser;
 use App\Models\BlockPost;
 use App\Models\UserRegion;
 use App\Models\PostComment;
 use App\Models\UserTaggable;
+use App\Jobs\RyOnlineExplore;
 use App\Models\YesterdayScore;
 use Illuminate\Support\Facades\DB;
 use App\Events\UserProfileLikeEvent;
@@ -506,6 +507,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $selfUser = intval(request()->input('self'));
         if($selfUser>0)
         {
+            RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
             $where = '';
             $country_code = config('countries');
             $usedUser = (array)request()->input('used' , array());
@@ -519,16 +521,30 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $userIds = join(',' , $usedUser);
             if(!blank($userIds))
             {
+                if(blank($where))
+                {
+                    $where .= "where u1.user_id not in ({$userIds})";
+                }else{
+                    $where .= " AND u1.user_id not in ({$userIds})";
+                }
                 $where .= " AND u1.user_id not in ({$userIds})";
             }
             $hobby = strval(request()->input('hobby'));
             if(!blank($hobby)&&in_array($hobby , array('kpop' , 'anime' , 'sad' , 'music' , 'games' , 'sports')))
             {
-                $where .= " AND u1.{$hobby} = 1";
+                if(blank($where))
+                {
+                    $where .= "where u1.{$hobby} = 1";
+                }else{
+                    $where .= " AND u1.{$hobby} = 1";
+                }
             }
             $onlineSql = <<<DOC
 SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE u1.user_id >= u2.user_id {$where} ORDER BY u1.user_id LIMIT 1;
 DOC;
+//            $onlineSql = <<<DOC
+//SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
+//DOC;
             $user = collect(\DB::select($onlineSql))->first();
             if(blank($user))
             {
@@ -550,6 +566,7 @@ DOC;
         $selfUser = intval(request()->input('self'));
         if($selfUser>0)
         {
+            RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
             $where = '';
             $country_code = config('countries');
             $user_gender = intval(request()->input('user_gender' , 2));
@@ -572,7 +589,7 @@ DOC;
             {
                 if(blank($where))
                 {
-                    $where .= "u1.user_gender = {$user_gender}";
+                    $where .= "where u1.user_gender = {$user_gender}";
                 }else{
                     $where .= " AND u1.user_gender = {$user_gender}";
                 }
@@ -582,7 +599,7 @@ DOC;
                 $operator = $country_op===0?'!=':'=';
                 if(blank($where))
                 {
-                    $where .= "u1.user_country_id {$operator} {$user_country_id}";
+                    $where .= "where u1.user_country_id {$operator} {$user_country_id}";
                 }else{
                     $where .= " AND u1.user_country_id {$operator} {$user_country_id}";
                 }
@@ -591,7 +608,7 @@ DOC;
             {
                 if(blank($where))
                 {
-                    $where .= "u1.user_id not in ({$userIds})";
+                    $where .= "where u1.user_id not in ({$userIds})";
                 }else{
                     $where .= " AND u1.user_id not in ({$userIds})";
                 }
@@ -606,7 +623,7 @@ DOC;
                 {
                     if(blank($where))
                     {
-                        $where .= "u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
+                        $where .= "where u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
                     }else{
                         $where .= " AND u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
                     }
@@ -614,8 +631,11 @@ DOC;
             }
             !blank($where)&&$where = $where." AND";
             $onlineSql = <<<DOC
-SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
+SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
 DOC;
+//            $onlineSql = <<<DOC
+//SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
+//DOC;
             $user = collect(\DB::select($onlineSql))->first();
             if(blank($user))
             {
@@ -638,6 +658,7 @@ DOC;
         $selfUser = intval(request()->input('self'));
         if($selfUser>0)
         {
+            RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
             $tmpUsedUserKey = 'ry_tmp_used_user_'.$selfUser;
             $diffUsedUserKey = 'ry_diff_used_user_'.$selfUser;
             $usedUser = request()->input('used' , array());

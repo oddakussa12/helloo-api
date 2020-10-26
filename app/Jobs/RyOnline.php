@@ -17,7 +17,7 @@ class RyOnline implements ShouldQueue
 
     private $chinaNow;
 
-    private $chinaDatTime;
+    private $chinaDateTime;
 
     private $users;
     /**
@@ -34,7 +34,7 @@ class RyOnline implements ShouldQueue
     public function __construct($users)
     {
         $this->chinaNow = Carbon::now('Asia/Shanghai');
-        $this->chinaDatTime = $this->chinaNow->toDateTimeString();
+        $this->chinaDateTime = $this->chinaNow->toDateTimeString();
         $this->time = $this->chinaNow->timestamp;
         $this->date = date('Y-m-d H:i:s' , $this->time);
         $this->users = $users;
@@ -145,7 +145,7 @@ class RyOnline implements ShouldQueue
                         'user_id'=>$userId,
                         'ip'=>'127.0.0.1',
                         'referer'=>'ry',
-                        'created_at'=>$this->chinaDatTime
+                        'created_at'=>$this->chinaDateTime
                     ));
                 }
             }

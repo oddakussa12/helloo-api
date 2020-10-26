@@ -92,6 +92,7 @@ class AutoUpdateOnlineUser extends Command
                                     'user_avatar'=>$user_avatar??'default_avatar.jpg',
                                     'user_created_at'=>$user_created_at??$date,
                                     'created_at'=>$time,
+                                    'updated_at'=>$time,
                                 )
                             );
                         }
