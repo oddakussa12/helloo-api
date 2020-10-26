@@ -628,7 +628,7 @@ DOC;
                     }
                 }
             }
-            !blank($where)&&$where = $where." AND";
+//            !blank($where)&&$where = $where." AND";
             $onlineSql = <<<DOC
 SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
 DOC;
