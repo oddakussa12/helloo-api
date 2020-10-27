@@ -214,24 +214,19 @@ class UserController extends BaseController
     public function follow($user_id)
     {
         $follower = auth()->user();
-        $userName = $follower->user_name;
-        $userNickName = $follower->user_nick_name;
-        $key = "temp_account";
-        if(Redis::exists($key))
+        if(!app(UserRepository::class)->isProhibited($follower))
         {
-            $users = array_values(Redis::smembers($key));
-            if(str_contains(strtolower($userName) , $users)||str_contains(strtolower($userNickName) , $users))
+            if($follower->user_id!=$user_id)
             {
-                return $this->response->noContent();
-            }
-        }
-        if($follower->user_id!=$user_id)
-        {
-            $user = $this->user->findOrFail($user_id);
-            $follow = $follower->followUser($user);
-            if($follow===true)
-            {
-                event(new Follow($follower , $user));
+                $user = $this->user->findOrFail($user_id);
+                if(!app(UserRepository::class)->isProhibited($user))
+                {
+                    $follow = $follower->followUser($user);
+                    if($follow===true)
+                    {
+                        event(new Follow($follower , $user));
+                    }
+                }
             }
         }
         return $this->response->noContent();

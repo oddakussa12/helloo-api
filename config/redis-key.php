@@ -13,6 +13,8 @@ return [
         'post_dislikes'=>'user.post.dislikes',//用户贴子踩数
         'post_comment_likes'=>'user.post.comment.likes',//用户评论点赞数
         'ry_update_online_status'=>'ry.update.online.status',//融云回调用户状态用户
+        'prohibited_operation_user'=>'prohibited_operation_user',//禁止发帖/评论/点赞/关注的用户
+        'prohibited_operation_user_name'=>'prohibited_operation_user_name',//禁止发帖/评论/点赞/关注的用户名
     ],
     "post"=>[
         "post_index_essence"=>'post_index_essence',//精华贴子(下拉)

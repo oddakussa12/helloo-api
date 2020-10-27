@@ -20,6 +20,7 @@ use App\Http\Requests\StorePostRequest;
 use App\Services\AzureTranslateService;
 use App\Resources\PostPaginateCollection;
 use App\Repositories\Contracts\PostRepository;
+use App\Repositories\Contracts\UserRepository;
 
 class PostController extends BaseController
 {
@@ -60,8 +61,13 @@ class PostController extends BaseController
     public function like($uuid)
     {
         $post = $this->post->findOrFailByUuid($uuid);
-        $country = auth()->user()->like($post);
         $response = $this->response->noContent();
+        $user = auth()->user();
+        if(app(UserRepository::class)->isProhibited($user))
+        {
+            return $response;
+        }
+        $country = auth()->user()->like($post);
         $num = 0;
         if($country!==false)
         {
@@ -183,8 +189,8 @@ class PostController extends BaseController
             $post_category_id = 3;
             $post_type = 'video';
         }
-        $prohibited_content = config('common.prohibited_content');
-        if(!blank($prohibited_content)&&str_contains($post_content , $prohibited_content))
+        $poster    = auth()->user();
+        if(app(UserRepository::class)->isProhibited($poster))
         {
             $uuid = config('common.prohibited_default_uuid');
             if(blank($uuid))
@@ -210,7 +216,6 @@ class PostController extends BaseController
             \Log::error(\json_encode($e->getMessage() , JSON_UNESCAPED_UNICODE));
             abort(424 , 'Sorry guys! We are updating our services in the next 24 hours. We apologize for the inconvenience !');
         }
-        $poster    = auth()->user();
         $titleLocale = niuAzureToGoogle($post_title_default_locale);
         $contentLocale = niuAzureToGoogle($post_content_default_locale);
         $post_info= array(

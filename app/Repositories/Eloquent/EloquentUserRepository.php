@@ -1009,4 +1009,38 @@ DOC;
         }
         return array();
     }
+
+    public function isProhibited(User $user)
+    {
+        $userName = $user->user_name;
+        $userNickName = $user->user_nick_name;
+        $prohibited_operation_user = config('redis-key.user.prohibited_operation_user');
+        $prohibited_operation_user_name = config('redis-key.user.prohibited_operation_user_name');
+        if(Redis::exists($prohibited_operation_user))
+        {
+            $rank = Redis::zrank($prohibited_operation_user , $user->user_id);
+            if($rank!==null)
+            {
+                return true;
+            }
+        }
+        if(Redis::exists($prohibited_operation_user_name))
+        {
+            $limit = 50;
+            $count = Redis::zcard($prohibited_operation_user_name);
+            $total = ceil($count/$limit);
+            for($i=1;$i<=$total;$i++)
+            {
+                $offset   = ($i-1)*$limit;
+                $prohibitedUserNames = Redis::zrangebyscore($prohibited_operation_user_name , "+inf" , "-inf" , array('withScores'=>true, 'limit'=>array($offset , $limit)));
+                $prohibitedUserNames = array_keys($prohibitedUserNames);
+                if(str_contains(strtolower($userName) , $prohibitedUserNames)||str_contains(strtolower($userNickName) , $prohibitedUserNames))
+                {
+                    return true;
+                }
+            }
+
+        }
+        return false;
+    }
 }
