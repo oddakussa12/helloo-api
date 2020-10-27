@@ -450,4 +450,15 @@ trait CachablePost
         }
         return array();
     }
+
+    /**
+     * @param $postId
+     * @param $voteId
+     * @param $userId
+     * 投票 是否选了某个选项
+     */
+    public function voteChoose($postId, $voteId, $userId)
+    {
+
+    }
 }

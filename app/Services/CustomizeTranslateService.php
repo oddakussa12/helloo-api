@@ -16,6 +16,7 @@ use Google\Cloud\Translate\V2\TranslateClient;
 class CustomizeTranslateService
 {
 
+    const MAX_RETRIES = 10;
     private $concurrency  = 9;
 
     /**

@@ -4,7 +4,12 @@ namespace App\Http\Controllers\V1;
 
 use App\Custom\Constant\Constant;
 use App\Jobs\PostEs;
+use App\Jobs\VoteTranslation;
 use App\Models\Post;
+use App\Models\VoteDetail;
+use App\Resources\PostVoteCollection;
+use App\Services\CustomizeNiuTranslateService;
+use App\Services\CustomizeTranslateService;
 use Ramsey\Uuid\Uuid;
 use App\Models\Banner;
 use App\Custom\RedisList;
@@ -150,53 +155,60 @@ class PostController extends BaseController
      */
     public function store(StorePostRequest $request)
     {
-        $post_title = clean($request->input('post_title' , ''));
-        $post_content = clean($request->input('post_content' , ''));
+        $post_title         = clean($request->input('post_title' , ''));
+        $post_content       = clean($request->input('post_content' , ''));
+        $post_type          = $request->input('post_type');
         $post_event_country = $request->input('post_event_country');
+        $radio              = $request->input('radio');
+
+	    $post_image         = $request->input('post_image' , []);
+	    $post_image_size    = $request->input('post_image_size' , []);
+	    $post_video         = $request->input('post_video' , []);
+        $post_category_id   = 1;
+        $tag_slug           = array_diff((array)$request->input('tag_slug' , []),[null , '']);
+        $topics             = array_diff((array)$request->input('topics' , []), [null , '']);
+
         \Validator::make(array('post_content'=>$post_content), [
             'post_content' => ['bail','required','string','between:1,3000'],
         ])->validate();
-	    $tag_slug = array_diff((array)$request->input('tag_slug' , array()),array(null , ''));
-	    $topics = array_diff((array)$request->input('topics' , array()),array(null , ''));
-	    $post_image = $request->input('post_image' , array());
-	    $post_image_size = $request->input('post_image_size' , array());
-	    $post_video = $request->input('post_video' , array());
-        $post_category_id = 1;
-        $post_type = 'text';
+
         $post_image = \array_filter($post_image , function($v , $k) use ($post_image_size){
-            $flag = !empty($v);
-            if($flag===false)
-            {
+            $flag   = !empty($v);
+            if($flag===false) {
                 unset($post_image_size[$k]);
             }
             return $flag;
         } , ARRAY_FILTER_USE_BOTH );
         ksort($post_image_size);
         ksort($post_image);
-	    if(!empty($post_image))
-        {
-            $post_category_id = 2;
-            $post_type = 'image';
+
+        if ($post_type == 'vote') {
+            $post_category_id = $post_image ? 2 : 1;
+        } else {
+            $post_type = 'text';
+            if(!empty($post_image)) {
+                $post_category_id = 2;
+                $post_type = 'image';
+            }
+            if(!empty($post_video)) {
+                $post_category_id = 3;
+                $post_type = 'video';
+            }
         }
-        if(!empty($post_video))
-        {
-            $post_category_id = 3;
-            $post_type = 'video';
-        }
+
         $prohibited_content = config('common.prohibited_content');
-        if(!blank($prohibited_content)&&str_contains($post_content , $prohibited_content))
+        if(!blank($prohibited_content) && str_contains($post_content , $prohibited_content))
         {
             $uuid = config('common.prohibited_default_uuid');
-            if(blank($uuid))
-            {
+            if(blank($uuid)) {
                 return $this->response->created();
             }
             $post = $this->post->showByUuid($uuid);
             return new PostCollection($post);
         }
         try {
-            $postTitleLang = empty($post_title)?'en':$this->translate->detectLanguage($post_title);
-            $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
+            $postTitleLang             = empty($post_title)    ? 'en' : $this->translate->detectLanguage($post_title);
+            $post_title_default_locale = $postTitleLang=='und' ? 'en' : $postTitleLang;
             if(empty($post_content))
             {
                 $postContentLang = 'und';
@@ -210,19 +222,19 @@ class PostController extends BaseController
             \Log::error(\json_encode($e->getMessage() , JSON_UNESCAPED_UNICODE));
             abort(424 , 'Sorry guys! We are updating our services in the next 24 hours. We apologize for the inconvenience !');
         }
-        $poster    = auth()->user();
-        $titleLocale = niuAzureToGoogle($post_title_default_locale);
+        $poster        = auth()->user();
+        $titleLocale   = niuAzureToGoogle($post_title_default_locale);
         $contentLocale = niuAzureToGoogle($post_content_default_locale);
-        $post_info= array(
-            'user_id'=>$poster->user_id,
-            'post_uuid'=>Uuid::uuid1(),
-            'post_category_id'=>$post_category_id,
-            'post_country_id'=>$poster->user_country_id,
-            'post_default_locale'=>$titleLocale,
-            'post_content_default_locale'=>$contentLocale,
-            'post_type' =>$post_type,
-            'post_rate'=>first_rate_comment_v2()
-        );
+        $post_info     = [
+            'user_id'          => $poster->user_id,
+            'post_uuid'        => Uuid::uuid1(),
+            'post_category_id' => $post_category_id,
+            'post_country_id'  => $poster->user_country_id,
+            'post_type'        => $post_type,
+            'post_rate'        => first_rate_comment_v2(),
+            'post_default_locale'         => $titleLocale,
+            'post_content_default_locale' => $contentLocale,
+        ];
         if(!empty($post_event_country))
         {
             $post_info['post_event_country_id'] = $post_event_country;
@@ -242,13 +254,13 @@ class PostController extends BaseController
         }
         if($post_category_id==3&&!empty($post_video))
         {
-            $video_url = isset($post_video['video_url'])?$post_video['video_url']:'';
+            $video_url             = isset($post_video['video_url'])?$post_video['video_url']:'';
             $video_subtitle_locale = isset($post_video['video_subtitle_locale'])?$post_video['video_subtitle_locale']:'';
-            $video_thumbnail_url = isset($post_video['video_thumbnail_url'])?$post_video['video_thumbnail_url']:'';
-            $video_time = isset($post_video['video_time'])?$post_video['video_time']:0;
-            $video_size = isset($post_video['video_size'])?$post_video['video_size']:0;
-            $video_subtitle_url = isset($post_video['video_subtitle_url'])?$post_video['video_subtitle_url']:'';
-            $post_media_json = array('video'=>array(
+            $video_thumbnail_url   = isset($post_video['video_thumbnail_url'])?$post_video['video_thumbnail_url']:'';
+            $video_time            = isset($post_video['video_time'])?$post_video['video_time']:0;
+            $video_size            = isset($post_video['video_size'])?$post_video['video_size']:0;
+            $video_subtitle_url    = isset($post_video['video_subtitle_url'])?$post_video['video_subtitle_url']:'';
+            $post_media_json       = array('video'=>array(
                 'video_from'=>'upload',
                 'video_url'=>$video_url,
                 'video_subtitle_locale'=>$video_subtitle_locale,
@@ -268,23 +280,63 @@ class PostController extends BaseController
             $post_info[$titleLocale] = array('post_title'=>$post_title,'post_content'=>$post_content);
         }
         $post = $this->post->store($post_info);
-	    if(!empty($tag_slug))
-        {
+	    if(!empty($tag_slug)) {
             //$post->attachTags($tag_slug);
         }
-        if(!empty($topics))
-        {
+        if(!empty($topics)) {
             $post = $this->post->attachTopics($post , $topics);
         }
-        if(config('common.translation_version')==='niu')
+
+        // 投票贴
+        if ($post_type=='vote') {
+            $radio = !is_array($radio) ? json_decode($radio, true) : $radio;
+            foreach ($radio as $key=>$item) {
+                $voteInfo['post_id']        = $post->post_id;
+                $voteInfo['user_id']        = $poster->user_id;
+                $voteInfo['tab_name']       = $item['tab_name'] ?? '';
+                $voteInfo['default_locale'] = !empty($item['text']) ? $this->translate->detectLanguage($item['text']) : 'en';
+                $voteInfo['vote_type']      = !empty($item['image']) ? 'image' : 'text';
+                if (!empty($item['image'])) {
+                    $voteInfo['vote_media'] = [
+                        'image'      => [
+                        'image_from' => 'upload',
+                        'image_cover'=> $item['image'][0],
+                        'image_url'  => $item['image'],
+                        'image_count'=> 1
+                    ]];
+                }
+                $voteDetail = VoteDetail::create($voteInfo);
+                // $post->vote_info[] = $voteDetail->toArray();
+                // 当选项内容为 文本时，需要进行翻译
+                if (!empty($item['text'])) {
+                    $textLang  = $this->translate->detectLanguage($item['text']) ?? 'en';
+                    $languages = array_diff(config('translatable.locales') , [$textLang]);
+
+                    if (config('common.translation_version')==='niu') {
+                        $voteJob = (new VoteTranslation($poster, $voteDetail, $item['text'], $textLang));
+                    } else {
+                        $voteJob = (new VoteTranslation($poster, $voteDetail, $item['text'], $textLang));
+                    }
+                    $this->dispatchNow($voteJob);
+                    // $this->dispatch($voteJob->onQueue(Constant::QUEUE_CUSTOM_POST_TRANSLATION));
+
+                    /*$translate = app(CustomizeTranslateService::class)->setLanguages($languages);
+                    $contentTranslations = $translate->translate($item['text'] , array('source'=>$textLang));*/
+                }
+            }
+        }
+
+        if (config('common.translation_version')==='niu')
         {
             $job = new PostTranslationV2($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
-        }else{
+        } else {
             $job = new PostTranslation($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
         }
 //        $this->dispatchNow($job);
         $this->dispatch($job->onQueue(Constant::QUEUE_POST_TRANSLATION));
+
         return new PostCollection($post);
+
     }
 
     /**
@@ -301,6 +353,11 @@ class PostController extends BaseController
     public function showByUuid($uuid)
     {
         $post = $this->post->showByUuid($uuid);
+
+        if (!empty($post) && $post->post_type='vote') {
+            $post->voteInfo = $this->post->voteInfo($post->post_id);
+        }
+
         $postLikes = $this->post->userPostLike(array($post->post_id));
         $postDisLikes = $this->post->userPostDislike(array($post->post_id));
         $post->likeState = in_array($post->post_id , $postLikes);
@@ -444,7 +501,7 @@ class PostController extends BaseController
 
     public function carousel()
     {
-        $carousel = array();
+        $carousel = [];
         $key = 'banner_index';
         if(!Redis::exists($key))
         {
@@ -510,7 +567,7 @@ class PostController extends BaseController
 
     public function test()
     {
-        dd(Post::withAnyTags(['news', 'knowledge'])->paginate(1)->toArray());die;
+        dd(Post::withAnyTags(['news', 'knowledge'])->paginate(1)->to[]);die;
         $post = $this->post->find(896);
         $post->attachTags(array('news' , 'knowledge' , 'dd'));
     }

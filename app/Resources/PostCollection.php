@@ -71,8 +71,17 @@ class PostCollection extends Resource
                     'owner'=>new UserCollection($this->owner),
                 ));
             }),
-            'post_event_country'=>$this->post_event_country
+            'post_event_country'=>$this->post_event_country,
+
+            $this->mergeWhen(true, function (){
+               if ($this->post_type=='vote') {
+                   return collect([
+                       'vote_info' =>PostVoteCollection::collection($this->voteInfo),
+                   ]);
+               }
+            }),
         ];
+
     }
 
 

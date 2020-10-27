@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\VoteDetail;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
@@ -840,5 +841,18 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             return Dislike::where('user_id' , auth()->id())->WithType("App\Models\Post")->whereIn('post_dislikes.dislikable_id' , $postIds)->pluck('dislikable_id')->all();
         }
         return array();
+    }
+
+    /**
+     * @param $postId
+     * @return mixed
+     * 投票选项
+     */
+    public function voteInfo($postId)
+    {
+        //if(auth()->check()&&!empty($postId))
+        if(!empty($postId)) {
+            return VoteDetail::where('post_id', $postId)->get();
+        }
     }
 }
