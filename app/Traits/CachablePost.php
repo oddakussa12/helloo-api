@@ -462,16 +462,17 @@ trait CachablePost
 
     public function voteChoose($postId, $voteId, $userId)
     {
-        $memKey            = config('redis-key.post.post_vote_data').$postId;
-        $result            = Redis::hget($memKey, $voteId);
-        dump($result);
-        $result            = !empty($result) ? $result : ['users'=>[], 'country'=>[]];
+        $memKey          = config('redis-key.post.post_vote_data').$postId;
+        $result          = Redis::hget($memKey, $voteId);
+        $result          = !empty($result) ? json_decode($result, true) : ['users'=>[], 'country'=>[]];
 
-        $return['choose']  = in_array($userId, $result['users']);
-        $return['count']   = count($result['users']);
-        $return['country'] = array_slice(array_keys((array)sort($result['country'])), 0, 5);
+        $data['choose']  = in_array($userId, $result['users']);
+        $data['count']   = count($result['users']);
 
-        return $return;
+        $country = array_flip($result['country']);
+        rsort($country);
+        $data['country'] = array_slice($country, 0, 5);
+        return $data;
 
     }
 
