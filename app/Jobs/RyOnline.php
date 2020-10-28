@@ -53,12 +53,11 @@ class RyOnline implements ShouldQueue
         $users = $this->users;
         $offlineUsers = $users['offlineUsers'];
         $onlineUsers = $users['onlineUsers'];
-        $offlineUsers = array_keys($offlineUsers);
-        $onlineUsers = array_keys($onlineUsers);
         if(!blank($onlineUsers))
         {
-            foreach ($onlineUsers as $userId)
+            foreach ($onlineUsers as $u)
             {
+                $userId = $u['userid'];
                 $kpop = 0;
                 $anime = 0;
                 $sad = 0;
@@ -103,7 +102,7 @@ class RyOnline implements ShouldQueue
                         }
                     }
 
-                    \DB::table('ry_online_users')->insert(
+                    DB::table('ry_online_users')->insert(
                         array(
                             'user_id'=>$userId,
                             'user_name'=>$user_name??'guest',
@@ -128,14 +127,19 @@ class RyOnline implements ShouldQueue
         }
         if(!blank($offlineUsers))
         {
-            $userIds = join(',' , $offlineUsers);
+            $offlineUserIds = collect($offlineUsers)->pluck('userid')->all();
+            $userIds = join(',' , $offlineUserIds);
             $userIds = rtrim($userIds , ',');
             \DB::statement("delete from `f_ry_online_users` where user_id in ({$userIds});");
         };
-        $allUsers = array_unique(array_merge($onlineUsers , $offlineUsers));
+        $allUsers = array_merge($onlineUsers , $offlineUsers);
         $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
-        foreach ($allUsers as $userId)
+        foreach ($allUsers as $user)
         {
+            $userId = $user['userid'];
+            $ipPort = $user['clientIp'];
+            list($ip , $port) = explode(':' , $ipPort);
+            $referer = strval($user['os']);
             if(!Redis::setbit($key , $userId , 1))
             {
                 $view = DB::table('views_logs')->where('user_id' , $userId)->orderBy('id' , 'DESC')->first();
@@ -143,8 +147,8 @@ class RyOnline implements ShouldQueue
                 {
                     DB::table('views_logs')->insert(array(
                         'user_id'=>$userId,
-                        'ip'=>'127.0.0.1',
-                        'referer'=>'ry',
+                        'ip'=>$ip,
+                        'referer'=>$referer,
                         'created_at'=>$this->chinaDateTime
                     ));
                 }

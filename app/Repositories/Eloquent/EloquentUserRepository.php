@@ -696,35 +696,29 @@ DOC;
 
     public function updateUserOnlineState($users)
     {
-//        $currentMinute = date('i');
-//        $index = floor($currentMinute/5);
+        $users = collect($users)->sortByDesc('time')->toArray();
+        $users = assoc_unique($users , 'userid');
         $lastActivityTime = 'ry_user_last_activity_time';
         $key = 'ry_user_online_status';
         $bitKey = 'ry_user_online_status_bit';
-//        $dynamicKey = config('redis-key.user.ry_update_online_status')."_".strval($index);
-        $users = \array_filter($users , function($v , $k){
-            return in_array($v , array(0 , 1 , 2))&&!empty($k);
-        } , ARRAY_FILTER_USE_BOTH );
-        $offlineUsers = array_where($users, function ($value, $key) {
-            return intval($value)>0;
-        });
-        $onlineUsers = array_where($users, function ($value, $key) {
-            return intval($value)===0;
-        });
-        !blank($onlineUsers)&&Redis::sadd($key , array_keys($onlineUsers));
-        !blank($offlineUsers)&&Redis::srem($key , array_keys($offlineUsers));
+        $offlineUsers = collect($users)->where('status', '>=' , 0);
+        $offlineUserIds = $offlineUsers->pluck('userid')->all();
+        $onlineUsers = collect($users)->where('status', 0);
+        $onlineUserIds = $onlineUsers->pluck('userid')->all();
+        !blank($onlineUserIds)&&Redis::sadd($key , $onlineUserIds);
+        !blank($offlineUserIds)&&Redis::srem($key , $offlineUserIds);
         $time = time();
-        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $lastActivityTime , $time){
-            $v = intval($v)>0?0:1;
-            Redis::setBit($bitKey , intval($k) , intval($v));
-//            Redis::zadd($dynamicKey , intval($v) , intval($k));
-            Redis::zadd($lastActivityTime , $time , intval($k));
+        !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
+            $userId = intval($user['userid']);
+            $status = $user['status'];
+            $status = intval($status)>0?0:1;
+            Redis::setBit($bitKey , $userId , $status);
+            Redis::zadd($lastActivityTime , $time , $userId);
         });
-//        Redis::expire($dynamicKey,900);
         RyOnline::dispatch(array(
-            'offlineUsers'=>$offlineUsers,
-            'onlineUsers'=>$onlineUsers,
-        ))->onConnection('sqs')->onQueue('ry_user_online');
+            'offlineUsers'=>$offlineUsers->all(),
+            'onlineUsers'=>$onlineUsers->all(),
+        ))->onConnection('sqs')->onQueue('ry_user_online.fifo');
     }
 
     public function isOnline($id)
