@@ -53,6 +53,12 @@ class PostPaginateCollection extends Resource
             'post_dislike_state'=>$this->dislikeState,
             'post_event_country'=>$this->post_event_country,
             'topics'=>$this->getPostTopics($this->post_id),
+
+            $this->mergeWhen($this->post_type=='vote' && !blank($this->voteInfo), function () {
+                return [
+                    'vote_info' => PostVoteCollection::collection($this->voteInfo),
+                ];
+            }),
         ];
     }
 

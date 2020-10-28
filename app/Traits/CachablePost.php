@@ -451,30 +451,7 @@ trait CachablePost
         return array();
     }
 
-    /**
-     * @param $postId
-     * @param $voteId
-     * @param $userId
-     * @return array 投票 是否选了某个选项
-     *
-     * 投票 是否选了某个选项
-     */
 
-    public function voteChoose($postId, $voteId, $userId)
-    {
-        $memKey          = config('redis-key.post.post_vote_data').$postId;
-        $result          = Redis::hget($memKey, $voteId);
-        $result          = !empty($result) ? json_decode($result, true) : ['users'=>[], 'country'=>[]];
-
-        $data['choose']  = in_array($userId, $result['users']);
-        $data['count']   = count($result['users']);
-
-        $country = array_flip($result['country']);
-        rsort($country);
-        $data['country'] = array_slice($country, 0, 5);
-        return $data;
-
-    }
 
     /*public function voteChoose($postId, $voteId, $userId='')
     {

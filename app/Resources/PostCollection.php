@@ -74,9 +74,9 @@ class PostCollection extends Resource
             'post_event_country'=>$this->post_event_country,
 
             $this->mergeWhen($this->post_type=='vote' && !blank($this->voteInfo), function () {
-               return collect([
+               return [
                    'vote_info' => PostVoteCollection::collection($this->voteInfo),
-               ]);
+               ];
             }),
         ];
     }

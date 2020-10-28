@@ -110,8 +110,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        } else {
 //            $posts = $this->allWithBuilder();
 //        }
-        // $posts = $this->allWithBuilder();
-        $posts = $this->model;
+        $posts = $this->allWithBuilder();
+        //$posts = $this->model;
         $posts = $posts->withTrashed()->with('owner');
 
         if ($request->get('home')!== null) {
@@ -127,6 +127,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $appends['order_by'] = $orderBy;
 
             $posts = $posts->where('post_topping' , 0);
+
             if($type == 'default' && $orderBy =='rate' && $follow == null) {
                 $posts = $this->getFinePosts($posts);
 
@@ -174,10 +175,12 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     });
                 }
             }
+            // 投票贴
+            $posts = $this->voteList($posts);
 
             if(auth()->check()) {
-                if($follow === null)
-                {
+
+                if($follow === null) {
                     $user        = auth()->user();
                     $hiddenPosts = app(UserRepository::class)->hiddenPosts($user->user_id);
                     $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
@@ -219,6 +222,68 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 
         return $posts->appends($appends);
+    }
+
+
+    /**
+     * @param $posts
+     * @return mixed
+     * 投票贴
+     */
+    public function voteList($posts)
+    {
+        $userId = auth()->check() ? auth()->user()->user_id : null;
+
+        if ($posts instanceof Post) {
+            $postIds = $posts->where('post_id', $posts->post_id)->where('post_type','vote')->pluck('post_id');
+        } else {
+            $postIds  = $posts->where('post_type','vote')->pluck('post_id');
+        }
+
+        $voteList = VoteDetail::whereIn('post_id', $postIds)->get();
+
+        $voteList->each(function ($vote) use ($userId) {
+            $count = $this->voteChoose($vote->post_id, $vote->id, $userId);
+            foreach ($count as $key=>$item) {
+                $vote->$key = $item;
+            }
+        });
+
+        if ($posts instanceof Post) {
+            $posts->voteInfo = $voteList;
+        } else {
+            $posts->each(function ($post) use ($voteList) {
+                $tmp = $voteList->where('post_id', $post->post_id)->all();
+                $post->voteInfo = collect(array_values($tmp));
+            });
+        }
+
+        return $posts;
+    }
+
+    /**
+     * @param $postId
+     * @param $voteId
+     * @param $userId
+     * @return array 投票 是否选了某个选项
+     *
+     * 投票 是否选了某个选项
+     */
+
+    public function voteChoose($postId, $voteId, $userId)
+    {
+        $memKey          = config('redis-key.post.post_vote_data').$postId;
+        $result          = Redis::hget($memKey, $voteId);
+        $result          = !empty($result) ? json_decode($result, true) : ['users'=>[], 'country'=>[]];
+
+        $data['choose']  = in_array($userId, $result['users']);
+        $data['count']   = count($result['users']);
+
+        $country = array_flip($result['country']);
+        rsort($country);
+        $data['country'] = array_slice($country, 0, 5);
+        return $data;
+
     }
 
     public function paginateTopic($topic)

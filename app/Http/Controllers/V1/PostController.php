@@ -313,10 +313,7 @@ class PostController extends BaseController
     public function showByUuid($uuid)
     {
         $post = $this->post->showByUuid($uuid);
-
-        if (!empty($post) && $post->post_type='vote') {
-            $post->voteInfo = $this->post->voteInfo($post->post_id);
-        }
+        $post = $this->post->voteList($post);
 
         $postLikes = $this->post->userPostLike(array($post->post_id));
         $postDisLikes = $this->post->userPostDislike(array($post->post_id));
