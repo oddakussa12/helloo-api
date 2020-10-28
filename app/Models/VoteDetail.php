@@ -25,31 +25,4 @@ class VoteDetail extends Model
     ];
 
    // public $translationModel = 'App\Models\VoteDetailTranslation';
-
-    public function getContentAttribute()
-    {
-        if (empty($this->content)) {
-            $this->currentLocale = config('translatable.translate_default_lang');
-            $content             = optional($this->translate(config('translatable.translate_default_lang')))->content;
-            if (empty($content)) {
-                $this->currentLocale = $this->default_locale;
-                $content = optional($this->translate($this->default_locale))->content;
-                if(empty($content)) {
-                    $this->currentLocale = 'en';
-                    $content = optional($this->translate('en'))->content;
-                }
-            }
-        } else {
-            $this->currentLocale = locale();
-            $content = $this->content;
-        }
-        $content = htmlspecialchars_decode(htmlspecialchars_decode($content , ENT_QUOTES) , ENT_QUOTES);
-        $agent   = new Agent();
-        if ($agent->match('YoouliOS')||$agent->match('YooulAndroid')) {
-            $content = str_replace(
-                array("<br>" , "<br/>" , "<br />" , "<br  />" , "<br >" , "< br>" , "<  br>" , "<br  >" , "<br/ >" , "<br/  >") ,
-                "\n" , $content);
-        }
-        return $content;
-    }
 }

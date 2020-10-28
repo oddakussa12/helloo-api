@@ -3,22 +3,17 @@
 namespace App\Jobs;
 
 use App\Models\User;
-use App\Models\Post;
 use App\Models\VoteDetail;
 use App\Models\VoteDetailTranslation;
 use App\Services\CustomizeTranslateService;
 use App\Traits\CachableUser;
 use App\Traits\CachablePost;
 use Illuminate\Bus\Queueable;
-use App\Custom\Constant\Constant;
-use App\Services\TranslateService;
-use App\Services\V3TranslateService;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Services\TencentTranslateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use App\Models\PostTranslation as PostTranslationModel;
 
 class VoteTranslation implements ShouldQueue
 {

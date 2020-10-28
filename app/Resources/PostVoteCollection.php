@@ -9,20 +9,23 @@ use Illuminate\Http\Resources\Json\Resource;
 class PostVoteCollection extends Resource
 {
     use CachablePost;
+
     /**
-     *
+     * @param $request
+     * @return array
      */
     public function toArray($request)
     {
-        $isChoose = $this->voteChoose($this->post_id, $this->id);
+        $userId = auth()->check() ? auth()->user()->user_id : null;
+        $count  = $this->voteChoose($this->post_id, $this->id, $userId);
+
         return [
-            'tab_name' => $this->tab_name,
+            'tab_name'       => $this->tab_name,
+            'content'        => $this->content,
+            'count'          => $count['count'],
+            'is_choose'      => $count['choose'],
             'vote_detail_id' => $this->id,
-            'content' => $this->content,
-            'count' => rand(10, 1000),
-            'is_choose' => false,
         ];
     }
-
 
 }

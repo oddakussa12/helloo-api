@@ -159,7 +159,6 @@ class PostController extends BaseController
         $post_content       = clean($request->input('post_content' , ''));
         $post_type          = $request->input('post_type');
         $post_event_country = $request->input('post_event_country');
-        $radio              = $request->input('radio');
 
 	    $post_image         = $request->input('post_image' , []);
 	    $post_image_size    = $request->input('post_image_size' , []);
@@ -285,45 +284,6 @@ class PostController extends BaseController
         }
         if(!empty($topics)) {
             $post = $this->post->attachTopics($post , $topics);
-        }
-
-        // 投票贴
-        if ($post_type=='vote') {
-            $radio = !is_array($radio) ? json_decode($radio, true) : $radio;
-            foreach ($radio as $key=>$item) {
-                $voteInfo['post_id']        = $post->post_id;
-                $voteInfo['user_id']        = $poster->user_id;
-                $voteInfo['tab_name']       = $item['tab_name'] ?? '';
-                $voteInfo['default_locale'] = !empty($item['text']) ? $this->translate->detectLanguage($item['text']) : 'en';
-                $voteInfo['vote_type']      = !empty($item['image']) ? 'image' : 'text';
-                if (!empty($item['image'])) {
-                    $voteInfo['vote_media'] = [
-                        'image'      => [
-                        'image_from' => 'upload',
-                        'image_cover'=> $item['image'][0],
-                        'image_url'  => $item['image'],
-                        'image_count'=> 1
-                    ]];
-                }
-                $voteDetail = VoteDetail::create($voteInfo);
-                // $post->vote_info[] = $voteDetail->toArray();
-                // 当选项内容为 文本时，需要进行翻译
-                if (!empty($item['text'])) {
-                    $textLang  = $this->translate->detectLanguage($item['text']) ?? 'en';
-                    $languages = array_diff(config('translatable.locales') , [$textLang]);
-
-                    if (config('common.translation_version')==='niu') {
-                        $voteJob = (new VoteTranslation($poster, $voteDetail, $item['text'], $textLang));
-                    } else {
-                        $voteJob = (new VoteTranslation($poster, $voteDetail, $item['text'], $textLang));
-                    }
-                    $this->dispatchNow($voteJob);
-                    // $this->dispatch($voteJob->onQueue(Constant::QUEUE_CUSTOM_POST_TRANSLATION));
-
-                    /*$translate = app(CustomizeTranslateService::class)->setLanguages($languages);
-                    $contentTranslations = $translate->translate($item['text'] , array('source'=>$textLang));*/
-                }
-            }
         }
 
         if (config('common.translation_version')==='niu')

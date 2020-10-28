@@ -200,7 +200,9 @@ $api->group($V1Params , function ($api){
                 $api->put('user/{user}/revokeLike' , 'UserController@profileRevokeLike')->name('user.profile.revoke.like');
             });
             $api->group(['middleware'=>['redisThrottle:'.config('common.post_throttle_num').','.config('common.post_throttle_expired')]] , function ($api){
-                $api->post('post' , 'PostController@store')->name('post.store');
+                $api->post('post', 'PostController@store')->name('post.store'); // 发帖
+                $api->post('vote', 'PostVoteController@store')->name('post.vote.store');// 发布投票贴
+                $api->put('vote', 'PostVoteController@vote')->name('post.vote.status'); // 选一个选项投票
             });
             $api->group(['middleware'=>['redisThrottle:'.config('common.post_comment_throttle_num').','.config('common.post_comment_throttle_expired')]] , function ($api){
                 $api->post('postComment' , 'PostCommentController@store')->name('comment.store');

@@ -454,11 +454,21 @@ trait CachablePost
     /**
      * @param $postId
      * @param $voteId
-     * @param $userId
+     * @param string $userId
+     * @return array 投票 是否选了某个选项
+     *
      * 投票 是否选了某个选项
      */
-    public function voteChoose($postId, $voteId, $userId)
+    public function voteChoose($postId, $voteId, $userId='')
     {
+        $memKey = config('redis-key.post.post_vote_data').$postId;
+        $return = ['count'=>0, 'choose'=>false];
+        if (Redis::exists($memKey)) {
+           $return['count']  = Redis::zcount($memKey, $voteId, $voteId);
+           $return['choose'] = Redis::zscore($memKey, $userId) == $voteId;
+        }
+
+        return $return;
 
     }
 }

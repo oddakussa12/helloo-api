@@ -738,7 +738,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         });
     }
 
-    public function attachTopics(Post $post  , $topics)
+    public function attachTopics(Post $post, $topics)
     {
         $topics = array_filter($topics , function($v,$k){
             $v = str_replace(' ' , '' , $v);
