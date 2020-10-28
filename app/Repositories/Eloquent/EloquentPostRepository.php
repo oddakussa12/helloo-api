@@ -110,7 +110,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        } else {
 //            $posts = $this->allWithBuilder();
 //        }
-        $posts = $this->allWithBuilder();
+        // $posts = $this->allWithBuilder();
+        $posts = $this->model;
         $posts = $posts->withTrashed()->with('owner');
 
         if ($request->get('home')!== null) {
