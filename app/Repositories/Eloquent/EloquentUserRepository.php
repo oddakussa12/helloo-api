@@ -701,7 +701,7 @@ DOC;
         $lastActivityTime = 'ry_user_last_activity_time';
         $key = 'ry_user_online_status';
         $bitKey = 'ry_user_online_status_bit';
-        $offlineUsers = collect($users)->where('status', '>=' , 0);
+        $offlineUsers = collect($users)->whereIn('status', array(1 , 2));
         $offlineUserIds = $offlineUsers->pluck('userid')->all();
         $onlineUsers = collect($users)->where('status', 0);
         $onlineUserIds = $onlineUsers->pluck('userid')->all();
@@ -718,7 +718,7 @@ DOC;
         RyOnline::dispatch(array(
             'offlineUsers'=>$offlineUsers->all(),
             'onlineUsers'=>$onlineUsers->all(),
-        ))->onConnection('sqs')->onQueue('ry_user_online.fifo');
+        ))->onConnection('sqs-fifo')->onQueue('ry_user_online.fifo');
     }
 
     public function isOnline($id)

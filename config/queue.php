@@ -57,6 +57,14 @@ return [
             'region' => env('SQS_REGION', 'ap-southeast-1'),
         ],
 
+        'sqs-fifo' => [
+            'driver' => 'sqs-fifo',
+            'group' => 'default',
+            'queue' => env('SQS_QUEUE', 'chat'),
+            'prefix' => env('SQS_PREFIX', 'https://sqs.ap-southeast-1.amazonaws.com/707690420866'),
+            'region' => env('SQS_REGION', 'ap-southeast-1'),
+        ],
+
         'redis' => [
             'driver' => 'redis',
             'connection' => 'default',
