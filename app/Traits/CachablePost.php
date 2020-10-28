@@ -454,21 +454,46 @@ trait CachablePost
     /**
      * @param $postId
      * @param $voteId
-     * @param string $userId
+     * @param $userId
      * @return array 投票 是否选了某个选项
      *
      * 投票 是否选了某个选项
      */
-    public function voteChoose($postId, $voteId, $userId='')
+
+    public function voteChoose($postId, $voteId, $userId)
     {
-        $memKey = config('redis-key.post.post_vote_data').$postId;
-        $return = ['count'=>0, 'choose'=>false];
-        if (Redis::exists($memKey)) {
-           $return['count']  = Redis::zcount($memKey, $voteId, $voteId);
-           $return['choose'] = Redis::zscore($memKey, $userId) == $voteId;
-        }
+        $memKey            = config('redis-key.post.post_vote_data').$postId;
+        $result            = Redis::hget($memKey, $voteId);
+        dump($result);
+        $result            = !empty($result) ? $result : ['users'=>[], 'country'=>[]];
+
+        $return['choose']  = in_array($userId, $result['users']);
+        $return['count']   = count($result['users']);
+        $return['country'] = array_slice(array_keys((array)sort($result['country'])), 0, 5);
 
         return $return;
 
     }
+
+    /*public function voteChoose($postId, $voteId, $userId='')
+    {
+        $memKey     = config('redis-key.post.post_vote_data').$postId;
+        $countKey   = $memKey.$postId;
+        $countryKey = $memKey.'country_'.$postId;
+        $return = ['count'=>0, 'choose'=>false, 'country'=>[]];
+        if (Redis::exists($countKey)) {
+           $return['count']   = Redis::zcount($countKey, $voteId, $voteId);
+           $return['choose']  = Redis::zscore($countKey, $userId) == $voteId;
+        }
+        if (Redis::exists($countKey)) {
+            $return['count']   = Redis::zcount($countKey, $voteId, $voteId);
+            $return['choose']  = Redis::zscore($countKey, $userId) == $voteId;
+        }
+        $return['country'] = Redis::zscore($countryKey, $voteId, $voteId);
+
+
+        return $return;
+
+    }*/
+
 }

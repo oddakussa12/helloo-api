@@ -24,6 +24,7 @@ class PostVoteCollection extends Resource
             'content'        => $this->content,
             'count'          => $count['count'],
             'is_choose'      => $count['choose'],
+            'country'        => $count['country'],
             'vote_detail_id' => $this->id,
         ];
     }

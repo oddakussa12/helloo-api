@@ -21,7 +21,7 @@ class VoteDetail extends Model
     public $translatedAttributes = ['locale' , 'content'];
 
     protected $fillable = [
-      'post_id','user_id','tab_name','vote_media','default_locale','vote_type','vote_num'
+      'post_id','user_id','tab_name','vote_media','default_locale','country','vote_type','vote_num'
     ];
 
    // public $translationModel = 'App\Models\VoteDetailTranslation';

@@ -67,7 +67,10 @@ class PostVoteController extends BaseController
      */
     public function vote(Request $request)
     {
-        $user_id   = auth()->user()->user_id;
+        $user    = auth()->user();
+        $user_id = $user->user_id;
+        $country = $user->user_country_id;
+
         if (empty($user_id)) {
             return $this->response->errorForbidden();
         }
@@ -79,20 +82,38 @@ class PostVoteController extends BaseController
             return $this->response->errorBadRequest();
         }
         $voteInfo  = VoteDetail::where(['post_id'=>$post['post_id'], 'id'=>$vote_id])->first();
+
         if (empty($voteInfo)) {
             return $this->response->errorBadRequest();
         }
 
         $memKey = config('redis-key.post.post_vote_data').$post['post_id'];
         $where  = ['user_id'=>$user_id, 'post_id'=>$post['post_id'], 'vote_id'=>$vote_id];
+        $flag   = true;
 
-        if (Redis::exists($memKey) && Redis::zscore($memKey, $user_id)) {
-            Log::info('message：已投过票', $where);
-        } else {
-            Redis::zadd($memKey, $vote_id, $user_id);
-            VoteDetail::where(['post_id'=>$post['post_id'], 'id'=>$vote_id])->update(['vote_num'=>$voteInfo['vote_num']+1]);
-            VoteLog::create($where);
+        $voteAll= Redis::hgetall($memKey);
+        if (!empty($voteAll)) {
+            foreach ($voteAll as $key=>$item) {
+                $item = json_decode($item, true);
+                if (in_array($user_id, $item['users'])) {
+                    $flag = false;
+                    break;
+                }
+            }
         }
+
+        if ($flag==false) {
+            Log::info('message：已投过票', $where);
+            return $this->response->accepted();
+        }
+
+        $vote = !empty($voteAll[$vote_id]) ? $voteAll[$vote_id] : ['country'=>[], 'users'=>[]];
+        $vote['country'][$country] = array_key_exists($country, $vote['country']) ? $vote['country'][$country]+1 : 1;
+        $vote['users'] = array_merge($vote['users'], [$user_id]);
+
+        Redis::hset($memKey, $vote_id, collect($vote));
+        VoteDetail::where(['post_id'=>$post['post_id'], 'id'=>$vote_id])->update(['country'=>serialize($vote['country']), 'vote_num'=>$voteInfo['vote_num']+1]);
+        VoteLog::create($where);
 
         return $this->response->accepted();
 
