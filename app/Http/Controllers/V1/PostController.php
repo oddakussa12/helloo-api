@@ -2,14 +2,8 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Custom\Constant\Constant;
 use App\Jobs\PostEs;
-use App\Jobs\VoteTranslation;
 use App\Models\Post;
-use App\Models\VoteDetail;
-use App\Resources\PostVoteCollection;
-use App\Services\CustomizeNiuTranslateService;
-use App\Services\CustomizeTranslateService;
 use Ramsey\Uuid\Uuid;
 use App\Models\Banner;
 use App\Custom\RedisList;
@@ -18,6 +12,7 @@ use App\Events\PostViewEvent;
 use App\Jobs\PostTranslation;
 use App\Jobs\PostTranslationV2;
 use App\Resources\PostCollection;
+use App\Custom\Constant\Constant;
 use App\Services\TranslateService;
 use App\Resources\BannerCollection;
 use Illuminate\Support\Facades\Redis;
@@ -315,10 +310,31 @@ class PostController extends BaseController
 
     }
 
+    /**
+     * @param $uuid
+     * @return PostCollection
+     * 新增了可见范围，需要判断
+     */
     public function showByUuid($uuid)
     {
-        $post = $this->post->showByUuid($uuid);
-        $post = $this->post->voteList($post);
+        $userId = auth()->check() ? auth()->user()->user_id : '';
+        $post   = $this->post->showByUuid($uuid);
+        $post   = $this->post->voteList($post);
+
+        if (!empty($userId)) {
+            // 登录状态 可见范围为自己可见
+            if ($post->show_type==3 && $post->user_id != $userId) {
+                abort(404);
+            }
+            // 登录状态 可见范围为粉丝可见
+            if ($post->show_type==2) {
+                $follow = $this->userFollowType($post->user_id, $userId);
+                empty($follow) && abort(404);
+            }
+        } else {
+            // 未登录状态 且可见范围为 粉丝、自己
+            $post->show_type>1 && abort(404);
+        }
 
         $postLikes = $this->post->userPostLike(array($post->post_id));
         $postDisLikes = $this->post->userPostDislike(array($post->post_id));

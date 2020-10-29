@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\User;
 use App\Models\VoteDetail;
 use App\Models\VoteDetailTranslation;
 use Carbon\Carbon;
@@ -373,7 +374,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         //新增帖子可见范围
         if ($other) {
-            $posts = $user->posts()->where('show_type','<', 3)->with('translations');
+            $userId = auth()->check() ? auth()->user()->user_id : '';
+            $follow = $this->userFollowType($user, $userId);
+            $show   = $follow ? 2 : 1;
+            $posts  = $user->posts()->where('show_type','<=', $show)->with('translations');
         } else {
             $posts = $user->posts()->with('translations');
         }
@@ -953,5 +957,17 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         if(!empty($postId)) {
             return VoteDetail::where('post_id', $postId)->get();
         }
+    }
+
+    /**
+     * @param int $post_user_id 帖子的owner
+     * @param int $authUser 当前登录用户
+     * 判断当前登录用户是否是帖子发布用户的粉丝
+     * @return
+     */
+    public function userFollowType(int $post_user_id, int $authUser)
+    {
+        return DB::table('common_follows')->where('followable_id', $post_user_id)->where('followable_type', User::class)
+            ->where('relation', 'follow')->where('user_id', $authUser)->first();
     }
 }
