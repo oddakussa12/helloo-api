@@ -216,13 +216,10 @@ class PostVoteController extends BaseController
             $voteInfo['default_locale'] = !empty($item['text']) ? $this->translate->detectLanguage($item['text']) : 'en';
             $voteInfo['vote_type']      = !empty($item['image']) ? 'image' : 'text';
             if (!empty($item['image'])) {
-                $voteInfo['vote_media'] = [
+                $voteInfo['vote_media'] = json_encode([
                     'image'      => [
-                    'image_from' => 'upload',
-                    'image_cover'=> $item['image'][0],
                     'image_url'  => $item['image'],
-                    'image_count'=> 1
-                ]];
+                ]], JSON_UNESCAPED_UNICODE);
             }
             $voteDetail = VoteDetail::create($voteInfo);
 

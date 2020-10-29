@@ -246,25 +246,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $voteLang = $voteList->pluck('default_locale');
 
         $voteLang = array_unique(array_merge($voteLang->toArray(), [locale(), 'en']));
+        $voteTrans= VoteDetailTranslation::whereIn('locale', $voteLang)->whereIn('vote_detail_id', $voteIds)->get();
 
-
-        $voteTrans= VoteDetailTranslation::whereIn('locale', $voteLang)->whereIn('vote_detail_id', $voteIds)->toSql();
-
-//        dump($voteTrans);
-//        dump($voteIds, $voteLang);
         $voteList->each(function ($vote) use ($userId, $voteTrans, $voteLang) {
-            // $relation = $vote->getRelations()['voteDetailTranslate'];
-            // $vote->content = $relation->content;
-            $voteTrans->each(function ($trans, $index) use ($vote, $voteLang) {
-                if ($vote->default_locale==$trans->locale) {
-                    $vote->default_content = $trans->content;
-                }
-                if (!in_array($trans->locale, $voteLang)) {
-                }
-                if ($trans->locale==locale()) {
-                    $vote->content = $trans->content;
-                }
-            });
+            $vote->translations = $voteTrans->where('vote_detail_id' , $vote->id)->all();
             $count = $this->voteChoose($vote->post_id, $vote->id, $userId);
             foreach ($count as $key=>$item) {
                 $vote->$key = $item;
