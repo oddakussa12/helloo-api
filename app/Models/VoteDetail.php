@@ -10,7 +10,7 @@ use Jenssegers\Agent\Agent;
 
 class VoteDetail extends Model
 {
-    use Translatable,CachablePost;
+    use CachablePost;
 
     protected $table = "vote_details";
 
@@ -21,8 +21,13 @@ class VoteDetail extends Model
     public $translatedAttributes = ['locale' , 'content'];
 
     protected $fillable = [
-      'post_id','user_id','tab_name','vote_media','default_locale','country','vote_type','vote_num'
+      'post_id','user_id','tab_name','vote_media','default_locale','country','vote_type','vote_num', 'content'
     ];
 
    // public $translationModel = 'App\Models\VoteDetailTranslation';
+
+    public function voteDetailTranslate()
+    {
+        return $this->hasOne(VoteDetailTranslation::class, 'vote_detail_id' , 'id')->where('locale', locale());
+    }
 }

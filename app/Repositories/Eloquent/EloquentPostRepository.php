@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\VoteDetail;
+use App\Models\VoteDetailTranslation;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
@@ -110,8 +111,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        } else {
 //            $posts = $this->allWithBuilder();
 //        }
-        $posts = $this->allWithBuilder();
-        //$posts = $this->model;
+        //$posts = $this->allWithBuilder();
+        $posts = $this->model;
         $posts = $posts->withTrashed()->with('owner');
 
         if ($request->get('home')!== null) {
@@ -240,9 +241,32 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $postIds  = $posts->where('post_type','vote')->pluck('post_id');
         }
 
-        $voteList = VoteDetail::whereIn('post_id', $postIds)->get();
+        // $voteList = VoteDetail::whereIn('post_id', $postIds)->with('voteDetailTranslate')->get();
 
-        $voteList->each(function ($vote) use ($userId) {
+        $voteList = VoteDetail::whereIn('post_id', $postIds)->get();
+        $voteIds  = $voteList->pluck('id');
+        $voteLang = $voteList->pluck('default_locale');
+
+        $voteLang = array_unique(array_merge($voteLang->toArray(), [locale(), 'en']));
+
+
+        $voteTrans= VoteDetailTranslation::whereIn('locale', $voteLang)->whereIn('vote_detail_id', $voteIds)->toSql();
+
+//        dump($voteTrans);
+//        dump($voteIds, $voteLang);
+        $voteList->each(function ($vote) use ($userId, $voteTrans, $voteLang) {
+            // $relation = $vote->getRelations()['voteDetailTranslate'];
+            // $vote->content = $relation->content;
+            $voteTrans->each(function ($trans, $index) use ($vote, $voteLang) {
+                if ($vote->default_locale==$trans->locale) {
+                    $vote->default_content = $trans->content;
+                }
+                if (!in_array($trans->locale, $voteLang)) {
+                }
+                if ($trans->locale==locale()) {
+                    $vote->content = $trans->content;
+                }
+            });
             $count = $this->voteChoose($vote->post_id, $vote->id, $userId);
             foreach ($count as $key=>$item) {
                 $vote->$key = $item;
@@ -344,10 +368,16 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function paginateByUser(Request $request, $user)
     {
         $appends = array();
-        if (!is_object($user)) {
-            $user = app(UserRepository::class)->findOrFail($user);
+        $user    = !is_object($user) ? app(UserRepository::class)->findOrFail($user) : $user;
+        $other   = !is_object($user);
+
+        //新增帖子可见范围
+        if ($other) {
+            $posts = $user->posts()->where('show_type','<', 3)->with('translations');
+        } else {
+            $posts = $user->posts()->with('translations');
         }
-        $posts = $user->posts()->with('translations');
+
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
             $order   = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $orderBy = $request->get('order_by' , 'post_like_num');
