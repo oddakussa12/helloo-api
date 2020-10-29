@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\PostTranslation;
 use App\Models\VoteDetail;
 use App\Models\VoteDetailTranslation;
 use Carbon\Carbon;
@@ -185,17 +186,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $user        = auth()->user();
                     $hiddenPosts = app(UserRepository::class)->hiddenPosts($user->user_id);
                     $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
-                    $keys        = $postIds = [];
-
-                    $posts->each(function ($post, $key) use ($hiddenPosts, $hiddenUsers, &$keys, &$postIds) {
-                        if(in_array($post->post_uuid, $hiddenPosts) || in_array($post->user_id, $hiddenUsers)) {
-                            array_push($keys, $key);
-                        } else {
-                            array_push($postIds, $post->post_id);
-                        }
-                    });
-                    $posts->offsetUnset($keys);
-                    $posts = $posts->setCollection($posts->values());
+                    $posts = $posts->setCollection($posts->getCollection()->filter(function($post) use ($hiddenPosts, $hiddenUsers){
+                        return  !in_array($post->post_uuid, $hiddenPosts)&&!in_array($post->user_id, $hiddenUsers);
+                    })->values());
                     if($posts->isEmpty())
                     {
                         $page_num = intval($request->query->get($this->pageName))+1;
@@ -213,6 +206,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
                     $post->likeState    = in_array($post->post_id , $postLikes);
                     $post->dislikeState = in_array($post->post_id , $postDisLikes);
+                });
+                $postTranslations = PostTranslation::whereIn('post_id' , $postIds)->whereIn('post_locale' , $locales)->get();
+                $posts->each(function ($post , $key) use ($postTranslations) {
+                    $post->translations = $postTranslations->where('post_id' , $post->post_id)->all();
                 });
             }
             return $posts->appends($appends);
