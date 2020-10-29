@@ -197,9 +197,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                            return $this->paginateAll($request);
                         }
                     }
-                }else{
-                    $postIds = $posts->pluck('post_id')->toArray();
                 }
+                $postIds = $posts->pluck('post_id')->toArray();
+                $locales = $posts->pluck('post_content_default_locale')->push('en')->push(locale())->unique()->values()->toArray();
                 $postLikes    = $this->userPostLike($postIds);
                 $postDisLikes = $this->userPostDislike($postIds);
 
