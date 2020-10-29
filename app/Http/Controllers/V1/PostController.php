@@ -362,7 +362,7 @@ class PostController extends BaseController
      * @param  string  $uuid
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $uuid)
+    /*public function update(Request $request, $uuid)
     {
         $subtitle = $request->input('subtitle' , '');
         $language = $request->input('locale' , locale());
@@ -380,7 +380,7 @@ class PostController extends BaseController
             $post->save();
         }
         return $this->response->accepted();
-    }
+    }*/
 
     /**
      * Remove the specified resource from storage.
@@ -409,11 +409,14 @@ class PostController extends BaseController
         $postKey = config('redis-key.post.post_index_new');
         $essencePostKey = config('redis-key.post.post_index_essence');
         $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
+
 //        $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
 //        $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
-        $redis->zRem($postKey , $post->getKey());
 //        $redis->zRem($rateKeyOne , $post->getKey());
 //        $redis->zRem($rateKeyTwo , $post->getKey());
+
+        $redis->zRem($postKey , $post->getKey());
+
         $redis->zRem($essencePostKey , $post->getKey());
         $redis->zRem($essenceManualPostKey , $post->getKey());
 

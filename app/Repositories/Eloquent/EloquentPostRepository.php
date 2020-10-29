@@ -293,15 +293,21 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
     }
 
-    public function paginateTopic($topic)
+    /**
+     * @param $topic
+     * @param $page
+     * @param string $orderBy
+     * @param string $pageName
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     * 查询话题下的帖子列表
+     */
+    public function paginateTopic($topic, $page, $orderBy='time', $pageName='post_page')
     {
-        $request  = \request();
-        $orderBy  = strval($request->input('order_by', 'time'));
+        $userId   = auth()->check() ? auth()->user()->user_id : 0;
         $key      = strval($topic);
         $topicKey = $orderBy==='time' ? $key.'_new' : $key.'_rate';
-        $pageName = 'post_page';
+
         $perPage  = 8;
-        $page     = intval($request->input($pageName, 1));
         $offset   = ($page-1)*$perPage;
         $redis    = new RedisList();
         $appends['order_by'] = $orderBy;
@@ -319,18 +325,67 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->where('post_topping' , 0);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->whereIn('post_id' , $postIds)->orderBy($this->model->getCreatedAtColumn() , 'DESC')->get();
+
+        // 帖子可见范围
+        $posts = $this->postShowRange($posts, $userId);
+
+        if ($posts->isEmpty()) {
+            $page++;
+            if ($page<=3) {
+             return $this->paginateTopic($topic, $page);
+            }
+        }
+
+        // 投票帖
+        $posts = $this->voteList($posts);
+
+        // 分页信息
         $posts = $this->paginator($posts, $total, $perPage, $page, [
             'path'     => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
         ]);
+
         $postLikes    = $this->userPostLike($postIds);
         $postDisLikes = $this->userPostDislike($postIds);
 
-        $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
+        $posts->each(function ($post) use ($postLikes , $postDisLikes) {
             $post->likeState    = in_array($post->post_id , $postLikes);
             $post->dislikeState = in_array($post->post_id , $postDisLikes);
         });
         return $posts->appends($appends);
+    }
+
+    /**
+     * @param $posts
+     * @param int $authUser 当前登录用户
+     * @return mixed
+     * 帖子可见范围
+     */
+    public function postShowRange($posts, int $authUser)
+    {
+        // 帖子可见范围
+        $userIds = $posts->where('show_type', '>', 1)->pluck('user_id');
+        $uids    = [];
+        if ($authUser) {
+            $follow  = $this->userFollowList($authUser, $userIds);
+            $uids    = $follow->pluck('followable_id');
+            $uids    = array_merge([$authUser], $uids->toArray());
+        }
+
+        $posts = $posts->filter(function ($post) use ($authUser, $uids) {
+            if ($post->show_type==1) {
+                return $post;
+            }
+            if ($post->show_type==2 && in_array($post->user_id, $uids)) {
+                return $post;
+            }
+            if ($post->show_type==3 && ($post->user_id == $authUser)) {
+                return $post;
+            }
+        });
+
+        return $posts;
+
     }
 
     public function showByUuid($uuid)
@@ -951,5 +1006,21 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     {
         return DB::table('common_follows')->where('followable_id', $post_user_id)->where('followable_type', User::class)
             ->where('relation', 'follow')->where('user_id', $authUser)->first();
+    }
+
+    /**
+     * @param $userId
+     * @param $userList
+     * @param int $limit
+     * @return mixed
+     * 查询我关注的人
+     */
+    public function userFollowList($userId, $userList, $limit=50)
+    {
+        $data = DB::table('common_follows')->where(['user_id'=>$userId,'followable_type'=>User::class,'relation'=>'follow']);
+        if (!empty($userList)) {
+            $data->whereIn('followable_id', $userList);
+        }
+        return $data->groupBy('followable_id')->limit($limit)->get();
     }
 }

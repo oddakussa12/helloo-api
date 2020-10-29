@@ -47,6 +47,7 @@ class PostEs implements ShouldQueue
                     'post_media',
                     'post_content_default_locale',
                     'post_type',
+                    'show_type',
                     'post_event_country_id',
                     'post_created_at',
                 )
