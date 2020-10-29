@@ -133,7 +133,9 @@ class PostVoteController extends BaseController
         $post_type          = $request->input('post_type');
         $post_event_country = $request->input('post_event_country');
         $radio              = $request->input('radio');
-
+        $longitude          = $request->input('longitude'); // 经度
+        $latitude           = $request->input('latitude'); // 纬度
+        $showType           = $request->input('show_type', 1); // 可见范围
 	    $post_image         = $request->input('post_image' , []);
         $topics             = array_diff((array)$request->input('topics', []), [null , '']);
 
@@ -180,13 +182,14 @@ class PostVoteController extends BaseController
             'post_category_id' => $post_image ? 2 : 1,
             'post_country_id'  => $poster->user_country_id,
             'post_type'        => $post_type,
+            'longitude'        => $longitude,
+            'latitude'         => $latitude,
+            'showType'         => $showType,
             'post_rate'        => first_rate_comment_v2(),
             'post_default_locale'         => $titleLocale,
+            'post_event_country_id'       => !empty($post_event_country) ? $post_event_country : '-1',
             'post_content_default_locale' => $contentLocale,
         ];
-        if (!empty($post_event_country)) {
-            $post_info['post_event_country_id'] = $post_event_country;
-        }
 
         dynamicSetLocales(array($titleLocale , $contentLocale));
 

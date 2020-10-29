@@ -163,6 +163,9 @@ class PostController extends BaseController
 	    $post_image         = $request->input('post_image' , []);
 	    $post_image_size    = $request->input('post_image_size' , []);
 	    $post_video         = $request->input('post_video' , []);
+	    $longitude          = $request->input('longitude'); // 经度
+	    $latitude           = $request->input('latitude'); // 纬度
+	    $showType           = $request->input('show_type', 1); // 可见范围
         $post_category_id   = 1;
         $tag_slug           = array_diff((array)$request->input('tag_slug' , []),[null , '']);
         $topics             = array_diff((array)$request->input('topics' , []), [null , '']);
@@ -230,14 +233,16 @@ class PostController extends BaseController
             'post_category_id' => $post_category_id,
             'post_country_id'  => $poster->user_country_id,
             'post_type'        => $post_type,
+            'longitude'        => $longitude,
+            'latitude'         => $latitude,
+            'showType'         => $showType,
             'post_rate'        => first_rate_comment_v2(),
+
             'post_default_locale'         => $titleLocale,
+            'post_event_country_id'       => !empty($post_event_country) ? $post_event_country : '-1',
             'post_content_default_locale' => $contentLocale,
         ];
-        if(!empty($post_event_country))
-        {
-            $post_info['post_event_country_id'] = $post_event_country;
-        }
+
         if($post_category_id==2&&!empty($post_image))
         {
             $post_image = array_slice($post_image,0 , 9);
