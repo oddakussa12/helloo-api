@@ -357,4 +357,9 @@ trait CachableUser
         $time = Redis::zscore($key , $userId);
         return !blank($time)&&time()-$time<=43200*60;
     }
+
+    public function userProfileViewCount()
+    {
+        return mt_rand(100 , 10000);
+    }
 }
