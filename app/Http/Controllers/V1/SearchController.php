@@ -202,33 +202,36 @@ class SearchController extends BaseController
         $authUser    = auth()->check() ? auth()->user()->user_id : 0;
         $uids        = app(PostRepository::class)->userFollowList($authUser, $userIds)->toArray();
 
-        foreach ($posts as $index=>$post) {
+        // 可见范围
+        $posts = $posts->setCollection($posts->getCollection()->filter(function($post) use ($authUser, $uids) {
+            if (empty($post['show_type']) || $post['show_type'] ==1) return true;
 
-            if (!empty($post['show_type'])) {
-                if ($post['show_type']==2 && !in_array($post['user_id'], $uids ?? [])) {
-                    $posts->forget($index);
-                    continue;
-                }
-                if ($post['show_type']==3 && ($post['user_id'] != $authUser)) {
-                    $posts->forget($index);
-                    continue;
-                }
+            if ($post['show_type']==2 && in_array($post['user_id'], $uids ?? [])) {
+                return true;
             }
+            if ($post['show_type']==3 && ($post['user_id'] == $authUser)) {
+                return true;
+            }
+        })->values());
 
+        //重试3次
+        if (empty($posts->items())) {
+            $params['page']++;
+            if ($params['page']<=3) {
+                return $this->searchPost($params);
+            }
+        }
+
+        foreach ($posts as $index=>$post) {
             $post['owner'] = $users->where('user_id' , $post['user_id'])->first();
             $post['likeState'] = in_array($post['post_id'] , $postLikes);
             $post['dislikeState'] = in_array($post['post_id'] , $postDisLikes);
             $post['post_comment_num'] = $this->commentCount($post['post_id']);
             $post['post_event_country'] = getPostCountryName($post['post_event_country_id']);
             $posts[$index] = $post;
+
         }
-        //重试3次
-        if (empty($posts->items())) {
-            $params['page']++;
-            if ($params['page']<=3) {
-               return $this->searchPost($params);
-            }
-        }
+
         $posts = $posts->appends($params);
 
         return PostSearchPaginateCollection::collection($posts);
