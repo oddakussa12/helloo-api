@@ -15,7 +15,6 @@ class PostEs implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $post;
-
     public $type;
 
     public function __construct(Post $post , $type='create')
@@ -33,12 +32,12 @@ class PostEs implements ShouldQueue
     {
         $post = $this->post;
         if ($this->type == 'create') {
-            $post->create_at = optional($post->post_created_at)->toDateTimeString();
+            $post->create_at  = optional($post->post_created_at)->toDateTimeString();
             $post->post_media = (!empty($post->post_type) && !empty($post->post_media)) ? postMedia($post->post_type, $post->post_media) : null;
 
-            $result = $post->getAttributes();
+            $result   = $post->getAttributes();
             $postInfo = $post->getTranslationsArray();
-            $result = collect($result)->only(
+            $result   = collect($result)->only(
                 array(
                     'post_id',
                     'post_uuid',
@@ -63,7 +62,7 @@ class PostEs implements ShouldQueue
             if ($data == null) {
                 $data = (new Es(config('scout.elasticsearch.post')))->batchCreate($postList);
             }
-        }else{
+        } else {
             (new Es(config('scout.elasticsearch.post'), ['updateField'=>['post_is_delete'=>1]]))->update($post->post_id, 'post_id');
         }
     }
