@@ -673,8 +673,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $redis->delKey($postKey);
         $posts = $this->model;
         $now = Carbon::now();
-        $oneMonthsAgo = $now->subDays(15)->format('Y-m-d 23:59:59');
-        $threeMonthsAgo = $now->subDays(30)->format('Y-m-d 00:00:00');
+        $oneMonthsAgo = $now->subDays(7)->format('Y-m-d 23:59:59');
+        $threeMonthsAgo = $now->subDays(4)->format('Y-m-d 00:00:00');
         $posts->where('post_hotting' , 1)->where('post_created_at' , '>=' , $threeMonthsAgo)->where('post_created_at' , '<=' , $oneMonthsAgo)->where('post_comment_num' , '>' , 50)->orderBy('post_created_at' , 'DESC')->chunk(20 , function($posts) use ($redis , $postKey){
             foreach ($posts as $post)
             {

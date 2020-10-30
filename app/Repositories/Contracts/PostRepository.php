@@ -16,4 +16,6 @@ interface PostRepository extends BaseRepository
     public function showByUuid($uuid);
 
     public function paginateAll(Request $request);
+
+    public function paginateTopic(Request $request);
 }
