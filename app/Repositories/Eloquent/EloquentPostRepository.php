@@ -192,8 +192,11 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $posts = $posts->setCollection($posts->values());
                     if($posts->isEmpty())
                     {
-                        $request->query->set($this->pageName , intval($request->query->get($this->pageName))+1);
-                        return $this->paginateAll($request);
+                        $page_num = intval($request->query->get($this->pageName))+1;
+                        $request->query->set($this->pageName , $page_num);
+                        if ($page_num<3) {
+                           return $this->paginateAll($request);
+                        }
                     }
                 }else{
                     $postIds = $posts->pluck('post_id')->toArray();

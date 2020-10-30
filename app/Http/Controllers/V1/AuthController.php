@@ -264,6 +264,7 @@ class AuthController extends BaseController
         $user->user_phone_country = empty($phone['user_phone_country'])?'':$phone['user_phone_country'];
         $user->user_phone = empty($phone['user_phone'])?'':$phone['user_phone'];
         $user->userNameIsCanUpdate = $this->isCanUpdateName($user->user_id);
+        $user->userProfileViewCount = $this->userProfileViewCount();
         unset($user->user_tags);
         unset($user->user_regions);
         unset($user->user_country);
