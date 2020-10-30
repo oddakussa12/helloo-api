@@ -220,11 +220,14 @@ $api->group($V1Params , function ($api){
         $api->group(['middleware'=>['operationLog' , 'lastActive' , 'redisThrottle:'.config('common.notification_throttle_num').','.config('common.notification_throttle_expired')]] , function ($api){
             $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
         });
-        $api->put('notification/type/{type}' , 'NotificationController@readAll')->name('notice.readAll');
+        $api->put('notification/readAll' , 'NotificationController@readAll')->name('notice.readAll');
         $api->put('notification/{id}' , 'NotificationController@read')->name('notice.read');
+        $api->get('notification/home' , 'NotificationController@home')->name('notification.home');
         $api->get('notification/{id}' , 'NotificationController@detail')->name('notice.detail');
 
         $api->post('device/update', 'DeviceController@update')->name('device.update');
+
+        $api->put('app/mode/{mode}' , 'AppController@mode')->where('model', 'out|in')->name('app.mode');
 
     });
     $api->group(['middleware'=>['guestRefresh']] , function($api){
