@@ -258,7 +258,8 @@ class BackStageController extends BaseController
         if($postInitCommentNum!=-1)
         {
             $key = 'post_init_comment_num';
-            $postInitCommentNum = $postInitCommentNum<0||$postInitCommentNum>200?0:$postInitCommentNum;
+            $postInitCommentNum = $postInitCommentNum<0?0:$postInitCommentNum;
+            $postInitCommentNum = $postInitCommentNum>=500?500:$postInitCommentNum;
             Redis::set($key , $postInitCommentNum);
         }
         return $this->response->noContent();

@@ -379,7 +379,7 @@ class UserController extends BaseController
     {
         $response = $this->response->noContent();
         $users = $request->post();
-        $users = array_pluck($users , 'status' , 'userid');
+//        $users = array_pluck($users , 'status' , 'userid');
         $this->user->updateUserOnlineState($users);
         return $response->setStatusCode(200);
     }

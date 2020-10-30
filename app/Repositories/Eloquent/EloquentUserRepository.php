@@ -527,6 +527,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 }else{
                     $where .= " AND u1.user_id not in ({$userIds})";
                 }
+                $where .= " AND u1.user_id not in ({$userIds})";
             }
             $hobby = strval(request()->input('hobby'));
             if(!blank($hobby)&&in_array($hobby , array('kpop' , 'anime' , 'sad' , 'music' , 'games' , 'sports')))
@@ -541,9 +542,9 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $onlineSql = <<<DOC
 SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE u1.user_id >= u2.user_id {$where} ORDER BY u1.user_id LIMIT 1;
 DOC;
-            $onlineSql = <<<DOC
-SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
-DOC;
+//            $onlineSql = <<<DOC
+//SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
+//DOC;
             $user = collect(\DB::select($onlineSql))->first();
             if(blank($user))
             {
@@ -628,13 +629,13 @@ DOC;
                     }
                 }
             }
-//            !blank($where)&&$where = $where." AND";
+            !blank($where)&&$where = $where." AND";
             $onlineSql = <<<DOC
-SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
+SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
 DOC;
-            $onlineSql = <<<DOC
-SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
-DOC;
+//            $onlineSql = <<<DOC
+//SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
+//DOC;
             $user = collect(\DB::select($onlineSql))->first();
             if(blank($user))
             {
@@ -695,35 +696,29 @@ DOC;
 
     public function updateUserOnlineState($users)
     {
-//        $currentMinute = date('i');
-//        $index = floor($currentMinute/5);
+        $users = collect($users)->sortByDesc('time')->toArray();
+        $users = assoc_unique($users , 'userid');
         $lastActivityTime = 'ry_user_last_activity_time';
         $key = 'ry_user_online_status';
         $bitKey = 'ry_user_online_status_bit';
-//        $dynamicKey = config('redis-key.user.ry_update_online_status')."_".strval($index);
-        $users = \array_filter($users , function($v , $k){
-            return in_array($v , array(0 , 1 , 2))&&!empty($k);
-        } , ARRAY_FILTER_USE_BOTH );
-        $offlineUsers = array_where($users, function ($value, $key) {
-            return intval($value)>0;
-        });
-        $onlineUsers = array_where($users, function ($value, $key) {
-            return intval($value)===0;
-        });
-        !blank($onlineUsers)&&Redis::sadd($key , array_keys($onlineUsers));
-        !blank($offlineUsers)&&Redis::srem($key , array_keys($offlineUsers));
+        $offlineUsers = collect($users)->whereIn('status', array(1 , 2));
+        $offlineUserIds = $offlineUsers->pluck('userid')->all();
+        $onlineUsers = collect($users)->where('status', 0);
+        $onlineUserIds = $onlineUsers->pluck('userid')->all();
+        !blank($onlineUserIds)&&Redis::sadd($key , $onlineUserIds);
+        !blank($offlineUserIds)&&Redis::srem($key , $offlineUserIds);
         $time = time();
-        !blank($users)&&array_walk($users , function ($v , $k) use ($bitKey , $lastActivityTime , $time){
-            $v = intval($v)>0?0:1;
-            Redis::setBit($bitKey , intval($k) , intval($v));
-//            Redis::zadd($dynamicKey , intval($v) , intval($k));
-            Redis::zadd($lastActivityTime , $time , intval($k));
+        !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
+            $userId = intval($user['userid']);
+            $status = $user['status'];
+            $status = intval($status)>0?0:1;
+            Redis::setBit($bitKey , $userId , $status);
+            Redis::zadd($lastActivityTime , $time , $userId);
         });
-//        Redis::expire($dynamicKey,900);
         RyOnline::dispatch(array(
-            'offlineUsers'=>$offlineUsers,
-            'onlineUsers'=>$onlineUsers,
-        ))->onConnection('sqs')->onQueue('ry_user_online');
+            'offlineUsers'=>$offlineUsers->all(),
+            'onlineUsers'=>$onlineUsers->all(),
+        ))->onConnection('sqs-fifo')->onQueue('ry_user_online.fifo');
     }
 
     public function isOnline($id)
