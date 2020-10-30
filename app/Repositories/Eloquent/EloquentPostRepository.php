@@ -165,6 +165,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $posts = $this->getNewPost($posts);
                 }
             }
+
             if(in_array('follow' , $include)) {
                 if($follow !== null&&auth()->check()) {
                     $posts->each(function ($item, $key){
@@ -178,20 +179,19 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     });
                 }
             }
+
             // 投票贴
             $posts = $this->voteList($posts);
 
             if(auth()->check()) {
-
+                $userId = auth()->user()->user_id;
                 if($follow === null) {
-                    $user        = auth()->user();
-                    $hiddenPosts = app(UserRepository::class)->hiddenPosts($user->user_id);
-                    $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
+                    $hiddenPosts = app(UserRepository::class)->hiddenPosts($userId);
+                    $hiddenUsers = app(UserRepository::class)->hiddenUsers($userId);
                     $posts = $posts->setCollection($posts->getCollection()->filter(function($post) use ($hiddenPosts, $hiddenUsers){
                         return  !in_array($post->post_uuid, $hiddenPosts)&&!in_array($post->user_id, $hiddenUsers);
                     })->values());
-                    if($posts->isEmpty())
-                    {
+                    if ($posts->isEmpty()) {
                         $page_num = intval($request->query->get($this->pageName))+1;
                         $request->query->set($this->pageName , $page_num);
                         if ($page_num<3) {
@@ -257,15 +257,22 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         });
 
         if ($posts instanceof Post) {
-            $posts->voteInfo = $voteList;
+            if ($posts->post_type=='vote') {
+                $posts->voteInfo = $voteList;
+            }
         } else {
             foreach ($posts as $index=>$post) {
                 if (is_array($post)) {
-                    $post['voteInfo'] = $voteList->where('post_id', $post['post_id'])->values();
-                    $posts[$index] = $post;
+                    if ($post['post_type']=='vote') {
+                        $post['voteInfo'] = $voteList->where('post_id', $post['post_id'])->values();
+                        $posts[$index] = $post;
+                    }
                 } else {
-                    $tmp = $voteList->where('post_id', $post->post_id)->values();
-                    $post->voteInfo = collect($tmp);
+                    if ($post->post_type=='vote') {
+                        $tmp = $voteList->where('post_id', $post->post_id)->values();
+                        $post->voteInfo = collect($tmp);
+                    }
+
                 }
             }
         }
@@ -377,17 +384,25 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $uids    = array_merge([$authUser], $uids->toArray());
         }
 
-        $posts = $posts->filter(function ($post) use ($authUser, $uids) {
+        foreach ($posts as $index=>$post) {
+            if ($post->show_type==2 && !in_array($post->user_id, $uids)) {
+                $posts->forget($index);
+            }
+            if ($post->show_type==3 && ($post->user_id != $authUser)) {
+                $posts->forget($index);
+            }
+        }
+        /*$posts = $posts->filter(function ($post) use ($authUser, $uids) {
             if ($post->show_type==1) {
-                return $post;
+                return true;
             }
             if ($post->show_type==2 && in_array($post->user_id, $uids)) {
-                return $post;
+                return true;
             }
             if ($post->show_type==3 && ($post->user_id == $authUser)) {
-                return $post;
+                return true;
             }
-        });
+        });*/
 
         return $posts;
 
