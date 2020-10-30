@@ -4,7 +4,6 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\Es;
 use App\Traits\CachablePost;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Resources\UserSearchCollection;
 use App\Repositories\Contracts\UserRepository;
@@ -40,7 +39,8 @@ class SearchController extends BaseController
             return [];
         }
         //截取20个字符
-        $params['keyword'] =  mb_str_limit(trim($request['keyword']), 20, null);
+        $params['keyword'] = mb_str_limit(trim($request['keyword']), 20, null);
+        $params['page']    = $params['page'] ?? 1;
         $type   = $params['type'] ?? 0;
         switch ($type) {
             case 1: // 用户
@@ -192,14 +192,29 @@ class SearchController extends BaseController
     protected function searchPost($params, $limit=10) {
         $filter      = ['mustNot'=>['post_is_delete'=>1], 'limit'=>$limit];
         $posts       = (new Es($this->searchPost, $filter))->likeQuery($params, true);
-
         $userIds     = $posts->pluck('user_id')->all();
         $postIds     = $posts->pluck('post_id')->all();
         $users       = app(UserRepository::class)->findByMany($userIds);
         $postLikes   = app(PostRepository::class)->userPostLike($postIds);
         $postDisLikes= app(PostRepository::class)->userPostDislike($postIds);
+        $posts       = app(PostRepository::class)->voteList($posts);
+
+        $authUser    = auth()->check() ? auth()->user()->user_id : 0;
+        $uids        = app(PostRepository::class)->userFollowList($authUser, $userIds)->toArray();
 
         foreach ($posts as $index=>$post) {
+
+            if (!empty($post['show_type'])) {
+                if ($post['show_type']==2 && !in_array($post['user_id'], $uids ?? [])) {
+                    $posts->forget($index);
+                    continue;
+                }
+                if ($post['show_type']==3 && ($post['user_id'] != $authUser)) {
+                    $posts->forget($index);
+                    continue;
+                }
+            }
+
             $post['owner'] = $users->where('user_id' , $post['user_id'])->first();
             $post['likeState'] = in_array($post['post_id'] , $postLikes);
             $post['dislikeState'] = in_array($post['post_id'] , $postDisLikes);
@@ -207,7 +222,15 @@ class SearchController extends BaseController
             $post['post_event_country'] = getPostCountryName($post['post_event_country_id']);
             $posts[$index] = $post;
         }
+        //重试3次
+        if (empty($posts->items())) {
+            $params['page']++;
+            if ($params['page']<=3) {
+               return $this->searchPost($params);
+            }
+        }
         $posts = $posts->appends($params);
+
         return PostSearchPaginateCollection::collection($posts);
 
     }

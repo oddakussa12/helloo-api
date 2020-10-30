@@ -184,7 +184,7 @@ class PostVoteController extends BaseController
             'post_type'        => $post_type,
             'longitude'        => $longitude,
             'latitude'         => $latitude,
-            'showType'         => $showType,
+            'show_type'        => $showType ?? 1,
             'post_rate'        => first_rate_comment_v2(),
             'post_default_locale'         => $titleLocale,
             'post_event_country_id'       => !empty($post_event_country) ? $post_event_country : '-1',

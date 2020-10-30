@@ -259,10 +259,15 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         if ($posts instanceof Post) {
             $posts->voteInfo = $voteList;
         } else {
-            $posts->each(function ($post) use ($voteList) {
-                $tmp = $voteList->where('post_id', $post->post_id)->all();
-                $post->voteInfo = collect(array_values($tmp));
-            });
+            foreach ($posts as $index=>$post) {
+                if (is_array($post)) {
+                    $post['voteInfo'] = $voteList->where('post_id', $post['post_id'])->values();
+                    $posts[$index] = $post;
+                } else {
+                    $tmp = $voteList->where('post_id', $post->post_id)->values();
+                    $post->voteInfo = collect($tmp);
+                }
+            }
         }
 
         return $posts;

@@ -80,7 +80,7 @@ class VoteTranslation implements ShouldQueue
         $translations        = array_merge($translations, [$contentLang=>$postContent]);
         foreach ($translations as $l=>$translation) {
             VoteDetailTranslation::updateOrCreate(
-                ['vote_detail_id'=>$post->getKey(), 'post_id'=>$post->post_id, 'locale'=>$l],
+                ['vote_detail_id'=>$post->id, 'post_id'=>$post->post_id, 'locale'=>$l],
                 ['content'=>$translation]);
         }
     }
