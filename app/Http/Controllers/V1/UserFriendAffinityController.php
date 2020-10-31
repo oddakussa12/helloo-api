@@ -223,7 +223,7 @@ class UserFriendAffinityController extends BaseController
             // return json_decode($memValue, true);
         }
 
-        $result   = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id')
+        $result   = UserFriendLevel::select('user_id', 'friend_id', 'heart_count', 'relationship_id', 'created_at')
             ->whereRaw("(user_id= $userId or friend_id= $userId)")
             ->where(['is_delete'=>0,'status'=>1])->orderBy('heart_count', 'DESC')->limit(5)->get();
 
@@ -240,10 +240,13 @@ class UserFriendAffinityController extends BaseController
         $users     = UserCollection::collection($users);
 
         foreach ($result as $index=>&$value) {
-            $user_id         = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
-            $value['sign']   = $this->getSignInList($value['user_id'], $value['friend_id'], false);
-            $value['friend'] = $users->where('user_id', $user_id)->first();
-            $value['user_avatar'] = userCover($userInfo['user_avatar'] ?? '');
+            $user_id                 = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
+            $value['sign']           = $this->getSignInList($value['user_id'], $value['friend_id'], false);
+            $value['friend']         = $users->where('user_id', $user_id)->first();
+            $value['user_avatar']    = userCover($userInfo['user_avatar'] ?? '');
+            $result['user_country']  = getUserCountryName($userInfo['user_country_id'] ?? 0);
+            $result['affinity_time'] = !empty($value['created_at']) ? intval((time() - $value['created_at'])/86400)+1 : 0;
+
         }
 
         Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
