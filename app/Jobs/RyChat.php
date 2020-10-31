@@ -55,6 +55,7 @@ class RyChat implements ShouldQueue
                     'RC:PSImgTxtMsg',
                     'RC:PSMultiImgTxtMsg',
                     'RC:SRSMsg',
+                    'RC:CmdMsg',
                 ]),
             ],
             'content' => [
