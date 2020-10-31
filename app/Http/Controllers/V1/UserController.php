@@ -128,11 +128,28 @@ class UserController extends BaseController
     }
 
 
+    /**
+     * @param int $id
+     * @return array
+     * 我得主页 访客统计
+     */
     public function viewPage(int $id)
     {
-        
+        $user  = $this->user->findOrFail($id);
+        $total = Redis::hget(config('redis-key.user.user_visit'), $id);
 
-        
+        $total    = $user->virtual_view_count+$total;
+        $today    = date('Y-m-d');
+        $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->orderBy('created_at', 'desc')->get();
+        $userIds  = $data->pluck('user_id')->unique()->values()->toArray();
+        $userList = User::whereIn('user_id', array_slice($userIds, 0, 30))->get();
+
+        return [
+            'total'      => $total,
+            'todayCount' => count($data),
+            'todayUser'  => count($userIds),
+            'userList'   => UserCollection::collection($userList)
+        ];
     }
 
 

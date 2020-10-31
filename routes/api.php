@@ -129,6 +129,7 @@ $api->group($V1Params , function ($api){
         /*****评论 结束*****/
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
+        $api->get('user/{user}/view' , 'UserController@viewPage')->name('my.view'); // 我的主页 浏览量 详细页
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
         $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
             $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');

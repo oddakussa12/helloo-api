@@ -109,6 +109,7 @@ class RyChatController extends BaseController
             RyChatFailed::create($data);
         }else{
             $objectName = $request->input('objectName' , '');
+
             if ($objectName == 'RC:TypSts') {
                 if (Constant::QUEUE_PUSH_TYPE == 'redis') {
                     // 好友访问主页

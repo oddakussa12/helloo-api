@@ -38,7 +38,8 @@ class Constant {
     // 好友关系
 
 
-    const QUEUE_PUSH_TYPE='sqs';
+    //队列服务  redis  sqs
+    const QUEUE_PUSH_TYPE='redis';
 
     // 融云聊天-加好友队列
     const QUEUE_RY_CHAT_FRIEND="friend";
@@ -51,6 +52,9 @@ class Constant {
 
     // 好友关系升级
     const QUEUE_FRIEND_LEVEL='friend_level';
+
+    // 好友访问主页统计
+    const QUEUE_FRIEND_VISIT='friend_visit';
 
 
     // REDIS 相关
