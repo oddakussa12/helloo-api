@@ -44,10 +44,12 @@ class CalculatingRateLimitV2 extends Command
     public function handle()
     {
         $now = Carbon::now();
+        $sexHourAgo = $now->subHours(6)->toDateTimeString();
         $oneMonthAgo = $now->subDays(3)->format('Y-m-d 00:00:00');
         $i = intval($now->addMinutes(30)->format('i'));
         $i = $i<=0?1:$i;
         $index = ceil($i/30);
+        $publicNewNumKey = config('redis-key.post.post_index_public_new').'_'.$index;
         $rateKey = config('redis-key.post.post_index_rate').'_'.$index;
         $rateV2Key = config('redis-key.post.post_index_rate_v2').'_'.$index;
         $newKey = config('redis-key.post.post_index_new');
@@ -55,7 +57,8 @@ class CalculatingRateLimitV2 extends Command
         $preheatPropagandaKey = config('redis-key.post.post_preheat_propaganda');
 //        Redis::del($rateKey);
         Redis::del($rateV2Key);
-        $perPage = 10;
+        Redis::del($publicNewNumKey);
+        $perPage = 20;
         $userKolX = intval(Redis::get('user_kol_x'));
         $postInitCommentNum = intval(Redis::get('post_init_comment_num'));
         $count = Redis::zcard($newKey);
@@ -64,6 +67,7 @@ class CalculatingRateLimitV2 extends Command
         $postGravity = $postGravity<=0||$postGravity>=2?1:$postGravity;
         $lastPage = ceil($count/$perPage);
         for ($page=1;$page<=$lastPage;$page++) {
+            $data = array();
             $offset = ($page-1)*$perPage;
             $posts = $redis->zRevRangeByScore($newKey , '+inf', strtotime($oneMonthAgo) , true, array($offset, $perPage));
             if(empty($posts))
@@ -92,8 +96,59 @@ class CalculatingRateLimitV2 extends Command
                 $rate = rate_comment_v4($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount , $postGravity , $x);
 //                Storage::prepend('rate_'.strval($index).'.log', strval($postId).','.strval($rate).','.strval($likeCount).','.strval($postGravity).PHP_EOL);
 //                Redis::zadd($rateKey , rate_comment_v3($commentCount , Carbon::createFromTimestamp($time)->toDateTimeString() , $likeCount , $commenterCount , $countryCount) , $postId);
-                Redis::zadd($rateV2Key , $rate , $postId);
+                $data[$postId] = $rate;
             }
+            !blank($data)&&Redis::zadd($rateV2Key , $data);
+        }
+
+        $rateLOneKey = config('redis-key.post.post_index_rate_l_one').'_'.$index;
+        $rateLTwoKey = config('redis-key.post.post_index_rate_l_two').'_'.$index;
+        $rateLThreeKey = config('redis-key.post.post_index_rate_l_three').'_'.$index;
+        Redis::del(array($rateLOneKey , $rateV2Key , $rateLThreeKey));
+        $rateCount = Redis::zcard($rateV2Key);
+        $lastPage = ceil($rateCount/$perPage);
+        $i = 1;
+        $rateLOneData = array();
+        $rateLTwoData = array();
+        $rateLThreeData = array();
+        for ($page=1;$page<=$lastPage;$page++) {
+            $offset = ($page-1)*$perPage;
+            $posts = $redis->zRevRangeByScore($newKey , '+inf', "-inf" , true, array($offset, $perPage));
+            foreach ($posts as $postId=>$rate)
+            {
+                if($i<=85)
+                {
+                    array_push($rateLOneData , $postId);
+                }elseif($i>85&&$i<=285){
+                    array_push($rateLTwoData , $postId);
+                }elseif($i>285&&$i<=500){
+                    array_push($rateLThreeData , $postId);
+                }else{
+                    break(2);
+                }
+                $i++;
+            }
+        }
+        !blank($rateLOneData)&&Redis::sadd($rateLOneKey ,$rateLOneData);
+        !blank($rateLTwoData)&&Redis::sadd($rateLTwoKey ,$rateLTwoData);
+        !blank($rateLThreeData)&&Redis::sadd($rateLThreeKey ,$rateLThreeData);
+        $publicNewKey = config('redis-key.post.post_index_public_new');
+        $publicCount = Redis::zcard($publicNewKey);
+        $lastPage = ceil($publicCount/$perPage);
+        $sexHourTimeAgo = strtotime($sexHourAgo);
+        for ($page=1;$page<=$lastPage;$page++) {
+            $data = array();
+            $offset = ($page-1)*$perPage;
+            $posts = $redis->zRevRangeByScore($publicNewKey , '+inf', $sexHourTimeAgo , true, array($offset, $perPage));
+            if(blank($posts))
+            {
+                break;
+            }
+            foreach ($posts as $postId=>$time)
+            {
+                array_push($data , $postId);
+            }
+            Redis::sadd($publicNewNumKey , $data);
         }
     }
 }

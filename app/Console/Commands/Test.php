@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Traits\CachableUser;
 use App\Jobs\Test as TestJob;
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\Redis;
 
 
 class Test extends Command
@@ -42,6 +42,13 @@ class Test extends Command
      */
     public function handle()
     {
+        Redis::del('testtest');
+        Redis::zadd('testtest' , array(
+            "test"=>1,
+            "test1"=>2,
+            "test2"=>3,
+        ));
+        die;
         $now = Carbon::now();
         $oneMonthAgo = $now->subDays(3)->format('Y-m-d 00:00:00');
         $newKey = config('redis-key.post.post_index_new');

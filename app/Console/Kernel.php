@@ -20,7 +20,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GeneratePostView::class,
         \App\Console\Commands\GenerateYesterdayUserRank::class,
 //        \App\Console\Commands\AutoIncreasePostView::class,
-//        \App\Console\Commands\GeneratePostEssenceRank::class,
+        \App\Console\Commands\GeneratePostEssenceRank::class,
 //        \App\Console\Commands\AutoUpdateOnlineUser::class,
         \App\Console\Commands\Promote::class,
         \App\Console\Commands\AllUserNotification::class,
@@ -76,22 +76,22 @@ class Kernel extends ConsoleKernel
 //            ->dailyAt('02:00')->when(function(){
 //                return config('common.cron_switch');
 //            });
-//        $schedule->command('generate:post_essence_rank')
-//            ->mondays()->dailyAt('20:00')->when(function(){
-//                return config('common.cron_switch');
-//            });
-//        $schedule->command('generate:post_essence_rank')
-//            ->wednesdays()->dailyAt('20:00')->when(function(){
-//                return config('common.cron_switch');
-//            });
-//        $schedule->command('generate:post_essence_rank')
-//            ->fridays()->dailyAt('20:00')->when(function(){
-//                return config('common.cron_switch');
-//            });
-//        $schedule->command('generate:post_essence_rank')
-//            ->sundays()->dailyAt('20:00')->when(function(){
-//                return config('common.cron_switch');
-//            });
+        $schedule->command('generate:post_essence_rank')
+            ->mondays()->dailyAt('20:00')->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:post_essence_rank')
+            ->wednesdays()->dailyAt('20:00')->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:post_essence_rank')
+            ->fridays()->dailyAt('20:00')->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:post_essence_rank')
+            ->sundays()->dailyAt('20:00')->when(function(){
+                return config('common.cron_switch');
+            });
 //        $schedule->command('auto:update_online_user')
 //            ->everyFiveMinutes()->when(function(){
 //                return config('common.cron_switch');

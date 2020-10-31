@@ -369,18 +369,25 @@ class PostController extends BaseController
 //            $userScoreRankKey = config('redis-key.user.score_rank');
 //            $redis->zIncrBy($userScoreRankKey , -2 , $user->user_id);
         }
+        $postId = $post->getKey();
         $userPostsKey = config('redis-key.user.posts');
         $redis->zIncrBy($userPostsKey , -1 , $user->user_id);
         $postKey = config('redis-key.post.post_index_new');
         $essencePostKey = config('redis-key.post.post_index_essence');
         $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
+        $publicNewKey = config('redis-key.post.post_index_public_new');
+        $publicNewOneKey = config('redis-key.post.post_index_public_new')."_1";
+        $publicNewTwoKey = config('redis-key.post.post_index_public_new')."_2";
 //        $rateKeyOne = config('redis-key.post.post_index_rate').'_1';
 //        $rateKeyTwo = config('redis-key.post.post_index_rate').'_2';
-        $redis->zRem($postKey , $post->getKey());
-//        $redis->zRem($rateKeyOne , $post->getKey());
-//        $redis->zRem($rateKeyTwo , $post->getKey());
-        $redis->zRem($essencePostKey , $post->getKey());
-        $redis->zRem($essenceManualPostKey , $post->getKey());
+        $redis->zRem($postKey , $postId);
+//        $redis->zRem($rateKeyOne , $postId);
+//        $redis->zRem($rateKeyTwo , $postId);
+        $redis->zRem($essencePostKey , $postId);
+        $redis->zRem($essenceManualPostKey , $postId);
+        $redis->zRem($publicNewKey , $postId);
+        Redis::srem($publicNewOneKey , $postId);
+        Redis::srem($publicNewTwoKey , $postId);
 
         $topics = $post->getPostTopics($post->post_id);
         $topicPostCountKey = config('redis-key.topic.topic_post_count');
