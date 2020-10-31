@@ -1010,4 +1010,26 @@ DOC;
         }
         return array();
     }
+
+    /**
+     * @param $user
+     * @param int $switch
+     * @return
+     * 初始化 用户主页 浏览量
+     */
+    public function virtualViewCount($user, $switch=0)
+    {
+        if ($user->virtual_view_count === null) {
+            $view = DB::select("SELECT u.user_id, u.user_name,
+            ROUND(11*SQRT(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(u.user_created_at))+IF(IFNULL(MAX(p.post_like_num),0)<5,297,2937)*SQRT(SUM(IFNULL(p.post_like_num,0))+SUM(IFNULL(p.post_comment_num,0)))) AS 'view_count'
+            FROM f_users u LEFT JOIN f_posts p ON u.user_id = p.user_id WHERE u.user_id =?", [$user->user_id]);
+
+            $view = current($view);
+            User::where('user_id', $user->user_id)->update(['virtual_view_count'=>$view->view_count ?? 0]);
+            $user->virtual_view_count = $view->view_count;
+        }
+        $user->virtual_view_count += Redis::hget(config('redis-key.user.user_visit'), $user->user_id) ?? 0;
+        $user->view_status = $switch;
+        return $user;
+    }
 }

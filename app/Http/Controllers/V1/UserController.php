@@ -8,11 +8,13 @@ use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
 use App\Models\UserEmoji;
+use App\Models\UserVisitLog;
 use App\Resources\UserSearchCollection;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Contracts\UserRepository;
@@ -109,19 +111,28 @@ class UserController extends BaseController
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return UserCollection
      */
-    public function show($id)
+    public function show(int $id)
     {
-        if($this->isBlocked($id))
-        {
+        if ($this->isBlocked($id)) {
             return $this->response->errorNotFound();
         }
-        $user = $this->user->findOrFail($id);
+
+        $user        = $this->user->findOrFail($id);
+        $user        = $this->user->virtualViewCount($user);
         $followerIds = $this->user->userFollow([$id]);
         $user->user_follow_state = !empty($followerIds);
         return new UserCollection($user);
+    }
+
+
+    public function viewPage(int $id)
+    {
+        
+
+        
     }
 
 

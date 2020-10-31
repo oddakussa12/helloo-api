@@ -189,7 +189,8 @@ class SearchController extends BaseController
      * @return AnonymousResourceCollection
      * 搜索帖子
      */
-    protected function searchPost($params, $limit=10) {
+    protected function searchPost($params, $limit=10)
+    {
         $filter      = ['mustNot'=>['post_is_delete'=>1], 'limit'=>$limit];
         $posts       = (new Es($this->searchPost, $filter))->likeQuery($params, true);
         $userIds     = $posts->pluck('user_id')->all();
