@@ -1020,8 +1020,8 @@ DOC;
     public function virtualViewCount($user, $switch=0)
     {
         if ($user->virtual_view_count === null) {
-            $view = DB::select("SELECT u.user_id, u.user_name,
-            ROUND(11*SQRT(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(u.user_created_at))+IF(IFNULL(MAX(p.post_like_num),0)<5,297,2937)*SQRT(SUM(IFNULL(p.post_like_num,0))+SUM(IFNULL(p.post_comment_num,0)))) AS 'view_count'
+            $view = DB::select("SELECT
+            ROUND(1*SQRT(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(u.user_created_at))+IF(IFNULL(MAX(p.post_like_num),0)<5,57,587)*SQRT(SUM(IFNULL(p.post_like_num,0))+SUM(IFNULL(p.post_comment_num,0)))) AS 'view_count'
             FROM f_users u LEFT JOIN f_posts p ON u.user_id = p.user_id WHERE u.user_id =?", [$user->user_id]);
 
             $view = current($view);
