@@ -1028,7 +1028,7 @@ DOC;
             User::where('user_id', $user->user_id)->update(['virtual_view_count'=>$view->view_count ?? 0]);
             $user->virtual_view_count = $view->view_count;
         }
-        $user->virtual_view_count += Redis::hget(config('redis-key.user.user_visit'), $user->user_id) ?? 0;
+        $user->view_count += Redis::hget(config('redis-key.user.user_visit'), $user->user_id) ?? 0;
         $user->view_status = $switch;
         return $user;
     }

@@ -79,7 +79,7 @@ class UserCollection extends Resource
                     'user_picture'          => $this->user_picture_link,
                     'userTags'              => UserTagCollection::collection($this->user_tags),
                     'view_status'           => 1 , //$this->view_status ?? 0,
-                    'view_count'            => $this->virtual_view_count,
+                    'view_count'            => $this->view_count,
 
 //                    'user_followme_count'=>$this->followers()->count(),
 //                    'user_myfollow_count'=>$this->followings()->count(),
