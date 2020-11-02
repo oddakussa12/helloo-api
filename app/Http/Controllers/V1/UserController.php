@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
 use App\Models\UserEmoji;
+use App\Models\UserFriend;
 use App\Models\UserVisitLog;
 use App\Resources\UserSearchCollection;
 use App\Traits\CachableUser;
@@ -143,11 +144,15 @@ class UserController extends BaseController
         $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
 
         $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
-                    ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(30)->get();
+            ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->get();
         $userIds  = $data->pluck('user_id')->toArray();
-        $userList = User::whereIn('user_id', array_slice($userIds, 0, 30))->get();
+        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->get();
+        $userList = User::whereIn('user_id', $userIds)->get();
 
-        $userList->each(function ($user) use ($data) {
+        $userList->each(function ($user) use ($data, $friends) {
+            $friends->each(function ($friend) use($user) {
+                $user->is_friend= $friend->friend_id==$user->user_id;
+            });
             $data->each(function ($item) use($user) {
                 if ($item->user_id==$user->user_id) {
                     $user->visit_time= dateTrans($item->created_at);
