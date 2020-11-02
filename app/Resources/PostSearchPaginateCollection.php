@@ -17,7 +17,6 @@ class PostSearchPaginateCollection extends Resource
      */
     public function toArray($request)
     {
-
         return [
             'post_uuid'          => $this->resource['post_uuid'],
             'post_media'         => postMedia($this->resource['post_type'],$this->resource['post_media']),
@@ -30,13 +29,14 @@ class PostSearchPaginateCollection extends Resource
             'post_dislike_state' => $this->resource['dislikeState'] ?? '',
             'post_event_country' => $this->resource['post_event_country'] ?? '',
             'post_created_at'    => $this->resource['create_at'], //optional($this->resource['post_id'])->toDateTimeString(),
-//            'owner'              => new UserCollection($this->resource['owner']),
-            'owner'              => !empty($this->resource['owner']) ? new UserCollection($this->resource['owner']) : [],
 
             'post_country'       => $this->countryCount($this->resource['post_id']),
             'postLike'           => $this->likeCount($this->resource['post_id']),
-            'post_format_created_at'      => dateTrans($this->resource['create_at']),
-            'topics'=>$this->getPostTopics($this->resource['post_id'])
+            'topics'             => $this->getPostTopics($this->resource['post_id']),
+
+            'owner'              => !empty($this->resource['owner']) ? new UserCollection($this->resource['owner']) : [],
+            'vote_info'          => !empty($this->resource['voteInfo']) ? PostVoteCollection::collection($this->resource['voteInfo']) : [],
+            'post_format_created_at' => dateTrans($this->resource['create_at']),
         ];
     }
 

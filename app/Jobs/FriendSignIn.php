@@ -113,4 +113,5 @@ class FriendSignIn implements ShouldQueue
         sort($arr);
         return $arr;
     }
+
 }

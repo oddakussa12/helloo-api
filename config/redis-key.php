@@ -3,6 +3,7 @@ return [
     "user"=>[
         'user_name'=>'user.name',//用户账户
         'user_email'=>'user.email',//用户邮箱
+        'user_visit'=>'user_visit',//用户首页访问次数
         'score_rank'=>'user.score.rank',//用户积分排行
         'follow_me'=>'user.follow.me',//用户被关注数量
         'my_follow'=>'user.my.follow',//用户被关注数量
@@ -25,6 +26,7 @@ return [
         "post_index_rate_v2"=>env('POST_INDEX_RATE_V2' , 'post_index_rate_v2'),//最热贴子v2
         "post_index_non_rate"=>'post_index_non_rate',//非最热贴子
         "post_preheat_propaganda"=>'post_preheat_propaganda',//预热贴子
+        "post_vote_data"=>'post_vote_data_', //帖子投票
     ],
     'topic'=>[
         'topic_post_count'=>'topic_post_count',
