@@ -317,7 +317,7 @@ class PostController extends BaseController
      */
     public function showByUuid($uuid)
     {
-        $userId = auth()->check() ? auth()->user()->user_id : '';
+        $userId = auth()->check() ? auth()->user()->user_id : 0;
         $post   = $this->post->showByUuid($uuid);
         $post   = $this->post->voteList($post);
 

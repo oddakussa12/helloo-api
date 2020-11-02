@@ -431,7 +431,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         //新增帖子可见范围
         if (!$other) {
-            $userId = auth()->check() ? auth()->user()->user_id : '';
+            $userId = auth()->check() ? auth()->user()->user_id : 0;
             $follow = $userId ? $this->userFollowType($user, $userId) : false;
             $show   = $follow ? 2 : 1;
             $posts  = $user->posts()->where('show_type','<=', $show)->with('translations');
