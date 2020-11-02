@@ -7,6 +7,10 @@
  */
 namespace App\Repositories\Eloquent;
 
+use App\Custom\Constant\Constant;
+use App\Models\UserFriend;
+use App\Models\UserVisitLog;
+use App\Resources\UserCollection;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
@@ -1017,7 +1021,7 @@ DOC;
      * @return
      * 初始化 用户主页 浏览量
      */
-    public function virtualViewCount($user, $switch=1)
+    public function virtualViewCount($user, $switch=Constant::USER_MAIN_VISIT_STATUS)
     {
         if ($user->virtual_view_count === null) {
             $view = DB::select("SELECT
@@ -1032,5 +1036,43 @@ DOC;
         $user->view_status = $switch;
         unset($user->virtual_view_count);
         return $user;
+    }
+
+    /**
+     * @param $id
+     * @return array
+     * 我的主页 访客统计
+     */
+    public function viewPage($id)
+    {
+        $user  = $this->findOrFail($id);
+        $total = Redis::hget(config('redis-key.user.user_visit'), $id);
+
+        $total    = $user->virtual_view_count+$total;
+        $today    = date('Y-m-d');
+        $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
+
+        $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
+            ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->get();
+        $userIds  = $data->pluck('user_id')->toArray();
+        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
+        $userList = User::whereIn('user_id', $userIds)->get();
+
+        $userList->each(function ($user) use ($data, $friends) {
+            $user->is_friend = in_array($user->user_id, $friends);
+            $data->each(function ($item) use($user) {
+                if ($item->user_id==$user->user_id) {
+                    $user->visit_time= dateTrans($item->created_at);
+                }
+            });
+        });
+
+        return [
+            'total'      => $total,
+            'todayCount' => $count,
+            'todayUser'  => count($data),
+            'userList'   => UserCollection::collection($userList->sortBy('visit_time'))
+        ];
+
     }
 }

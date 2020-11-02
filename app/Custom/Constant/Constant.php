@@ -27,6 +27,8 @@ class Constant {
     const QUEUE_ES_TOPIC="topic_es";
     const QUEUE_ES_USER="user_es";
 
+    // 是否显示用户浏览量详情页
+    const USER_MAIN_VISIT_STATUS=1;
 
     // 融云回调
     const QUEUE_RY_CHAT='store_ry_msg';
