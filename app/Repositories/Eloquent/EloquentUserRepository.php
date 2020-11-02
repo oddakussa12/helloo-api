@@ -1006,28 +1006,32 @@ DOC;
      */
     public function viewPage($id)
     {
-        $user  = $this->findOrFail($id);
-        $total = Redis::hget(config('redis-key.user.user_visit'), $id);
+        $user     = $this->findOrFail($id);
+        $total    = Redis::hget(config('redis-key.user.user_visit'), $id);
 
-        $total = $user->virtual_view_count + $total;
-        $today = date('Y-m-d');
-        $count = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
-        $data  = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
-            ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->toSql();
-
-        $userIds  = $data->pluck('user_id')->toArray();
+        $total    = $user->virtual_view_count + $total;
+        $today    = date('Y-m-d');
+        $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
+        $data     = DB::select("select * from (select * from f_users_visit_log where friend_id=$id and created_at >= $today order by created_at desc) as a group by user_id limit 10");
+        $userIds  = !empty($data) ? array_column($data, 'user_id') : [];
 
         $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
         $userList = User::whereIn('user_id', $userIds)->get();
 
         $userList->each(function ($user) use ($data, $friends) {
             $user->is_friend = in_array($user->user_id, $friends);
-            $data->each(function ($item) use ($user) {
+            foreach ($data as $datum) {
+                if ($datum->user_id == $user->user_id) {
+                    $user->time = $datum->created_at;
+                    $user->visit_time = dateTrans($datum->created_at);
+                }
+            }
+            /*$data->each(function ($item) use ($user) {
                 if ($item->user_id == $user->user_id) {
                     $user->time = $item->created_at->timestamp;
                     $user->visit_time = dateTrans($item->created_at);
                 }
-            });
+            });*/
         });
 
         return [
