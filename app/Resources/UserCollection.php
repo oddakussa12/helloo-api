@@ -67,6 +67,7 @@ class UserCollection extends Resource
             $this->mergeWhen($request->routeIs('my.view'), function () {
                 return collect([
                    'visit_time' => $this->visit_time,
+                    'is_friend' => $this->is_friend,
                 ]);
             }),
                 $this->mergeWhen($request->routeIs('user.show'), function (){
