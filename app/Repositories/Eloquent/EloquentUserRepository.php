@@ -1040,7 +1040,7 @@ DOC;
      * @return
      * 初始化 用户主页 浏览量
      */
-    public function virtualViewCount($user, $switch=0)
+    public function virtualViewCount($user, $switch=1)
     {
         if ($user->virtual_view_count === null) {
             $view = DB::select("SELECT

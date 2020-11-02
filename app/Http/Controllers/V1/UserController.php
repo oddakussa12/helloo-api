@@ -112,10 +112,10 @@ class UserController extends BaseController
     /**
      * Display the specified resource.
      *
-     * @param int $id
+     * @param $id
      * @return UserCollection
      */
-    public function show(int $id)
+    public function show($id)
     {
         if ($this->isBlocked($id)) {
             return $this->response->errorNotFound();
@@ -130,7 +130,7 @@ class UserController extends BaseController
 
 
     /**
-     * @param int $id
+     * @param $id
      * @return array
      * 我得主页 访客统计
      */
