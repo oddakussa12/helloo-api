@@ -40,14 +40,14 @@ class UserVisit implements ShouldQueue
     {
 
         $raw = $this->data;
-        dump($raw);
+
         if (empty($raw)) {
             Log::error(__FILE__. ' message:::::data is  empty  data is  empty');
         }
 
-        Redis::hincrby(config('redis-key.user.user_visit'), $raw['fromUserId'] , 1);
+        Redis::hincrby(config('redis-key.user.user_visit'), $raw['toUserId'] , 1);
 
         // 入库操作
-        UserVisitLog::create(['user_id'=>$raw['toUserId'],'friend_id'=>$raw['fromUserId']]);
+        UserVisitLog::create(['user_id'=>$raw['fromUserId'],'friend_id'=>$raw['toUserId']]);
     }
 }
