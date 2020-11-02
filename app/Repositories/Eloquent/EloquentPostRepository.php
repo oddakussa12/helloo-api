@@ -300,7 +300,10 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         $country = array_flip($result['country']);
         rsort($country);
-        $data['country'] = array_slice($country, 0, 5);
+        $data['country'] = array_map(function ($countryId) {
+            return getUserCountryName($countryId);
+        }, array_slice($country, 0, 5));
+
         return $data;
 
     }
