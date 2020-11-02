@@ -112,7 +112,7 @@ class RyChatController extends BaseController
 
             if ($objectName == 'RC:CmdMsg') {
                 $content = json_decode($all['content'], true);
-                if ($content == Constant::RY_OBJECT_NAME_USER_MAIN) {
+                if (!empty($content['name']) && $content['name'] == Constant::RY_OBJECT_NAME_USER_MAIN) {
                     if (Constant::QUEUE_PUSH_TYPE == 'redis') {
                         // 好友访问主页
                         $friendVisit = new UserVisit($all);
