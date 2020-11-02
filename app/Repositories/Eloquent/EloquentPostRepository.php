@@ -1017,12 +1017,12 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     }
 
     /**
-     * @param int $post_user_id 帖子的owner
-     * @param int $authUser 当前登录用户
+     * @param $post_user_id 帖子的owner
+     * @param $authUser 当前登录用户
      * 判断当前登录用户是否是帖子发布用户的粉丝
      * @return
      */
-    public function userFollowType(int $post_user_id, int $authUser)
+    public function userFollowType($post_user_id, $authUser)
     {
         return DB::table('common_follows')->where('followable_id', $post_user_id)->where('followable_type', User::class)
             ->where('relation', 'follow')->where('user_id', $authUser)->first();
