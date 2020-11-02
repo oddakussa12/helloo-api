@@ -146,13 +146,11 @@ class UserController extends BaseController
         $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
             ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->get();
         $userIds  = $data->pluck('user_id')->toArray();
-        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->get();
+        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
         $userList = User::whereIn('user_id', $userIds)->get();
 
         $userList->each(function ($user) use ($data, $friends) {
-            $friends->each(function ($friend) use($user) {
-                $user->is_friend= $friend->friend_id==$user->user_id;
-            });
+            $user->is_friend = in_array($user->user_id, $friends);
             $data->each(function ($item) use($user) {
                 if ($item->user_id==$user->user_id) {
                     $user->visit_time= dateTrans($item->created_at);
