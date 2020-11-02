@@ -219,6 +219,7 @@ $api->group($V1Params , function ($api){
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
         $api->group(['middleware'=>['operationLog' , 'lastActive' , 'redisThrottle:'.config('common.notification_throttle_num').','.config('common.notification_throttle_expired')]] , function ($api){
             $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
+            $api->get('notification/unreadCount' , 'NotificationController@unreadCount')->name('notice.unreadCount');
         });
         $api->put('notification/readAll' , 'NotificationController@readAll')->name('notice.readAll');
         $api->put('notification/{id}' , 'NotificationController@read')->name('notice.read');

@@ -143,6 +143,18 @@ class NotificationController extends BaseController
         return $this->response->array(array('count'=>$like_count+$comment_count+$global , 'like_count'=>$like_count , 'comment_count'=>$comment_count ,'follow_count'=>$follow_count,'global'=>$global));
     }
 
+    public function unreadCount()
+    {
+        $count= 0;
+        if(auth()->check())
+        {
+            $count = auth()->user()->getNotificationRelation()
+                ->where('read', 0)
+                ->count();
+        }
+        return $this->response->array(array('count'=>$count));
+    }
+
     /**
      * Show the form for creating a new resource.
      *
