@@ -64,7 +64,12 @@ class UserCollection extends Resource
                     'user_about'=>$this->user_about
                 ]);
             }),
-            $this->mergeWhen($request->routeIs('user.show'), function (){
+            $this->mergeWhen($request->routeIs('my.view'), function () {
+                return collect([
+                   'visit_time' => $this->visit_time,
+                ]);
+            }),
+                $this->mergeWhen($request->routeIs('user.show'), function (){
                 return collect([
                     'user_about'            => $this->user_about,
                     'user_score'            => $this->user_score,
