@@ -19,8 +19,7 @@ class PostCollection extends Resource
             'post_default_locale' => $this->post_default_locale,
             'post_content_default_locale' => $this->post_content_default_locale,
             'post_title' => $this->when(true , function() use ($request){
-                if($request->routeIs('notification.index')||$request->routeIs('post.hot'))
-                {
+                if($request->routeIs('notification.index')||$request->routeIs('post.hot')) {
                     return $this->post_index_title;
                 }
                 return $this->post_decode_title;
@@ -32,8 +31,10 @@ class PostCollection extends Resource
                 ]);
             }),
             'post_media'=>$this->post_mutation_media,
-            'post_type' => $this->post_type,
             'post_comment_num' => $this->post_comment_num,
+            'post_type' => $this->post_type,
+            'longitude' => $this->longitude,
+            'latitude'  => $this->latitude,
             'post_view_num' => $this->viewVirtualCount($this->post_id),
             'post_created_at'=>optional($this->post_created_at)->toDateTimeString(),
             'post_format_created_at'=> $this->post_format_created_at,
@@ -71,7 +72,13 @@ class PostCollection extends Resource
                     'owner'=>new UserCollection($this->owner),
                 ));
             }),
-            'post_event_country'=>$this->post_event_country
+            'post_event_country'=>$this->post_event_country,
+
+            $this->mergeWhen($this->post_type=='vote' && !blank($this->voteInfo), function () {
+               return [
+                   'vote_info' => PostVoteCollection::collection($this->voteInfo),
+               ];
+            }),
         ];
     }
 

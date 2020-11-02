@@ -76,12 +76,12 @@ class PostTranslationV2 implements ShouldQueue
     public function handle()
     {
         $exceptLanguages = array($this->postTitleLang , $this->postContentLang);
-        $post = $this->post;
-        $postTitle = $this->post_title;
+        $post        = $this->post;
+        $postTitle   = $this->post_title;
         $postContent = $this->post_content;
-        $translate = app(NiuTranslateService::class);
-        $languages = $this->languages;
-        $postData = array();
+        $translate   = app(NiuTranslateService::class);
+        $languages   = $this->languages;
+        $postData    = array();
         foreach ($languages as $l)
         {
             if($l=='zh-HK') {

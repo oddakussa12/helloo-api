@@ -1011,31 +1011,49 @@ DOC;
         $userNickName = $user->user_nick_name;
         $prohibited_operation_user = config('redis-key.user.prohibited_operation_user');
         $prohibited_operation_user_name = config('redis-key.user.prohibited_operation_user_name');
-        if(Redis::exists($prohibited_operation_user))
-        {
-            $rank = Redis::zrank($prohibited_operation_user , $user->user_id);
-            if($rank!==null)
-            {
+        if (Redis::exists($prohibited_operation_user)) {
+            $rank = Redis::zrank($prohibited_operation_user, $user->user_id);
+            if ($rank !== null) {
                 return true;
             }
         }
-        if(Redis::exists($prohibited_operation_user_name))
-        {
+        if (Redis::exists($prohibited_operation_user_name)) {
             $limit = 50;
             $count = Redis::zcard($prohibited_operation_user_name);
-            $total = ceil($count/$limit);
-            for($i=1;$i<=$total;$i++)
-            {
-                $offset   = ($i-1)*$limit;
-                $prohibitedUserNames = Redis::zrangebyscore($prohibited_operation_user_name , "+inf" , "-inf" , array('withScores'=>true, 'limit'=>array($offset , $limit)));
+            $total = ceil($count / $limit);
+            for ($i = 1; $i <= $total; $i++) {
+                $offset = ($i - 1) * $limit;
+                $prohibitedUserNames = Redis::zrangebyscore($prohibited_operation_user_name, "+inf", "-inf", array('withScores' => true, 'limit' => array($offset, $limit)));
                 $prohibitedUserNames = array_keys($prohibitedUserNames);
-                if(str_contains(strtolower($userName) , $prohibitedUserNames)||str_contains(strtolower($userNickName) , $prohibitedUserNames))
-                {
+                if (str_contains(strtolower($userName), $prohibitedUserNames) || str_contains(strtolower($userNickName), $prohibitedUserNames)) {
                     return true;
                 }
             }
 
         }
         return false;
+    }
+
+    /**
+     * @param $user
+     * @param int $switch
+     * @return
+     * 初始化 用户主页 浏览量
+     */
+    public function virtualViewCount($user, $switch=0)
+    {
+        if ($user->virtual_view_count === null) {
+            $view = DB::select("SELECT
+            ROUND(1*SQRT(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(u.user_created_at))+IF(IFNULL(MAX(p.post_like_num),0)<5,57,587)*SQRT(SUM(IFNULL(p.post_like_num,0))+SUM(IFNULL(p.post_comment_num,0)))) AS 'view_count'
+            FROM f_users u LEFT JOIN f_posts p ON u.user_id = p.user_id WHERE u.user_id =?", [$user->user_id]);
+
+            $view = current($view);
+            User::where('user_id', $user->user_id)->update(['virtual_view_count'=>$view->view_count ?? 0]);
+            $user->virtual_view_count = $view->view_count;
+        }
+        $user->view_count  = $user->virtual_view_count + Redis::hget(config('redis-key.user.user_visit'), $user->user_id) ?? 0;
+        $user->view_status = $switch;
+        unset($user->virtual_view_count);
+        return $user;
     }
 }

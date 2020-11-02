@@ -8,11 +8,14 @@ use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
 use App\Models\UserEmoji;
+use App\Models\UserFriend;
+use App\Models\UserVisitLog;
 use App\Resources\UserSearchCollection;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Contracts\UserRepository;
@@ -109,19 +112,60 @@ class UserController extends BaseController
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return UserCollection
      */
-    public function show($id)
+    public function show(int $id)
     {
-        if($this->isBlocked($id))
-        {
+        if ($this->isBlocked($id)) {
             return $this->response->errorNotFound();
         }
-        $user = $this->user->findOrFail($id);
+
+        $user        = $this->user->findOrFail($id);
+        $user        = $this->user->virtualViewCount($user);
         $followerIds = $this->user->userFollow([$id]);
         $user->user_follow_state = !empty($followerIds);
         return new UserCollection($user);
+    }
+
+
+    /**
+     * @param int $id
+     * @return array
+     * 我得主页 访客统计
+     */
+    public function viewPage(int $id)
+    {
+        $user  = $this->user->findOrFail($id);
+        $total = Redis::hget(config('redis-key.user.user_visit'), $id);
+
+        $total    = $user->virtual_view_count+$total;
+        $today    = date('Y-m-d');
+        $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
+
+        $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
+            ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->get();
+        $userIds  = $data->pluck('user_id')->toArray();
+        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->get();
+        $userList = User::whereIn('user_id', $userIds)->get();
+
+        $userList->each(function ($user) use ($data, $friends) {
+            $friends->each(function ($friend) use($user) {
+                $user->is_friend= $friend->friend_id==$user->user_id;
+            });
+            $data->each(function ($item) use($user) {
+                if ($item->user_id==$user->user_id) {
+                    $user->visit_time= dateTrans($item->created_at);
+                }
+            });
+        });
+
+        return [
+            'total'      => $total,
+            'todayCount' => $count,
+            'todayUser'  => count($data),
+            'userList'   => UserCollection::collection($userList)
+        ];
     }
 
 

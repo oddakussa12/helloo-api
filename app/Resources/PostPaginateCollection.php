@@ -29,6 +29,8 @@ class PostPaginateCollection extends Resource
             'post_title' => $this->post_index_title,
             'post_default_title' => $this->post_origin_index_title,
             'post_type' => $this->post_type,
+            'longitude' => $this->longitude,
+            'latitude' => $this->latitude,
             'post_comment_num' => $this->post_comment_num,
             'post_view_num' => $this->when($request->routeIs('post.myself') , function (){
                 return $this->viewVirtualCount($this->post_id);
@@ -53,6 +55,12 @@ class PostPaginateCollection extends Resource
             'post_dislike_state'=>$this->dislikeState,
             'post_event_country'=>$this->post_event_country,
             'topics'=>$this->getPostTopics($this->post_id),
+
+            $this->mergeWhen($this->post_type=='vote' && !blank($this->voteInfo), function () {
+                return [
+                    'vote_info' => PostVoteCollection::collection($this->voteInfo),
+                ];
+            }),
         ];
     }
 

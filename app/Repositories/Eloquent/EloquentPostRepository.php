@@ -2,6 +2,10 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\User;
+use App\Models\PostTranslation;
+use App\Models\VoteDetail;
+use App\Models\VoteDetailTranslation;
 use Carbon\Carbon;
 use App\Models\Post;
 use App\Models\Like;
@@ -109,7 +113,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 //        } else {
 //            $posts = $this->allWithBuilder();
 //        }
-        $posts = $this->allWithBuilder();
+        //$posts = $this->allWithBuilder();
+        $posts = $this->model;
         $posts = $posts->withTrashed()->with('owner');
 
         if ($request->get('home')!== null) {
@@ -125,6 +130,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             $appends['order_by'] = $orderBy;
 
             $posts = $posts->where('post_topping' , 0);
+
             if($type == 'default' && $orderBy =='rate' && $follow == null) {
                 $posts = $this->getFinePosts($posts);
 
@@ -159,6 +165,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $posts = $this->getNewPost($posts);
                 }
             }
+
             if(in_array('follow' , $include)) {
                 if($follow !== null&&auth()->check()) {
                     $posts->each(function ($item, $key){
@@ -173,40 +180,37 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                 }
             }
 
-            if(auth()->check()) {
-                if($follow === null)
-                {
-                    $user        = auth()->user();
-                    $hiddenPosts = app(UserRepository::class)->hiddenPosts($user->user_id);
-                    $hiddenUsers = app(UserRepository::class)->hiddenUsers($user->user_id);
-                    $keys        = $postIds = [];
+            // 投票贴
+            $posts = $this->voteList($posts);
 
-                    $posts->each(function ($post, $key) use ($hiddenPosts, $hiddenUsers, &$keys, &$postIds) {
-                        if(in_array($post->post_uuid, $hiddenPosts) || in_array($post->user_id, $hiddenUsers)) {
-                            array_push($keys, $key);
-                        } else {
-                            array_push($postIds, $post->post_id);
-                        }
-                    });
-                    $posts->offsetUnset($keys);
-                    $posts = $posts->setCollection($posts->values());
-                    if($posts->isEmpty())
-                    {
+            if(auth()->check()) {
+                $userId = auth()->user()->user_id;
+                if($follow === null) {
+                    $hiddenPosts = app(UserRepository::class)->hiddenPosts($userId);
+                    $hiddenUsers = app(UserRepository::class)->hiddenUsers($userId);
+                    $posts = $posts->setCollection($posts->getCollection()->filter(function($post) use ($hiddenPosts, $hiddenUsers){
+                        return  !in_array($post->post_uuid, $hiddenPosts)&&!in_array($post->user_id, $hiddenUsers);
+                    })->values());
+                    if ($posts->isEmpty()) {
                         $page_num = intval($request->query->get($this->pageName))+1;
                         $request->query->set($this->pageName , $page_num);
                         if ($page_num<3) {
                            return $this->paginateAll($request);
                         }
                     }
-                }else{
-                    $postIds = $posts->pluck('post_id')->toArray();
                 }
+                $postIds = $posts->pluck('post_id')->toArray();
+                $locales = $posts->pluck('post_content_default_locale')->push('en')->push(locale())->unique()->values()->toArray();
                 $postLikes    = $this->userPostLike($postIds);
                 $postDisLikes = $this->userPostDislike($postIds);
 
                 $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
                     $post->likeState    = in_array($post->post_id , $postLikes);
                     $post->dislikeState = in_array($post->post_id , $postDisLikes);
+                });
+                $postTranslations = PostTranslation::whereIn('post_id' , $postIds)->whereIn('post_locale' , $locales)->get();
+                $posts->each(function ($post , $key) use ($postTranslations) {
+                    $post->translations = $postTranslations->where('post_id' , $post->post_id)->all();
                 });
             }
             return $posts->appends($appends);
@@ -219,15 +223,103 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         return $posts->appends($appends);
     }
 
-    public function paginateTopic($topic)
+
+    /**
+     * @param $posts
+     * @return mixed
+     * 投票贴
+     */
+    public function voteList($posts)
     {
-        $request  = \request();
-        $orderBy  = strval($request->input('order_by', 'time'));
+        $userId = auth()->check() ? auth()->user()->user_id : null;
+
+        if ($posts instanceof Post) {
+            $postIds = $posts->where('post_id', $posts->post_id)->where('post_type','vote')->pluck('post_id');
+        } else {
+            $postIds  = $posts->where('post_type','vote')->pluck('post_id');
+        }
+
+        // $voteList = VoteDetail::whereIn('post_id', $postIds)->with('voteDetailTranslate')->get();
+
+        $voteList = VoteDetail::whereIn('post_id', $postIds)->get();
+        $voteIds  = $voteList->pluck('id');
+        $voteLang = $voteList->pluck('default_locale');
+
+        $voteLang = array_unique(array_merge($voteLang->toArray(), [locale(), 'en']));
+        $voteTrans= VoteDetailTranslation::whereIn('locale', $voteLang)->whereIn('vote_detail_id', $voteIds)->get();
+
+        $voteList->each(function ($vote) use ($userId, $voteTrans, $voteLang) {
+            $vote->translations = $voteTrans->where('vote_detail_id' , $vote->id)->all();
+            $count = $this->voteChoose($vote->post_id, $vote->id, $userId);
+            foreach ($count as $key=>$item) {
+                $vote->$key = $item;
+            }
+        });
+
+        if ($posts instanceof Post) {
+            if ($posts->post_type=='vote') {
+                $posts->voteInfo = $voteList;
+            }
+        } else {
+            foreach ($posts as $index=>$post) {
+                if (is_array($post)) {
+                    if ($post['post_type']=='vote') {
+                        $post['voteInfo'] = $voteList->where('post_id', $post['post_id'])->values();
+                        $posts[$index] = $post;
+                    }
+                } else {
+                    if ($post->post_type=='vote') {
+                        $tmp = $voteList->where('post_id', $post->post_id)->values();
+                        $post->voteInfo = collect($tmp);
+                    }
+
+                }
+            }
+        }
+
+        return $posts;
+    }
+
+    /**
+     * @param $postId
+     * @param $voteId
+     * @param $userId
+     * @return array 投票 是否选了某个选项
+     *
+     * 投票 是否选了某个选项
+     */
+
+    public function voteChoose($postId, $voteId, $userId)
+    {
+        $memKey          = config('redis-key.post.post_vote_data').$postId;
+        $result          = Redis::hget($memKey, $voteId);
+        $result          = !empty($result) ? json_decode($result, true) : ['users'=>[], 'country'=>[]];
+
+        $data['choose']  = in_array($userId, $result['users']);
+        $data['count']   = count($result['users']);
+
+        $country = array_flip($result['country']);
+        rsort($country);
+        $data['country'] = array_slice($country, 0, 5);
+        return $data;
+
+    }
+
+    /**
+     * @param $topic
+     * @param $page
+     * @param string $orderBy
+     * @param string $pageName
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     * 查询话题下的帖子列表
+     */
+    public function paginateTopic($topic, $page, $orderBy='time', $pageName='post_page')
+    {
+        $userId   = auth()->check() ? auth()->user()->user_id : 0;
         $key      = strval($topic);
         $topicKey = $orderBy==='time' ? $key.'_new' : $key.'_rate';
-        $pageName = 'post_page';
+
         $perPage  = 8;
-        $page     = intval($request->input($pageName, 1));
         $offset   = ($page-1)*$perPage;
         $redis    = new RedisList();
         $appends['order_by'] = $orderBy;
@@ -245,18 +337,75 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         $posts = $posts->where('post_topping' , 0);
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
         $posts = $posts->whereIn('post_id' , $postIds)->orderBy($this->model->getCreatedAtColumn() , 'DESC')->get();
+
+        // 帖子可见范围
+        $posts = $this->postShowRange($posts, $userId);
+
+        if ($posts->isEmpty()) {
+            $page++;
+            if ($page<=3) {
+             return $this->paginateTopic($topic, $page);
+            }
+        }
+
+        // 投票帖
+        $posts = $this->voteList($posts);
+
+        // 分页信息
         $posts = $this->paginator($posts, $total, $perPage, $page, [
             'path'     => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
         ]);
+
         $postLikes    = $this->userPostLike($postIds);
         $postDisLikes = $this->userPostDislike($postIds);
 
-        $posts->each(function ($post , $key) use ($postLikes , $postDisLikes) {
+        $posts->each(function ($post) use ($postLikes , $postDisLikes) {
             $post->likeState    = in_array($post->post_id , $postLikes);
             $post->dislikeState = in_array($post->post_id , $postDisLikes);
         });
         return $posts->appends($appends);
+    }
+
+    /**
+     * @param $posts
+     * @param int $authUser 当前登录用户
+     * @return mixed
+     * 帖子可见范围
+     */
+    public function postShowRange($posts, int $authUser)
+    {
+        // 帖子可见范围
+        $userIds = $posts->where('show_type', '>', 1)->pluck('user_id');
+        $uids    = [];
+        if ($authUser) {
+            $follow  = $this->userFollowList($authUser, $userIds);
+            $uids    = $follow->pluck('followable_id');
+            $uids    = array_merge([$authUser], $uids->toArray());
+        }
+
+        foreach ($posts as $index=>$post) {
+            if ($post->show_type==2 && !in_array($post->user_id, $uids)) {
+                $posts->forget($index);
+            }
+            if ($post->show_type==3 && ($post->user_id != $authUser)) {
+                $posts->forget($index);
+            }
+        }
+        /*$posts = $posts->filter(function ($post) use ($authUser, $uids) {
+            if ($post->show_type==1) {
+                return true;
+            }
+            if ($post->show_type==2 && in_array($post->user_id, $uids)) {
+                return true;
+            }
+            if ($post->show_type==3 && ($post->user_id == $authUser)) {
+                return true;
+            }
+        });*/
+
+        return $posts;
+
     }
 
     public function showByUuid($uuid)
@@ -277,10 +426,19 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function paginateByUser(Request $request, $user)
     {
         $appends = array();
-        if (!is_object($user)) {
-            $user = app(UserRepository::class)->findOrFail($user);
+        $user    = !is_object($user) ? app(UserRepository::class)->findOrFail($user) : $user;
+        $other   = !is_object($user);
+
+        //新增帖子可见范围
+        if ($other) {
+            $userId = auth()->check() ? auth()->user()->user_id : '';
+            $follow = $this->userFollowType($user, $userId);
+            $show   = $follow ? 2 : 1;
+            $posts  = $user->posts()->where('show_type','<=', $show)->with('translations');
+        } else {
+            $posts = $user->posts()->with('translations');
         }
-        $posts = $user->posts()->with('translations');
+
         if ($request->get('order_by') !== null && $request->get('order') !== null) {
             $order   = $request->get('order') === 'asc' ? 'asc' : 'desc';
             $orderBy = $request->get('order_by' , 'post_like_num');
@@ -740,7 +898,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         });
     }
 
-    public function attachTopics(Post $post  , $topics)
+    public function attachTopics(Post $post, $topics)
     {
         $topics = array_filter($topics , function($v,$k){
             $v = str_replace(' ' , '' , $v);
@@ -843,5 +1001,46 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             return Dislike::where('user_id' , auth()->id())->WithType("App\Models\Post")->whereIn('post_dislikes.dislikable_id' , $postIds)->pluck('dislikable_id')->all();
         }
         return array();
+    }
+
+    /**
+     * @param $postId
+     * @return mixed
+     * 投票选项
+     */
+    public function voteInfo($postId)
+    {
+        //if(auth()->check()&&!empty($postId))
+        if(!empty($postId)) {
+            return VoteDetail::where('post_id', $postId)->get();
+        }
+    }
+
+    /**
+     * @param int $post_user_id 帖子的owner
+     * @param int $authUser 当前登录用户
+     * 判断当前登录用户是否是帖子发布用户的粉丝
+     * @return
+     */
+    public function userFollowType(int $post_user_id, int $authUser)
+    {
+        return DB::table('common_follows')->where('followable_id', $post_user_id)->where('followable_type', User::class)
+            ->where('relation', 'follow')->where('user_id', $authUser)->first();
+    }
+
+    /**
+     * @param $userId
+     * @param $userList
+     * @param int $limit
+     * @return mixed
+     * 查询我关注的人
+     */
+    public function userFollowList($userId, $userList, $limit=50)
+    {
+        $data = DB::table('common_follows')->where(['user_id'=>$userId,'followable_type'=>User::class,'relation'=>'follow']);
+        if (!empty($userList)) {
+            $data->whereIn('followable_id', $userList);
+        }
+        return $data->groupBy('followable_id')->limit($limit)->get();
     }
 }

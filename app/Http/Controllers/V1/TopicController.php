@@ -95,36 +95,27 @@ class TopicController extends BaseController
     public function topicPost(Request $request)
     {
         $topic = strval($request->input('topic' , ''));
-        if(empty($topic))
-        {
-            abort(404);
-        }
+        empty($topic) && abort(404);
         return $this->post($topic);
     }
 
     public function post($topic)
     {
-        $page = intval(request()->input('post_page' , 1));
-        $posts = app(PostRepository::class)->paginateTopic($topic);
-        $posts = PostPaginateCollection::collection($posts);
+        $page              = intval(request()->input('post_page' , 1));
+        $orderBy           = strval(request()->input('order_by', 'time'));
+
+        $posts             = app(PostRepository::class)->paginateTopic($topic, $page, $orderBy, 'post_page');
+        $posts             = PostPaginateCollection::collection($posts);
+
         $topicPostCountKey = config('redis-key.topic.topic_post_count');
-        $count = Redis::zscore($topicPostCountKey , $topic);
-        $additional = array(
-            'discussCount'=>intval($count)
-        );
-        $user_follow_state = false;
-        if(auth()->check())
-        {
-            $user = auth()->user();
-            $key = 'user.'.$user->user_id.'.'.'follow.topics';
-            if(Redis::zscore($key , $topic)!==null)
-            {
-                $user_follow_state = true;
-            }
-            $additional['user_follow_state'] = $user_follow_state;
+        $count             = Redis::zscore($topicPostCountKey , $topic);
+        $additional        = ['discussCount'=>intval($count)];
+
+        if (auth()->check()) {
+            $key  = 'user.'.auth()->user()->user_id.'.'.'follow.topics';
+            $additional['user_follow_state'] = Redis::zscore($key , $topic)!==null;
         }
-        if($page==1)
-        {
+        if ($page==1) {
             $posts = $posts->additional($additional);
         }
         return $posts;

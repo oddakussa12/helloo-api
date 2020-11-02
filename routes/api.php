@@ -129,6 +129,7 @@ $api->group($V1Params , function ($api){
         /*****评论 结束*****/
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
+        $api->get('user/{user}/view' , 'UserController@viewPage')->name('my.view'); // 我的主页 浏览量 详细页
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
         $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
             $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
@@ -200,7 +201,9 @@ $api->group($V1Params , function ($api){
                 $api->put('user/{user}/revokeLike' , 'UserController@profileRevokeLike')->name('user.profile.revoke.like');
             });
             $api->group(['middleware'=>['redisThrottle:'.config('common.post_throttle_num').','.config('common.post_throttle_expired')]] , function ($api){
-                $api->post('post' , 'PostController@store')->name('post.store');
+                $api->post('post', 'PostController@store')->name('post.store'); // 发帖
+                $api->post('vote', 'PostVoteController@store')->name('post.vote.store');// 发布投票贴
+                $api->put('vote', 'PostVoteController@vote')->name('post.vote.status'); // 选一个选项投票
             });
             $api->group(['middleware'=>['redisThrottle:'.config('common.post_comment_throttle_num').','.config('common.post_comment_throttle_expired')]] , function ($api){
                 $api->post('postComment' , 'PostCommentController@store')->name('comment.store');

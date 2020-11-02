@@ -20,7 +20,10 @@ trait CachablePost
             'post_default_locale'=>$post->post_default_locale,
             'post_content_default_locale'=>$post->post_content_default_locale,
             'post_event_country_id'=>$post->post_event_country_id,
-            'post_media'=>\json_encode(empty($post->post_media)?[]:$post->post_media , JSON_UNESCAPED_UNICODE),
+            'show_type' => $post->show_type,
+            'longitude' => $post->longitude,
+            'latitude'  => $post->latitude,
+            'post_media'=> json_encode(empty($post->post_media)?[]:$post->post_media , JSON_UNESCAPED_UNICODE),
         );
         Redis::hmset($postKey , $data);
         $newKey = config('redis-key.post.post_index_new');
@@ -450,4 +453,28 @@ trait CachablePost
         }
         return array();
     }
+
+
+
+    /*public function voteChoose($postId, $voteId, $userId='')
+    {
+        $memKey     = config('redis-key.post.post_vote_data').$postId;
+        $countKey   = $memKey.$postId;
+        $countryKey = $memKey.'country_'.$postId;
+        $return = ['count'=>0, 'choose'=>false, 'country'=>[]];
+        if (Redis::exists($countKey)) {
+           $return['count']   = Redis::zcount($countKey, $voteId, $voteId);
+           $return['choose']  = Redis::zscore($countKey, $userId) == $voteId;
+        }
+        if (Redis::exists($countKey)) {
+            $return['count']   = Redis::zcount($countKey, $voteId, $voteId);
+            $return['choose']  = Redis::zscore($countKey, $userId) == $voteId;
+        }
+        $return['country'] = Redis::zscore($countryKey, $voteId, $voteId);
+
+
+        return $return;
+
+    }*/
+
 }
