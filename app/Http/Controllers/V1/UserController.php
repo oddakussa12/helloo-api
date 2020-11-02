@@ -140,14 +140,25 @@ class UserController extends BaseController
 
         $total    = $user->virtual_view_count+$total;
         $today    = date('Y-m-d');
-        $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->orderBy('created_at', 'desc')->get();
-        $userIds  = $data->pluck('user_id')->unique()->values()->toArray();
+        $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
+
+        $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
+                    ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(30)->get();
+        $userIds  = $data->pluck('user_id')->toArray();
         $userList = User::whereIn('user_id', array_slice($userIds, 0, 30))->get();
+
+        $userList->each(function ($user) use ($data) {
+            $data->each(function ($item) use($user) {
+                if ($item->user_id==$user->user_id) {
+                    $user->visit_time= dateTrans($item->created_at);
+                }
+            });
+        });
 
         return [
             'total'      => $total,
-            'todayCount' => count($data),
-            'todayUser'  => count($userIds),
+            'todayCount' => $count,
+            'todayUser'  => count($data),
             'userList'   => UserCollection::collection($userList)
         ];
     }
