@@ -240,15 +240,14 @@ class UserFriendAffinityController extends BaseController
         $users     = UserCollection::collection($users);
 
         foreach ($result as $index=>&$value) {
-            $user_id                 = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
-            $value['sign']           = $this->getSignInList($value['user_id'], $value['friend_id'], false);
-            $value['friend']         = $users->where('user_id', $user_id)->first();
-            $value['user_avatar']    = userCover($userInfo['user_avatar'] ?? '');
-            $result['user_country']  = getUserCountryName($userInfo['user_country_id'] ?? 0);
-            $result['affinity_time'] = !empty($value['created_at']) ? intval((time() - $value['created_at'])/86400)+1 : 0;
-
+            $user_id                = $value['user_id'] == $userId ? $value['friend_id'] : $value['user_id'];
+            $value['sign']          = $this->getSignInList($value['user_id'], $value['friend_id'], false);
+            $value['friend']        = $users->where('user_id', $user_id)->first();
+            $value['user_avatar']   = userCover($userInfo['user_avatar'] ?? '');
+            $value['user_country']  = getUserCountryName($userInfo['user_country_id'] ?? 0);
+            $value['affinity_time'] = !empty($value['created_at']) ? intval((time() - $value['created_at'])/86400)+1 : 0;
         }
-
+        
         Redis::set($memKey, json_encode($result, JSON_UNESCAPED_UNICODE));
         Redis::expire($memKey, 86400);
         return $result;

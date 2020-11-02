@@ -122,8 +122,8 @@ class RyChatController extends BaseController
                         UserVisit::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_VISIT);
                     }
                 }
-
             }
+
             if (in_array($objectName, array('RC:TxtMsg', 'RC:ImgMsg', 'RC:VcMsg'))) {
                 $msgUID   = $request->input('msgUID', '');
                 $lock_key = 'ry_room_chat_'.$msgUID;
@@ -143,7 +143,6 @@ class RyChatController extends BaseController
                         $friendLevel = new FriendLevel($all);
                         $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
 
-
                     } else {
                         if (Constant::QUEUE_RY_CHAT_SWITCH) {
                             $device = new RyChat($all);
@@ -154,9 +153,7 @@ class RyChatController extends BaseController
 
                         // 升级队列
                          FriendLevel::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
-
                     }
-
 
                 }
             }
