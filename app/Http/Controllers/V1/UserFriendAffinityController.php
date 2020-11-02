@@ -144,8 +144,8 @@ class UserFriendAffinityController extends BaseController
         $type     = intval($request->input('type'));
         $userId   = intval($request->input('user_id'));
         $friendId = intval($request->input('friend_id'));
-
-        dump($userId, $friendId);
+        $name     = $request->input('name', 'HEART_UPGRADE');
+        dump($userId, $friendId, $name);
         if ($type==1) {
             $raw['fromUserId'] = $userId;
             $raw['toUserId']   = $friendId;
@@ -163,8 +163,8 @@ class UserFriendAffinityController extends BaseController
                 'relationship_id' => rand(1,4),
             ];
 
-            $result  = FriendLevel::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData);
-            $result2 = FriendLevel::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData);
+            $result  = FriendLevel::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $name, $ryData);
+            $result2 = FriendLevel::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $name, $ryData);
         }
 
         dump($result, $result2);

@@ -34,6 +34,13 @@ class Constant {
     // 当等于 true时 执行 融云聊天写入数据库操作
     const QUEUE_RY_CHAT_SWITCH=1;
 
+    // 自定义融云 OBJECTNAME
+
+    // 访问用户主页
+    const RY_OBJECT_NAME_USER_MAIN='USER_MAIN';
+
+    // 好友关系 升级
+    const RY_OBJECT_NAME_HEART_UPGRADE='HEART_UPGRADE';
 
     // 好友关系
 
