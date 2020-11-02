@@ -1006,18 +1006,18 @@ DOC;
      */
     public function viewPage($id)
     {
-        $user = $this->findOrFail($id);
+        $user  = $this->findOrFail($id);
         $total = Redis::hget(config('redis-key.user.user_visit'), $id);
 
         $total = $user->virtual_view_count + $total;
         $today = date('Y-m-d');
         $count = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
-        $data = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
-            ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->get();
+        $data  = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
+            ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->toSql();
 
-        $userIds = $data->pluck('user_id')->toArray();
+        $userIds  = $data->pluck('user_id')->toArray();
 
-        $friends = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
+        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
         $userList = User::whereIn('user_id', $userIds)->get();
 
         $userList->each(function ($user) use ($data, $friends) {
