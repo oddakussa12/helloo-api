@@ -47,10 +47,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         return $this->model->default_password_field;
     }
+
     public function getDefaultNameField()
     {
         return $this->model->default_name_field;
     }
+
     public function getDefaultEmailField()
     {
         return $this->model->default_email_field;
@@ -72,14 +74,14 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->findOrFail($userId);
     }
 
-    public function findOauth($oauth,$id)
+    public function findOauth($oauth, $id)
     {
-        return $this->model->where(array('user_'.$oauth=>$id))->first();
+        return $this->model->where(array('user_' . $oauth => $id))->first();
     }
 
     public function findOtherMyFollow($userId)
     {
-        $followerIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['followable_id'] , 'follow_page');
+        $followerIds = DB::table('common_follows')->where('user_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['followable_id'], 'follow_page');
 
         $userIds = $followerIds->pluck('followable_id')->all(); //获取分页user id
 
@@ -87,16 +89,16 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
         $authFollowers = $this->userFollow($userIds);
 
-        $followerIds->each(function ($item, $key) use ($followers , $authFollowers) {
-            $item->user = $followers->where('user_id' , $item->followable_id)->first();
+        $followerIds->each(function ($item, $key) use ($followers, $authFollowers) {
+            $item->user = $followers->where('user_id', $item->followable_id)->first();
         });
 
-        $followerIds = $followerIds->filter(function ($item, $key){
+        $followerIds = $followerIds->filter(function ($item, $key) {
             return !blank($item->user);
         });
 
         $followerIds->each(function ($item, $key) use ($authFollowers) {
-            $item->user->user_follow_state = in_array($item->followable_id , $authFollowers);
+            $item->user->user_follow_state = in_array($item->followable_id, $authFollowers);
         });
 
         return $followerIds;
@@ -104,42 +106,42 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function findOtherFollowMe($userId)
     {
-        $followerIds = DB::table('common_follows')->where('followable_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['user_id'] , 'follow_page');
+        $followerIds = DB::table('common_follows')->where('followable_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['user_id'], 'follow_page');
 
         $userIds = $followerIds->pluck('user_id')->all(); //获取分页user id
 
         $followers = $this->findByMany($userIds);
 
         $followerIds->each(function ($item, $key) use ($followers) {
-            $item->user = $followers->where('user_id' , $item->user_id)->first();
+            $item->user = $followers->where('user_id', $item->user_id)->first();
         });
 
-        $followerIds = $followerIds->filter(function ($item, $key){
+        $followerIds = $followerIds->filter(function ($item, $key) {
             return !blank($item->user);
         });
 
         $followedIds = $this->userFollow($userIds);
 
         $followerIds->each(function ($item, $key) use ($followedIds) {
-            $item->user->user_follow_state = in_array($item->user_id , $followedIds);
+            $item->user->user_follow_state = in_array($item->user_id, $followedIds);
         });
         return $followerIds;
     }
 
     public function findMyFollow($userId)
     {
-        $followerIds = DB::table('common_follows')->where('user_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['followable_id'] , 'follow_page');
+        $followerIds = DB::table('common_follows')->where('user_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['followable_id'], 'follow_page');
 
         $userIds = $followerIds->pluck('followable_id')->all(); //获取分页user id
 
         $followers = $this->findByMany($userIds);
 
         $followerIds->each(function ($item, $key) use ($followers) {
-            $item->user = $followers->where('user_id' , $item->followable_id)->first();
+            $item->user = $followers->where('user_id', $item->followable_id)->first();
             $item->user->user_follow_state = true;
         });
 
-        $followerIds = $followerIds->filter(function ($item, $key){
+        $followerIds = $followerIds->filter(function ($item, $key) {
             return !blank($item->user);
         });
 
@@ -148,24 +150,24 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function findFollowMe($userId)
     {
-        $followerIds = DB::table('common_follows')->where('followable_id' , $userId)->where('followable_type' , User::class)->where('relation' , 'follow')->orderByDesc('id')->paginate(15 , ['user_id'] , 'follow_page');
+        $followerIds = DB::table('common_follows')->where('followable_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['user_id'], 'follow_page');
 
         $userIds = $followerIds->pluck('user_id')->all(); //获取分页user id
 
         $followers = $this->findByMany($userIds);
 
         $followerIds->each(function ($item, $key) use ($followers) {
-            $item->user = $followers->where('user_id' , $item->user_id)->first();
+            $item->user = $followers->where('user_id', $item->user_id)->first();
         });
 
-        $followerIds = $followerIds->filter(function ($item, $key){
+        $followerIds = $followerIds->filter(function ($item, $key) {
             return !blank($item->user);
         });
 
         $followedIds = $this->userFollow($userIds);//重新获取当前登录用户信息
 
         $followerIds->each(function ($item, $key) use ($followedIds) {
-            $item->user->user_follow_state = in_array($item->user_id , $followedIds);
+            $item->user->user_follow_state = in_array($item->user_id, $followedIds);
         });
         return $followerIds;
     }
@@ -183,73 +185,70 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
         $followers = $this->userFollow($userIds);
 
-        $rankTopTenUser->each(function($item , $key)use ($followers){
-            $item->user_follow_state = in_array($item->user_id , $followers);
+        $rankTopTenUser->each(function ($item, $key) use ($followers) {
+            $item->user_follow_state = in_array($item->user_id, $followers);
         });
         return $rankTopTenUser->sortByDesc('user_rank_score')->values();
     }
 
     public function getActiveUser()
     {
-        return Cache::rememberForever('user_rank', function() {
+        return Cache::rememberForever('user_rank', function () {
             $userId = collect();
             $userInfo = collect();
             $chinaNow = Carbon::now()->subDay(1);
             $post = DB::table('posts')
                 ->whereNull('post_deleted_at')
-                ->whereDate('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-                ->whereDate('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
-                ->select(DB::raw('count(*) as post_num') , 'user_id')
+                ->whereDate('post_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
+                ->whereDate('post_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))->groupBy('user_id')
+                ->select(DB::raw('count(*) as post_num'), 'user_id')
                 ->groupBy('user_id')
-                ->orderBy('post_num' , 'desc')
+                ->orderBy('post_num', 'desc')
                 ->get();
-            $postUserId =  $post->pluck('user_id');
+            $postUserId = $post->pluck('user_id');
             $userId = $userId->merge($postUserId);
             $comment = DB::table('posts_comments')
                 ->whereNull('comment_deleted_at')
-                ->whereDate('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-                ->whereDate('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
-                ->select(DB::raw('count(*) as comment_num') , 'user_id')
+                ->whereDate('comment_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
+                ->whereDate('comment_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))->groupBy('user_id')
+                ->select(DB::raw('count(*) as comment_num'), 'user_id')
                 ->groupBy('user_id')
-                ->orderBy('comment_num' , 'desc')
+                ->orderBy('comment_num', 'desc')
                 ->get();
-            $commentUserId =  $comment->pluck('user_id');
+            $commentUserId = $comment->pluck('user_id');
             $userId = $userId->merge($commentUserId);
             $like = DB::table('common_likes')
-                ->whereDate('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-                ->whereDate('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))->groupBy('user_id')
-                ->select(DB::raw('count(*) as like_num') , 'user_id')
+                ->whereDate('created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
+                ->whereDate('created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))->groupBy('user_id')
+                ->select(DB::raw('count(*) as like_num'), 'user_id')
                 ->groupBy('user_id')
-                ->orderBy('like_num' , 'desc')
+                ->orderBy('like_num', 'desc')
                 ->get();
-            $likeUserId =  $like->pluck('user_id');
+            $likeUserId = $like->pluck('user_id');
             $userId = $userId->merge($likeUserId)->unique()->values();
             $userId = DB::table('users')
-                ->whereIn('user_id' , $userId)
-                ->where('user_is_guest' , 0)
+                ->whereIn('user_id', $userId)
+                ->where('user_is_guest', 0)
                 ->select('user_id')
                 ->pluck('user_id');
-            $userId->each(function ($item, $key) use(&$userInfo , $post , $comment , $like){
+            $userId->each(function ($item, $key) use (&$userInfo, $post, $comment, $like) {
                 $scoring = 0;
-                $postCollect = $post->where('user_id' , $item)->first();
-                $commentCollect = $comment->where('user_id' , $item)->first();
-                $likeCollect = $like->where('user_id' , $item)->first();
-                if(!empty($postCollect))
-                {
+                $postCollect = $post->where('user_id', $item)->first();
+                $commentCollect = $comment->where('user_id', $item)->first();
+                $likeCollect = $like->where('user_id', $item)->first();
+                if (!empty($postCollect)) {
                     $postNum = $postCollect->post_num;
-                    $scoring += $postNum*2;
+                    $scoring += $postNum * 2;
                 }
-                if(!empty($commentCollect))
-                {
+                if (!empty($commentCollect)) {
                     $commentNum = $commentCollect->comment_num;
-                    $scoring += $commentNum*3;
+                    $scoring += $commentNum * 3;
                 }
-                if(!empty($likeCollect))
-                {
+                if (!empty($likeCollect)) {
                     $likeNum = $likeCollect->like_num;
-                    $scoring += $likeNum*1;
+                    $scoring += $likeNum * 1;
                 }
-                $userInfo->put($item, collect(array('user_id'=>$item , 'score'=>$scoring)));
+                $userInfo->put($item, collect(array('user_id' => $item, 'score' => $scoring)));
             });
             return $userInfo->sortByDesc('score')->take(10)->values();
         });
@@ -258,23 +257,23 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function getActiveUserId()
     {
         $activeUser = $this->getYesterdayUserRank();
-        return $activeUser->pluck('user_rank_score' , 'user_id')->all();
+        return $activeUser->pluck('user_rank_score', 'user_id')->all();
 
     }
 
 
     public function getYesterdayUserRank()
     {
-        return Cache::rememberForever('user_rank', function() {
+        return Cache::rememberForever('user_rank', function () {
             $chinaNow = Carbon::now()->subDay(1);
-            $yesterdayTopTenRankUser =  YesterdayScore::whereHas('user' , function ($query){
-                $query->where('user_is_guest' , 0);
-            })->with('user')->where('yesterday_scores.rank_date' , date('Y-m-d' , strtotime($chinaNow)))
-                ->orderBy('user_score' , 'DESC')
-                ->orderBy('user_id' , 'DESC')
+            $yesterdayTopTenRankUser = YesterdayScore::whereHas('user', function ($query) {
+                $query->where('user_is_guest', 0);
+            })->with('user')->where('yesterday_scores.rank_date', date('Y-m-d', strtotime($chinaNow)))
+                ->orderBy('user_score', 'DESC')
+                ->orderBy('user_id', 'DESC')
                 ->limit(10)->get();
             $userRank = collect();
-            $yesterdayTopTenRankUser->each(function($item , $key) use (&$userRank){
+            $yesterdayTopTenRankUser->each(function ($item, $key) use (&$userRank) {
                 $user = $item->user;
                 $user->user_rank_score = $item->user_score;
                 $userRank->push($user);
@@ -282,6 +281,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             return $userRank;
         });
     }
+
     public function generateYesterdayUserRank()
     {
         $yesterdayRankKey = 'user_yesterday_rank';
@@ -289,85 +289,79 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
         //清除当前缓存防止多次生成
         Redis::del($yesterdayRankKey);
-        DB::table('yesterday_scores')->where('rank_date' , date('Y-m-d' , strtotime($chinaNow)))->delete();
+        DB::table('yesterday_scores')->where('rank_date', date('Y-m-d', strtotime($chinaNow)))->delete();
 
 
-        $post = Post::where('post_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-            ->where('post_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+        $post = Post::where('post_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
+            ->where('post_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))
             ->groupBy('user_id')
-            ->select(DB::raw('count(*) as post_num') , 'user_id')
-            ->orderBy('post_num' , 'desc')
-            ->orderBy('user_id' , 'desc');
+            ->select(DB::raw('count(*) as post_num'), 'user_id')
+            ->orderBy('post_num', 'desc')
+            ->orderBy('user_id', 'desc');
         $post->chunk(10, function ($posts) use ($yesterdayRankKey) {
             foreach ($posts as $post) {
                 $postNum = $post->post_num;
-                $score = $postNum*2;
-                if(Redis::zrank($yesterdayRankKey , $post->user_id)==null)
-                {
-                    Redis::zadd($yesterdayRankKey , $score , $post->user_id);
-                }else{
-                    Redis::zincrby($yesterdayRankKey , $score , $post->user_id);
+                $score = $postNum * 2;
+                if (Redis::zrank($yesterdayRankKey, $post->user_id) == null) {
+                    Redis::zadd($yesterdayRankKey, $score, $post->user_id);
+                } else {
+                    Redis::zincrby($yesterdayRankKey, $score, $post->user_id);
                 }
             }
         });
-        $comment = PostComment::where('comment_created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-            ->where('comment_created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+        $comment = PostComment::where('comment_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
+            ->where('comment_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))
             ->groupBy('user_id')
-            ->select(DB::raw('count(*) as comment_num') , 'user_id')
-            ->orderBy('comment_num' , 'desc')
-            ->orderBy('user_id' , 'desc');
+            ->select(DB::raw('count(*) as comment_num'), 'user_id')
+            ->orderBy('comment_num', 'desc')
+            ->orderBy('user_id', 'desc');
 
         $comment->chunk(10, function ($comments) use ($yesterdayRankKey) {
             foreach ($comments as $comment) {
                 $commentNum = $comment->comment_num;
-                $score = $commentNum*3;
-                if(Redis::zrank($yesterdayRankKey , $comment->user_id)==null)
-                {
-                    Redis::zadd($yesterdayRankKey , $score , $comment->user_id);
-                }else{
-                    Redis::zincrby($yesterdayRankKey , $score , $comment->user_id);
+                $score = $commentNum * 3;
+                if (Redis::zrank($yesterdayRankKey, $comment->user_id) == null) {
+                    Redis::zadd($yesterdayRankKey, $score, $comment->user_id);
+                } else {
+                    Redis::zincrby($yesterdayRankKey, $score, $comment->user_id);
                 }
             }
         });
 
-        $like = Like::where('created_at' , '>=' , date('Y-m-d 00:00:00' , strtotime($chinaNow)))
-            ->where('created_at' , '<=' , date('Y-m-d 23:59:59' , strtotime($chinaNow)))
+        $like = Like::where('created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
+            ->where('created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))
             ->groupBy('user_id')
-            ->select(DB::raw('count(*) as like_num') , 'user_id')
-            ->orderBy('like_num' , 'desc')
+            ->select(DB::raw('count(*) as like_num'), 'user_id')
+            ->orderBy('like_num', 'desc')
             ->orderBy('user_id');
         $like->chunk(10, function ($likes) use ($yesterdayRankKey) {
             foreach ($likes as $like) {
                 $likeNum = $like->like_num;
                 $score = $likeNum;
-                if(Redis::zrank($yesterdayRankKey , $like->user_id)==null)
-                {
-                    Redis::zadd($yesterdayRankKey , $score , $like->user_id);
-                }else{
-                    Redis::zincrby($yesterdayRankKey , $score , $like->user_id);
+                if (Redis::zrank($yesterdayRankKey, $like->user_id) == null) {
+                    Redis::zadd($yesterdayRankKey, $score, $like->user_id);
+                } else {
+                    Redis::zincrby($yesterdayRankKey, $score, $like->user_id);
                 }
             }
         });
         $i = 0;
-        $rankCount = Redis::zcard($yesterdayRankKey)-1;
-        do{
-            $turn = $i+9;
-            if($i>=$rankCount)
-            {
+        $rankCount = Redis::zcard($yesterdayRankKey) - 1;
+        do {
+            $turn = $i + 9;
+            if ($i >= $rankCount) {
                 break;
             }
             $rankData = array();
-            $userScores = Redis::zrevrange($yesterdayRankKey , $i , $turn , 'WITHSCORES');
-            foreach ($userScores as $user_id=>$user_score)
-            {
-                array_push($rankData, array('user_id'=>$user_id , 'user_score'=>$user_score , 'rank_date'=>date('Y-m-d' , strtotime($chinaNow))));
+            $userScores = Redis::zrevrange($yesterdayRankKey, $i, $turn, 'WITHSCORES');
+            foreach ($userScores as $user_id => $user_score) {
+                array_push($rankData, array('user_id' => $user_id, 'user_score' => $user_score, 'rank_date' => date('Y-m-d', strtotime($chinaNow))));
             }
-            if(!empty($rankData))
-            {
+            if (!empty($rankData)) {
                 DB::table('yesterday_scores')->insert($rankData);
             }
-            $i = $turn+1;
-        }while(true);
+            $i = $turn + 1;
+        } while (true);
         Cache::forget('user_rank');
         $this->getYesterdayUserRank();
     }
@@ -385,11 +379,10 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function removeHiddenUsers($id, $user_id)
     {
         $userHiddenUsersKey = $this->hiddenUsersMemKey($id);
-        if(Redis::sismember($userHiddenUsersKey , $user_id))
-        {
-            Redis::srem($userHiddenUsersKey , $user_id);
-            BlockUser::where('user_id' , $id)->where('blocked_user_id' , $user_id)->update(
-                array('is_deleted'=>1)
+        if (Redis::sismember($userHiddenUsersKey, $user_id)) {
+            Redis::srem($userHiddenUsersKey, $user_id);
+            BlockUser::where('user_id', $id)->where('blocked_user_id', $user_id)->update(
+                array('is_deleted' => 1)
             );
         }
     }
@@ -421,7 +414,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
      */
     public function hiddenUsersMemKey($id)
     {
-        return 'user.'.$id.'.hidden.users';
+        return 'user.' . $id . '.hidden.users';
     }
 
     /**
@@ -433,12 +426,11 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function updateHiddenUsers($id, $user_id)
     {
         $userHiddenUsersKey = $this->hiddenUsersMemKey($id);
-        if(!Redis::sismember($userHiddenUsersKey , $user_id))
-        {
-            Redis::sadd($userHiddenUsersKey , $user_id);
+        if (!Redis::sismember($userHiddenUsersKey, $user_id)) {
+            Redis::sadd($userHiddenUsersKey, $user_id);
             BlockUser::create(array(
-                'user_id'=>$id,
-                'blocked_user_id'=>$user_id,
+                'user_id' => $id,
+                'blocked_user_id' => $user_id,
             ));
         }
 //        return Redis::smembers($userHiddenUsersKey);
@@ -452,7 +444,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $hiddenUsers;*/
     }
 
-    public function hiddenUsers($id=0)
+    public function hiddenUsers($id = 0)
     {
         if ($id === 0) {
             $id = \Auth::id();
@@ -466,7 +458,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         */
     }
 
-    public function hiddenPosts($id=0)
+    public function hiddenPosts($id = 0)
     {
         if ($id === 0) {
             $id = \Auth::id();
@@ -480,23 +472,23 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $value;*/
     }
 
-    public function initHiddenUsers($id=0)
+    public function initHiddenUsers($id = 0)
     {
         if ($id === 0) {
             $id = \Auth::id();
         }
         $data = collect();
-        Redis::hmset('user.'.$id.'.data', array('hiddenUsers'=>$data));
+        Redis::hmset('user.' . $id . '.data', array('hiddenUsers' => $data));
         return $data->all();
     }
 
-    public function initHiddenPosts($id=0)
+    public function initHiddenPosts($id = 0)
     {
         if ($id === 0) {
             $id = \Auth::id();
         }
         $data = collect();
-        Redis::hmset('user.'.$id.'.data', array('hiddenPosts'=>$data));
+        Redis::hmset('user.' . $id . '.data', array('hiddenPosts' => $data));
         return $data->all();
     }
 
@@ -509,37 +501,32 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function randDiffRyOnlineUserByHobby()
     {
         $selfUser = intval(request()->input('self'));
-        if($selfUser>0)
-        {
+        if ($selfUser > 0) {
             RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
             $where = '';
             $country_code = config('countries');
-            $usedUser = (array)request()->input('used' , array());
-            $usedUser = array_slice($usedUser , 0 , 29);
-            array_push($usedUser , $selfUser);
+            $usedUser = (array)request()->input('used', array());
+            $usedUser = array_slice($usedUser, 0, 29);
+            array_push($usedUser, $selfUser);
             $usedUser = array_unique($usedUser);
-            $usedUser = array_filter($usedUser , function($v){
+            $usedUser = array_filter($usedUser, function ($v) {
                 return !empty($v);
             });
-            $usedUser = array_merge($usedUser , [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
-            $userIds = join(',' , $usedUser);
-            if(!blank($userIds))
-            {
-                if(blank($where))
-                {
+            $usedUser = array_merge($usedUser, [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
+            $userIds = join(',', $usedUser);
+            if (!blank($userIds)) {
+                if (blank($where)) {
                     $where .= "where u1.user_id not in ({$userIds})";
-                }else{
+                } else {
                     $where .= " AND u1.user_id not in ({$userIds})";
                 }
                 $where .= " AND u1.user_id not in ({$userIds})";
             }
             $hobby = strval(request()->input('hobby'));
-            if(!blank($hobby)&&in_array($hobby , array('kpop' , 'anime' , 'sad' , 'music' , 'games' , 'sports')))
-            {
-                if(blank($where))
-                {
+            if (!blank($hobby) && in_array($hobby, array('kpop', 'anime', 'sad', 'music', 'games', 'sports'))) {
+                if (blank($where)) {
                     $where .= "where u1.{$hobby} = 1";
-                }else{
+                } else {
                     $where .= " AND u1.{$hobby} = 1";
                 }
             }
@@ -550,17 +537,16 @@ DOC;
 //SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
 //DOC;
             $user = collect(\DB::select($onlineSql))->first();
-            if(blank($user))
-            {
+            if (blank($user)) {
                 return $this->findOrFail($this->randRyOnlineUser());
             }
-            $country_id = intval($user->user_country_id-1);
+            $country_id = intval($user->user_country_id - 1);
             $user->user_level = 0;
             $user->user_country = strtolower($country_code[$country_id]);
-            $user->user_avatar_link = config('common.qnUploadDomain.avatar_domain').$user->user_avatar.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+            $user->user_avatar_link = config('common.qnUploadDomain.avatar_domain') . $user->user_avatar . '?imageView2/0/w/50/h/50/interlace/1|imageslim';
             $user->user_continent = getContinentByCountry($user->user_country);
             return $user;
-        }else{
+        } else {
             return $this->findOrFail($this->randRyOnlineUser());
         }
     }
@@ -568,72 +554,62 @@ DOC;
     public function randDiffRyOnlineUserV2()
     {
         $selfUser = intval(request()->input('self'));
-        if($selfUser>0)
-        {
+        if ($selfUser > 0) {
             RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
             $where = '';
             $country_code = config('countries');
-            $user_gender = intval(request()->input('user_gender' , 2));
-            $country = strval(request()->input('country' , 0));
-            $country_op = intval(request()->input('country_op' , 0));
-            $user_country = array_search(strtoupper($country) , config('countries'));
-            $user_country_id = $user_country===false?0:$user_country+1;
+            $user_gender = intval(request()->input('user_gender', 2));
+            $country = strval(request()->input('country', 0));
+            $country_op = intval(request()->input('country_op', 0));
+            $user_country = array_search(strtoupper($country), config('countries'));
+            $user_country_id = $user_country === false ? 0 : $user_country + 1;
 //            $operator = $country_op===0?'!=':'=';
-            $usedUser = (array)request()->input('used' , array());
-            $userAge = strval(request()->input('user_age' , "0,0"));
-            $usedUser = array_slice($usedUser , 0 , 29);
-            array_push($usedUser , $selfUser);
+            $usedUser = (array)request()->input('used', array());
+            $userAge = strval(request()->input('user_age', "0,0"));
+            $usedUser = array_slice($usedUser, 0, 29);
+            array_push($usedUser, $selfUser);
             $usedUser = array_unique($usedUser);
-            $usedUser = array_filter($usedUser , function($v){
+            $usedUser = array_filter($usedUser, function ($v) {
                 return !empty($v);
             });
-            $usedUser = array_merge($usedUser , [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
-            $userIds = join(',' , $usedUser);
-            if(in_array($user_gender , array(0 , 1)))
-            {
-                if(blank($where))
-                {
+            $usedUser = array_merge($usedUser, [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
+            $userIds = join(',', $usedUser);
+            if (in_array($user_gender, array(0, 1))) {
+                if (blank($where)) {
                     $where .= "where u1.user_gender = {$user_gender}";
-                }else{
+                } else {
                     $where .= " AND u1.user_gender = {$user_gender}";
                 }
             }
-            if(in_array($country_op , array(0 , 1)))
-            {
-                $operator = $country_op===0?'!=':'=';
-                if(blank($where))
-                {
+            if (in_array($country_op, array(0, 1))) {
+                $operator = $country_op === 0 ? '!=' : '=';
+                if (blank($where)) {
                     $where .= "where u1.user_country_id {$operator} {$user_country_id}";
-                }else{
+                } else {
                     $where .= " AND u1.user_country_id {$operator} {$user_country_id}";
                 }
             }
-            if(!blank($userIds))
-            {
-                if(blank($where))
-                {
+            if (!blank($userIds)) {
+                if (blank($where)) {
                     $where .= "where u1.user_id not in ({$userIds})";
-                }else{
+                } else {
                     $where .= " AND u1.user_id not in ({$userIds})";
                 }
             }
-            if($userAge!='0,0')
-            {
-                $userAge = $userAge.",";
-                list ($userStartAge , $userEndAge) = explode(',' , $userAge);
+            if ($userAge != '0,0') {
+                $userAge = $userAge . ",";
+                list ($userStartAge, $userEndAge) = explode(',', $userAge);
                 $userStartAge = intval($userStartAge);
                 $userEndAge = intval($userEndAge);
-                if($userStartAge>0&&$userStartAge<$userEndAge&&$userEndAge<=100)
-                {
-                    if(blank($where))
-                    {
+                if ($userStartAge > 0 && $userStartAge < $userEndAge && $userEndAge <= 100) {
+                    if (blank($where)) {
                         $where .= "where u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
-                    }else{
+                    } else {
                         $where .= " AND u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
                     }
                 }
             }
-            !blank($where)&&$where = $where." AND";
+            !blank($where) && $where = $where . " AND";
             $onlineSql = <<<DOC
 SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
 DOC;
@@ -641,17 +617,16 @@ DOC;
 //SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
 //DOC;
             $user = collect(\DB::select($onlineSql))->first();
-            if(blank($user))
-            {
+            if (blank($user)) {
                 return $this->findOrFail($this->randRyOnlineUser());
             }
-            $country_id = intval($user->user_country_id-1);
+            $country_id = intval($user->user_country_id - 1);
             $user->user_level = 0;
             $user->user_country = strtolower($country_code[$country_id]);
-            $user->user_avatar_link = config('common.qnUploadDomain.avatar_domain').$user->user_avatar.'?imageView2/0/w/50/h/50/interlace/1|imageslim';
+            $user->user_avatar_link = config('common.qnUploadDomain.avatar_domain') . $user->user_avatar . '?imageView2/0/w/50/h/50/interlace/1|imageslim';
             $user->user_continent = getContinentByCountry($user->user_country);
             return $user;
-        }else{
+        } else {
             return $this->findOrFail($this->randRyOnlineUser());
         }
     }
@@ -660,40 +635,35 @@ DOC;
     {
         $key = 'ry_user_online_status';
         $selfUser = intval(request()->input('self'));
-        if($selfUser>0)
-        {
+        if ($selfUser > 0) {
             RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
-            $tmpUsedUserKey = 'ry_tmp_used_user_'.$selfUser;
-            $diffUsedUserKey = 'ry_diff_used_user_'.$selfUser;
-            $usedUser = request()->input('used' , array());
-            $usedUser = getType($usedUser)=='array'?$usedUser:array();
-            $usedUser = array_slice($usedUser , 0 , 2);
-            array_push($usedUser , $selfUser);
+            $tmpUsedUserKey = 'ry_tmp_used_user_' . $selfUser;
+            $diffUsedUserKey = 'ry_diff_used_user_' . $selfUser;
+            $usedUser = request()->input('used', array());
+            $usedUser = getType($usedUser) == 'array' ? $usedUser : array();
+            $usedUser = array_slice($usedUser, 0, 2);
+            array_push($usedUser, $selfUser);
             $usedUser = array_unique($usedUser);
-            if(!empty($usedUser))
-            {
-                Redis::sadd($tmpUsedUserKey , $usedUser);
+            if (!empty($usedUser)) {
+                Redis::sadd($tmpUsedUserKey, $usedUser);
             }
-            Redis::sdiffstore($diffUsedUserKey , array($key , $tmpUsedUserKey));
+            Redis::sdiffstore($diffUsedUserKey, array($key, $tmpUsedUserKey));
 
-            $user =  Redis::srandmember($diffUsedUserKey);
+            $user = Redis::srandmember($diffUsedUserKey);
 
             Redis::del($diffUsedUserKey);
             Redis::del($tmpUsedUserKey);
-            if(intval($user)<=0)
-            {
+            if (intval($user) <= 0) {
                 $randUsersFile = 'randUsers/users.json';
-                if(Storage::exists($randUsersFile))
-                {
-                    $randUsers = \json_decode(Storage::get($randUsersFile) , true);
-                    if(getType($randUsers)=='array')
-                    {
-                        $user = array_random(array_unique(array_diff($randUsers , $usedUser)));
+                if (Storage::exists($randUsersFile)) {
+                    $randUsers = \json_decode(Storage::get($randUsersFile), true);
+                    if (getType($randUsers) == 'array') {
+                        $user = array_random(array_unique(array_diff($randUsers, $usedUser)));
                     }
                 }
             }
             return $user;
-        }else{
+        } else {
             return $this->randRyOnlineUser();
         }
     }
@@ -718,18 +688,20 @@ DOC;
             $status = intval($status)>0?0:1;
             Redis::setBit($bitKey , $userId , $status);
             Redis::zadd($lastActivityTime , $time , $userId);
+
         });
         RyOnline::dispatch(array(
             'offlineUsers'=>$offlineUsers->all(),
             'onlineUsers'=>$onlineUsers->all(),
         ))->onConnection('sqs-fifo')->onQueue('ry_user_online.fifo');
+
     }
 
     public function isOnline($id)
     {
         $bitKey = 'ry_user_online_state_bit';
         $bitKey = 'ry_user_online_status_bit';
-        $statue = Redis::getBit($bitKey , $id);
+        $statue = Redis::getBit($bitKey, $id);
         return (bool)intval($statue);
     }
 
@@ -739,7 +711,7 @@ DOC;
         $userData = [
             'hiddenPosts' => $this->hiddenPosts($user->user_id),
         ];
-        Redis::hmset('user.'.$id.'.data', $userData);
+        Redis::hmset('user.' . $id . '.data', $userData);
         return $userData;
     }
 
@@ -750,7 +722,7 @@ DOC;
      */
     public function hiddenPostsMemKey($id)
     {
-        return 'user.'.$id.'.hidden.posts';
+        return 'user.' . $id . '.hidden.posts';
     }
 
     /**
@@ -762,13 +734,12 @@ DOC;
     public function updateHiddenPosts($id, $post_uuid)
     {
         $userHiddenPostsKey = $this->hiddenPostsMemKey($id);
-        if(!Redis::sismember($userHiddenPostsKey , $post_uuid))
-        {
-            Redis::sadd($userHiddenPostsKey , $post_uuid);
+        if (!Redis::sismember($userHiddenPostsKey, $post_uuid)) {
+            Redis::sadd($userHiddenPostsKey, $post_uuid);
             BlockPost::create(
                 array(
-                    'user_id'=>$id,
-                    'blocked_post_uuid'=>$post_uuid,
+                    'user_id' => $id,
+                    'blocked_post_uuid' => $post_uuid,
                 )
             );
         }
@@ -822,7 +793,7 @@ DOC;
 
     public function isBlackUser($user_id)
     {
-       return BlackUser::where('user_id',$user_id)->where('is_delete', 0)->first();
+        return BlackUser::where('user_id', $user_id)->where('is_delete', 0)->first();
     }
 
     public function getDeletedUsers()
@@ -834,29 +805,28 @@ DOC;
     {
         $faker = [
         ];
-        return $this->model->inRandomOrder()->whereIn('user_id' , $faker)->take(10)->get();
+        return $this->model->inRandomOrder()->whereIn('user_id', $faker)->take(10)->get();
     }
 
     public function findByLikeName($name)
     {
-        return $this->model->where('user_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id' , 'user_name' ,'user_nick_name' , 'user_level' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
+        return $this->model->where('user_name', 'like', "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id', 'user_name', 'user_nick_name', 'user_level', 'user_avatar', 'user_score', 'user_country_id', 'user_is_guest')->limit(5)->get();
     }
 
     public function findByLikeNickName($name)
     {
-        return $this->model->where('user_nick_name' , 'like' , "%{$name}%")->orderByRaw("REPLACE(user_nick_name,'{$name}','')")->select('user_id' , 'user_name' , 'user_nick_name' , 'user_level' , 'user_avatar' , 'user_score' , 'user_country_id' , 'user_is_guest')->limit(5)->get();
+        return $this->model->where('user_nick_name', 'like', "%{$name}%")->orderByRaw("REPLACE(user_nick_name,'{$name}','')")->select('user_id', 'user_name', 'user_nick_name', 'user_level', 'user_avatar', 'user_score', 'user_country_id', 'user_is_guest')->limit(5)->get();
     }
 
     public function profileLike($id)
     {
         $likeUser = auth()->user();
         $likeUserId = $likeUser->user_id;
-        $userProfileLikeKey = 'user.'.$id.'.profile.like';
-        if(Redis::zrank($userProfileLikeKey , $likeUserId)===null)
-        {
+        $userProfileLikeKey = 'user.' . $id . '.profile.like';
+        if (Redis::zrank($userProfileLikeKey, $likeUserId) === null) {
             $user = $this->findOrFail($id);
-            $like = $likeUser->profileLike()->updateOrCreate(array('profile_user_id'=>$user->getKey()));
-            event(new UserProfileLikeEvent($likeUser , $user , $like));
+            $like = $likeUser->profileLike()->updateOrCreate(array('profile_user_id' => $user->getKey()));
+            event(new UserProfileLikeEvent($likeUser, $user, $like));
         }
     }
 
@@ -864,37 +834,36 @@ DOC;
     {
         $likeUser = auth()->user();
         $likeUserId = $likeUser->user_id;
-        $userProfileLikeKey = 'user.'.$id.'.profile.like';
-        if(Redis::zrank($userProfileLikeKey , $likeUserId)!==null)
-        {
+        $userProfileLikeKey = 'user.' . $id . '.profile.like';
+        if (Redis::zrank($userProfileLikeKey, $likeUserId) !== null) {
             $user = $this->findOrFail($id);
             $likeUser->profileLike()->delete();
-            event(new UserProfileRevokeLikeEvent($likeUser , $user));
+            event(new UserProfileRevokeLikeEvent($likeUser, $user));
         }
     }
 
-    public function attachTags(Model $user  , $tag_slug)
+    public function attachTags(Model $user, $tag_slug)
     {
         $userTags = config('user-tag');
-        $tag_slug = array_filter($tag_slug ,function($v) use ($userTags){
-            return in_array($v , $userTags);
+        $tag_slug = array_filter($tag_slug, function ($v) use ($userTags) {
+            return in_array($v, $userTags);
         });
-        $tagIds = array_map(function($v) use ($userTags){
-            return array_search($v , $userTags);
-        } , $tag_slug);
-        $tagIds = array_filter($tagIds ,function($v){
+        $tagIds = array_map(function ($v) use ($userTags) {
+            return array_search($v, $userTags);
+        }, $tag_slug);
+        $tagIds = array_filter($tagIds, function ($v) {
             return is_int($v);
         });
         $taggable_id = $user->getKey();
         $taggable_type = $user->getMorphClass();
-        $userTaggable = UserTaggable::where('taggable_id' , $taggable_id)->where('taggable_type' , $taggable_type)->pluck('tag_id')->all();
-        $newTagIds = array_diff($tagIds , $userTaggable);
-        $removeTagIds = array_diff($userTaggable , $tagIds);
-        $newTags = array_map(function($v) use ($taggable_id , $taggable_type){
-            return array('taggable_id'=>$taggable_id , 'tag_id'=>$v , 'taggable_type'=>$taggable_type);
-        } , $newTagIds);
-        !blank($newTags)&&UserTaggable::insert($newTags);
-        !blank($removeTagIds)&&UserTaggable::where('taggable_id' , $taggable_id)->whereIn('tag_id' , $removeTagIds)->delete();
+        $userTaggable = UserTaggable::where('taggable_id', $taggable_id)->where('taggable_type', $taggable_type)->pluck('tag_id')->all();
+        $newTagIds = array_diff($tagIds, $userTaggable);
+        $removeTagIds = array_diff($userTaggable, $tagIds);
+        $newTags = array_map(function ($v) use ($taggable_id, $taggable_type) {
+            return array('taggable_id' => $taggable_id, 'tag_id' => $v, 'taggable_type' => $taggable_type);
+        }, $newTagIds);
+        !blank($newTags) && UserTaggable::insert($newTags);
+        !blank($removeTagIds) && UserTaggable::where('taggable_id', $taggable_id)->whereIn('tag_id', $removeTagIds)->delete();
 //        $tags = UserTag::whereIn('tag_slug' , $tag_slug)->select('tag_id' , 'tag_slug')->get();
 //        $tags_id = $tags->pluck('tag_id')->toArray();
 //        $tags_id = array_filter($tags_id ,function($v){
@@ -907,8 +876,8 @@ DOC;
     {
         $userIds = $this->randReferFriend();
         $referFriends = array();
-        $userIds = array_unique(array_merge($userIds , $referFriends));
-        $userIds = array_diff($userIds , array(auth()->id()));
+        $userIds = array_unique(array_merge($userIds, $referFriends));
+        $userIds = array_diff($userIds, array(auth()->id()));
         $query = $this->model->query();
         return $query->whereIn("user_id", $userIds)->get();
     }
@@ -916,30 +885,30 @@ DOC;
     public function randReferFriend()
     {
         $key = 'ry_user_online_status';
-        return Redis::srandmember($key , config('common.refer_friend_num'));
+        return Redis::srandmember($key, config('common.refer_friend_num'));
     }
 
-    public function attachRegions(Model $user  , $region_slug)
+    public function attachRegions(Model $user, $region_slug)
     {
         $userRegions = config('user-region');
-        $region_slug = array_filter($region_slug ,function($v) use ($userRegions){
-            return in_array($v , $userRegions);
+        $region_slug = array_filter($region_slug, function ($v) use ($userRegions) {
+            return in_array($v, $userRegions);
         });
-        $regionIds = array_map(function($v) use ($userRegions){
-            return array_search($v , $userRegions);
-        } , $region_slug);
-        $regionIds = array_filter($regionIds ,function($v){
+        $regionIds = array_map(function ($v) use ($userRegions) {
+            return array_search($v, $userRegions);
+        }, $region_slug);
+        $regionIds = array_filter($regionIds, function ($v) {
             return is_int($v);
         });
         $userId = $user->getKey();
-        $userRegions = UserRegion::where('user_id' , $userId)->pluck('region_id')->all();
-        $newRegionIds = array_diff($regionIds , $userRegions);
-        $removeRegionIds = array_diff($userRegions , $regionIds);
-        $newRegions = array_map(function($v) use ($userId){
-            return array('user_id'=>$userId , 'region_id'=>$v);
-        } , $newRegionIds);
-        !blank($newRegions)&&UserRegion::insert($newRegions);
-        !blank($removeRegionIds)&&UserRegion::where('user_id' , $userId)->whereIn('region_id' , $removeRegionIds)->delete();
+        $userRegions = UserRegion::where('user_id', $userId)->pluck('region_id')->all();
+        $newRegionIds = array_diff($regionIds, $userRegions);
+        $removeRegionIds = array_diff($userRegions, $regionIds);
+        $newRegions = array_map(function ($v) use ($userId) {
+            return array('user_id' => $userId, 'region_id' => $v);
+        }, $newRegionIds);
+        !blank($newRegions) && UserRegion::insert($newRegions);
+        !blank($removeRegionIds) && UserRegion::where('user_id', $userId)->whereIn('region_id', $removeRegionIds)->delete();
 //
 //        $regions = Region::whereIn('region_slug' , $region_slug)->select('region_id' , 'region_slug')->get();
 //        $regions_id = $regions->pluck('region_id')->toArray();
@@ -959,33 +928,28 @@ DOC;
     {
         $country_code = config('countries');
         $users = DB::table('ry_online_users');
-        $user_gender = intval(request()->input('user_gender' , 2));
-        $country = strval(request()->input('country' , 0));
-        $country_op = intval(request()->input('country_op' , 2));
-        $user_country = array_search(strtoupper($country) , $country_code);
-        $userAge = strval(request()->input('user_age' , "0,0"));
-        $user_country_id = $user_country===false?0:$user_country+1;
-        if($country_op==1)
-        {
-            !empty($user_country_id)&&$users = $users->where('user_country_id' , $user_country_id);
-        }elseif ($country_op==0)
-        {
-            !empty($user_country_id)&&$users = $users->where('user_country_id' , '!='  , $user_country_id);
+        $user_gender = intval(request()->input('user_gender', 2));
+        $country = strval(request()->input('country', 0));
+        $country_op = intval(request()->input('country_op', 2));
+        $user_country = array_search(strtoupper($country), $country_code);
+        $userAge = strval(request()->input('user_age', "0,0"));
+        $user_country_id = $user_country === false ? 0 : $user_country + 1;
+        if ($country_op == 1) {
+            !empty($user_country_id) && $users = $users->where('user_country_id', $user_country_id);
+        } elseif ($country_op == 0) {
+            !empty($user_country_id) && $users = $users->where('user_country_id', '!=', $user_country_id);
         }
-        if(in_array($user_gender , array(0 , 1)))
-        {
-            $users = $users->where('user_gender' , $user_gender);
+        if (in_array($user_gender, array(0, 1))) {
+            $users = $users->where('user_gender', $user_gender);
         }
 
-        if($userAge!='0,0')
-        {
-            $userAge = $userAge.",";
-            list ($userStartAge , $userEndAge) = explode(',' , $userAge);
+        if ($userAge != '0,0') {
+            $userAge = $userAge . ",";
+            list ($userStartAge, $userEndAge) = explode(',', $userAge);
             $userStartAge = intval($userStartAge);
             $userEndAge = intval($userEndAge);
-            if($userStartAge>0&&$userStartAge<$userEndAge&&$userEndAge<=100)
-            {
-                $users = $users->whereBetween('user_age' , array($userStartAge , $userEndAge));
+            if ($userStartAge > 0 && $userStartAge < $userEndAge && $userEndAge <= 100) {
+                $users = $users->whereBetween('user_age', array($userStartAge, $userEndAge));
             }
         }
         $userIds = $users->inRandomOrder()->take(10)->get()->pluck('user_id')->toArray();
@@ -994,17 +958,16 @@ DOC;
 
     public function planet()
     {
-        $num = intval(request()->input('num' , 20));
-        $num = $num<10||$num>30?10:$num;
+        $num = intval(request()->input('num', 20));
+        $num = $num < 10 || $num > 30 ? 10 : $num;
         $key = 'ry_user_online_status';
-        return Redis::srandmember($key , $num);
+        return Redis::srandmember($key, $num);
     }
 
     public function userFollow($userIds)
     {
-        if(auth()->check()&&!empty($userIds))
-        {
-            return \DB::table('common_follows')->where('user_id' , auth()->id())->where('followable_type' , "App\Models\User")->where('relation' , "follow")->whereIn('followable_id' , $userIds)->pluck('followable_id')->all();
+        if (auth()->check() && !empty($userIds)) {
+            return \DB::table('common_follows')->where('user_id', auth()->id())->where('followable_type', "App\Models\User")->where('relation', "follow")->whereIn('followable_id', $userIds)->pluck('followable_id')->all();
         }
         return array();
     }
@@ -1044,7 +1007,7 @@ DOC;
      * @return
      * 初始化 用户主页 浏览量
      */
-    public function virtualViewCount($user, $switch=Constant::USER_MAIN_VISIT_STATUS)
+    public function virtualViewCount($user, $switch = Constant::USER_MAIN_VISIT_STATUS)
     {
         if ($user->virtual_view_count === null) {
             $view = DB::select("SELECT
@@ -1052,10 +1015,10 @@ DOC;
             FROM f_users u LEFT JOIN f_posts p ON u.user_id = p.user_id WHERE u.user_id =?", [$user->user_id]);
 
             $view = current($view);
-            User::where('user_id', $user->user_id)->update(['virtual_view_count'=>$view->view_count ?? 0]);
+            User::where('user_id', $user->user_id)->update(['virtual_view_count' => $view->view_count ?? 0]);
             $user->virtual_view_count = $view->view_count;
         }
-        $user->view_count  = $user->virtual_view_count + Redis::hget(config('redis-key.user.user_visit'), $user->user_id) ?? 0;
+        $user->view_count = $user->virtual_view_count + Redis::hget(config('redis-key.user.user_visit'), $user->user_id) ?? 0;
         $user->view_status = $switch;
         unset($user->virtual_view_count);
         return $user;
@@ -1068,33 +1031,35 @@ DOC;
      */
     public function viewPage($id)
     {
-        $user  = $this->findOrFail($id);
+        $user = $this->findOrFail($id);
         $total = Redis::hget(config('redis-key.user.user_visit'), $id);
 
-        $total    = $user->virtual_view_count+$total;
-        $today    = date('Y-m-d');
-        $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
-
-        $data     = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
+        $total = $user->virtual_view_count + $total;
+        $today = date('Y-m-d');
+        $count = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
+        $data = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)
             ->orderBy('created_at', 'desc')->groupBy('user_id')->limit(10)->get();
-        $userIds  = $data->pluck('user_id')->toArray();
-        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
+
+        $userIds = $data->pluck('user_id')->toArray();
+
+        $friends = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
         $userList = User::whereIn('user_id', $userIds)->get();
 
         $userList->each(function ($user) use ($data, $friends) {
             $user->is_friend = in_array($user->user_id, $friends);
-            $data->each(function ($item) use($user) {
-                if ($item->user_id==$user->user_id) {
-                    $user->visit_time= dateTrans($item->created_at);
+            $data->each(function ($item) use ($user) {
+                if ($item->user_id == $user->user_id) {
+                    $user->time = $item->created_at->timestamp;
+                    $user->visit_time = dateTrans($item->created_at);
                 }
             });
         });
 
         return [
-            'total'      => $total,
+            'total' => $total,
             'todayCount' => $count,
-            'todayUser'  => count($data),
-            'userList'   => UserCollection::collection($userList->sortBy('visit_time'))
+            'todayUser' => count($data),
+            'userList' => UserCollection::collection($userList->sortByDesc('time')->values())
         ];
 
     }
