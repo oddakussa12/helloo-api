@@ -218,7 +218,8 @@ trait CachableUser
     public function userFollowMeCount($id)
     {
         $userFollowMesKey = config('redis-key.user.follow_me');
-        return intval(Redis::zscore($userFollowMesKey , $id));
+        $count = intval(Redis::zscore($userFollowMesKey , $id));
+        return $count >0 ? $count : 0;
     }
 
 
