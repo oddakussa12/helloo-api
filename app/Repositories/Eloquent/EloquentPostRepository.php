@@ -147,7 +147,9 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
                     $posts = $posts->select('posts.*')->join('common_follows', 'common_follows.followable_id', '=', 'posts.user_id')
                         ->where('common_follows.user_id', auth()->id())
                         ->where('common_follows.followable_type', "App\\Models\\User")
-                        ->where('common_follows.relation', 'follow');
+                        ->where('common_follows.relation', 'follow')
+                        ->where('posts.post_type', '<=', 2);
+
 //                        $appends['follow'] = $request->get('follow');
 //                        $userIds= auth()->user()->followings()->pluck('user_id')->toArray();
 //                        $posts = $posts->whereIn('user_id',$userIds);
