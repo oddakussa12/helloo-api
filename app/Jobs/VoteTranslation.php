@@ -74,14 +74,19 @@ class VoteTranslation implements ShouldQueue
         // $voteJob   = (new CustomizeTranslateService($languages))->translate($postContent, ['scource'=>$contentLang]);
         // $languages = array_diff($languages , [$contentLang]);
 
-        $translate           = app(CustomizeTranslateService::class)->setLanguages($languages);
-        $contentTranslations = $translate->translate($postContent , ['source'=>$contentLang]);
-        $translations        = $contentTranslations->getTranslations();
-        $translations        = array_merge($translations, [$contentLang=>$postContent]);
-        foreach ($translations as $l=>$translation) {
-            VoteDetailTranslation::updateOrCreate(
-                ['vote_detail_id'=>$post->id, 'post_id'=>$post->post_id, 'locale'=>$l],
-                ['content'=>$translation]);
+        if (!is_array($postContent)) {
+
+            $translate           = app(CustomizeTranslateService::class)->setLanguages($languages);
+            $contentTranslations = $translate->translate($postContent , ['source'=>$contentLang]);
+            $translations        = $contentTranslations->getTranslations();
+            $translations        = array_merge($translations, [$contentLang=>$postContent]);
+            foreach ($translations as $l=>$translation) {
+                VoteDetailTranslation::updateOrCreate(
+                    ['vote_detail_id'=>$post->id, 'post_id'=>$post->post_id, 'locale'=>$l],
+                    ['content'=>$translation]);
+            }
+        } else {
+
         }
     }
 }
