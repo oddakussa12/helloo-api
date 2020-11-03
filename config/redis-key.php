@@ -2,6 +2,7 @@
 return [
     "user"=>[
         'user_name'=>'user.name',//用户账户
+        'user_friend'=>'user_friend',//用户好友
         'user_email'=>'user.email',//用户邮箱
         'user_visit'=>'user_visit',//用户首页访问次数
         'score_rank'=>'user.score.rank',//用户积分排行

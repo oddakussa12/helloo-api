@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use Carbon\Carbon;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 trait CachableUser
@@ -27,6 +28,29 @@ trait CachableUser
         );
         $data = $data+$extend;
         Redis::hmset($userKey , $data);
+    }
+
+    public function getFriend($user)
+    {
+        $memKey   = config('redis-key.user.user_friend').'_'.$user->user_id;
+        $memValue = Redis::get($memKey);
+        if (!empty($memValue)) {
+            $data = json_decode($memValue, true);
+        } else {
+
+            $result = DB::select('select sum(country_count) friend_count, count(user_country_id) friend_country from (
+            SELECT count(user_id) country_count, user_country_id from f_users where user_id in(
+            select friend_id from f_users_friends where user_id=?) group by user_country_id) b', [31666]);
+            $data = !empty($result) ? (array)current($result) : [];
+            Redis::set($memKey, $memValue);
+            Redis::expire($memKey, 86400*7);
+        }
+        foreach($data as $key=>$val) {
+            $user->$key=(int)$val;
+        }
+
+        return $user;
+
     }
 
     public function getUser(int $id , $fields=array())
