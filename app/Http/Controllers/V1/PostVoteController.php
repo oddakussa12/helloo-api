@@ -108,11 +108,15 @@ class PostVoteController extends BaseController
         }
 
 
-        //$vote = !empty($voteAll[$vote_id]) ? $voteAll[$vote_id] : ['country'=>[], 'users'=>[]];
-        //$vote['country'][$country] = array_key_exists($country, $vote['country']) ? $vote['country'][$country]+1 : 1;
+        if (!empty($voteAll[$vote_id])) {
+            $vote = $voteAll[$vote_id];
+        } else {
+            $vote['country'] = [];
+            $vote['users']   = [];
+        }
+        $vote['country'][$country] = array_key_exists($country, $vote['country']) ? $vote['country'][$country]+1 : 1;
+        $vote['users'] = array_merge($vote['users'], [$user_id]);
 
-        $vote['country'][$country] = !empty($voteAll[$vote_id]['country']) ? $voteAll[$vote_id]['country'] + 1 : 1;
-        $vote['users'] = array_merge($vote[$vote_id]['users'], [$user_id]);
 
         Redis::hset($memKey, $vote_id, collect($vote));
         VoteDetail::where(['post_id' => $post['post_id'], 'id' => $vote_id])->update(['country' => serialize($vote['country']), 'vote_num' => $voteInfo['vote_num'] + 1]);
