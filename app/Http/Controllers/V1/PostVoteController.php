@@ -129,16 +129,16 @@ class PostVoteController extends BaseController
      */
     public function store(StorePostRequest $request)
     {
-        $post_title = clean($request->input('post_title', ''));
-        $post_content = clean($request->input('post_content', ''));
-        $post_type = $request->input('post_type');
+        $post_title         = clean($request->input('post_title' , ''));
+        $post_content       = clean($request->input('post_content' , ''));
+        $post_type          = $request->input('post_type');
         $post_event_country = $request->input('post_event_country');
-        $radio = $request->input('radio');
-        $longitude = $request->input('longitude'); // 经度
-        $latitude = $request->input('latitude'); // 纬度
-        $showType = $request->input('show_type', 1); // 可见范围
-        $post_image = $request->input('post_image', []);
-        $topics = array_diff((array)$request->input('topics', []), [null, '']);
+        $radio              = $request->input('radio');
+        $longitude          = $request->input('longitude'); // 经度
+        $latitude           = $request->input('latitude'); // 纬度
+        $showType           = $request->input('show_type', 1); // 可见范围
+        $post_image         = $request->input('post_image' , []);
+        $topics             = array_diff((array)$request->input('topics', []), [null , '']);
 
         \Validator::make(array('post_content' => $post_content), [
             'post_content' => ['bail', 'required', 'string', 'between:1,3000'],
@@ -206,12 +206,17 @@ class PostVoteController extends BaseController
         }
 
         // 投票贴
-        $radio = !is_array($radio) ? json_decode($radio, true) : $radio;
+        $radio        = !is_array($radio) ? json_decode($radio, true) : $radio;
+//        $textArr      = array_column($radio, 'text');
+//        $textLangArr  = $this->translate->detectLanguageBatch($textArr);
+//        $textTransArr = $this->translate->translateBatch($textArr);
+
         foreach ($radio as $key => $item) {
+            $textLang = !empty($item['text']) ? $this->translate->detectLanguage($item['text']) : 'en';
             $voteInfo['post_id'] = $post->post_id;
             $voteInfo['user_id'] = $poster->user_id;
             $voteInfo['tab_name'] = $item['tab_name'] ?? '';
-            $voteInfo['default_locale'] = !empty($item['text']) ? $this->translate->detectLanguage($item['text']) : 'en';
+            $voteInfo['default_locale'] = $textLang;
             $voteInfo['vote_type'] = !empty($item['image']) ? 'image' : 'text';
             if (!empty($item['image'])) {
                 $voteInfo['vote_media'] = json_encode([
@@ -223,8 +228,6 @@ class PostVoteController extends BaseController
 
             // 当选项内容为 文本时，需要进行翻译
             if (!empty($item['text'])) {
-                $textLang = $this->translate->detectLanguage($item['text']) ?? 'en';
-
                 if (config('common.translation_version') === 'niu') {
                     $voteJob = (new VoteTranslation($poster, $voteDetail, $item['text'], $textLang));
                 } else {

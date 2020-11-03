@@ -122,7 +122,7 @@ class UserController extends BaseController
         }
 
         $user        = $this->user->findOrFail($id);
-        $user        = $this->user->virtualViewCount($user);
+        $user        = $this->user->virtualViewCount($user, 0);
         $followerIds = $this->user->userFollow([$id]);
         $user->user_follow_state = !empty($followerIds);
         return new UserCollection($user);
