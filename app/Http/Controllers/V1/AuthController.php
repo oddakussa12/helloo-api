@@ -251,6 +251,7 @@ class AuthController extends BaseController
         $userFollowMe = $this->userFollowMeCount($user->user_id);
         $userMyFollow = $this->userMyFollowCount($user->user_id);
         $user = app(UserRepository::class)->virtualViewCount($user);
+        $user = $this->getFriend($user);
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
         $user->userFollowMe = $userFollowMe;
@@ -263,9 +264,10 @@ class AuthController extends BaseController
         $user->userTags = UserTagCollection::collection($user->user_tags);
         $user->userRegions = UserRegionCollection::collection($user->user_regions);
 
-        $user->user_avatar = $user->user_avatar_link;
-        $user->user_cover = $user->user_cover_link;
+        $user->user_avatar  = $user->user_avatar_link;
+        $user->user_cover   = $user->user_cover_link;
         $user->user_picture = $user->user_picture_link;
+        $user->create_time  = intval((time() - strtotime($user->user_created_at))/86400+1);
 
         $phone = $this->getUser($user->user_id , array('user_phone_country' , 'user_phone'));
         $user->user_phone_country = empty($phone['user_phone_country'])?'':$phone['user_phone_country'];
