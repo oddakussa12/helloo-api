@@ -1012,7 +1012,7 @@ DOC;
         $total    = $user->virtual_view_count + $total;
         $today    = date('Y-m-d');
         $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
-        $data     = DB::select("select * from (select * from f_users_visit_log where friend_id=$id and created_at >= $today order by created_at desc) as a group by user_id limit 10");
+        $data     = DB::select("select * from (select * from f_users_visit_log where friend_id={$id} and created_at >= '{$today}' order by created_at desc) as a group by user_id limit 10");
         $userIds  = !empty($data) ? array_column($data, 'user_id') : [];
 
         $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
