@@ -429,12 +429,12 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
     public function paginateByUser(Request $request, $user)
     {
         $appends = $appends = [];
-        $user    = !is_object($user) ? app(UserRepository::class)->findOrFail($user) : $user;
-        $other   = !is_object($user);
+        $userId  = auth()->check() ? auth()->user()->user_id : 0;
+        $other   = is_int($user) ? $user!=$userId : false;
+        $user    = is_int($user) ? app(UserRepository::class)->findOrFail($user) : $user;
 
         //新增帖子可见范围
-        if (!$other) {
-            $userId = auth()->check() ? auth()->user()->user_id : 0;
+        if ($other) {
             $follow = $userId ? $this->userFollowType($user->user_id, $userId) : false;
             $show   = $follow ? 2 : 1;
             $posts  = $user->posts()->where('show_type','<=', $show)->with('translations');

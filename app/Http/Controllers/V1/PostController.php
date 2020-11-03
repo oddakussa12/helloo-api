@@ -128,7 +128,7 @@ class PostController extends BaseController
 
     public function showPostByUser(Request $request , $userId)
     {
-        return PostPaginateCollection::collection($this->post->paginateByUser($request , $userId));
+        return PostPaginateCollection::collection($this->post->paginateByUser($request , (int)$userId));
     }
 
     /**
