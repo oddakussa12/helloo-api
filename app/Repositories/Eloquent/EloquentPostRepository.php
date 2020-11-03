@@ -137,9 +137,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             } else if ($type=='essence' && $follow == null){
                 $posts = $this->getCustomEssencePost($posts);
 
-            } else if ($type == 'tmp' && $follow == null) {
-                $posts = $this->getTmpPosts($posts);
-
+            } else if ($type == 'unity' && $follow == null) {
+                $posts = $this->getUnityPosts($posts);
             } else {
                 if ($follow !== null && auth()->check()) {
                     $appends['follow'] = $follow;
@@ -602,19 +601,27 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
     }
 
-    public function getTmpPosts($posts)
+    public function getUnityPosts($posts)
     {
-        $appends =array();
-        $request = request();
-        $order = $request->get('order' , 'desc')=='desc'?'desc':'asc';
-        $appends['order'] = $order;
-        $orderBy = $request->get('order_by' , 'post_created_at');
-        $appends['order_by'] = $orderBy;
-        $posts = $posts->where('post_type' , 'tpm');
+        $now   = Carbon::now();
+        $i     = intval($now->format('i'));
+        $i     = $i <= 0 ? 1 : $i;
+        $index = ceil($i/30);
+        $perPage = $this->perPage;
+        $pageName = $this->pageName;
+        $page = 1;
+        $postIds = array();
+        $publicNewNumKey = config('redis-key.post.post_index_public_new').'_'.$index;
+        $rateLOneKey = config('redis-key.post.post_index_rate_l_one').'_'.$index;
+        $rateLTwoKey = config('redis-key.post.post_index_rate_l_two').'_'.$index;
+        $rateLThreeKey = config('redis-key.post.post_index_rate_l_three').'_'.$index;
+        $postIds = array_merge($postIds , Redis::srandmember($publicNewNumKey , 3) , Redis::srandmember($rateLOneKey , 2) , Redis::srandmember($rateLTwoKey , 2) , Redis::srandmember($rateLThreeKey , 1));
         $posts = $posts->whereNull($this->model->getDeletedAtColumn());
-        $posts->orderBy($this->model->getCreatedAtColumn() , 'DESC');
-        $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
-        return $posts->appends($appends);
+        $posts = $posts->whereIn('post_id' , $postIds)->orderBy($this->model->getCreatedAtColumn() , 'DESC')->get();
+        return $this->paginator($posts, 24, $perPage, $page, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
     }
 
     public function getNewPost($posts)

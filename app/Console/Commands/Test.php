@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Traits\CachableUser;
 use App\Jobs\Test as TestJob;
 use Illuminate\Console\Command;
-
+use Illuminate\Support\Facades\Redis;
 
 
 class Test extends Command

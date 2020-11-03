@@ -9,7 +9,8 @@ trait CachablePost
 {
     public function initPost(Post $post)
     {
-        $postKey = 'post.'.$post->getKey().'.data';
+        $postId = $post->getKey();
+        $postKey = 'post.'.$postId.'.data';
         $post_hotting = $post->post_hotting;
         $data = array(
             'post_uuid'=>$post->post_uuid,
@@ -27,7 +28,14 @@ trait CachablePost
         );
         Redis::hmset($postKey , $data);
         $newKey = config('redis-key.post.post_index_new');
-        Redis::zadd($newKey , strtotime(optional($post->post_created_at)->toDateTimeString()) , $post->getKey());
+        $publicNewKey = config('redis-key.post.post_index_public_new');
+        $publicNewOneKey = config('redis-key.post.post_index_public_new')."_1";
+        $publicNewTwoKey = config('redis-key.post.post_index_public_new')."_2";
+        $time = strtotime(optional($post->post_created_at)->toDateTimeString());
+        $post->show_type==1&&Redis::zadd($publicNewKey , $time , $postId);
+        $post->show_type==1&&Redis::sadd($publicNewOneKey , $postId);
+        $post->show_type==1&&Redis::sadd($publicNewTwoKey , $postId);
+        Redis::zadd($newKey , $time , $postId);
     }
 
     public function getPost($id , array $fields=array())

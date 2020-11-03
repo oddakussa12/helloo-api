@@ -22,11 +22,15 @@ return [
         "post_index_essence_customize"=>'post_index_essence_manual',//自定义精华贴子(下拉)
         "post_index_top"=>'post_index_top',//置顶贴子
         "post_index_new"=>'post_index_new',//最新贴子
+        "post_index_public_new"=>'post_index_public_new',//广场最新贴子
         "post_index_rate"=>'post_index_rate',//最热贴子
         "post_index_rate_v2"=>env('POST_INDEX_RATE_V2' , 'post_index_rate_v2'),//最热贴子v2
         "post_index_non_rate"=>'post_index_non_rate',//非最热贴子
         "post_preheat_propaganda"=>'post_preheat_propaganda',//预热贴子
         "post_vote_data"=>'post_vote_data_', //帖子投票
+        "post_index_rate_l_one"=>'post_index_rate_l_one',//一档热贴
+        "post_index_rate_l_two"=>'post_index_rate_l_two',//二档热贴
+        "post_index_rate_l_three"=>'post_index_rate_l_three',//三档热贴
     ],
     'topic'=>[
         'topic_post_count'=>'topic_post_count',
