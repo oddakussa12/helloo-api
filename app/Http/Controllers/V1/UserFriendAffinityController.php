@@ -217,6 +217,7 @@ class UserFriendAffinityController extends BaseController
         $userId   = intval($userId);
         if (empty($userId)) return $this->response->array([]);
 
+        $userInfo = app(UserRepository::class)->findOrFail($userId);
         $memKey   = Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId;
         $memValue = Redis::get($memKey);
         if (!empty($memValue)) {
@@ -235,7 +236,6 @@ class UserFriendAffinityController extends BaseController
             function($value) use ($userId) {if (!empty($value) && $value != $userId) return $value;
         });
 
-        $userInfo  = Redis::hgetAll("user.".strval($userId).'.data');
         $users     = app(UserRepository::class)->findByMany($friendIds);
         $users     = UserCollection::collection($users);
 
