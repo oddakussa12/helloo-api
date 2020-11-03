@@ -324,14 +324,16 @@ class PostController extends BaseController
         $post   = $this->post->voteList($post);
 
         if (!empty($userId)) {
-            // 登录状态 可见范围为自己可见
-            if ($post->show_type==3 && $post->user_id != $userId) {
-                abort(404);
-            }
-            // 登录状态 可见范围为粉丝可见
-            if ($post->show_type==2) {
-                $follow = $this->post->userFollowType($post->user_id, $userId);
-                empty($follow) && abort(404);
+            if ($post->user_id !=$userId) {
+                // 登录状态 可见范围为自己可见
+                if ($post->show_type==3 && $post->user_id != $userId) {
+                    abort(404);
+                }
+                // 登录状态 可见范围为粉丝可见
+                if ($post->show_type==2) {
+                    $follow = $this->post->userFollowType($post->user_id, $userId);
+                    empty($follow) && abort(404);
+                }
             }
         } else {
             // 未登录状态 且可见范围为 粉丝、自己
