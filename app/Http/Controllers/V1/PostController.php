@@ -185,18 +185,15 @@ class PostController extends BaseController
         ksort($post_image_size);
         ksort($post_image);
 
-        if ($post_type == 'vote') {
-            $post_category_id = $post_image ? 2 : 1;
-        } else {
-            $post_type = 'text';
-            if(!empty($post_image)) {
-                $post_category_id = 2;
-                $post_type = 'image';
-            }
-            if(!empty($post_video)) {
-                $post_category_id = 3;
-                $post_type = 'video';
-            }
+
+        $post_type = 'text';
+        if(!empty($post_image)) {
+            $post_category_id = 2;
+            $post_type = 'image';
+        }
+        if(!empty($post_video)) {
+            $post_category_id = 3;
+            $post_type = 'video';
         }
         $poster   = auth()->user();
         if(app(UserRepository::class)->isProhibited($poster))
@@ -333,7 +330,7 @@ class PostController extends BaseController
             }
             // 登录状态 可见范围为粉丝可见
             if ($post->show_type==2) {
-                $follow = $this->userFollowType($post->user_id, $userId);
+                $follow = $this->post->userFollowType($post->user_id, $userId);
                 empty($follow) && abort(404);
             }
         } else {

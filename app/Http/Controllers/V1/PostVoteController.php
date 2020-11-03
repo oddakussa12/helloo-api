@@ -92,6 +92,7 @@ class PostVoteController extends BaseController
         $flag = true;
 
         $voteAll = Redis::hgetall($memKey);
+
         if (!empty($voteAll)) {
             foreach ($voteAll as $key => $item) {
                 $item = json_decode($item, true);
@@ -107,16 +108,9 @@ class PostVoteController extends BaseController
             return $this->response->accepted();
         }
 
-
-        if (!empty($voteAll[$vote_id])) {
-            $vote = $voteAll[$vote_id];
-        } else {
-            $vote['country'] = [];
-            $vote['users']   = [];
-        }
+        $vote = !empty($voteAll[$vote_id]) ? json_decode($voteAll[$vote_id], true) : ['country'=>[], 'users'=>[]];
         $vote['country'][$country] = array_key_exists($country, $vote['country']) ? $vote['country'][$country]+1 : 1;
         $vote['users'] = array_merge($vote['users'], [$user_id]);
-
 
         Redis::hset($memKey, $vote_id, collect($vote));
         VoteDetail::where(['post_id' => $post['post_id'], 'id' => $vote_id])->update(['country' => serialize($vote['country']), 'vote_num' => $voteInfo['vote_num'] + 1]);
