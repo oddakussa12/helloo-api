@@ -220,6 +220,8 @@ $api->group($V1Params , function ($api){
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
 
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
+        $api->resource('position' , 'PositionController', ['only' => ['store']]); //用户地址位置
+
         $api->group(['middleware'=>['operationLog' , 'lastActive' , 'redisThrottle:'.config('common.notification_throttle_num').','.config('common.notification_throttle_expired')]] , function ($api){
             $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
         });
