@@ -68,7 +68,7 @@ class PrivateMessageController extends BaseController
         {
             $user = auth()->user();
             $userId = $user->user_id;
-            $name = $user->user_name;
+            $name = !empty($user->user_nick_name)?$user->user_nick_name:$user->user_name;
             $avatar = $user->user_avatar_link;
             try{
                 $token = app('rcloud')->getUser()->register(array(
