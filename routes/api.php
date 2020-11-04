@@ -210,6 +210,8 @@ $api->group($V1Params , function ($api){
             });
         });
 
+        $api->put('vote', 'PostVoteController@vote')->name('post.vote.status'); // 选一个选项投票
+
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
         $api->get('user/{id}/followme' , 'UserController@otherFollowMe')->name('other.followMe');
