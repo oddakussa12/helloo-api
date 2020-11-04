@@ -73,19 +73,22 @@ class PostVoteController extends BaseController
         $country = $user->user_country_id;
 
         if (empty($user_id)) {
+            Log::info(__FILE__. __FUNCTION__. 'user_id is empty');
             return $this->response->errorForbidden();
         }
-        $vote_id = $request->input('vote_id');
+        $vote_id   = $request->input('vote_id');
         $post_uuid = $request->input('post_uuid');
         $post = Post::where('post_uuid', $post_uuid)->first();
 
         if (empty($post)) {
-            return $this->response->errorBadRequest();
+            Log::info(__FILE__. __FUNCTION__. 'post is empty', [$vote_id, $post_uuid, $user_id]);
+            return $this->response->accepted();
         }
         $voteInfo = VoteDetail::where(['post_id' => $post['post_id'], 'id' => $vote_id])->first();
 
         if (empty($voteInfo)) {
-            return $this->response->errorBadRequest();
+            Log::info(__FILE__. __FUNCTION__. 'voteInfo is empty', [$vote_id, $post_uuid, $user_id]);
+            return $this->response->accepted();
         }
 
         $memKey = config('redis-key.post.post_vote_data') . $post['post_id'];
@@ -209,7 +212,8 @@ class PostVoteController extends BaseController
         // 投票贴
         $radio       = !is_array($radio) ? json_decode($radio, true) : $radio;
         $textArr     = array_column($radio, 'text');
-        $textLangArr = !empty($textArr) ? $this->translate->detectLanguageBatch($textArr) : [];
+        $textArr     = array_filter($textArr, function ($text) {if (!empty($text)) {return true;}});
+        $textLangArr =  !empty($textArr) ? $this->translate->detectLanguageBatch($textArr) : [];
 
         foreach ($radio as $key => $item) {
             $locale = !empty($item['text']) ? $textLangArr[$key]['languageCode'] : 'en';
