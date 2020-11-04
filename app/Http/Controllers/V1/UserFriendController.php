@@ -125,6 +125,7 @@ class UserFriendController extends BaseController
             list($user_id, $friend_id) = FriendSignIn::sortId($userId, $friendId);
 
             $lastKey = $user_id.'_'.$friend_id;
+            Redis::del(config('redis-key.user.user_friend').'_'.$userId);
             Redis::del(Constant::RY_CHAT_FRIEND_IS_FRIEND.$lastKey);
             Redis::del(Constant::RY_CHAT_FRIEND_SIGN_IN.$lastKey);
             Redis::del(Constant::RY_CHAT_FRIEND_RELATIONSHIP.$lastKey);
@@ -153,6 +154,7 @@ class UserFriendController extends BaseController
             'content'        => 'friend delete',
             'userInfo'       => $user
         ], userAgent(new Agent()));
+
         return $this->response->noContent();
     }
 }

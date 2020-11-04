@@ -118,6 +118,9 @@ class UserFriendRequestController extends BaseController
             'reposed'  => $state,
             'userInfo' => $user
         ], $this->agent);
+
+        Redis::del(config('redis-key.user.user_friend').'_'.$userId);
+
         return $this->response->accepted();
     }
 
