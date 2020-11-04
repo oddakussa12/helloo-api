@@ -14,6 +14,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Services\TencentTranslateService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\DB;
 
 class VoteTranslation implements ShouldQueue
 {
@@ -35,22 +36,28 @@ class VoteTranslation implements ShouldQueue
      * @var \Illuminate\Config\Repository
      */
     private $locales;
+    private $voteRadio;
+    private $voteLang;
+    /**
+     * @var array
+     */
+    private $voteDetail;
 
     /**
      * Create a new job instance.
      *
      * @param User $user
-     * @param VoteDetail $voteDetail
-     * @param $content
-     * @param $lang
+     * @param array $voteDetail VoteDetail
+     * @param $voteContent
+     * @param $voteLang
      */
-    public function __construct(User $user, VoteDetail $voteDetail, $content, $lang)
+    public function __construct(User $user, array $voteDetail, $voteContent, $voteLang)
     {
-        $this->languages    = config('translatable.locales');
-        $this->user         = $user;
-        $this->post         = $voteDetail;
-        $this->contentLang  = $lang;
-        $this->post_content = $content;
+        $this->languages  = config('translatable.locales');
+        $this->user       = $user;
+        $this->voteDetail = $voteDetail;
+        $this->voteLang   = $voteLang;
+        $this->voteRadio  = $voteContent;
     }
     /**
      * Execute the job.
@@ -59,10 +66,13 @@ class VoteTranslation implements ShouldQueue
      */
     public function handle()
     {
-        $post        = $this->post;
-        $postContent = $this->post_content;
-        $contentLang = $this->contentLang;
-        $languages   = $this->languages;
+        $voteDetail = $this->voteDetail;
+        $voteRadio  = $this->voteRadio;
+        $voteLang   = $this->voteLang;
+        $languages  = $this->languages;
+
+
+//        dump($voteRadio, $voteLang, $voteDetail, $languages);
 
         /*if(config('common.google_translation_version')=='v2')
         {
@@ -71,22 +81,36 @@ class VoteTranslation implements ShouldQueue
             $translate = app(V3TranslateService::class);
         }*/
 
-        // $voteJob   = (new CustomizeTranslateService($languages))->translate($postContent, ['scource'=>$contentLang]);
-        // $languages = array_diff($languages , [$contentLang]);
+        foreach ($voteDetail as $k=>$detail) {
+            foreach ($voteRadio as $key=>$item) {
+                if ($detail->tab_name == $item['tab_name']) {
+                    $postContent         = $item['text'];
+                    $contentLang         = $voteLang[$key]['languageCode'];
+                    $languages           = array_values(array_diff($languages, [$contentLang]));
+                    $translate           = app(CustomizeTranslateService::class)->setLanguages($languages);
+                    $contentTranslations = $translate->translate($postContent , ['source'=>$contentLang]);
+                    $translations        = $contentTranslations->getTranslations();
+                    $translations        = array_merge($translations, [$contentLang=>$postContent]);
+                    $data = [];
+                    foreach ($translations as $l=>$translation) {
+                           $data[] = [
+                               'vote_detail_id' => $detail->id,
+                               'post_id'       => $detail->post_id,
+                               'locale'        => $l,
+                               'content'       => $translation,
+                               'created_at'    => date('Y-m-d H:i:s'),
+                               'updated_at'    => date('Y-m-d H:i:s'),
+                           ];
+                    }
+                    $data && DB::table('vote_details_translations')->insert($data);
+                }
 
-        if (!is_array($postContent)) {
-
-            $translate           = app(CustomizeTranslateService::class)->setLanguages($languages);
-            $contentTranslations = $translate->translate($postContent , ['source'=>$contentLang]);
-            $translations        = $contentTranslations->getTranslations();
-            $translations        = array_merge($translations, [$contentLang=>$postContent]);
-            foreach ($translations as $l=>$translation) {
-                VoteDetailTranslation::updateOrCreate(
-                    ['vote_detail_id'=>$post->id, 'post_id'=>$post->post_id, 'locale'=>$l],
-                    ['content'=>$translation]);
             }
-        } else {
-
         }
+
+
+        // $languages = array_diff(config('translatable.locales') , [$textLang]);
+        /*$translate = app(CustomizeTranslateService::class)->setLanguages($languages);
+        $contentTranslations = $translate->translate($item['text'] , array('source'=>$textLang));*/
     }
 }

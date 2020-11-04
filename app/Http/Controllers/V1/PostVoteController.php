@@ -206,40 +206,30 @@ class PostVoteController extends BaseController
         }
 
         // 投票贴
-        $radio        = !is_array($radio) ? json_decode($radio, true) : $radio;
-//        $textArr      = array_column($radio, 'text');
-//        $textLangArr  = $this->translate->detectLanguageBatch($textArr);
-//        $textTransArr = $this->translate->translateBatch($textArr);
+        $radio       = !is_array($radio) ? json_decode($radio, true) : $radio;
+        $textArr     = array_column($radio, 'text');
+        $textLangArr = !empty($textArr) ? $this->translate->detectLanguageBatch($textArr) : [];
 
         foreach ($radio as $key => $item) {
-            $textLang = !empty($item['text']) ? $this->translate->detectLanguage($item['text']) : 'en';
-            $voteInfo['post_id'] = $post->post_id;
-            $voteInfo['user_id'] = $poster->user_id;
+            $voteInfo['post_id']  = $post->post_id;
+            $voteInfo['user_id']  = $poster->user_id;
             $voteInfo['tab_name'] = $item['tab_name'] ?? '';
-            $voteInfo['default_locale'] = $textLang;
-            $voteInfo['vote_type'] = !empty($item['image']) ? 'image' : 'text';
+            $voteInfo['default_locale'] = !empty($item['text'])  ? $textLangArr[$key]['languageCode'] : 'en';
+            $voteInfo['vote_type']      = !empty($item['image']) ? 'image' : 'text';
             if (!empty($item['image'])) {
-                $voteInfo['vote_media'] = json_encode([
-                    'image' => [
-                        'image_url' => $item['image'],
-                    ]], JSON_UNESCAPED_UNICODE);
+                $voteInfo['vote_media'] = json_encode(['image'=>['image_url'=>$item['image']]], JSON_UNESCAPED_UNICODE);
             }
-            $voteDetail = VoteDetail::create($voteInfo);
-
-            // 当选项内容为 文本时，需要进行翻译
-            if (!empty($item['text'])) {
-                if (config('common.translation_version') === 'niu') {
-                    $voteJob = (new VoteTranslation($poster, $voteDetail, $item['text'], $textLang));
-                } else {
-                    $voteJob = (new VoteTranslation($poster, $voteDetail, $item['text'], $textLang));
-                }
-                $this->dispatchNow($voteJob);
-                // $this->dispatch($voteJob->onQueue(Constant::QUEUE_CUSTOM_POST_TRANSLATION));
-
-                // $languages = array_diff(config('translatable.locales') , [$textLang]);
-                /*$translate = app(CustomizeTranslateService::class)->setLanguages($languages);
-                $contentTranslations = $translate->translate($item['text'] , array('source'=>$textLang));*/
+            $voteDetail[] = VoteDetail::create($voteInfo);
+        }
+        // 当选项内容为 文本时，需要进行翻译
+        if (!empty($textArr)) {
+            if (config('common.translation_version') === 'niu') {
+                $voteJob = (new VoteTranslation($poster, $voteDetail ?? [], $radio, $textLangArr));
+            } else {
+                $voteJob = (new VoteTranslation($poster, $voteDetail ?? [], $radio, $textLangArr));
             }
+            // $this->dispatchNow($voteJob);
+            $this->dispatch($voteJob->onQueue(Constant::QUEUE_CUSTOM_POST_TRANSLATION));
         }
 
         if (config('common.translation_version') === 'niu') {
