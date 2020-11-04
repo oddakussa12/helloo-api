@@ -460,6 +460,8 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
         }
         $posts = $posts->paginate($this->perPage , ['*'] , $this->pageName);
 
+        $posts = $this->voteList($posts);
+
 //        $userIds   = $posts->pluck('user_id')->all(); //获取分页user Id
 //        $followers = app(UserRepository::class)->userFollow($userIds);//重新获取当前登录用户信息
 
