@@ -113,7 +113,7 @@ class PostVoteController extends BaseController
         $vote['users'] = array_merge($vote['users'], [$user_id]);
 
         Redis::hset($memKey, $vote_id, collect($vote));
-        VoteDetail::where(['post_id' => $post['post_id'], 'id' => $vote_id])->update(['country' => serialize($vote['country']), 'vote_num' => $voteInfo['vote_num'] + 1]);
+        VoteDetail::where(['post_id' => $post['post_id'], 'id' => $vote_id])->update(['country' => json_encode($vote['country']), 'vote_num' => $voteInfo['vote_num'] + 1]);
         VoteLog::create($where);
 
         return $this->response->accepted();
