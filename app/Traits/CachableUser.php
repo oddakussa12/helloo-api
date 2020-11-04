@@ -233,7 +233,8 @@ trait CachableUser
     public function userMyFollowCount($id)
     {
         $userMyFollowsKey = config('redis-key.user.my_follow');
-        return intval(Redis::zscore($userMyFollowsKey , $id));
+        $count = intval(Redis::zscore($userMyFollowsKey , $id));
+        return $count >0 ? $count : 0;
     }
 
 
