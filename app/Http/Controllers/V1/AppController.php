@@ -50,7 +50,7 @@ class AppController extends BaseController
 
     public function mode($model)
     {
-        $status = $model=='on'?1:0;
+        $status = $model=='in'?1:0;
         DB::table('ry_online_users')->where('user_id' , auth()->id())->update(array('status'=>$status));
         return $this->response->accepted();
     }
