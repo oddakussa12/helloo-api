@@ -34,6 +34,7 @@ trait CachableUser
     {
         $memKey   = config('redis-key.user.user_friend').'_'.$user->user_id;
         $memValue = Redis::get($memKey);
+
         if (!empty($memValue)) {
             $data = json_decode($memValue, true);
         } else {
@@ -42,9 +43,10 @@ trait CachableUser
             SELECT count(user_id) country_count, user_country_id from f_users where user_id in(
             select friend_id from f_users_friends where user_id=?) group by user_country_id) b', [31666]);
             $data = !empty($result) ? (array)current($result) : [];
-            Redis::set($memKey, $memValue);
+            Redis::set($memKey, json_encode($data));
             Redis::expire($memKey, 86400*7);
         }
+
         foreach($data as $key=>$val) {
             $user->$key=(int)$val;
         }
