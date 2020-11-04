@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
 //        \App\Console\Commands\CalculatingRate::class,
 //        \App\Console\Commands\CalculatingRateLimit::class,
         \App\Console\Commands\CalculatingRateLimitV2::class,
+        \App\Console\Commands\CalculatingRateLimitV3::class,
         \App\Console\Commands\GeneratePostView::class,
         \App\Console\Commands\GenerateYesterdayUserRank::class,
 //        \App\Console\Commands\AutoIncreasePostView::class,
@@ -50,6 +51,14 @@ class Kernel extends ConsoleKernel
             });
         $schedule->command('calculating:rate_limit_v2')
             ->hourlyAt('50')->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('calculating:rate_limit_v3')
+            ->hourlyAt('10')->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('calculating:rate_limit_v3')
+            ->hourlyAt('40')->when(function(){
                 return config('common.cron_switch');
             });
 //        $schedule->command('calculating:rate_limit')
