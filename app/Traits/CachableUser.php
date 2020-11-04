@@ -38,10 +38,9 @@ trait CachableUser
         if (!empty($memValue)) {
             $data = json_decode($memValue, true);
         } else {
-
             $result = DB::select('select sum(country_count) friend_count, count(user_country_id) friend_country from (
             SELECT count(user_id) country_count, user_country_id from f_users where user_id in(
-            select friend_id from f_users_friends where user_id=?) group by user_country_id) b', [31666]);
+            select friend_id from f_users_friends where user_id=?) group by user_country_id) b', [$user->user_id]);
             $data = !empty($result) ? (array)current($result) : [];
             Redis::set($memKey, json_encode($data));
             Redis::expire($memKey, 86400*7);
