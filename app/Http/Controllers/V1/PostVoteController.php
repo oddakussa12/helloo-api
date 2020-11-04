@@ -7,6 +7,7 @@ use App\Jobs\PostEs;
 use App\Jobs\VoteTranslation;
 use App\Models\Post;
 use App\Models\VoteDetail;
+use App\Models\VoteDetailTranslation;
 use App\Models\VoteLog;
 use App\Resources\PostVoteCollection;
 use App\Services\CustomizeNiuTranslateService;
@@ -224,7 +225,7 @@ class PostVoteController extends BaseController
 
             // 插入投票翻译表
             if (!empty($item['text'])) {
-                VoteTranslation::create(['vote_detail_id'=>$detail->id,'post_id'=>$post->post_id,'locale'=>$locale,'content'=>$item['text']]);
+                VoteDetailTranslation::create(['vote_detail_id'=>$detail->id,'post_id'=>$post->post_id,'locale'=>$locale,'content'=>$item['text']]);
             }
 
             $voteDetail[] = $detail;
