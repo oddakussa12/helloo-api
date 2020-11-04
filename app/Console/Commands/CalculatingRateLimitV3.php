@@ -86,8 +86,8 @@ class CalculatingRateLimitV3 extends Command
                 $likeCount = isset($posts['real_like'])?$posts['real_like']:0;
                 $commenterCount= $this->commenterCount($postId);
                 $countryCount = $this->countryNum($postId);
-                $index = Redis::zrank($preheatPropagandaKey , $postId);
-                if($index!==null)
+                $e = Redis::zrank($preheatPropagandaKey , $postId);
+                if($e!==null)
                 {
                     $commentCount = $commentCount + $postInitCommentNum;
                 }
