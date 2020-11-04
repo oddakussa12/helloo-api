@@ -243,38 +243,40 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
 
         // $voteList = VoteDetail::whereIn('post_id', $postIds)->with('voteDetailTranslate')->get();
 
-        $voteList = VoteDetail::whereIn('post_id', $postIds)->get();
-        $voteIds  = $voteList->pluck('id');
-        $voteLang = $voteList->pluck('default_locale');
+        if (!empty($postIds)) {
+            $voteList = VoteDetail::whereIn('post_id', $postIds)->get();
+            $voteIds  = $voteList->pluck('id');
+            $voteLang = $voteList->pluck('default_locale');
 
-        $voteLang = array_unique(array_merge($voteLang->toArray(), [locale(), 'en']));
-        $voteTrans= VoteDetailTranslation::whereIn('locale', $voteLang)->whereIn('vote_detail_id', $voteIds)->get();
+            $voteLang = array_unique(array_merge($voteLang->toArray(), [locale(), 'en']));
+            $voteTrans= VoteDetailTranslation::whereIn('locale', $voteLang)->whereIn('vote_detail_id', $voteIds)->get();
 
-        $voteList->each(function ($vote) use ($userId, $voteTrans, $voteLang) {
-            $vote->translations = $voteTrans->where('vote_detail_id' , $vote->id)->all();
-            $count = $this->voteChoose($vote->post_id, $vote->id, $userId);
-            foreach ($count as $key=>$item) {
-                $vote->$key = $item;
-            }
-        });
+            $voteList->each(function ($vote) use ($userId, $voteTrans, $voteLang) {
+                $vote->translations = $voteTrans->where('vote_detail_id' , $vote->id)->all();
+                $count = $this->voteChoose($vote->post_id, $vote->id, $userId);
+                foreach ($count as $key=>$item) {
+                    $vote->$key = $item;
+                }
+            });
 
-        if ($posts instanceof Post) {
-            if ($posts->post_type=='vote') {
-                $posts->voteInfo = $voteList;
-            }
-        } else {
-            foreach ($posts as $index=>$post) {
-                if (is_array($post)) {
-                    if ($post['post_type']=='vote') {
-                        $post['voteInfo'] = $voteList->where('post_id', $post['post_id'])->values();
-                        $posts[$index] = $post;
+            if ($posts instanceof Post) {
+                if ($posts->post_type=='vote') {
+                    $posts->voteInfo = $voteList;
+                }
+            } else {
+                foreach ($posts as $index=>$post) {
+                    if (is_array($post)) {
+                        if ($post['post_type']=='vote') {
+                            $post['voteInfo'] = $voteList->where('post_id', $post['post_id'])->values();
+                            $posts[$index] = $post;
+                        }
+                    } else {
+                        if ($post->post_type=='vote') {
+                            $tmp = $voteList->where('post_id', $post->post_id)->values();
+                            $post->voteInfo = collect($tmp);
+                        }
+
                     }
-                } else {
-                    if ($post->post_type=='vote') {
-                        $tmp = $voteList->where('post_id', $post->post_id)->values();
-                        $post->voteInfo = collect($tmp);
-                    }
-
                 }
             }
         }
