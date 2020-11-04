@@ -409,7 +409,7 @@ class EloquentPostRepository  extends EloquentBaseRepository implements PostRepo
             }
         });*/
 
-        return $posts;
+        return $posts->values();
 
     }
 
