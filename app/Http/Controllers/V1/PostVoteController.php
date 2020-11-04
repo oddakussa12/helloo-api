@@ -7,6 +7,7 @@ use App\Jobs\PostEs;
 use App\Jobs\VoteTranslation;
 use App\Models\Post;
 use App\Models\VoteDetail;
+use App\Models\VoteDetailTranslation;
 use App\Models\VoteLog;
 use App\Resources\PostVoteCollection;
 use App\Services\CustomizeNiuTranslateService;
@@ -211,16 +212,25 @@ class PostVoteController extends BaseController
         $textLangArr = !empty($textArr) ? $this->translate->detectLanguageBatch($textArr) : [];
 
         foreach ($radio as $key => $item) {
+            $locale = !empty($item['text']) ? $textLangArr[$key]['languageCode'] : 'en';
             $voteInfo['post_id']  = $post->post_id;
             $voteInfo['user_id']  = $poster->user_id;
             $voteInfo['tab_name'] = $item['tab_name'] ?? '';
-            $voteInfo['default_locale'] = !empty($item['text'])  ? $textLangArr[$key]['languageCode'] : 'en';
+            $voteInfo['default_locale'] = $locale;
             $voteInfo['vote_type']      = !empty($item['image']) ? 'image' : 'text';
             if (!empty($item['image'])) {
                 $voteInfo['vote_media'] = json_encode(['image'=>['image_url'=>$item['image']]], JSON_UNESCAPED_UNICODE);
             }
-            $voteDetail[] = VoteDetail::create($voteInfo);
+            $detail = VoteDetail::create($voteInfo);
+
+            // 插入投票翻译表
+            if (!empty($item['text'])) {
+                VoteDetailTranslation::create(['vote_detail_id'=>$detail->id,'post_id'=>$post->post_id,'locale'=>$locale,'content'=>$item['text']]);
+            }
+
+            $voteDetail[] = $detail;
         }
+
         // 当选项内容为 文本时，需要进行翻译
         if (!empty($textArr)) {
             if (config('common.translation_version') === 'niu') {
