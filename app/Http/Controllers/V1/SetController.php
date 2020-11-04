@@ -93,9 +93,10 @@ class SetController extends BaseController
         if(!Redis::exists($key)) {
             $value = [
                 'free_translator' => 1,
-                'refer_friend'    => 1 ,
-                'carousel'        => 0 ,
-                'test_translator' => 0 ,
+                'refer_friend'    => 1,
+                'carousel'        => 0,
+                'test_translator' => 0,
+                'av'              => 1,
                 'heart_progress'  => Constant::CHAT_SUM_STAR,
                 'emoji_md5'       => config('common.emoji_md5')
             ];

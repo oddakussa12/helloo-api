@@ -1067,4 +1067,26 @@ DOC;
         ];
 
     }
+
+    /**
+     * @param $user
+     * @return
+     * 获取好友聊天次数最多的用户信息
+     */
+    public function getFriendMaxTalk($user)
+    {
+       $userId = $user->user_id;
+       $data = DB::table('users_friends_talk')->select(DB::raw('user_id, friend_id, (user_id_count+friend_id_count) total'))
+           ->WHERE(DB::raw("(user_id=$userId or friend_id=$userId) and is_delete=0 and deleted_at"))->orderByDesc('total')->first();
+
+       if (!empty($data)) {
+            $id   = $user->user_id==$data->user_id ? $data->friend_id : $data->user_id;
+            $info = $this->find($id);
+
+            $user->friend_talk_name    = !empty($info->user_nick_name) ? $info->user_nick_name : (!empty($info->user_name) ? $info->user_name : '');
+            $user->friend_talk_country = getUserCountryName($info->user_country_id);
+       }
+       return $user;
+    }
+
 }

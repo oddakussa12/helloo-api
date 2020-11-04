@@ -251,6 +251,7 @@ class AuthController extends BaseController
         $userFollowMe = $this->userFollowMeCount($user->user_id);
         $userMyFollow = $this->userMyFollowCount($user->user_id);
         $user = app(UserRepository::class)->virtualViewCount($user);
+        $user = app(UserRepository::class)->getFriendMaxTalk($user);
         $user = $this->getFriend($user);
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
