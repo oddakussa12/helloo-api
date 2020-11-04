@@ -29,9 +29,9 @@ trait CachablePost
         $publicNewOneKey = config('redis-key.post.post_index_public_new')."_1";
         $publicNewTwoKey = config('redis-key.post.post_index_public_new')."_2";
         $time = strtotime(optional($post->post_created_at)->toDateTimeString());
-        $post->show_type==1&&Redis::zadd($publicNewKey , $time , $postId);
-        $post->show_type==1&&Redis::sadd($publicNewOneKey , $postId);
-        $post->show_type==1&&Redis::sadd($publicNewTwoKey , $postId);
+        !isset($post->show_type)||$post->show_type==1&&Redis::zadd($publicNewKey , $time , $postId);
+        !isset($post->show_type)||$post->show_type==1&&Redis::sadd($publicNewOneKey , $postId);
+        !isset($post->show_type)||$post->show_type==1&&Redis::sadd($publicNewTwoKey , $postId);
         Redis::zadd($newKey , $time , $postId);
     }
 

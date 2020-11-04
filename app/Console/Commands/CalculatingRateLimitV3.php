@@ -49,6 +49,7 @@ class CalculatingRateLimitV3 extends Command
         $i = intval($now->addMinutes(30)->format('i'));
         $i = $i<=0?1:$i;
         $index = ceil($i/30);
+        $publicNewKey = config('redis-key.post.post_index_public_new');
         $publicNewNumKey = config('redis-key.post.post_index_public_new').'_'.$index;
         $rateKey = config('redis-key.post.post_index_rate').'_'.$index;
         $rateV3Key = config('redis-key.post.post_index_rate_v3').'_'.$index;
@@ -61,7 +62,7 @@ class CalculatingRateLimitV3 extends Command
         $perPage = 20;
         $userKolX = intval(Redis::get('user_kol_x'));
         $postInitCommentNum = intval(Redis::get('post_init_comment_num'));
-        $count = Redis::zcard($newKey);
+        $count = Redis::zcard($publicNewKey);
         $redis = new RedisList();
         $postGravity = floatval(Redis::get('post_gravity'));
         $postGravity = $postGravity<=0||$postGravity>=2?1:$postGravity;
@@ -69,7 +70,7 @@ class CalculatingRateLimitV3 extends Command
         for ($page=1;$page<=$lastPage;$page++) {
             $data = array();
             $offset = ($page-1)*$perPage;
-            $posts = $redis->zRevRangeByScore($newKey , '+inf', strtotime($oneMonthAgo) , true, array($offset, $perPage));
+            $posts = $redis->zRevRangeByScore($publicNewKey , '+inf', strtotime($oneMonthAgo) , true, array($offset, $perPage));
             if(empty($posts))
             {
                 break;
