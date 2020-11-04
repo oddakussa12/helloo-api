@@ -6,6 +6,7 @@ namespace App\Http\Controllers\V1;
 use App\Custom\Constant\Constant;
 use App\Jobs\FriendLevel;
 use App\Jobs\FriendSignIn;
+use App\Jobs\UserVisit;
 use App\Jobs\Test as TestJob;
 use Carbon\Carbon;
 use App\Jobs\RyChat;
@@ -108,13 +109,26 @@ class RyChatController extends BaseController
             RyChatFailed::create($data);
         }else{
             $objectName = $request->input('objectName' , '');
-            if(in_array($objectName , array('RC:TxtMsg' , 'RC:ImgMsg' , 'RC:VcMsg')))
-            {
-                $msgUID = $request->input('msgUID' , '');
+
+            if ($objectName == 'RC:CmdMsg') {
+                $content = json_decode($all['content'], true);
+                if (!empty($content['name']) && $content['name'] == Constant::RY_OBJECT_NAME_USER_MAIN) {
+                    //if (Constant::QUEUE_PUSH_TYPE == 'redis') {
+                        // 好友访问主页
+                        $friendVisit = new UserVisit($all);
+                        $this->dispatchNow($friendVisit->onQueue(Constant::QUEUE_FRIEND_VISIT));
+                    //} else {
+                        // 好友访问主页
+                    //    UserVisit::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_VISIT);
+                    //}
+                }
+            }
+
+            if (in_array($objectName, array('RC:TxtMsg', 'RC:ImgMsg', 'RC:VcMsg'))) {
+                $msgUID   = $request->input('msgUID', '');
                 $lock_key = 'ry_room_chat_'.$msgUID;
                 if(Redis::set($lock_key, 1, "nx", "ex", 15))
                 {
-
                     if (Constant::QUEUE_PUSH_TYPE == 'redis') {
                         if (Constant::QUEUE_RY_CHAT_SWITCH) {
                             $device = new RyChat($all);
@@ -128,6 +142,7 @@ class RyChatController extends BaseController
                         // 升级队列
                         $friendLevel = new FriendLevel($all);
                         $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
+
                     } else {
                         if (Constant::QUEUE_RY_CHAT_SWITCH) {
                             $device = new RyChat($all);
@@ -138,9 +153,7 @@ class RyChatController extends BaseController
 
                         // 升级队列
                          FriendLevel::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
-
                     }
-
 
                 }
             }

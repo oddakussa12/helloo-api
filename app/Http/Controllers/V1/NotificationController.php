@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Resources\PostCollection;
-use App\Resources\PostCommentCollection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Resources\NotificationCollection;
+use App\Resources\PostCollection;
+use App\Resources\PostCommentCollection;
 use Fenos\Notifynder\Models\Notification;
-use App\Repositories\Contracts\PostCommentRepository;
+use App\Resources\NotificationCollection;
 use App\Repositories\Contracts\PostRepository;
+use App\Resources\NotificationPaginateCollection;
 use App\Repositories\Contracts\CategoryRepository;
+use App\Resources\NotificationPostCommentCollection;
+use App\Repositories\Contracts\PostCommentRepository;
 
 class NotificationController extends BaseController
 {
@@ -99,6 +101,17 @@ class NotificationController extends BaseController
         return array();
     }
 
+    public function home()
+    {
+        $user = auth()->user();
+        $message = Notification::where('to_id' , $user->user_id)
+            ->with('from')
+            ->orderBy('created_at', 'desc')
+            ->orderBy('read', 'asc')
+            ->paginate(10 , ['*'] , 'notice_page');
+        return NotificationPaginateCollection::collection($message);
+    }
+
 
     public function count()
     {
@@ -128,6 +141,18 @@ class NotificationController extends BaseController
                 ->count();
         }
         return $this->response->array(array('count'=>$like_count+$comment_count+$global , 'like_count'=>$like_count , 'comment_count'=>$comment_count ,'follow_count'=>$follow_count,'global'=>$global));
+    }
+
+    public function unreadCount()
+    {
+        $count= 0;
+        if(auth()->check())
+        {
+            $count = auth()->user()->getNotificationRelation()
+                ->where('read', 0)
+                ->count();
+        }
+        return $this->response->array(array('count'=>$count));
     }
 
     /**
@@ -216,8 +241,11 @@ class NotificationController extends BaseController
         return $this->response->noContent();
     }
 
-    public function readAll($type)
+    public function readAll($type='')
     {
+        $user = auth()->user();
+        Notification::where('to_id' , $user->user_id)->where('read' , 0)->update(['read' => 1]);
+        return $this->response->noContent();
         if($type=='like')
         {
             $notices = auth()->user()->getNotificationRelation()->where(function($query){
@@ -261,50 +289,65 @@ class NotificationController extends BaseController
 
     public function detail($id)
     {
-        $notification = auth()->user()->getNotificationRelation()->where(function($query) use ($id){
-            $query->where('id' , $id);
-        })->first();
+        $user = auth()->user();
+        $userId = $user->user_id;
+        $notification = Notification::where('id' , $id)->where('to_id' , $userId)->first();
         if(!$notification)
         {
             return $this->response->errorNotFound();
         }
-        $notification->read();
+        $notification->read==0&&$notification->read();
         $detail = array();
         $extra = $notification->extra;
-        switch ($notification->category->name)
+        $category_id = $notification->category_id;
+//        $from = app(UserRepository::class)->findOrFail($notification->from_id);
+        switch ($category_id)
         {
-            case 'user.like':
-            case 'user.post_comment':
-                try{
-                    $comment = app(PostCommentRepository::class)->find($extra['comment_id']);
-                    $post = app(PostRepository::class)->find($extra['post_id']);
-                }catch (\Exception $e){
-                    $detail = array();
-                    break;
-                }
-                if(empty($comment)||empty($post))
-                {
-                    $detail = array();
-                }else{
-                    $detail = array('comment'=>new PostCommentCollection($comment) , 'post'=>new PostCollection($post));
-                }
+            case 1://user.following
+                //{"follow_user_id":967857,"followed_user_id":914379}
+//                $txt = trans('notifynder.user.following');
+                return $this->response->accepted();
                 break;
-            case 'user.comment':
-                try{
-                    $post= app(PostRepository::class)->find($extra['post_id']);
-                    $comment = app(PostCommentRepository::class)->find($extra['comment_id']);
-                    $p_comment = app(PostCommentRepository::class)->find($extra['comment_comment_p_id']);
-                }catch (\Exception $e)
-                {
-                    $detail = array();
-                    break;
-                }
-                if(empty($post)||empty($comment)||empty($p_comment))
-                {
-                    $detail = array();
-                }else{
-                    $detail = array('comment'=>new PostCommentCollection($comment) , 'post'=>new PostCollection($post) , 'p_comment '=>new PostCommentCollection($p_comment));
-                }
+            case 3://user.like
+                //{"comment_id":44148,"post_id":998}
+                $commentId = $extra['comment_id'];
+                $postId = $extra['post_id'];
+//                $post = app(PostRepository::class)->find($postId);
+//                $postComment = app(PostCommentRepository::class)->find($commentId);
+                return $this->response->accepted();
+                break;
+            case 5://user.post_comment
+                //{"comment_id":44143,"post_id":998}
+                $commentId = $extra['comment_id'];
+                $postId = $extra['post_id'];
+                $postComment = app(PostCommentRepository::class)->allWithBuilder()->with('owner')
+                    ->with(['post'=>function($q){
+                        $q->with('translations')->withTrashed();
+                    }])->withTrashed()->find($commentId);
+                return new NotificationPostCommentCollection($postComment);
+                break;
+            case 6://user.comment
+                //{"comment_id":44191,"post_id":1003,"comment_comment_p_id":44177}
+                $commentId = $extra['comment_id'];
+                $commentPId = $extra['comment_comment_p_id'];
+                $postId = $extra['post_id'];
+
+                $postComment = app(PostCommentRepository::class)->allWithBuilder()->with('owner')
+                    ->with(['post'=>function($q){
+                        $q->with('translations')->withTrashed();
+                    }])->withTrashed()->find($commentId);
+                $postComment->parentComment = app(PostCommentRepository::class)->allWithBuilder()->where('comment_id' , $commentPId)->withTrashed()->first();
+                return new NotificationPostCommentCollection($postComment);
+                break;
+            case 9://user.post_like
+            case 10://user.post_dislike
+                //{"post_id":9768}
+                $postId = $extra['post_id'];
+                $post = app(PostRepository::class)->find($postId);
+                return new PostCollection($post);
+                break;
+            default:
+                return $this->response->accepted();
                 break;
         }
         return $detail;

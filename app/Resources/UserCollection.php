@@ -25,18 +25,17 @@ class UserCollection extends Resource
         $include = $request->input('include');
         $include = explode(',' ,$include);
         return [
-            'user_id'=>$this->user_id,
-            'user_name'=>$this->user_name,
-            'user_nick_name'=>$this->user_nick_name,
-            'user_avatar'=>$this->user_avatar_link,
-            'user_country'=>$this->user_country,
-            'user_continent'=>$this->user_continent,
-            'user_level'=>$this->user_level,
+            'user_id'           => $this->user_id,
+            'user_name'         => $this->user_name,
+            'user_nick_name'    => $this->user_nick_name,
+            'user_avatar'       => $this->user_avatar_link,
+            'user_country'      => $this->user_country,
+            'user_continent'    => $this->user_continent,
+            'user_level'        => $this->user_level,
             'user_follow_state' => $this->when($request->routeIs('user.show')||$request->routeIs('post.show')||in_array('follow' , $include), function () use ($request){
-                if(isset($this->user_follow_state))
-                {
+                if (isset($this->user_follow_state)) {
                     return $this->user_follow_state;
-                }else{
+                } else {
                     return auth()->check()?auth()->user()->isFollowingUser($this->user_id):false;
                 }
             }),
@@ -65,26 +64,36 @@ class UserCollection extends Resource
                     'user_about'=>$this->user_about
                 ]);
             }),
-            $this->mergeWhen($request->routeIs('user.show'), function (){
+            $this->mergeWhen($request->routeIs('my.view'), function () {
                 return collect([
-                    'user_about'=>$this->user_about,
-                    'user_score' => $this->user_score,
-                    'user_birthday'=> $this->user_birthday,
-                    'user_cover'=> $this->user_cover_link,
-                    'user_like_state'=>$this->userProfileIsLiked($this->user_id),
+                   'visit_time' => $this->visit_time,
+                    'is_friend' => $this->is_friend,
+                ]);
+            }),
+                $this->mergeWhen($request->routeIs('user.show'), function (){
+                return collect([
+                    'user_about'            => $this->user_about,
+                    'user_score'            => $this->user_score,
+                    'user_birthday'         => $this->user_birthday,
+                    'user_cover'            => $this->user_cover_link,
+                    'user_like_state'       => $this->userProfileIsLiked($this->user_id),
+                    'user_followme_count'   => $this->userFollowMeCount($this->user_id),
+                    'user_myfollow_count'   => $this->userMyFollowCount($this->user_id),
+                    'user_post_count'       => $this->userPostCount($this->user_id),
+                    'user_comment_count'    => $this->userPostCommentCount($this->user_id),
+                    'user_profile_like_num' => $this->user_profile_like_num,
+                    'user_picture'          => $this->user_picture_link,
+                    'userTags'              => UserTagCollection::collection($this->user_tags),
+                    'view_status'           => $this->view_status ?? 0,
+                    'view_count'            => $this->view_count  ?? 0,
+                    'friend_talk_name'      => $this->friend_talk_name ?? '',
+                    'friend_talk_country'   => $this->friend_talk_country ?? '',
+
 //                    'user_followme_count'=>$this->followers()->count(),
 //                    'user_myfollow_count'=>$this->followings()->count(),
 //                    'user_post_count'=>app(PostRepository::class)->getCountByUserId($this->user_id),
 //                    'user_comment_count'=>app(PostCommentRepository::class)->getCountByUserId($this->user_id),
 
-                    'user_followme_count'=>$this->userFollowMeCount($this->user_id),
-                    'user_myfollow_count'=>$this->userMyFollowCount($this->user_id),
-                    'user_post_count'=>$this->userPostCount($this->user_id),
-                    'user_comment_count'=>$this->userPostCommentCount($this->user_id),
-                    
-                    'user_profile_like_num'=>$this->user_profile_like_num,
-                    'user_picture'=>$this->user_picture_link,
-                    'userTags'=> UserTagCollection::collection($this->user_tags),
                 ]);
             }),
         ];

@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use Carbon\Carbon;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 trait CachableUser
@@ -27,6 +28,29 @@ trait CachableUser
         );
         $data = $data+$extend;
         Redis::hmset($userKey , $data);
+    }
+
+    public function getFriend($user)
+    {
+        $memKey   = config('redis-key.user.user_friend').'_'.$user->user_id;
+        $memValue = Redis::get($memKey);
+        if (!empty($memValue)) {
+            $data = json_decode($memValue, true);
+        } else {
+
+            $result = DB::select('select sum(country_count) friend_count, count(user_country_id) friend_country from (
+            SELECT count(user_id) country_count, user_country_id from f_users where user_id in(
+            select friend_id from f_users_friends where user_id=?) group by user_country_id) b', [31666]);
+            $data = !empty($result) ? (array)current($result) : [];
+            Redis::set($memKey, $memValue);
+            Redis::expire($memKey, 86400*7);
+        }
+        foreach($data as $key=>$val) {
+            $user->$key=(int)$val;
+        }
+
+        return $user;
+
     }
 
     public function getUser(int $id , $fields=array())
@@ -194,7 +218,8 @@ trait CachableUser
     public function userFollowMeCount($id)
     {
         $userFollowMesKey = config('redis-key.user.follow_me');
-        return intval(Redis::zscore($userFollowMesKey , $id));
+        $count = intval(Redis::zscore($userFollowMesKey , $id));
+        return $count >0 ? $count : 0;
     }
 
 
@@ -208,7 +233,8 @@ trait CachableUser
     public function userMyFollowCount($id)
     {
         $userMyFollowsKey = config('redis-key.user.my_follow');
-        return intval(Redis::zscore($userMyFollowsKey , $id));
+        $count = intval(Redis::zscore($userMyFollowsKey , $id));
+        return $count >0 ? $count : 0;
     }
 
 
@@ -356,5 +382,10 @@ trait CachableUser
         $key = 'block_user';
         $time = Redis::zscore($key , $userId);
         return !blank($time)&&time()-$time<=43200*60;
+    }
+
+    public function userProfileViewCount()
+    {
+        return mt_rand(100 , 10000);
     }
 }

@@ -171,8 +171,8 @@ class FriendLevel implements ShouldQueue
 
                 // dump("发送融云推送  start");
                 $userAgent = $raw['source'] ?? '';
-                self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', $ryData, $userAgent);
-                self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', $ryData, $userAgent);
+                self::sendMsgToRyBySystem($userId, $friendId, 'RC:CmdMsg', Constant::RY_OBJECT_NAME_HEART_UPGRADE, $ryData,  $userAgent);
+                self::sendMsgToRyBySystem($friendId, $userId, 'RC:CmdMsg', Constant::RY_OBJECT_NAME_HEART_UPGRADE, $ryData,  $userAgent);
                 // dump("发送融云推送  end");
 
             }
@@ -193,12 +193,13 @@ class FriendLevel implements ShouldQueue
      * @param $userId
      * @param $friendId
      * @param $objectName
+     * @param $name
      * @param $data
      *
      * 发送系统消息给融云
      * @param string $userAgent
      */
-    public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $data, $userAgent='mobile')
+    public static function sendMsgToRyBySystem($userId, $friendId, $objectName, $name, $data, $userAgent='mobile')
     {
         // dump(__FILE__. __FUNCTION__);
 
@@ -214,7 +215,7 @@ class FriendLevel implements ShouldQueue
        // $user = User::where('user_id', $userId)->first();
 
         $content = [
-            'name'     => 'HEART_UPGRADE',
+            'name'     => $name,
             'data'     => $data,
             'userInfo' => $user
         ];

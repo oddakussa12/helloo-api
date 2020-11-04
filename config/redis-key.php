@@ -2,7 +2,9 @@
 return [
     "user"=>[
         'user_name'=>'user.name',//用户账户
+        'user_friend'=>'user_friend',//用户好友
         'user_email'=>'user.email',//用户邮箱
+        'user_visit'=>'user_visit',//用户首页访问次数
         'score_rank'=>'user.score.rank',//用户积分排行
         'follow_me'=>'user.follow.me',//用户被关注数量
         'my_follow'=>'user.my.follow',//用户被关注数量
@@ -13,6 +15,8 @@ return [
         'post_dislikes'=>'user.post.dislikes',//用户贴子踩数
         'post_comment_likes'=>'user.post.comment.likes',//用户评论点赞数
         'ry_update_online_status'=>'ry.update.online.status',//融云回调用户状态用户
+        'prohibited_operation_user'=>'prohibited_operation_user',//禁止发帖/评论/点赞/关注的用户
+        'prohibited_operation_user_name'=>'prohibited_operation_user_name',//禁止发帖/评论/点赞/关注的用户名
     ],
     "post"=>[
         "post_index_essence"=>'post_index_essence',//精华贴子(下拉)
@@ -25,6 +29,7 @@ return [
         "post_index_rate_v3"=>env('POST_INDEX_RATE_V3' , 'post_index_rate_v3'),//最热贴子v3
         "post_index_non_rate"=>'post_index_non_rate',//非最热贴子
         "post_preheat_propaganda"=>'post_preheat_propaganda',//预热贴子
+        "post_vote_data"=>'post_vote_data_', //帖子投票
         "post_index_rate_l_one"=>'post_index_rate_l_one',//一档热贴
         "post_index_rate_l_two"=>'post_index_rate_l_two',//二档热贴
         "post_index_rate_l_three"=>'post_index_rate_l_three',//三档热贴

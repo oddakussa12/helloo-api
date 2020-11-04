@@ -42,13 +42,6 @@ class Test extends Command
      */
     public function handle()
     {
-        Redis::del('testtest');
-        Redis::zadd('testtest' , array(
-            "test"=>1,
-            "test1"=>2,
-            "test2"=>3,
-        ));
-        die;
         $now = Carbon::now();
         $oneMonthAgo = $now->subDays(3)->format('Y-m-d 00:00:00');
         $newKey = config('redis-key.post.post_index_new');

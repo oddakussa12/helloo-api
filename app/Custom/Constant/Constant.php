@@ -17,6 +17,7 @@ class Constant {
 
     // 翻译 队列
     const QUEUE_POST_TRANSLATION="post_translation";
+    const QUEUE_CUSTOM_POST_TRANSLATION="custom_post_translation";
 
     // 用户自定义表情
     const CUSTOM_USER_EMOJI='custom_user_emoji_';
@@ -26,6 +27,8 @@ class Constant {
     const QUEUE_ES_TOPIC="topic_es";
     const QUEUE_ES_USER="user_es";
 
+    // 是否显示用户浏览量详情页
+    const USER_MAIN_VISIT_STATUS=1;
 
     // 融云回调
     const QUEUE_RY_CHAT='store_ry_msg';
@@ -33,10 +36,18 @@ class Constant {
     // 当等于 true时 执行 融云聊天写入数据库操作
     const QUEUE_RY_CHAT_SWITCH=1;
 
+    // 自定义融云 OBJECTNAME
+
+    // 访问用户主页
+    const RY_OBJECT_NAME_USER_MAIN='USER_MAIN';
+
+    // 好友关系 升级
+    const RY_OBJECT_NAME_HEART_UPGRADE='HEART_UPGRADE';
 
     // 好友关系
 
 
+    //队列服务  redis  sqs
     const QUEUE_PUSH_TYPE='sqs';
 
     // 融云聊天-加好友队列
@@ -50,6 +61,9 @@ class Constant {
 
     // 好友关系升级
     const QUEUE_FRIEND_LEVEL='friend_level';
+
+    // 好友访问主页统计
+    const QUEUE_FRIEND_VISIT='friend_visit';
 
 
     // REDIS 相关

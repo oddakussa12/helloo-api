@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Custom\Constant\Constant;
 use App\Jobs\PostEs;
 use App\Models\Post;
 use Ramsey\Uuid\Uuid;
@@ -13,6 +12,7 @@ use App\Events\PostViewEvent;
 use App\Jobs\PostTranslation;
 use App\Jobs\PostTranslationV2;
 use App\Resources\PostCollection;
+use App\Custom\Constant\Constant;
 use App\Services\TranslateService;
 use App\Resources\BannerCollection;
 use Illuminate\Support\Facades\Redis;
@@ -20,6 +20,7 @@ use App\Http\Requests\StorePostRequest;
 use App\Services\AzureTranslateService;
 use App\Resources\PostPaginateCollection;
 use App\Repositories\Contracts\PostRepository;
+use App\Repositories\Contracts\UserRepository;
 
 class PostController extends BaseController
 {
@@ -60,8 +61,13 @@ class PostController extends BaseController
     public function like($uuid)
     {
         $post = $this->post->findOrFailByUuid($uuid);
-        $country = auth()->user()->like($post);
         $response = $this->response->noContent();
+        $user = auth()->user();
+        if(app(UserRepository::class)->isProhibited($user))
+        {
+            return $response;
+        }
+        $country = auth()->user()->like($post);
         $num = 0;
         if($country!==false)
         {
@@ -128,7 +134,7 @@ class PostController extends BaseController
 
     public function showPostByUser(Request $request , $userId)
     {
-        return PostPaginateCollection::collection($this->post->paginateByUser($request , $userId));
+        return PostPaginateCollection::collection($this->post->paginateByUser($request , (int)$userId));
     }
 
     /**
@@ -150,53 +156,58 @@ class PostController extends BaseController
      */
     public function store(StorePostRequest $request)
     {
-        $post_title = clean($request->input('post_title' , ''));
-        $post_content = clean($request->input('post_content' , ''));
+        $post_title         = clean($request->input('post_title' , ''));
+        $post_content       = clean($request->input('post_content' , ''));
+        $post_type          = $request->input('post_type');
         $post_event_country = $request->input('post_event_country');
+
+	    $post_image         = $request->input('post_image' , []);
+	    $post_image_size    = $request->input('post_image_size' , []);
+	    $post_video         = $request->input('post_video' , []);
+	    $longitude          = $request->input('longitude'); // 经度
+	    $latitude           = $request->input('latitude'); // 纬度
+	    $showType           = $request->input('show_type', 1); // 可见范围
+        $post_category_id   = 1;
+        $tag_slug           = array_diff((array)$request->input('tag_slug' , []),[null , '']);
+        $topics             = array_diff((array)$request->input('topics' , []), [null , '']);
+
         \Validator::make(array('post_content'=>$post_content), [
             'post_content' => ['bail','required','string','between:1,3000'],
         ])->validate();
-	    $tag_slug = array_diff((array)$request->input('tag_slug' , array()),array(null , ''));
-	    $topics = array_diff((array)$request->input('topics' , array()),array(null , ''));
-	    $post_image = $request->input('post_image' , array());
-	    $post_image_size = $request->input('post_image_size' , array());
-	    $post_video = $request->input('post_video' , array());
-        $post_category_id = 1;
-        $post_type = 'text';
+
         $post_image = \array_filter($post_image , function($v , $k) use ($post_image_size){
-            $flag = !empty($v);
-            if($flag===false)
-            {
+            $flag   = !empty($v);
+            if($flag===false) {
                 unset($post_image_size[$k]);
             }
             return $flag;
         } , ARRAY_FILTER_USE_BOTH );
         ksort($post_image_size);
         ksort($post_image);
-	    if(!empty($post_image))
-        {
+
+
+        $post_type = 'text';
+        if(!empty($post_image)) {
             $post_category_id = 2;
             $post_type = 'image';
         }
-        if(!empty($post_video))
-        {
+        if(!empty($post_video)) {
             $post_category_id = 3;
             $post_type = 'video';
         }
-        $prohibited_content = config('common.prohibited_content');
-        if(!blank($prohibited_content)&&str_contains($post_content , $prohibited_content))
+        $poster   = auth()->user();
+        if(app(UserRepository::class)->isProhibited($poster))
         {
             $uuid = config('common.prohibited_default_uuid');
-            if(blank($uuid))
-            {
+            if(blank($uuid)) {
                 return $this->response->created();
             }
             $post = $this->post->showByUuid($uuid);
             return new PostCollection($post);
         }
         try {
-            $postTitleLang = empty($post_title)?'en':$this->translate->detectLanguage($post_title);
-            $post_title_default_locale = $postTitleLang=='und'?'en':$postTitleLang;
+            $postTitleLang             = empty($post_title)    ? 'en' : $this->translate->detectLanguage($post_title);
+            $post_title_default_locale = $postTitleLang=='und' ? 'en' : $postTitleLang;
             if(empty($post_content))
             {
                 $postContentLang = 'und';
@@ -210,23 +221,25 @@ class PostController extends BaseController
             \Log::error(\json_encode($e->getMessage() , JSON_UNESCAPED_UNICODE));
             abort(424 , 'Sorry guys! We are updating our services in the next 24 hours. We apologize for the inconvenience !');
         }
-        $poster    = auth()->user();
+
         $titleLocale = niuAzureToGoogle($post_title_default_locale);
         $contentLocale = niuAzureToGoogle($post_content_default_locale);
-        $post_info= array(
-            'user_id'=>$poster->user_id,
-            'post_uuid'=>Uuid::uuid1(),
-            'post_category_id'=>$post_category_id,
-            'post_country_id'=>$poster->user_country_id,
-            'post_default_locale'=>$titleLocale,
-            'post_content_default_locale'=>$contentLocale,
-            'post_type' =>$post_type,
-            'post_rate'=>first_rate_comment_v2()
-        );
-        if(!empty($post_event_country))
-        {
-            $post_info['post_event_country_id'] = $post_event_country;
-        }
+        $post_info     = [
+            'user_id'          => $poster->user_id,
+            'post_uuid'        => Uuid::uuid1(),
+            'post_category_id' => $post_category_id,
+            'post_country_id'  => $poster->user_country_id,
+            'post_type'        => $post_type,
+            'longitude'        => $longitude,
+            'latitude'         => $latitude,
+            'show_type'        => $showType ?? 1,
+            'post_rate'        => first_rate_comment_v2(),
+
+            'post_default_locale'         => $titleLocale,
+            'post_event_country_id'       => !empty($post_event_country) ? $post_event_country : '-1',
+            'post_content_default_locale' => $contentLocale,
+        ];
+
         if($post_category_id==2&&!empty($post_image))
         {
             $post_image = array_slice($post_image,0 , 9);
@@ -242,13 +255,13 @@ class PostController extends BaseController
         }
         if($post_category_id==3&&!empty($post_video))
         {
-            $video_url = isset($post_video['video_url'])?$post_video['video_url']:'';
+            $video_url             = isset($post_video['video_url'])?$post_video['video_url']:'';
             $video_subtitle_locale = isset($post_video['video_subtitle_locale'])?$post_video['video_subtitle_locale']:'';
-            $video_thumbnail_url = isset($post_video['video_thumbnail_url'])?$post_video['video_thumbnail_url']:'';
-            $video_time = isset($post_video['video_time'])?$post_video['video_time']:0;
-            $video_size = isset($post_video['video_size'])?$post_video['video_size']:0;
-            $video_subtitle_url = isset($post_video['video_subtitle_url'])?$post_video['video_subtitle_url']:'';
-            $post_media_json = array('video'=>array(
+            $video_thumbnail_url   = isset($post_video['video_thumbnail_url'])?$post_video['video_thumbnail_url']:'';
+            $video_time            = isset($post_video['video_time'])?$post_video['video_time']:0;
+            $video_size            = isset($post_video['video_size'])?$post_video['video_size']:0;
+            $video_subtitle_url    = isset($post_video['video_subtitle_url'])?$post_video['video_subtitle_url']:'';
+            $post_media_json       = array('video'=>array(
                 'video_from'=>'upload',
                 'video_url'=>$video_url,
                 'video_subtitle_locale'=>$video_subtitle_locale,
@@ -268,23 +281,24 @@ class PostController extends BaseController
             $post_info[$titleLocale] = array('post_title'=>$post_title,'post_content'=>$post_content);
         }
         $post = $this->post->store($post_info);
-	    if(!empty($tag_slug))
-        {
+	    if(!empty($tag_slug)) {
             //$post->attachTags($tag_slug);
         }
-        if(!empty($topics))
-        {
+        if(!empty($topics)) {
             $post = $this->post->attachTopics($post , $topics);
         }
-        if(config('common.translation_version')==='niu')
+
+        if (config('common.translation_version')==='niu')
         {
             $job = new PostTranslationV2($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
-        }else{
+        } else {
             $job = new PostTranslation($poster , $post , $titleLocale , $contentLocale , $postTitleLang , $postContentLang , $post_title , $post_content);
         }
 //        $this->dispatchNow($job);
         $this->dispatch($job->onQueue(Constant::QUEUE_POST_TRANSLATION));
+
         return new PostCollection($post);
+
     }
 
     /**
@@ -298,9 +312,34 @@ class PostController extends BaseController
 
     }
 
+    /**
+     * @param $uuid
+     * @return PostCollection
+     * 新增了可见范围，需要判断
+     */
     public function showByUuid($uuid)
     {
-        $post = $this->post->showByUuid($uuid);
+        $userId = auth()->check() ? auth()->user()->user_id : 0;
+        $post   = $this->post->showByUuid($uuid);
+        $post   = $this->post->voteList($post);
+
+        if (!empty($userId)) {
+            if ($post->user_id !=$userId) {
+                // 登录状态 可见范围为自己可见
+                if ($post->show_type==3 && $post->user_id != $userId) {
+                    abort(404);
+                }
+                // 登录状态 可见范围为粉丝可见
+                if ($post->show_type==2) {
+                    $follow = $this->post->userFollowType($post->user_id, $userId);
+                    empty($follow) && abort(404);
+                }
+            }
+        } else {
+            // 未登录状态 且可见范围为 粉丝、自己
+            $post->show_type>1 && abort(404);
+        }
+
         $postLikes = $this->post->userPostLike(array($post->post_id));
         $postDisLikes = $this->post->userPostDislike(array($post->post_id));
         $post->likeState = in_array($post->post_id , $postLikes);
@@ -327,7 +366,7 @@ class PostController extends BaseController
      * @param  string  $uuid
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $uuid)
+    /*public function update(Request $request, $uuid)
     {
         $subtitle = $request->input('subtitle' , '');
         $language = $request->input('locale' , locale());
@@ -345,7 +384,7 @@ class PostController extends BaseController
             $post->save();
         }
         return $this->response->accepted();
-    }
+    }*/
 
     /**
      * Remove the specified resource from storage.
@@ -375,6 +414,7 @@ class PostController extends BaseController
         $postKey = config('redis-key.post.post_index_new');
         $essencePostKey = config('redis-key.post.post_index_essence');
         $essenceManualPostKey = config('redis-key.post.post_index_essence_customize');
+
         $publicNewKey = config('redis-key.post.post_index_public_new');
         $publicNewOneKey = config('redis-key.post.post_index_public_new')."_1";
         $publicNewTwoKey = config('redis-key.post.post_index_public_new')."_2";
@@ -451,7 +491,7 @@ class PostController extends BaseController
 
     public function carousel()
     {
-        $carousel = array();
+        $carousel = [];
         $key = 'banner_index';
         if(!Redis::exists($key))
         {
@@ -517,7 +557,7 @@ class PostController extends BaseController
 
     public function test()
     {
-        dd(Post::withAnyTags(['news', 'knowledge'])->paginate(1)->toArray());die;
+        dd(Post::withAnyTags(['news', 'knowledge'])->paginate(1)->to[]);die;
         $post = $this->post->find(896);
         $post->attachTags(array('news' , 'knowledge' , 'dd'));
     }

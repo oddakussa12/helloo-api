@@ -74,8 +74,12 @@ class PostCommentController extends BaseController
         $postUuid = $request->input('post_uuid');
         $commentContent = clean($request->input('comment_content' , ''));
         $commentPId = $request->input('comment_comment_p_id' , 0);
-        $post = app(PostRepository::class)->findOrFailByUuid($postUuid);
         $user = auth()->user();
+        if(app(UserRepository::class)->isProhibited($user))
+        {
+            return $this->response->noContent()->setStatusCode(200);
+        }
+        $post = app(PostRepository::class)->findOrFailByUuid($postUuid);
         $hiddenUsers = app(UserRepository::class)->hiddenUsers($post->user_id);
         if(in_array($user->user_id , $hiddenUsers))
         {
@@ -225,15 +229,23 @@ class PostCommentController extends BaseController
 
     public function like($id)
     {
-        $postComment = $this->postComment->findOrFail($id);
-        auth()->user()->like($postComment);
+        $user = auth()->user();
+        if(!app(UserRepository::class)->isProhibited($user))
+        {
+            $postComment = $this->postComment->findOrFail($id);
+            $user->like($postComment);
+        }
         return $this->response->noContent();
     }
 
     public function dislike($id)
     {
-        $postComment = $this->postComment->findOrFail($id);
-        auth()->user()->unlike($postComment);
+        $user = auth()->user();
+        if(!app(UserRepository::class)->isProhibited($user))
+        {
+            $postComment = $this->postComment->findOrFail($id);
+            $user->unlike($postComment);
+        }
         return $this->response->noContent();
     }
 

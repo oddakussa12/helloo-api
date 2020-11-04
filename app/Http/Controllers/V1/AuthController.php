@@ -228,7 +228,11 @@ class AuthController extends BaseController
     }
 
 
-    public function me(Request $request)
+    /**
+     * @return mixed
+     * 个人主页
+     */
+    public function me()
     {
         $user = auth()->user();
 //        $likeCount = $user->likes()->where('likable_type' , PostComment::class)->with('likable')->join('posts_comments' , function($join){
@@ -246,6 +250,9 @@ class AuthController extends BaseController
 //        $userMyFollow = auth()->user()->followings()->count();
         $userFollowMe = $this->userFollowMeCount($user->user_id);
         $userMyFollow = $this->userMyFollowCount($user->user_id);
+        $user = app(UserRepository::class)->virtualViewCount($user);
+        $user = app(UserRepository::class)->getFriendMaxTalk($user);
+        $user = $this->getFriend($user);
         $user->postCommentCount = $postCommentCount;
         $user->postCount = $postCount;
         $user->userFollowMe = $userFollowMe;
@@ -257,13 +264,17 @@ class AuthController extends BaseController
         $user->userRank = $rank;
         $user->userTags = UserTagCollection::collection($user->user_tags);
         $user->userRegions = UserRegionCollection::collection($user->user_regions);
-        $user->user_avatar = $user->user_avatar_link;
-        $user->user_cover = $user->user_cover_link;
+
+        $user->user_avatar  = $user->user_avatar_link;
+        $user->user_cover   = $user->user_cover_link;
         $user->user_picture = $user->user_picture_link;
+        $user->create_time  = intval((time() - strtotime($user->user_created_at))/86400+1);
+
         $phone = $this->getUser($user->user_id , array('user_phone_country' , 'user_phone'));
         $user->user_phone_country = empty($phone['user_phone_country'])?'':$phone['user_phone_country'];
         $user->user_phone = empty($phone['user_phone'])?'':$phone['user_phone'];
         $user->userNameIsCanUpdate = $this->isCanUpdateName($user->user_id);
+        $user->userProfileViewCount = $this->userProfileViewCount();
         unset($user->user_tags);
         unset($user->user_regions);
         unset($user->user_country);

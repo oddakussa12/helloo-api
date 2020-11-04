@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\App;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
 
@@ -45,6 +46,13 @@ class AppController extends BaseController
         Cache::forget('lastVersionApp');
         $this->getFirstApp();
         return $this->response->noContent();
+    }
+
+    public function mode($model)
+    {
+        $status = $model=='in'?1:0;
+        DB::table('ry_online_users')->where('user_id' , auth()->id())->update(array('status'=>$status));
+        return $this->response->accepted();
     }
 
 }

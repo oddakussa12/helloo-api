@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Custom\Queue\Bus\SqsFifoQueueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
 class RyOnline implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SqsFifoQueueable , SerializesModels;
 
     private $chinaNow;
 
@@ -51,14 +52,14 @@ class RyOnline implements ShouldQueue
         $topics = $this->topics;
         $chinaNow = $this->chinaNow;
         $users = $this->users;
+        $online = array();
         $offlineUsers = $users['offlineUsers'];
         $onlineUsers = $users['onlineUsers'];
-        $offlineUsers = array_keys($offlineUsers);
-        $onlineUsers = array_keys($onlineUsers);
         if(!blank($onlineUsers))
         {
-            foreach ($onlineUsers as $userId)
+            foreach ($onlineUsers as $u)
             {
+                $userId = $u['userid'];
                 $kpop = 0;
                 $anime = 0;
                 $sad = 0;
@@ -102,55 +103,61 @@ class RyOnline implements ShouldQueue
                             }
                         }
                     }
+                    array_push($online , array(
+                        'user_id'=>$userId,
+                        'user_name'=>$user_name??'guest',
+                        'user_nick_name'=>$user_nick_name??'guest',
+                        'user_age'=>$user_age,
+                        'user_gender'=>$user_gender??0,
+                        'user_country_id'=>$user_country_id??246,
+                        'user_avatar'=>$user_avatar??'default_avatar.jpg',
+                        'kpop' => $kpop,
+                        'anime' => $anime,
+                        'sad' => $sad,
+                        'music' => $music,
+                        'games' => $games,
+                        'sports' => $sports,
+                        'created_at'=>$this->time,
+                        'updated_at'=>$this->time,
+                        'user_created_at'=>$user_created_at??$this->date,
+                    ));
 
-                    \DB::table('ry_online_users')->insert(
-                        array(
-                            'user_id'=>$userId,
-                            'user_name'=>$user_name??'guest',
-                            'user_nick_name'=>$user_nick_name??'guest',
-                            'user_age'=>$user_age,
-                            'user_gender'=>$user_gender??0,
-                            'user_country_id'=>$user_country_id??246,
-                            'user_avatar'=>$user_avatar??'default_avatar.jpg',
-                            'kpop' => $kpop,
-                            'anime' => $anime,
-                            'sad' => $sad,
-                            'music' => $music,
-                            'games' => $games,
-                            'sports' => $sports,
-                            'created_at'=>$this->time,
-                            'updated_at'=>$this->time,
-                            'user_created_at'=>$user_created_at??$this->date,
-                        )
-                    );
                 }
             }
+            !blank($online)&&DB::table('ry_online_users')->insert($online);
         }
         if(!blank($offlineUsers))
         {
-            $userIds = join(',' , $offlineUsers);
+            $offlineUserIds = collect($offlineUsers)->pluck('userid')->all();
+            $userIds = join(',' , $offlineUserIds);
             $userIds = rtrim($userIds , ',');
-            \DB::statement("delete from `f_ry_online_users` where user_id in ({$userIds});");
+            DB::statement("delete from `f_ry_online_users` where user_id in ({$userIds});");
         };
-        $allUsers = array_unique(array_merge($onlineUsers , $offlineUsers));
+        $allUsers = array_merge($onlineUsers , $offlineUsers);
         $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
-        foreach ($allUsers as $userId)
+        $log = array();
+        foreach ($allUsers as $user)
         {
+            $userId = $user['userid'];
+            $ipPort = $user['clientIp'];
+            list($ip , $port) = explode(':' , $ipPort);
+            $referer = strval($user['os']);
             if(!Redis::setbit($key , $userId , 1))
             {
                 $view = DB::table('views_logs')->where('user_id' , $userId)->orderBy('id' , 'DESC')->first();
                 if(empty($view)||Carbon::parse($view->created_at , 'Asia/Shanghai')->endOfDay()->timestamp<$chinaNow->endOfDay()->timestamp)
                 {
-                    DB::table('views_logs')->insert(array(
+                    array_push($log , array(
                         'user_id'=>$userId,
-                        'ip'=>'127.0.0.1',
-                        'referer'=>'ry',
+                        'ip'=>$ip,
+                        'referer'=>$referer,
                         'created_at'=>$this->chinaDateTime
                     ));
                 }
             }
             Redis::rpush($key."_op_list" , strval($userId).'.'.strval($this->time));//20201017
         }
+        !blank($log)&&DB::table('views_logs')->insert($log);
     }
 
 }

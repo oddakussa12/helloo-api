@@ -129,6 +129,7 @@ $api->group($V1Params , function ($api){
         /*****评论 结束*****/
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
+        $api->get('user/{user}/view' , 'UserController@viewPage')->name('my.view'); // 我的主页 浏览量 详细页
         $api->get('post/myself' , 'PostController@myself')->name('post.myself');
         $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
             $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
@@ -200,12 +201,16 @@ $api->group($V1Params , function ($api){
                 $api->put('user/{user}/revokeLike' , 'UserController@profileRevokeLike')->name('user.profile.revoke.like');
             });
             $api->group(['middleware'=>['redisThrottle:'.config('common.post_throttle_num').','.config('common.post_throttle_expired')]] , function ($api){
-                $api->post('post' , 'PostController@store')->name('post.store');
+                $api->post('post', 'PostController@store')->name('post.store'); // 发帖
+                $api->post('vote', 'PostVoteController@store')->name('post.vote.store');// 发布投票贴
+                $api->put('vote', 'PostVoteController@vote')->name('post.vote.status'); // 选一个选项投票
             });
             $api->group(['middleware'=>['redisThrottle:'.config('common.post_comment_throttle_num').','.config('common.post_comment_throttle_expired')]] , function ($api){
                 $api->post('postComment' , 'PostCommentController@store')->name('comment.store');
             });
         });
+
+        $api->put('vote', 'PostVoteController@vote')->name('post.vote.status'); // 选一个选项投票
 
         //其他人的关注&粉丝列表
         $api->get('user/{id}/myfollow' , 'UserController@otherMyFollow')->name('other.follow');
@@ -217,14 +222,20 @@ $api->group($V1Params , function ($api){
         $api->delete('post/{uuid}' , 'PostController@destroy')->name('post.delete');
 
         $api->resource('postComment' , 'PostCommentController' , ['only' => ['destroy']]);
+        $api->resource('position' , 'PositionController', ['only' => ['store']]); //用户地址位置
+
         $api->group(['middleware'=>['operationLog' , 'lastActive' , 'redisThrottle:'.config('common.notification_throttle_num').','.config('common.notification_throttle_expired')]] , function ($api){
             $api->get('notification/count' , 'NotificationController@count')->name('notice.count');
+            $api->get('notification/unreadCount' , 'NotificationController@unreadCount')->name('notice.unreadCount');
         });
-        $api->put('notification/type/{type}' , 'NotificationController@readAll')->name('notice.readAll');
+        $api->put('notification/readAll' , 'NotificationController@readAll')->name('notice.readAll');
         $api->put('notification/{id}' , 'NotificationController@read')->name('notice.read');
+        $api->get('notification/home' , 'NotificationController@home')->name('notification.home');
         $api->get('notification/{id}' , 'NotificationController@detail')->name('notice.detail');
 
         $api->post('device/update', 'DeviceController@update')->name('device.update');
+
+        $api->put('app/mode/{mode}' , 'AppController@mode')->where('model', 'out|in')->name('app.mode');
 
     });
     $api->group(['middleware'=>['guestRefresh']] , function($api){

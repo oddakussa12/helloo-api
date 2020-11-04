@@ -8,11 +8,14 @@ use App\Models\User;
 use App\Events\Follow;
 use App\Events\UnFollow;
 use App\Models\UserEmoji;
+use App\Models\UserFriend;
+use App\Models\UserVisitLog;
 use App\Resources\UserSearchCollection;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use App\Resources\FollowCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use App\Repositories\Contracts\UserRepository;
@@ -109,19 +112,31 @@ class UserController extends BaseController
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param $id
      * @return UserCollection
      */
     public function show($id)
     {
-        if($this->isBlocked($id))
-        {
+        if ($this->isBlocked($id)) {
             return $this->response->errorNotFound();
         }
-        $user = $this->user->findOrFail($id);
+
+        $user        = $this->user->findOrFail($id);
+        $user        = $this->user->virtualViewCount($user, 0);
         $followerIds = $this->user->userFollow([$id]);
         $user->user_follow_state = !empty($followerIds);
         return new UserCollection($user);
+    }
+
+
+    /**
+     * @param $id
+     * @return array
+     * 我得主页 访客统计
+     */
+    public function viewPage($id)
+    {
+        return $this->user->viewPage($id);
     }
 
 
@@ -214,24 +229,19 @@ class UserController extends BaseController
     public function follow($user_id)
     {
         $follower = auth()->user();
-        $userName = $follower->user_name;
-        $userNickName = $follower->user_nick_name;
-        $key = "temp_account";
-        if(Redis::exists($key))
+        if(!app(UserRepository::class)->isProhibited($follower))
         {
-            $users = array_values(Redis::smembers($key));
-            if(str_contains(strtolower($userName) , $users)||str_contains(strtolower($userNickName) , $users))
+            if($follower->user_id!=$user_id)
             {
-                return $this->response->noContent();
-            }
-        }
-        if($follower->user_id!=$user_id)
-        {
-            $user = $this->user->findOrFail($user_id);
-            $follow = $follower->followUser($user);
-            if($follow===true)
-            {
-                event(new Follow($follower , $user));
+                $user = $this->user->findOrFail($user_id);
+                if(!app(UserRepository::class)->isProhibited($user))
+                {
+                    $follow = $follower->followUser($user);
+                    if($follow===true)
+                    {
+                        event(new Follow($follower , $user));
+                    }
+                }
             }
         }
         return $this->response->noContent();
@@ -384,7 +394,7 @@ class UserController extends BaseController
     {
         $response = $this->response->noContent();
         $users = $request->post();
-        $users = array_pluck($users , 'status' , 'userid');
+//        $users = array_pluck($users , 'status' , 'userid');
         $this->user->updateUserOnlineState($users);
         return $response->setStatusCode(200);
     }
