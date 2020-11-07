@@ -316,7 +316,7 @@ class AuthController extends BaseController
                 ];
             }
             \Validator::make(array($type=>$account), $rule)->validate();
-            $response = $response->noContent()->statusCode(200);
+            $response = $response->noContent();
             if($type=='phone')
             {
                 $existRule = [
@@ -327,7 +327,7 @@ class AuthController extends BaseController
                 $validator = \Validator::make(array($type=>$account), $existRule);
                 $response = $response->header('is_sign_up', intval($validator->fails()));
             }
-            return $response;
+            return $response->setStatusCode(200);
         }else{
             $response = $response->errorMethodNotAllowed();
         }
