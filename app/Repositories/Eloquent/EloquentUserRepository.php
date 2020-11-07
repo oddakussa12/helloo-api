@@ -692,7 +692,7 @@ DOC;
         RyOnline::dispatch(array(
             'offlineUsers'=>$offlineUsers->all(),
             'onlineUsers'=>$onlineUsers->all(),
-        ))->onConnection('sqs-fifo')->onQueue('helloo_user_online.fifo');
+        ))->onConnection('sqs-fifo')->onQueue('helloo_ry_user_online.fifo');
 
     }
 
