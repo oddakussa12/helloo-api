@@ -316,6 +316,8 @@ class AuthController extends BaseController
             }
             \Validator::make(array($type=>$account), $rule)->validate();
             $response = $response->noContent()->setStatusCode(200);
+            $response = $response->header('Signed-in', 1);
+            return $response;
             if($type=='phone')
             {
                 $existRule = [
