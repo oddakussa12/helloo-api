@@ -323,7 +323,7 @@ class AuthController extends BaseController
                         new UserPhoneUnique()
                     ],
                 ];
-                $validator = \Validator::make(array($type=>$account), $existRule);
+//                $validator = \Validator::make(array($type=>$account), $existRule);
                 $response = $response->header('Signed-in', 1);
             }
         }else{
