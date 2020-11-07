@@ -251,7 +251,7 @@ class AuthController extends BaseController
                     Redis::del($key);
                     if($code!=$value)
                     {
-                        $fail('sms error');
+//                        $fail('sms error');
                     }
                 },
             ]
