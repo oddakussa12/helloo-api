@@ -67,7 +67,7 @@ $api->group($V1Params , function ($api){
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
 
         $api->group(['middleware'=>['operationLog' , 'lastActive']] , function ($api){
-            $api->get('message/token' , 'PrivateMessageController@token')->name('message.token');
+            $api->get('ry/token' , 'RySetController@token')->name('ry.token');
             $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
                 $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
             });
