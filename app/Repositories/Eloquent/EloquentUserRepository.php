@@ -670,11 +670,11 @@ DOC;
 
     public function updateUserOnlineState($users)
     {
-        $users = collect($users)->sortByDesc('time')->toArray();
+        $users = (array)(collect($users)->sortByDesc('time')->toArray());
         $users = assoc_unique($users , 'userid');
-        $lastActivityTime = 'ry_user_last_activity_time';
-        $key = 'ry_user_online_status';
-        $bitKey = 'ry_user_online_status_bit';
+        $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
+        $key = 'helloo:account:service:account-ry-online-status';
+        $bitKey = 'helloo:account:service:account-ry-online-status-bit';
         $offlineUsers = collect($users)->whereIn('status', array(1 , 2));
         $offlineUserIds = $offlineUsers->pluck('userid')->all();
         $onlineUsers = collect($users)->where('status', 0);
@@ -688,7 +688,6 @@ DOC;
             $status = intval($status)>0?0:1;
             Redis::setBit($bitKey , $userId , $status);
             Redis::zadd($lastActivityTime , $time , $userId);
-
         });
         RyOnline::dispatch(array(
             'offlineUsers'=>$offlineUsers->all(),

@@ -79,11 +79,9 @@ class RyOnline implements ShouldQueue
                 {
                     array_push($online , array(
                         'user_id'=>$userId,
-                        'user_name'=>$user_name??'guest',
                         'user_nick_name'=>$user_nick_name??'guest',
                         'user_age'=>$user_age,
                         'user_gender'=>$user_gender??0,
-                        'user_country_id'=>$user_country_id??246,
                         'user_avatar'=>$user_avatar??'default_avatar.jpg',
                         'created_at'=>$this->time,
                         'updated_at'=>$this->time,
