@@ -16,7 +16,6 @@ class UserPhoneUnique implements Rule
      */
     public function passes($attribute, $value)
     {
-        return true;
         $value = "+".$value;
         $phoneUtil = PhoneNumberUtil::getInstance();
         try {
