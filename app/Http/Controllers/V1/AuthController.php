@@ -316,7 +316,7 @@ class AuthController extends BaseController
                 ];
             }
             \Validator::make(array($type=>$account), $rule)->validate();
-            $response = $response->noContent();
+            $response = $response->noContent()->setStatusCode(200);
             if($type=='phone')
             {
                 $existRule = [
@@ -327,7 +327,6 @@ class AuthController extends BaseController
                 $validator = \Validator::make(array($type=>$account), $existRule);
                 $response = $response->header('Signed-in', intval($validator->fails()));
             }
-            return $response;
         }else{
             $response = $response->errorMethodNotAllowed();
         }
