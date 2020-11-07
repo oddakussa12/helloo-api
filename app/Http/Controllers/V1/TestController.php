@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Custom\RedisList;
-use Google\ApiCore\ApiException;
+
 use Illuminate\Http\Request;
+use Google\ApiCore\ApiException;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use Google\Cloud\Storage\StorageClient;
 use Google\Cloud\Translate\V3\GcsSource;
 use Google\Cloud\Translate\V3\Glossary;
-use Google\Cloud\Translate\V3\GlossaryInputConfig;
-use Google\Cloud\Translate\V3\Glossary\LanguageCodesSet;
+use App\Custom\Uuid\RandomStringGenerator;
 use App\Repositories\Contracts\PostRepository;
-use App\Repositories\Contracts\UserRepository;
-use Illuminate\Database\Concerns\BuildsQueries;
 use Google\Cloud\Translate\V2\TranslateClient;
+use Illuminate\Database\Concerns\BuildsQueries;
+use Google\Cloud\Translate\V3\GlossaryInputConfig;
 use Google\Cloud\Translate\V3\TranslationServiceClient;
+use Google\Cloud\Translate\V3\Glossary\LanguageCodesSet;
 use Google\Cloud\Translate\V3\TranslateTextGlossaryConfig;
 
 
@@ -243,6 +243,17 @@ class TestController extends BaseController
         } finally {
             $translationServiceClient->close();
         }
+    }
+
+
+    public function token()
+    {
+        $token = app('rcloud')->getUser()->register(array(
+            'id'=> time(),
+            'name'=> (new RandomStringGenerator())->generate(16),
+            'portrait'=> "https://qnwebothersia.mmantou.cn/default_avatar.jpg?imageView2/0/w/50/h/50/interlace/1|imageslim"
+        ));
+        return $this->response->array($token);
     }
 
 

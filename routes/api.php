@@ -318,6 +318,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
         $api->post('test/index' , 'TestController@test')->name('test.test');
     });
+    $api->get('test/token' , 'TestController@token')->name('test.token');
 
 });
 
