@@ -8,28 +8,16 @@ use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
-use App\Traits\CachableUser;
 use App\Rules\UserPhoneUnique;
 use App\Events\UserUpdatedEvent;
-use App\Foundation\Auth\User\Update;
-use App\Resources\UserTagCollection;
-use App\Rules\UserNameAndEmailUnique;
-use App\Resources\UserRegionCollection;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\LoginUserRequest;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use App\Custom\Uuid\RandomStringGenerator;
-use App\Http\Requests\ForgetPasswordRequest;
 use App\Repositories\Contracts\UserRepository;
-use App\Foundation\Auth\Passwords\ResetsPasswords;
 use Dingo\Api\Exception\StoreResourceFailedException;
-use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 
 class AuthController extends BaseController
 {
-    use Update,CachableUser,ResetsPasswords, SendsPasswordResetEmails {
-        ResetsPasswords::broker insteadof SendsPasswordResetEmails;
-    }
 
     protected $user;
 
@@ -38,57 +26,56 @@ class AuthController extends BaseController
         $this->user = $user;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param StoreUserRequest $request
-     * @return \Illuminate\Http\Response
-     * @throws \Exception
-     */
-    public function signUp(StoreUserRequest $request)
+
+
+    public function signIn(Request $request)
     {
-        $request_fields = $request->only(['name' , 'email' , 'password' , 'user_nick_name']);
-        $referer = $request->input('referer' , 'web');
-        $user_fields[$this->user->getDefaultNameField()] = strval(!empty($request_fields['name'])?$request_fields['name']:$this->randUsername());
-        $user_fields[$this->user->getDefaultEmailField()] = strval($request_fields['email']);
-        $user_fields[$this->user->getDefaultPasswordField()] = strval($request_fields['password']);
-        $user_fields['user_nick_name'] = strval(!empty($request_fields['user_nick_name'])?$request_fields['user_nick_name']:'');
-        $user_fields['user_ip_address'] = getRequestIpAddress();
-        $user_fields['user_uuid'] = Uuid::uuid1();
-        $user_fields['user_src'] = $referer;
-        $addresses = geoip($user_fields['user_ip_address']);
-        $version = $request->header('YooulVersion' , 0);
-        if(version_compare($version,'1.6.2','>='))
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $password = $request->input('password');
+        $validationField = array(
+            'phone'=>$user_phone_country.$user_phone,
+            'password'=>$password,
+        );
+        $rule = [
+            'nick_name' => [
+                'bail',
+                'required',
+                'string',
+                'min:4',
+                'max:13',
+            ],
+            'phone' => [
+                'bail',
+                'required',
+                new UserPhone()
+            ],
+            'password' => [
+                'bail',
+                'required',
+                'string',
+                'min:6',
+                'max:32',
+            ],
+        ];
+        try{
+            \Validator::make($validationField, $rule)->validate();
+        }catch (\Illuminate\Validation\ValidationException $e)
         {
-            $user_fields['user_nick_name'] = empty($user_fields['user_nick_name'])?$user_fields[$this->user->getDefaultNameField()]:$user_fields['user_nick_name'];
-            $user_fields[$this->user->getDefaultNameField()] = $this->randUsername();
+            throw new \Illuminate\Validation\ValidationException($e->validator);
         }
-        if($request->has('country_code'))
+        $phone = DB::table('f_users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
+        if(!empty($phone))
         {
-            $user_fields['user_country_id'] = $request->input('country_code');
+            $user = $this->user->find($phone->user_id);
+            if(password_verify($password, $user->user_pwd))
+            {
+                $token = auth()->login($user);
+                return $this->respondWithToken($token , false);
+            }
         }else{
-            $user_fields['user_country_id'] = $addresses->iso_code;
+            return $this->response->errorUnauthorized(trans('auth.phone_failed'));
         }
-        $user = $this->user->store($user_fields);
-        if ($user) {
-            event(new SignupEvent($user , $addresses));
-            $token = auth()->login($user);
-            return $this->respondWithToken($token);
-        }
-        throw new StoreResourceFailedException('sign up failed');
-    }
-
-
-
-
-    public function signIn(LoginUserRequest $request)
-    {
-        $credentials = $this->credentials($request);
-        if ($token = auth()->attempt($credentials)) {
-            return $this->respondWithToken($token);
-        }
-        $error = filter_var($credentials['user_email'] , FILTER_VALIDATE_EMAIL)===false?trans('auth.failed'):trans('auth.email_failed');
-        return $this->response->errorUnauthorized($error);
     }
 
     public function signOut()
@@ -235,49 +222,6 @@ class AuthController extends BaseController
     public function me()
     {
         $user = auth()->user();
-//        $likeCount = $user->likes()->where('likable_type' , PostComment::class)->with('likable')->join('posts_comments' , function($join){
-//            $join->on('common_likes.likable_id' , 'posts_comments.comment_id');
-//        })->whereNull('posts_comments.comment_deleted_at')->count();
-        $likeCount = $this->userPostCommentLike($user->user_id);
-//        $postCommentCount = app(PostCommentRepository::class)->getCountByUserId($user->user_id);
-        $postCommentCount = $this->userPostCommentCount($user->user_id);
-//        $yesterday_score_rank = app(UserRepository::class)->getUserYesterdayRankByUserId($user->user_id);
-//        $postCount = app(PostRepository::class)->getCountByUserId($user->user_id);
-        $postCount = $this->userPostCount($user->user_id);
-//        $rank = app(UserRepository::class)->getUserRankByUserId($user->user_id);
-        $rank = $this->userScoreRank($user->user_id);
-//        $userFollowMe = auth()->user()->followers()->count();
-//        $userMyFollow = auth()->user()->followings()->count();
-        $userFollowMe = $this->userFollowMeCount($user->user_id);
-        $userMyFollow = $this->userMyFollowCount($user->user_id);
-        $user = app(UserRepository::class)->virtualViewCount($user);
-        $user = app(UserRepository::class)->getFriendMaxTalk($user);
-        $user = $this->getFriend($user);
-        $user->postCommentCount = $postCommentCount;
-        $user->postCount = $postCount;
-        $user->userFollowMe = $userFollowMe;
-        $user->userMyFollow = $userMyFollow;
-        $user->likeCount = $likeCount;
-        $user->country = $user->user_country;
-        $user->yesterdayScore = null;
-        $user->yesterdayRank = null;
-        $user->userRank = $rank;
-        $user->userTags = UserTagCollection::collection($user->user_tags);
-        $user->userRegions = UserRegionCollection::collection($user->user_regions);
-
-        $user->user_avatar  = $user->user_avatar_link;
-        $user->user_cover   = $user->user_cover_link;
-        $user->user_picture = $user->user_picture_link;
-        $user->create_time  = intval((time() - strtotime($user->user_created_at))/86400+1);
-
-        $phone = $this->getUser($user->user_id , array('user_phone_country' , 'user_phone'));
-        $user->user_phone_country = empty($phone['user_phone_country'])?'':$phone['user_phone_country'];
-        $user->user_phone = empty($phone['user_phone'])?'':$phone['user_phone'];
-        $user->userNameIsCanUpdate = $this->isCanUpdateName($user->user_id);
-        $user->userProfileViewCount = $this->userProfileViewCount();
-        unset($user->user_tags);
-        unset($user->user_regions);
-        unset($user->user_country);
         return $this->response->array($user);
     }
 
@@ -286,69 +230,44 @@ class AuthController extends BaseController
         return 'name';
     }
 
-    public function handleSignUp(Request $request)
+
+    public function handleSignIn(Request $request)
     {
-        $user_nick_name = $request->input('user_nick_name');
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
-        if($request->has('user_phone_country：'))
-        {
-            $user_phone_country = ltrim(strval($request->input('user_phone_country：' , "86")) , "+");
-        }else{
-            $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-        }
-        $password = $request->input('password');
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $code = strval($request->input('code' , ''));
+        $phone = $user_phone_country.$user_phone;
         $validationField = array(
-            'nick_name'=>$user_nick_name,
-            'phone'=>$user_phone_country.$user_phone,
-            'password'=>$password,
+            'user_phone'=>$phone,
+            'code'=> $code
         );
         $rule = [
-            'nick_name' => [
+            'user_phone' => [
                 'bail',
-                'required',
                 'string',
-                'min:4',
-                'max:13',
-            ],
-            'phone' => [
-                'bail',
                 'required',
-                new UserPhone(),
-                new UserPhoneUnique()
+                new UserPhone()
             ],
-            'password' => [
+            'code' => [
                 'bail',
-                'required',
                 'string',
-                'min:6',
-                'max:16',
-            ],
+                'required',
+                function ($attribute, $value, $fail) use ($phone){
+                    $key = 'helloo:account:service:account-sign-in-sms-code:'.$phone;
+                    $code = Redis::get($key);
+                    Redis::del($key);
+                    if($code!=$value)
+                    {
+                        $fail('sms error');
+                    }
+                },
+            ]
         ];
-        try{
-            \Validator::make($validationField, $rule)->validate();
-        }catch (\Illuminate\Validation\ValidationException $e)
-        {
-            \Log::error($request->all());
-            throw new \Illuminate\Validation\ValidationException($e->validator);
-        }
-        $dateTime = date("Y-m-d H:i:s");
-        $referer = $request->input('referer' , 'web');
-        $user_fields[$this->user->getDefaultNameField()] = $this->randUsername();
-        $user_fields[$this->user->getDefaultPasswordField()] = bcrypt($password);
-        $user_fields['user_ip_address'] = getRequestIpAddress();
-        $user_fields['user_uuid'] = Uuid::uuid1();
-        $user_fields['user_src'] = $referer;
-        $user_fields['user_nick_name'] = $user_nick_name;
-        $user_fields['user_created_at'] = $dateTime;
-        $user_fields['user_updated_at'] = $dateTime;
-        $addresses = geoip($user_fields['user_ip_address']);
-        if($request->has('country_code'))
-        {
-            $user_fields['user_country_id'] = getUserCountryId($request->input('country_code'));
-        }else{
-            $user_fields['user_country_id'] = getUserCountryId($addresses->iso_code);
-        }
-        \DB::beginTransaction();
+        \Validator::make($validationField, $rule)->validate();
+        $user_fields = array(
+            'user_uuid'=>Uuid::uuid1()
+        );
+        DB::beginTransaction();
         try{
             $userId = \DB::table('users')->insertGetId($user_fields);
             \DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
@@ -360,6 +279,7 @@ class AuthController extends BaseController
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
+        $addresses = getRequestIpAddress();
         event(new SignupEvent($user , $addresses , array(
             'user_phone'=>$user_phone,
             'user_phone_country'=>$user_phone_country,
@@ -367,139 +287,20 @@ class AuthController extends BaseController
         $token = auth()->login($user);
         return $this->respondWithToken($token , false);
     }
-    public function handleSignIn(Request $request)
-    {
-        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
-        if($request->has('user_phone_country：'))
-        {
-            $user_phone_country = ltrim(strval($request->input('user_phone_country：' , "86")) , "+");
-        }else{
-            $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-        }
-        $password = strval($request->input('password' , ''));
-        $validationField = array(
-            'user_phone'=>$user_phone_country.$user_phone,
-            'password'=>$password,
-        );
-        $rule = [
-            'user_phone' => [
-                'bail',
-                'required',
-                new UserPhone()
-            ],
-            'password' => [
-                'bail',
-                'required',
-                'string'
-            ],
-        ];
-        \Validator::make($validationField, $rule)->validate();
-        $phone = \DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
-        if(blank($phone))
-        {
-            return $this->response->errorUnauthorized(trans('auth.phone_failed'));
-        }
-        $user = $this->user->find($phone->user_id);
-        if(password_verify($password, $user->user_pwd))
-        {
-            $token = auth()->login($user);
-            return $this->respondWithToken($token , false);
-        }
-        return $this->response->errorUnauthorized(trans('auth.phone_failed'));
-
-    }
 
     public function randUsername(){
         return (new RandomStringGenerator())->generate(16);
     }
 
-    public function forgetPwd(ForgetPasswordRequest $request)
-    {
-        if($request->has('user_phone')&&$request->has('user_phone_country'))
-        {
-            $user_phone = ltrim(ltrim(strval($request->input('user_phone' , '')) , "+") , "0");
-            $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-            $this->forgetPwdByPhone($user_phone , $user_phone_country);
-            return $this->response->noContent();
-        }
-        $credentials = array('user_email'=>$request->input('email'));
-        $referer = $request->input('referer' , '');
-        $referer = empty($referer)?$request->server('HTTP_REFERER'):$referer;
-        $referer = domain($referer);
-        if(!in_array($referer , array_values(config('common.front_domain'))))
-        {
-            $referer = config('common.front_domain.h5');
-        }
-        $credentials['referer'] = $referer;
 
-        $response = $this->broker()->sendResetLink($credentials);
-        if($response==Password::RESET_LINK_SENT)
-        {
-            return $this->response->noContent();
-        }
-        return $this->response->errorNotFound(trans('passwords.user'));
-    }
-
-    public function resetPwd(Request $request)
-    {
-        $response = $this->reset($request);
-        if($response!==true)
-        {
-            switch ($response)
-            {
-                case Password::INVALID_USER :
-                    return $this->response->errorNotFound(trans('passwords.user'));
-                    break;
-                case Password::INVALID_PASSWORD :
-                    return $this->response->errorNotFound(trans('passwords.password'));
-                    break;
-                case Password::INVALID_TOKEN :
-                    return $this->response->errorNotFound(trans('passwords.token'));
-                    break;
-                case 'passwords.code' :
-                    return $this->response->errorNotFound(trans('passwords.code'));
-                    break;
-                default :
-                    return $this->response->errorNotFound(__('Service Unavailable'));
-                    break;
-            }
-        }
-        return $this->response->noContent();
-    }
 
     public function accountExists($account , $type)
     {
         $response = $this->response;
-        if(in_array($type , array('name' , 'email' , 'phone' , 'nick_name')))
+        if(in_array($type , array('phone' , 'nick_name')))
         {
             $type = strtolower($type);
-            if($type=='name')
-            {
-                $rule = [
-                    $type => [
-                        'required',
-                        function ($attribute, $value, $fail) {
-                            if (emoji_test($value)) {
-                                $fail(trans('validation.regex'));
-                            }
-                        },
-                        'regex:/^[0-9a-zA-Z]+$/u',
-                        'min:4',
-                        'max:32',
-//                        'unique:users,user_'.$type
-                        new UserNameAndEmailUnique()
-                    ],
-                ];
-            }else if($type=='email'){
-                $rule = [
-                    $type => [
-                        'required',
-                        'email',
-//                        'unique:users,user_'.$type
-                        new UserNameAndEmailUnique()
-                    ],
-                ];
-            }else if($type=='phone'){
+            if($type=='phone'){
                 $type = 'user_'.$type;
                 $rule = [
                     $type => [
@@ -516,12 +317,23 @@ class AuthController extends BaseController
                         'bail',
                         'required',
                         'min:4',
-                        'max:13'
+                        'max:24'
                     ],
                 ];
             }
             \Validator::make(array($type=>$account), $rule)->validate();
             $response = $response->noContent()->statusCode(200);
+            if($type=='phone')
+            {
+                $existRule = [
+                    "phone" => [
+                        new UserPhoneUnique()
+                    ],
+                ];
+                $validator = \Validator::make(array($type=>$account), $existRule);
+                $response = $response->header('is_sign_up', intval($validator->fails()));
+            }
+            return $response->setStatusCode(200);
         }else{
             $response = $response->errorMethodNotAllowed();
         }
@@ -564,66 +376,6 @@ class AuthController extends BaseController
             );
             $this->dispatch((new Sms($user_phone , $code , $user_phone_country))->onQueue('forget_pwd_sms'));
         }
-        return $this->response->noContent();
-    }
-    public function sendUpdateEmailCode(Request $request)
-    {
-        $this->sendEmailCode($request);
-        return $this->response->noContent();
-    }
-
-    public function sendUpdatePhoneCode(Request $request)
-    {
-        $this->sendPhoneCode($request);
-        return $this->response->noContent();
-    }
-
-    public function updateUserName(Request $request)
-    {
-        $this->updateName($request);
-        return $this->response->noContent();
-    }
-
-    public function updateUserPhone(Request $request)
-    {
-        $this->updatePhone($request);
-        return $this->response->noContent();
-    }
-
-    public function updateUserEmail(Request $request)
-    {
-        $this->updateEmail($request);
-        return $this->response->noContent();
-    }
-
-    public function verifyAuthPassword(Request $request)
-    {
-        $auth = auth()->user();
-        $password = strval($request->input('password' , ''));
-        $validationField = array(
-            'password'=>$password
-        );
-        $rule = array(
-            'password'=>[
-                'bail',
-                'required',
-                'string',
-                'min:6',
-                'max:16',
-                function ($attribute, $value, $fail) use ($auth){
-                    if (!$this->verifyPassword($auth ,$value)) {
-                        $fail(trans('auth.password_error'));
-                    }
-                }
-            ],
-        );
-        \Validator::make($validationField, $rule)->validate();
-        return $this->response->noContent();
-    }
-
-    public function updateAuth(Request $request)
-    {
-        $this->fillAuth($request);
         return $this->response->noContent();
     }
 

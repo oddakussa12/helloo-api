@@ -49,7 +49,6 @@ class RyOnline implements ShouldQueue
      */
     public function handle()
     {
-        $topics = $this->topics;
         $chinaNow = $this->chinaNow;
         $users = $this->users;
         $online = array();
@@ -60,49 +59,24 @@ class RyOnline implements ShouldQueue
             foreach ($onlineUsers as $u)
             {
                 $userId = $u['userid'];
-                $kpop = 0;
-                $anime = 0;
-                $sad = 0;
-                $music = 0;
-                $games = 0;
-                $sports = 0;
-                $userTopicKey = 'user.'.$userId.'.topics';
                 $userKey = "user.".strval($userId).'.data';
                 $user = Redis::hgetAll($userKey);
                 if(empty($user['user_name']))
                 {
                     $user = collect(DB::table('users')->where('user_id' , $userId)->first())->toArray();
-                    $user_name = $user['user_name'];
-                    $user_nick_name = $user['user_nick_name'];
-                    $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
-                    $user_gender = $user['user_gender'];
-                    $user_country_id = $user['user_country_id'];
-                    $user_avatar = $user['user_avatar'];
                     $user_created_at= strtotime($user['user_created_at']);
                 }else{
-                    $user_name = $user['user_name'];
-                    $user_nick_name = $user['user_nick_name'];
-                    $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
-                    $user_gender = $user['user_gender'];
-                    $user_country_id = $user['user_country_id'];
-                    $user_avatar = $user['user_avatar'];
                     $user_created_at= $user['user_created_at'];
                 }
+                $user_name = $user['user_name'];
+                $user_nick_name = $user['user_nick_name'];
+                $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
+                $user_gender = $user['user_gender'];
+                $user_country_id = $user['user_country_id'];
+                $user_avatar = $user['user_avatar'];
                 $user = DB::table('ry_online_users')->where('user_id' , $userId)->first();
                 if(blank($user))
                 {
-                    foreach ($topics as $topic=>$data)
-                    {
-                        foreach ($data as $t)
-                        {
-                            $t = strval($t);
-                            if(Redis::zrank($userTopicKey , $t)!==null)
-                            {
-                                $$topic = 1;
-                                break;
-                            }
-                        }
-                    }
                     array_push($online , array(
                         'user_id'=>$userId,
                         'user_name'=>$user_name??'guest',
@@ -111,12 +85,6 @@ class RyOnline implements ShouldQueue
                         'user_gender'=>$user_gender??0,
                         'user_country_id'=>$user_country_id??246,
                         'user_avatar'=>$user_avatar??'default_avatar.jpg',
-                        'kpop' => $kpop,
-                        'anime' => $anime,
-                        'sad' => $sad,
-                        'music' => $music,
-                        'games' => $games,
-                        'sports' => $sports,
                         'created_at'=>$this->time,
                         'updated_at'=>$this->time,
                         'user_created_at'=>$user_created_at??$this->date,
@@ -140,7 +108,18 @@ class RyOnline implements ShouldQueue
         {
             $userId = $user['userid'];
             $ipPort = $user['clientIp'];
-            list($ip , $port) = explode(':' , $ipPort);
+            $p = strrpos($ipPort , ":");
+            if($p==0)
+            {
+                $ip = $ipPort;
+            }else{
+                $ip = substr($ipPort , 0 , $p);
+                $size = sizeof($ip);
+                if($size>15)
+                {
+                    $ip = $ipPort;
+                }
+            }
             $referer = strval($user['os']);
             if(!Redis::setbit($key , $userId , 1))
             {
