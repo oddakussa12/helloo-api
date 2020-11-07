@@ -327,7 +327,7 @@ class AuthController extends BaseController
                 $validator = \Validator::make(array($type=>$account), $existRule);
                 $response = $response->header('is_sign_up', intval($validator->fails()));
             }
-            return $response->setStatusCode(200);
+            return $response;
         }else{
             $response = $response->errorMethodNotAllowed();
         }
