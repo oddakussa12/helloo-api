@@ -257,6 +257,13 @@ class AuthController extends BaseController
             ]
         ];
         \Validator::make($validationField, $rule)->validate();
+        $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
+        if(!empty($phone))
+        {
+            $user = $this->user->find($phone->user_id);
+            $token = auth()->login($user);
+            return $this->respondWithToken($token , false);
+        }
         $user_fields = array(
             'user_uuid'=>Uuid::uuid1()
         );
