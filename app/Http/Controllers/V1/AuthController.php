@@ -38,13 +38,6 @@ class AuthController extends BaseController
             'password'=>$password,
         );
         $rule = [
-            'nick_name' => [
-                'bail',
-                'required',
-                'string',
-                'min:4',
-                'max:13',
-            ],
             'phone' => [
                 'bail',
                 'required',
