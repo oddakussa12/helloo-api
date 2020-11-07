@@ -11,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Custom\Queue\Bus\SqsFifoQueueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use App\Repositories\Contracts\UserRepository;
 
 class RyOnline implements ShouldQueue
 {
@@ -54,25 +55,20 @@ class RyOnline implements ShouldQueue
         $online = array();
         $offlineUsers = $users['offlineUsers'];
         $onlineUsers = $users['onlineUsers'];
+        $userRepository = app(UserRepository::class);
         if(!blank($onlineUsers))
         {
             foreach ($onlineUsers as $u)
             {
                 $userId = $u['userid'];
-                $userKey = "user.".strval($userId).'.data';
-                $user = Redis::hgetAll($userKey);
-                if(empty($user['user_name']))
+                $user = $userRepository->findByUserId($userId);
+                if(empty($user))
                 {
-                    $user = collect(DB::table('users')->where('user_id' , $userId)->first())->toArray();
-                    $user_created_at= strtotime($user['user_created_at']);
-                }else{
-                    $user_created_at= $user['user_created_at'];
+                    continue;
                 }
-                $user_name = $user['user_name'];
                 $user_nick_name = $user['user_nick_name'];
                 $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
                 $user_gender = $user['user_gender'];
-                $user_country_id = $user['user_country_id'];
                 $user_avatar = $user['user_avatar'];
                 $user = DB::table('ry_online_users')->where('user_id' , $userId)->first();
                 if(blank($user))
@@ -100,7 +96,7 @@ class RyOnline implements ShouldQueue
             DB::statement("delete from `f_ry_online_users` where user_id in ({$userIds});");
         };
         $allUsers = array_merge($onlineUsers , $offlineUsers);
-        $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
+        $key = 'helloo:account:service:account-au'.date('Ymd' , strtotime($chinaNow)); //20191125
         $log = array();
         foreach ($allUsers as $user)
         {

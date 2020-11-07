@@ -69,6 +69,22 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $user->likePost->pluck('pivot.post_like_state');
     }
 
+    public function findByUserId($userId)
+    {
+        $key = "helloo:account:service:account:".$userId;
+        $user = Redis::hgetall($key);
+        if(blank($user))
+        {
+            $user = $this->model->find($userId);
+            if(!blank($user))
+            {
+                Redis::hmset($key , $user);
+                Redis::expire($key , 60*60*24*30);
+            }
+        }
+        return $user;
+    }
+
     public function findOrFail($userId)
     {
         return $this->model->findOrFail($userId);
