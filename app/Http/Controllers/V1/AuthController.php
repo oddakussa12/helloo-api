@@ -157,10 +157,6 @@ class AuthController extends BaseController
     protected function respondWithToken($token , $extend=true)
     {
         $user = auth()->user();
-        if($this->isBlocked($user->user_id))
-        {
-            abort(401 , trans('auth.user_banned'));
-        }
         $referer = request()->input('referer' , 'web');
         if($referer!='web')
         {
@@ -176,17 +172,11 @@ class AuthController extends BaseController
         );
         if($extend)
         {
-            $rank = $this->userScoreRank($user->user_id);
             $user = array(
                     'user_id'=>$user->user_id,
-                    'user_name'=>$user->user_name,
+                    'user_nick_name'=>$user->user_nick_name,
                     'user_avatar'=>$user->user_avatar_link,
-                    'user_country'=>$user->user_country,
-                    'user_level'=>$user->user_level,
                     'user_gender'=>$user->user_gender,
-                    'yesterdayScore' => null,
-                    'yesterdayRank' => null,
-                    'userRank' => $rank
             );
             $token['user'] = $user;
         }
