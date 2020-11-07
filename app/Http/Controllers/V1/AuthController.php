@@ -320,8 +320,8 @@ class AuthController extends BaseController
             if($type=='phone')
             {
                 $existRule = [
-                    "phone" => [
-                        new UserPhoneUnique()
+                    $type => [
+                        new UserPhone()
                     ],
                 ];
                 $validator = \Validator::make(array($type=>$account), $existRule);
