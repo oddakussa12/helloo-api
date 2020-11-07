@@ -153,39 +153,36 @@ class RySetController extends BaseController
     public function token()
     {
         $response = $this->response;
-        if(auth()->check())
-        {
-            $user = auth()->user();
-            $userId = $user->user_id;
-            $name = empty($user->user_nick_name)?'guest':$user->user_nick_name;
-            $avatar = $user->user_avatar_link;
-            try{
+        $user = auth()->user();
+        $userId = $user->user_id;
+        $name = empty($user->user_nick_name)?'guest':$user->user_nick_name;
+        $avatar = $user->user_avatar_link;
+        try{
+            $token = app('rcloud')->getUser()->register(array(
+                'id'=> $userId,
+                'name'=> $name,
+                'portrait'=> $avatar
+            ));
+            if(empty($token))
+            {
+                ry_server(true);
                 $token = app('rcloud')->getUser()->register(array(
                     'id'=> $userId,
                     'name'=> $name,
                     'portrait'=> $avatar
                 ));
-                if(empty($token))
-                {
-                    ry_server(true);
-                    $token = app('rcloud')->getUser()->register(array(
-                        'id'=> $userId,
-                        'name'=> $name,
-                        'portrait'=> $avatar
-                    ));
-                }
-                throw_if($token['code']!=200 , new \Exception($token['code'].'===>'.$token['msg']));
-            }catch (\Throwable $e)
-            {
-                $token = array(
-                    'code'=>500,
-                    'userId'=>$userId,
-                    'message'=>$e->getMessage(),
-                );
-                \Log::error(\json_encode($token));
             }
-            return $response->array($token);
+            throw_if($token['code']!=200 , new \Exception($token['code'].'===>'.$token['msg']));
+        }catch (\Throwable $e)
+        {
+            $token = array(
+                'code'=>500,
+                'userId'=>$userId,
+                'message'=>$e->getMessage(),
+            );
+            \Log::error(\json_encode($token));
         }
-        return $response->noContent();
+        return $response->array($token);
+
     }
 }
