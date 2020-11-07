@@ -323,9 +323,9 @@ class AuthController extends BaseController
                         new UserPhoneUnique()
                     ],
                 ];
-                $validator = \Validator::make(array($type=>$account), $existRule);
-                \Log::error('b'.$validator->fails());
-                $response = $response->header('Signed-in', intval(!$validator->fails()));
+                $validator = \Validator::make(array($type=>$account), $existRule)->fails();
+                \Log::error('b'.$validator);
+                $response = $response->header('Signed-in', intval(!$validator));
             }
         }else{
             $response = $response->errorMethodNotAllowed();
