@@ -12,6 +12,7 @@ use App\Rules\UserPhoneUnique;
 use Illuminate\Support\Carbon;
 use App\Events\UserUpdatedEvent;
 use Illuminate\Support\Facades\DB;
+use App\Foundation\Auth\User\Update;
 use Illuminate\Support\Facades\Redis;
 use App\Custom\Uuid\RandomStringGenerator;
 use App\Repositories\Contracts\UserRepository;
@@ -19,6 +20,8 @@ use Dingo\Api\Exception\StoreResourceFailedException;
 
 class AuthController extends BaseController
 {
+
+    use Update;
 
     protected $user;
 
@@ -85,33 +88,14 @@ class AuthController extends BaseController
     {
         $fields = array();
         $user = auth()->user();
-        $country_code = strtolower(strval($request->input('country_code')));
         $user_birthday = strval($request->input('user_birthday' , ''));
         $user_about = strval($request->input('user_about' , ''));
         $user_avatar = strval($request->input('user_avatar' , ''));
-        $user_cover = strval($request->input('user_cover' , ''));
         $user_gender = $request->input('user_gender');
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
-        $user_picture = (array)$request->input('user_picture' , array());
-        $tag_slug = array_diff((array)$request->input('tag_slug' , array()),array(null , ''));
-        $region_slug = array_diff((array)$request->input('region_slug' , array()),array(null , ''));
-        $user_picture = \array_filter($user_picture , function($v , $k){
-            return !empty($v);
-        } , ARRAY_FILTER_USE_BOTH );
-        ksort($user_picture);
-        if($request->has('user_picture'))
-        {
-            $user_picture = array_slice($user_picture,0 , 8);
-            $user_picture_json = \json_encode($user_picture);
-            $fields['user_picture'] = $user_picture_json;
-        }
         if(!empty($user_birthday))
         {
             $fields['user_birthday'] = $user_birthday;
-        }
-        if(!empty($country_code))
-        {
-            $fields['user_country_id'] = $country_code;
         }
         if(!empty($user_avatar))
         {
@@ -120,10 +104,6 @@ class AuthController extends BaseController
         if(!empty($user_about))
         {
             $fields['user_about'] = $user_about;
-        }
-        if(!empty($user_cover))
-        {
-            $fields['user_cover'] = $user_cover;
         }
         if($user_gender!==null)
         {
@@ -136,23 +116,12 @@ class AuthController extends BaseController
         $fields = array_filter($fields , function($value){
             return !blank($value);
         });
-        \Validator::make($fields, $this->updateRules() , $this->updateMessages())->validate();
+        \Validator::make($fields, $this->updateRules())->validate();
         if(!empty($fields))
         {
             $user = $this->user->update($user,$fields);
-            event(new UserUpdatedEvent($user));
-        }
-        if($request->has('tag_slug'))
-        {
-            $this->user->attachTags($user , $tag_slug);
-        }
-        if($request->has('region_slug'))
-        {
-            $this->user->attachRegions($user , $region_slug);
         }
         $user->user_avatar = $user->user_avatar_link;
-        $user->user_cover = $user->user_cover_link;
-        $user->user_picture = $user->user_picture_link;
         return $user;
     }
     protected function respondWithToken($token , $extend=true)

@@ -348,17 +348,17 @@ trait Update
     public function updateRules()
     {
         return array(
-            'country_code'=>[
-                'bail',
-                'filled',
-                'string',
-                function ($attribute, $value, $fail) {
-                    $value = strtoupper($value);
-                    if (!in_array($value , config('countries'))) {
-                        $fail(trans('validation.regex'));
-                    }
-                },
-            ],
+//            'country_code'=>[
+//                'bail',
+//                'filled',
+//                'string',
+//                function ($attribute, $value, $fail) {
+//                    $value = strtoupper($value);
+//                    if (!in_array($value , config('countries'))) {
+//                        $fail(trans('validation.regex'));
+//                    }
+//                },
+//            ],
             'user_gender'=>[
                 'bail',
                 'filled',
@@ -388,17 +388,17 @@ trait Update
                 'filled',
                 'string'
             ],
-            'user_cover'=>[
-                'bail',
-                'filled',
-                'string'
-            ],
-            'user_picture'=>[
-                'bail',
-                'filled',
-                'string',
-                'json'
-            ]
+//            'user_cover'=>[
+//                'bail',
+//                'filled',
+//                'string'
+//            ],
+//            'user_picture'=>[
+//                'bail',
+//                'filled',
+//                'string',
+//                'json'
+//            ]
         );
     }
 }

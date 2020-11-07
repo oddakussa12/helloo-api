@@ -58,6 +58,14 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->default_email_field;
     }
 
+    public function update($model, $data)
+    {
+        $user = parent::update($model, $data);
+        $key = "helloo:account:service:account:".$model->getKey();
+        Redis::del($key);
+        return $user;
+    }
+
     public function store($data)
     {
         return $this->model->create($data);
