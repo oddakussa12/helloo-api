@@ -23,6 +23,7 @@ class UserPhoneUnique implements Rule
             $phone = $numberProto->getNationalNumber();
             $phoneCountry = $numberProto->getCountryCode();
             $phone = \DB::table('users_phones')->where('user_phone_country', $phoneCountry)->where('user_phone', $phone)->first();
+            \Log::error(blank($phone));
             return blank($phone);
         } catch (\libphonenumber\NumberParseException $e) {
             \Log::error($e->getMessage());
