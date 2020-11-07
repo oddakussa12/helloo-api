@@ -112,7 +112,7 @@ class RyOnline implements ShouldQueue
                 $ip = $ipPort;
             }else{
                 $ip = substr($ipPort , 0 , $p);
-                $size = sizeof($ip);
+                $size = strlen($ip);
                 if($size>15)
                 {
                     $ip = $ipPort;
