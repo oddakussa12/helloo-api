@@ -36,8 +36,8 @@ $api->group($V1Params , function ($api){
         $api->post('user/phone/signUp' , 'AuthController@handleSignUp')->name('user.phone.sign.up');
     });
     //游客模式生成用户
-    $api->post('user/signIn' , 'AuthController@signIn')->name('sign.in');
-    $api->post('user/phone/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
+    $api->post('user/phone/signIn' , 'AuthController@signIn')->name('sign.in');
+    $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
     $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
 
 
