@@ -291,6 +291,8 @@ class AuthController extends BaseController
     public function accountExists($account , $type)
     {
         $response = $this->response;
+        $response = $response->noContent()->header('Signed-in', 1)->setStatusCode(200);
+        return $response;
         if(in_array($type , array('phone' , 'nick_name')))
         {
             $type = strtolower($type);
@@ -301,7 +303,6 @@ class AuthController extends BaseController
                         'bail',
                         'required',
                         new UserPhone(),
-                        new UserPhoneUnique()
                     ],
                 ];
             }else{
@@ -321,7 +322,7 @@ class AuthController extends BaseController
             {
                 $existRule = [
                     $type => [
-                        new UserPhone()
+                        new UserPhoneUnique()
                     ],
                 ];
                 $validator = \Validator::make(array($type=>$account), $existRule);
