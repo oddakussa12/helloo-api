@@ -257,7 +257,7 @@ class AuthController extends BaseController
         }
         $now = Carbon::now()->toDateTimeString();
         $user_fields = array(
-            'user_crated_at'=>$now,
+            'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>Uuid::uuid1()
         );
