@@ -66,7 +66,7 @@ class SignupEvent
 
     public function getAddresses()
     {
-        return $this->addresses;
+        return geoip($this->addresses);
     }
 
     public function getExtend()
