@@ -57,7 +57,7 @@ class AuthController extends BaseController
         {
             throw new \Illuminate\Validation\ValidationException($e->validator);
         }
-        $phone = DB::table('f_users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
+        $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($phone))
         {
             $user = $this->user->find($phone->user_id);
