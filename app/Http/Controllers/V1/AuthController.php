@@ -9,6 +9,7 @@ use App\Rules\UserPhone;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
 use App\Rules\UserPhoneUnique;
+use Illuminate\Support\Carbon;
 use App\Events\UserUpdatedEvent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -254,7 +255,10 @@ class AuthController extends BaseController
             $token = auth()->login($user);
             return $this->respondWithToken($token , false);
         }
+        $now = Carbon::now()->toDateTimeString();
         $user_fields = array(
+            'user_crated_at'=>$now,
+            'user_updated_at'=>$now,
             'user_uuid'=>Uuid::uuid1()
         );
         DB::beginTransaction();
