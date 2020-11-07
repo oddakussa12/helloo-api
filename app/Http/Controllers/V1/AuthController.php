@@ -324,6 +324,7 @@ class AuthController extends BaseController
                     ],
                 ];
                 $validator = \Validator::make(array($type=>$account), $existRule);
+                \Log::error(intval(!$validator->fails()));
                 $response = $response->header('Signed-in', intval(!$validator->fails()));
             }
         }else{
