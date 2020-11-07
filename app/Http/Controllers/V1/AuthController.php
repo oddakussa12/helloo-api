@@ -288,7 +288,7 @@ class AuthController extends BaseController
 
 
 
-    public function accountExists($account , $type)
+    public function accountVerification($account , $type)
     {
         $response = $this->response;
         if(in_array($type , array('phone' , 'nick_name')))
