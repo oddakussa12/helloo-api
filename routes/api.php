@@ -113,6 +113,7 @@ $api->group($V1Params , function ($api){
     });
 
     $api->get('test/token' , 'TestController@token')->name('test.token');
+    $api->get('test/index' , 'TestController@index')->name('test.index');
 
 });
 

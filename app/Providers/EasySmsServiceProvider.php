@@ -51,7 +51,12 @@ class EasySmsServiceProvider extends ServiceProvider
                     'access_key_secret' => '',
                     'sign_name' => '',
                 ],
-                //...
+                'yunxin' => [
+                    'app_key' => '4422695a31e00df8bcdb669eb2dbb398',
+                    'app_secret' => 'ef0db8065542',
+                    'code_length' => 4, // 随机验证码长度，范围 4～10，默认为 4
+                    'need_up' => false, // 是否需要支持短信上行
+                ],
             ],
         ];
     }
