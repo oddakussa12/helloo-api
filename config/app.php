@@ -194,6 +194,7 @@ return [
         LaravelFCM\FCMServiceProvider::class,
         App\Providers\DingoServiceProvider::class,
         App\Providers\ExpandQueueServiceProvider::class,
+        App\Providers\EasySmsServiceProvider::class,
 
     ],
 
