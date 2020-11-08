@@ -70,9 +70,8 @@ class AuthController extends BaseController
                 $token = auth()->login($user);
                 return $this->respondWithToken($token , false);
             }
-        }else{
-            return $this->response->errorUnauthorized(trans('auth.phone_failed'));
         }
+        return $this->response->errorUnauthorized(trans('auth.phone_failed'));
     }
 
     public function signOut()
@@ -88,6 +87,7 @@ class AuthController extends BaseController
     {
         $fields = array();
         $user = auth()->user();
+        $country_code = strtolower(strval($request->input('country_code')));
         $user_birthday = strval($request->input('user_birthday' , ''));
         $user_about = strval($request->input('user_about' , ''));
         $user_avatar = strval($request->input('user_avatar' , ''));
@@ -96,6 +96,10 @@ class AuthController extends BaseController
         if(!empty($user_birthday))
         {
             $fields['user_birthday'] = $user_birthday;
+        }
+        if(!empty($country_code))
+        {
+            $fields['user_country_id'] = $country_code;
         }
         if(!empty($user_avatar))
         {
@@ -116,9 +120,9 @@ class AuthController extends BaseController
         $fields = array_filter($fields , function($value){
             return !blank($value);
         });
-        \Validator::make($fields, $this->updateRules())->validate();
         if(!empty($fields))
         {
+            \Validator::make($fields, $this->updateRules())->validate();
             $user = $this->user->update($user,$fields);
         }
         $user->user_avatar = $user->user_avatar_link;
@@ -279,7 +283,7 @@ class AuthController extends BaseController
                         'bail',
                         'required',
                         'min:4',
-                        'max:24'
+                        'max:32'
                     ],
                 ];
             }

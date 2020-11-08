@@ -32,10 +32,6 @@ $api->group($V1Params , function ($api){
     $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
     $api->post('user/phone/resetPwd' , 'AuthController@resetPwdByPhone')->name('user.phone.reset.pwd');
 
-    $api->group(['middleware'=>'redisThrottle:'.config('common.sign_up_throttle_num').','.config('common.sign_up_throttle_expired') , 'repeatedSubmit'] , function ($api){
-        $api->post('user/phone/signUp' , 'AuthController@handleSignUp')->name('user.phone.sign.up');
-    });
-    //游客模式生成用户
     $api->post('user/phone/signIn' , 'AuthController@signIn')->name('sign.in');
     $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
     $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');

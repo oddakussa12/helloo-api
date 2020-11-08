@@ -369,7 +369,7 @@ trait Update
                 'filled',
                 'string',
                 'min:4',
-                'max:13'
+                'max:32'
             ],
             'user_birthday'=>[
                 'bail',

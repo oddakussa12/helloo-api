@@ -228,13 +228,11 @@ class User extends Authenticatable implements JWTSubject
     public function setUserCountryIdAttribute($value)
     {
         $index = array_search(strtoupper($value) , config('countries'));
-        if($index===false)
+        if($index!==false)
         {
-            $index = 236;
-        }else{
             $index = $index+1;
+            $this->attributes['user_country_id'] = $index;
         }
-        $this->attributes['user_country_id'] = $index;
     }
 
     public function calculatingScore($score)
