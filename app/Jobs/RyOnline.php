@@ -53,8 +53,12 @@ class RyOnline implements ShouldQueue
         $chinaNow = $this->chinaNow;
         $users = $this->users;
         $online = array();
+        $male = array();
+        $female = array();
         $offlineUsers = $users['offlineUsers'];
         $onlineUsers = $users['onlineUsers'];
+        $maleKey = 'helloo:account:service:account-ry-online-male-status';
+        $femaleKey = 'helloo:account:service:account-ry-online-female-status';
         $userRepository = app(UserRepository::class);
         if(!blank($onlineUsers))
         {
@@ -62,13 +66,19 @@ class RyOnline implements ShouldQueue
             {
                 $userId = $u['userid'];
                 $user = $userRepository->findByUserId($userId);
-                if(empty($user))
+                if(blank($user))
                 {
                     continue;
                 }
                 $user_nick_name = $user['user_nick_name'];
                 $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
                 $user_gender = $user['user_gender'];
+                if($user_gender==0)
+                {
+                    array_push($female , $userId);
+                }else{
+                    array_push($male , $userId);
+                }
                 $user_avatar = $user['user_avatar'];
                 $user = DB::table('ry_online_users')->where('user_id' , $userId)->first();
                 if(blank($user))
@@ -86,18 +96,21 @@ class RyOnline implements ShouldQueue
 
                 }
             }
+            !blank($male)&&Redis::sadd($maleKey , $male);
+            !blank($female)&&Redis::sadd($femaleKey , $female);
             !blank($online)&&DB::table('ry_online_users')->insert($online);
         }
         if(!blank($offlineUsers))
         {
             $offlineUserIds = collect($offlineUsers)->pluck('userid')->all();
+            Redis::srem($maleKey , $offlineUserIds);
+            Redis::srem($femaleKey , $offlineUserIds);
             $userIds = join(',' , $offlineUserIds);
             $userIds = rtrim($userIds , ',');
             DB::statement("delete from `f_ry_online_users` where user_id in ({$userIds});");
         };
         $allUsers = array_merge($onlineUsers , $offlineUsers);
         $key = 'helloo:account:service:account-au'.date('Ymd' , strtotime($chinaNow)); //20191125
-        $log = array();
         foreach ($allUsers as $user)
         {
             $userId = $user['userid'];
@@ -115,22 +128,15 @@ class RyOnline implements ShouldQueue
                 }
             }
             $referer = strval($user['os']);
-            if(!Redis::setbit($key , $userId , 1))
-            {
-                $view = DB::table('views_logs')->where('user_id' , $userId)->orderBy('id' , 'DESC')->first();
-                if(empty($view)||Carbon::parse($view->created_at , 'Asia/Shanghai')->endOfDay()->timestamp<$chinaNow->endOfDay()->timestamp)
-                {
-                    array_push($log , array(
-                        'user_id'=>$userId,
-                        'ip'=>$ip,
-                        'referer'=>$referer,
-                        'created_at'=>$this->chinaDateTime
-                    ));
-                }
-            }
-            Redis::rpush($key."_op_list" , strval($userId).'.'.strval($this->time));//20201017
+            Redis::rpush($key."_op_list" , \json_encode(array(
+                'user_id'=>$userId,
+                'ip'=>$ip,
+                'referer'=>$referer,
+                'referer'=>$referer,
+                'created_at'=>$this->chinaDateTime
+            )));//20201108
         }
-        !blank($log)&&DB::table('views_logs')->insert($log);
+
     }
 
 }

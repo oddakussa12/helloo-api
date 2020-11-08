@@ -73,25 +73,14 @@ class UserController extends BaseController
 
     public function randRyOnlineUser(Request $request)
     {
-        $user_gender = $request->input('user_gender');
-        if($request->has('country')&&$user_gender!==null)
+        $userId = $this->user->randDiffRyOnlineUser();
+        $userId = $userId>=100?mt_rand(1 , 10):$userId;
+        $user = $this->user->findByUserId($userId);
+        if(blank($user))
         {
-            $user = $this->user->randDiffRyOnlineUserV2();
-            $user->user_country_id = $this->getUser($user->user_id , array('user_country_id'))['user_country_id'];
-            return new UserCollection($user);
-        }elseif ($request->has('hobby')){
-            $user = $this->user->randDiffRyOnlineUserByHobby();
-            return new UserCollection($user);
-        }else{
-            $userId = $this->user->randDiffRyOnlineUser();
+            return $this->response->errorNotFound('Failed to find friends, please try again');
         }
-        if($userId>0)
-        {
-            $user = $this->user->findOrFail($userId);
-            return new UserCollection($user);
-        }else{
-            return $this->response->errorNotFound();
-        }
+        return new UserCollection($user);
     }
 
     public function isRyOnline($id)
@@ -116,6 +105,7 @@ class UserController extends BaseController
         $data = array_unique($data);
         $userId = intval(auth()->id());
         $data = array_diff($data , [$userId]);
+        array_push($data , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8);//test
         $users = $this->user->findByMany($data);
         $total = $this->user->onlineUsersCount();
         $users = UserCollection::collection($users)->additional(array(

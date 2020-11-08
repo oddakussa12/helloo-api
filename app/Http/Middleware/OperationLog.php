@@ -24,35 +24,13 @@ class OperationLog extends BaseMiddleware
         if(auth()->check())
         {
             $chinaNow = Carbon::now('Asia/Shanghai');
-            $now = $chinaNow->toDateTimeString();
-            $key = 'au'.date('Ymd' , strtotime($chinaNow)); //20191125
+            $time = strval($chinaNow->timestamp);
+            $now = $chinaNow->format('Ymd');
+            $key = 'helloo:account:service:account-au'.date('Ymd' , $now);
             $user_id = (int) auth()->id();
-            Redis::rpush($key."_op_list" , strval($user_id).'.'.strval($chinaNow->timestamp));//20201017
-            if(!Redis::setbit($key , $user_id , 1))
-            {
-                $view = DB::table('views_logs')->where('user_id' , $user_id)->orderBy('id' , 'DESC')->first();
-                if(empty($view)||Carbon::parse($view->created_at , 'Asia/Shanghai')->endOfDay()->timestamp<$chinaNow->endOfDay()->timestamp)
-                {
-                    $agent = new Agent();
-                    if($agent->match('YooulAndroid'))
-                    {
-                        $referer = 'android';
-                    }elseif ($agent->match('YoouliOS'))
-                    {
-                        $referer = 'ios';
-                    }else{
-                        $referer = $request->server('HTTP_REFERER');
-                        $referer = empty($referer)?'web':$referer;
-                    }
-                    DB::table('views_logs')->insert(array(
-                        'user_id'=>$user_id,
-                        'ip'=>getRequestIpAddress(),
-                        'referer'=>$referer,
-                        'created_at'=>$now,
-                    ));
-                }
-            }
-
+            Redis::rpush($key."_op_list" , strval($user_id).'.'.$time);//20201017
+            $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';;
+            Redis::zadd($lastActivityTime , $time , intval(auth()->id()));
         }
         return $next($request);
     }

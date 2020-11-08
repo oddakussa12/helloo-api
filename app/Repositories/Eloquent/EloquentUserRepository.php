@@ -86,9 +86,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $user = $this->model->find($userId);
             if(!blank($user))
             {
-                Redis::hmset($key , $user);
+                $cache = collect($user)->toArray();
+                Redis::hmset($key , $cache);
                 Redis::expire($key , 60*60*24*30);
             }
+        }else{
+            $user = collect($user);
         }
         return $user;
     }
@@ -282,7 +285,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         $activeUser = $this->getYesterdayUserRank();
         return $activeUser->pluck('user_rank_score', 'user_id')->all();
-
     }
 
 
@@ -457,15 +459,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 'blocked_user_id' => $user_id,
             ));
         }
-//        return Redis::smembers($userHiddenUsersKey);
-        /*$hiddenUsers = $this->hiddenUsers($id);
-
-        if(!in_array($user_id , $hiddenUsers))
-        {
-            array_push($hiddenUsers, $user_id);
-        }
-        Redis::hset('user.'.$id.'.data', 'hiddenUsers', json_encode($hiddenUsers));
-        return $hiddenUsers;*/
     }
 
     public function hiddenUsers($id = 0)
@@ -474,12 +467,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $id = \Auth::id();
         }
         return Redis::sMembers($this->hiddenUsersMemKey($id));
-
-        /*if ($value = Redis::hget('user.'.$id.'.data', 'hiddenUsers')) {
-            return json_decode($value , true);
-        }
-        return $this->initHiddenUsers($id);
-        */
     }
 
     public function hiddenPosts($id = 0)
@@ -488,12 +475,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $id = \Auth::id();
         }
         return Redis::sMembers($this->hiddenPostsMemKey($id));
-        /*
-        if ($value = Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
-            return json_decode($value , true);
-        }
-        $value = $this->initHiddenPosts($id);
-        return $value;*/
+
     }
 
     public function initHiddenUsers($id = 0)
@@ -518,7 +500,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     protected function randRyOnlineUser()
     {
-        $key = 'ry_user_online_status';
+        $key = 'helloo:account:service:account-ry-online-status';
         return Redis::srandmember($key);
     }
 
@@ -657,36 +639,9 @@ DOC;
 
     public function randDiffRyOnlineUser()
     {
-        $key = 'ry_user_online_status';
         $selfUser = intval(request()->input('self'));
         if ($selfUser > 0) {
             RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
-            $tmpUsedUserKey = 'ry_tmp_used_user_' . $selfUser;
-            $diffUsedUserKey = 'ry_diff_used_user_' . $selfUser;
-            $usedUser = request()->input('used', array());
-            $usedUser = getType($usedUser) == 'array' ? $usedUser : array();
-            $usedUser = array_slice($usedUser, 0, 2);
-            array_push($usedUser, $selfUser);
-            $usedUser = array_unique($usedUser);
-            if (!empty($usedUser)) {
-                Redis::sadd($tmpUsedUserKey, $usedUser);
-            }
-            Redis::sdiffstore($diffUsedUserKey, array($key, $tmpUsedUserKey));
-
-            $user = Redis::srandmember($diffUsedUserKey);
-
-            Redis::del($diffUsedUserKey);
-            Redis::del($tmpUsedUserKey);
-            if (intval($user) <= 0) {
-                $randUsersFile = 'randUsers/users.json';
-                if (Storage::exists($randUsersFile)) {
-                    $randUsers = \json_decode(Storage::get($randUsersFile), true);
-                    if (getType($randUsers) == 'array') {
-                        $user = array_random(array_unique(array_diff($randUsers, $usedUser)));
-                    }
-                }
-            }
-            return $user;
         } else {
             return $this->randRyOnlineUser();
         }
@@ -722,8 +677,7 @@ DOC;
 
     public function isOnline($id)
     {
-        $bitKey = 'ry_user_online_state_bit';
-        $bitKey = 'ry_user_online_status_bit';
+        $bitKey = 'helloo:account:service:account-ry-online-status-bit';
         $statue = Redis::getBit($bitKey, $id);
         return (bool)intval($statue);
     }
@@ -766,45 +720,11 @@ DOC;
                 )
             );
         }
-//        return Redis::sMembers($userHiddenPostsKey);
-
-        /*$hiddenPosts = $this->hiddenPosts($id);
-        if (!in_array($post_uuid , $hiddenPosts)) {
-            array_push($hiddenPosts, $post_uuid);
-        }*/
-
-        // we need to make sure the cached data exists
-        /*if (!Redis::hget('user.'.$id.'.data', 'hiddenPosts')) {
-            $this->cacheUserData($id);
-        }
-        Redis::hset('user.'.$id.'.data', 'hiddenPosts', json_encode($hiddenPosts));*/
-        //return $hiddenPosts;
     }
 
     public function randFollow()
     {
-//        $topTwoHundredFollower = \DB::select("SELECT
-//	`f_users`.`user_id`, count(`f_common_follows`.`user_id`) AS `num`
-//FROM
-//	`f_users`,
-//	`f_common_follows`
-//WHERE
-//	`f_users`.`user_id` = `f_common_follows`.`followable_id`
-//GROUP BY
-//	`followable_id`
-//ORDER BY
-//	`num` DESC
-//LIMIT 200");
 
-        $followers = $this->generateFollower();
-        $follower = collect($followers)->random();
-        $follower->follow(array('63915'));
-//        $topTwoHundredFollower = collect($topTwoHundredFollower)->chunk(10);
-//        collect($topTwoHundredFollower)->each(function($users , $key)use($followers){
-//            $follower = collect($followers)->random();
-//            $users = $users->pluck('user_id')->all();
-//            $follower->follow($users);
-//        });
     }
 
     public function isDeletedUser($name)
@@ -887,12 +807,6 @@ DOC;
         }, $newTagIds);
         !blank($newTags) && UserTaggable::insert($newTags);
         !blank($removeTagIds) && UserTaggable::where('taggable_id', $taggable_id)->whereIn('tag_id', $removeTagIds)->delete();
-//        $tags = UserTag::whereIn('tag_slug' , $tag_slug)->select('tag_id' , 'tag_slug')->get();
-//        $tags_id = $tags->pluck('tag_id')->toArray();
-//        $tags_id = array_filter($tags_id ,function($v){
-//            return is_int($v);
-//        });
-//        $user->tags()->sync($tags_id);
     }
 
     public function referFriend()
@@ -932,18 +846,11 @@ DOC;
         }, $newRegionIds);
         !blank($newRegions) && UserRegion::insert($newRegions);
         !blank($removeRegionIds) && UserRegion::where('user_id', $userId)->whereIn('region_id', $removeRegionIds)->delete();
-//
-//        $regions = Region::whereIn('region_slug' , $region_slug)->select('region_id' , 'region_slug')->get();
-//        $regions_id = $regions->pluck('region_id')->toArray();
-//        $regions_id = array_filter($regions_id ,function($v){
-//            return is_int($v);
-//        });
-//        $user->regions()->sync($regions_id);
     }
 
     public function onlineUsersCount()
     {
-        $key = 'ry_user_online_status';
+        $key = 'helloo:account:service:account-ry-online-status';
         return Redis::scard($key);
     }
 
@@ -981,9 +888,9 @@ DOC;
 
     public function planet()
     {
-        $num = intval(request()->input('num', 20));
-        $num = $num < 10 || $num > 30 ? 10 : $num;
-        $key = 'ry_user_online_status';
+        $num = intval(request()->input('num', 50));
+        $num = $num < 10 || $num > 100 ? 50 : $num;
+        $key = 'helloo:account:service:account-ry-online-status';
         return Redis::srandmember($key, $num);
     }
 
