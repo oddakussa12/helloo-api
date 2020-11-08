@@ -39,6 +39,16 @@ $api->group($V1Params , function ($api){
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
 
+        $api->get('user/im/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+        $api->get('user/voice/random' , 'UserController@randomVoice')->name('user.voice.random');
+        $api->delete('user/voice/random' , 'UserController@removeVoice')->name('user.voice.random.delete');
+        $api->get('user/video/random' , 'UserController@randomVideo')->name('user.video.random');
+        $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
+
+        /*****报告 开始*****/
+        $api->resource('answer', 'AnswerController',['only' => ['store']]);
+        /*****报告 结束*****/
+
         /*****报告 开始*****/
         $api->resource('report', 'ReportController',['only' => ['store']]);
         /*****报告 结束*****/
@@ -60,8 +70,8 @@ $api->group($V1Params , function ($api){
         /*****好友请求 结束*****/
 
 
-        $api->resource('user' , 'UserController' , ['only' => ['show']]);
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
+        $api->resource('user' , 'UserController' , ['only' => ['show']]);
 
         $api->get('ry/token' , 'RySetController@token')->name('ry.token');
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
@@ -73,13 +83,9 @@ $api->group($V1Params , function ($api){
         $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
         $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
         $api->post('user/update/myself/email' , 'AuthController@updateUserEmail')->name('myself.update.email');
-        $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_phone_code_throttle_num').','.config('common.user_update_send_phone_code_throttle_expired') , 'blacklist']] , function ($api){
-            $api->post('user/update/phone/code' , 'AuthController@sendUpdatePhoneCode')->name('myself.update.send.phone.code');
+        $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired') , 'blacklist']] , function ($api){
+            $api->post('user/phone/code' , 'AuthController@signInPhoneCode')->name('sign.in.phone.code');
         });
-        $api->group(['middleware'=>['redisThrottle:'.config('common.user_update_send_email_code_throttle_num').','.config('common.user_update_send_email_code_throttle_expired') , 'blacklist']] , function ($api){
-            $api->post('user/update/email/code' , 'AuthController@sendUpdateEmailCode')->name('myself.update.send.email.code');
-        });
-
 
         $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
 
@@ -93,6 +99,10 @@ $api->group($V1Params , function ($api){
 
         $api->put('app/mode/{mode}' , 'AppController@mode')->where('model', 'out|in')->name('app.mode');
 
+        $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
+        $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
+        $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+
     });
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
@@ -102,9 +112,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountVerification')->where('type', 'phone|nick_name')->name('user.account.verification');
 
-    $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
-    $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
-    $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+
+
 
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
 

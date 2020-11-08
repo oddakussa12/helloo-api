@@ -87,6 +87,8 @@ return [
 
     'update_phone' => "【Yooul】Your Yooul security code is %s. You are trying to change the phone. Please keep your account information in a safe place.",
 
+    'sign_in' => "【Helloo】Your Helloo security code is %s. Yours is logging in Helloo!. Please keep your account information in a safe place.",
+
     /*
     |--------------------------------------------------------------------------
     | 验证码短信模版

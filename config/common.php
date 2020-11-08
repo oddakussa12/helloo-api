@@ -79,6 +79,13 @@ return [
     'user_unlike_throttle_num' =>env('USER_UNLIKE_THROTTLE_NUM', 5),
     'user_unlike_throttle_expired' =>env('USER_UNLIKE_THROTTLE_EXPIRED', 1),
 
+    /************/
+    'user_sign_in_phone_code_throttle_num' =>env('USER_SIGN_IN_PHONE_CODE_THROTTLE_NUM', 10),
+    'user_sign_in_phone_code_throttle_expired' =>env('USER_SIGN_IN_PHONE_CODE_THROTTLE_EXPIRED', 10),
+    'user_sign_in_phone_code_wait_time' =>env('USER_SIGN_IN_PHONE_CODE_WAIT_TIME', 500),
+
+    /************/
+
 
     'authorization'=>[
         'create_post'=>env('AUTHORIZATION_CREATE_POST' , true),

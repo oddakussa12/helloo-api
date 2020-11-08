@@ -70,6 +70,40 @@ class UserController extends BaseController
         return $this->response->created();
     }
 
+    public function randomVideo(Request $request)
+    {
+        $random = $this->user->randomVideo();
+        if($random['flag']==true)
+        {
+            $random['user'] = new UserCollection($this->user->findByUserId($random['userId']));
+        }
+        unset($random['userId']);
+        return $this->response->array($random);
+    }
+
+    public function randomVoice(Request $request)
+    {
+        $random = $this->user->randomVoice();
+        if($random['flag']==true)
+        {
+            $random['user'] = new UserCollection($this->user->findByUserId($random['userId']));
+        }
+        unset($random['userId']);
+        return $this->response->array($random);
+    }
+
+    public function removeVideo(Request $request)
+    {
+        $this->user->removeVideo();
+        return $this->response->noContent();
+    }
+
+    public function removeVoice(Request $request)
+    {
+        $this->user->removeVoice();
+        return $this->response->noContent();
+    }
+
 
     public function randRyOnlineUser(Request $request)
     {

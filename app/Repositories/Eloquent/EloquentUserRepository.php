@@ -642,9 +642,87 @@ DOC;
         $selfUser = intval(request()->input('self'));
         if ($selfUser > 0) {
             RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
+            return $this->randRyOnlineUser();
         } else {
             return $this->randRyOnlineUser();
         }
+    }
+
+    public function randomVideo()
+    {
+        $flag = false;
+        $setKey = 'helloo:account:service:account-random-video-set';
+        $self = auth()->id();
+        $count = Redis::scard($setKey);
+        if($count>0)
+        {
+            $randomId = Redis::spop($setKey);
+            if($count==1&&$randomId==$self)
+            {
+                Redis::sadd($setKey , $self);
+                $roomId = md5($self);
+                return array('flag'=>$flag , 'roomId'=>$roomId);
+            }
+            $roomId = md5($randomId);
+            $flag = true;
+            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
+        }else{
+            Redis::sadd($setKey , $self);
+            $roomId = md5($self);
+            return array('flag'=>$flag , 'roomId'=>$roomId);
+        }
+    }
+
+    public function randomVoice()
+    {
+        $flag = false;
+        $setKey = 'helloo:account:service:account-random-voice-set';
+        $self = auth()->id();
+        $count = Redis::scard($setKey);
+        if($count>0)
+        {
+            $randomId = Redis::spop($setKey);
+            if($count==1&&$randomId==$self)
+            {
+                Redis::sadd($setKey , $self);
+                $roomId = md5($self);
+                return array('flag'=>$flag , 'roomId'=>$roomId);
+            }
+            $roomId = md5($randomId);
+            $flag = true;
+            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
+        }else{
+            Redis::sadd($setKey , $self);
+            $roomId = md5($self);
+            return array('flag'=>$flag , 'roomId'=>$roomId);
+        }
+    }
+
+    public function removeVoice()
+    {
+        $self = auth()->id();
+        $setKey = 'helloo:account:service:account-random-voice-set';
+        Redis::sram($setKey , $self);
+    }
+
+    public function removeVideo()
+    {
+        $self = auth()->id();
+        $setKey = 'helloo:account:service:account-random-video-set';
+        Redis::sram($setKey , $self);
+    }
+
+    public function voiceSet($userId)
+    {
+        $key = 'helloo:account:service:account-random-voice-set';
+        Redis::sadd($key , $userId);
+        $randomId = Redis::spop($key);
+        if($randomId==$userId)
+        {
+            Redis::sadd($key , $userId);
+            return $this->voiceSet($userId);
+        }
+        return $randomId;
     }
 
     public function updateUserOnlineState($users)
@@ -660,6 +738,10 @@ DOC;
         $onlineUserIds = $onlineUsers->pluck('userid')->all();
         !blank($onlineUserIds)&&Redis::sadd($key , $onlineUserIds);
         !blank($offlineUserIds)&&Redis::srem($key , $offlineUserIds);
+        $setVoiceKey = 'helloo:account:service:account-random-voice-set';
+        $setVideoKey = 'helloo:account:service:account-random-voice-set';
+        !blank($offlineUserIds)&&Redis::sram($setVoiceKey , $offlineUserIds);
+        !blank($offlineUserIds)&&Redis::sram($setVideoKey , $offlineUserIds);
         $time = time();
         !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
             $userId = intval($user['userid']);

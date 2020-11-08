@@ -5,8 +5,10 @@ use App\Jobs\Sms;
 use App\Rules\UserPhone;
 use App\Mail\UpdateEmail;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 use App\Custom\Uuid\RandomStringGenerator;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
@@ -27,7 +29,7 @@ trait Update
                 'required_without:email',
                 new UserPhone(),
                 function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
-                    $phone = \DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+                    $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
                     if(!blank($phone))
                     {
                         $fail(trans('validation.unique'));
@@ -39,7 +41,7 @@ trait Update
                 'required_without:phone',
                 'email',
                 function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
-                    $email = \DB::table('users')->where('user_email', $value)->first();
+                    $email = DB::table('users')->where('user_email', $value)->first();
                     if(!blank($email))
                     {
                         $fail(trans('validation.unique'));
@@ -47,7 +49,7 @@ trait Update
                 }
             ]
         ];
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         $auth = auth()->user();
         if(!empty($user_email)&&$auth->user_email!=$user_email)
         {
@@ -58,10 +60,10 @@ trait Update
             ));
         }elseif (!empty($user_phone)&&!empty($user_phone_country))
         {
-            $userPhone = \DB::table('users_phones')->where('user_id', $auth->user_id)->first();
+            $userPhone = DB::table('users_phones')->where('user_id', $auth->user_id)->first();
             if(empty($userPhone))
             {
-                \DB::table('users_phones')->insert(
+                DB::table('users_phones')->insert(
                     array(
                         'user_id'=>$auth->user_id,
                         'user_phone_country'=>$user_phone_country,
@@ -102,7 +104,7 @@ trait Update
 //                    }
                 },
                 function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
-                    $phone = \DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+                    $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
                     if(!blank($phone))
                     {
                         $fail(trans('validation.unique'));
@@ -110,7 +112,7 @@ trait Update
                 }
             ],
         ];
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         $code = (new RandomStringGenerator('1234567890'))->generate(6);
         Redis::set($key, $code);
         Redis::expire($key,config('common.phone_code_wait_time'));
@@ -140,7 +142,7 @@ trait Update
                     }
                 },
                 function ($attribute, $value, $fail){
-                    $user = \DB::table('users')->where('user_name', $value)->first();
+                    $user = DB::table('users')->where('user_name', $value)->first();
                     if(!blank($user))
                     {
                         $fail(trans('validation.unique'));
@@ -160,7 +162,7 @@ trait Update
                 }
             ],
         ];
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         $auth->user_name = $user_name;
         $auth->save();
         $this->updateUser($auth , array(
@@ -189,7 +191,7 @@ trait Update
                 'required',
                 new UserPhone(),
                 function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
-                    $phone = \DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+                    $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
                     if(!blank($phone))
                     {
                         $fail(trans('validation.custom.phone.unique'));
@@ -221,21 +223,21 @@ trait Update
                 },
             ]
         ];
-        \Validator::make($validationField, $rule)->validate();
-        $userPhone = \DB::table('users_phones')->where('user_id', $userId)->first();
+        Validator::make($validationField, $rule)->validate();
+        $userPhone = DB::table('users_phones')->where('user_id', $userId)->first();
         if(!empty($userPhone))
         {
             $data = array(
                 'user_phone'=>$user_phone,
                 'user_phone_country'=>$user_phone_country,
             );
-            \DB::table('users_phones')->where('user_id', $userId)->update($data);
+            DB::table('users_phones')->where('user_id', $userId)->update($data);
         }else{
             $data = array(
                 'user_phone'=>$user_phone,
                 'user_phone_country'=>$user_phone_country,
             );
-            \DB::table('users_phones')->insert(array_merge(array('user_id'=>$userId) , $data));
+            DB::table('users_phones')->insert(array_merge(array('user_id'=>$userId) , $data));
         }
         $this->updateUser($auth , $data);
         Redis::del($key);
@@ -261,7 +263,7 @@ trait Update
 //                    }
                 },
                 function ($attribute, $value, $fail){
-                    $user = \DB::table('users')->where('user_email', $value)->first();
+                    $user = DB::table('users')->where('user_email', $value)->first();
                     if(!blank($user))
                     {
                         $fail(trans('validation.unique'));
@@ -269,7 +271,7 @@ trait Update
                 }
             ]
         ];
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         $code = (new RandomStringGenerator('1234567890'))->generate(6);
         Redis::set($key, $code);
         Redis::expire($key,config('common.email_code_wait_time'));
@@ -296,7 +298,7 @@ trait Update
                 'required',
                 'email',
                 function ($attribute, $value, $fail){
-                    $user = \DB::table('users')->where('user_email', $value)->first();
+                    $user = DB::table('users')->where('user_email', $value)->first();
                     if(!blank($user))
                     {
                         $fail(trans('validation.unique'));
@@ -400,5 +402,27 @@ trait Update
 //                'json'
 //            ]
         );
+    }
+
+    public function sendSignInPhoneCode($request)
+    {
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
+        $key = 'helloo:account:service:account-sign-in-sms-code:'.$user_phone;
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $validationField = array(
+            'phone'=>$user_phone_country.$user_phone,
+        );
+        $rule = [
+            'phone' => [
+                'bail',
+                'required',
+                new UserPhone()
+            ],
+        ];
+        \Validator::make($validationField, $rule)->validate();
+        $code = (new RandomStringGenerator('1234567890'))->generate(6);
+        Redis::set($key, $code);
+        Redis::expire($key,config('common.user_sign_in_phone_code_wait_time'));
+        Sms::dispatch($user_phone , $code , $user_phone_country , 'sign_in')->onQueue('sign_in_phone_code');
     }
 }

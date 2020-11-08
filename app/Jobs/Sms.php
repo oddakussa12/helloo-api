@@ -54,10 +54,12 @@ class Sms implements ShouldQueue
         if($this->user_phone_country=='86')
         {
             $type = $this->type;
-            SmsManager::requestVerifySms($phone , $this->code , $type);
+            $result = SmsManager::requestVerifySms($phone , $this->code , $type);
         }else{
-            if($this->type=='update_phone')
+            if($this->type=='sign_in')
             {
+                $message = config('laravel-sms.verifySmsContent') ?: config('laravel-sms.sign_in');
+            }elseif($this->type=='update_phone'){
                 $message = config('laravel-sms.verifySmsContent') ?: config('laravel-sms.update_phone');
             }else{
                 $message = config('laravel-sms.verifySmsContent') ?: config('laravel-sms.forget_password');

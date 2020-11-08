@@ -10,12 +10,13 @@ use App\Events\SignupEvent;
 use Illuminate\Http\Request;
 use App\Rules\UserPhoneUnique;
 use Illuminate\Support\Carbon;
-use App\Events\UserUpdatedEvent;
 use Illuminate\Support\Facades\DB;
 use App\Foundation\Auth\User\Update;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 use App\Custom\Uuid\RandomStringGenerator;
 use App\Repositories\Contracts\UserRepository;
+use Illuminate\Validation\ValidationException;
 use Dingo\Api\Exception\StoreResourceFailedException;
 
 class AuthController extends BaseController
@@ -56,16 +57,16 @@ class AuthController extends BaseController
             ],
         ];
         try{
-            \Validator::make($validationField, $rule)->validate();
-        }catch (\Illuminate\Validation\ValidationException $e)
+            Validator::make($validationField, $rule)->validate();
+        }catch (ValidationException $e)
         {
-            throw new \Illuminate\Validation\ValidationException($e->validator);
+            throw new ValidationException($e->validator);
         }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($phone))
         {
             $user = $this->user->find($phone->user_id);
-            if(password_verify($password, $user->user_pwd))
+            if(!password_verify($password, $user->user_pwd))
             {
                 $token = auth()->login($user);
                 return $this->respondWithToken($token , false);
@@ -122,7 +123,7 @@ class AuthController extends BaseController
         });
         if(!empty($fields))
         {
-            \Validator::make($fields, $this->updateRules())->validate();
+            Validator::make($fields, $this->updateRules())->validate();
             $user = $this->user->update($user,$fields);
         }
         $user->user_avatar = $user->user_avatar_link;
@@ -220,7 +221,7 @@ class AuthController extends BaseController
                 },
             ]
         ];
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($phone))
         {
@@ -232,16 +233,17 @@ class AuthController extends BaseController
         $user_fields = array(
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
-            'user_uuid'=>Uuid::uuid1()
+            'user_uuid'=>Uuid::uuid1(),
+            'user_pwd'=>encrypt(123456)
         );
         DB::beginTransaction();
         try{
-            $userId = \DB::table('users')->insertGetId($user_fields);
-            \DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
-            \DB::commit();
+            $userId = DB::table('users')->insertGetId($user_fields);
+            DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
+            DB::commit();
         }catch (\Exception $e)
         {
-            \DB::rollBack();
+            DB::rollBack();
             \Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
             throw new StoreResourceFailedException('sign up failed');
         }
@@ -287,8 +289,7 @@ class AuthController extends BaseController
                     ],
                 ];
             }
-            \Validator::make(array($type=>$account), $rule)->validate();
-            $response = $response->noContent()->setStatusCode(200);
+            Validator::make(array($type=>$account), $rule)->validate();
             if($type=='user_phone')
             {
                 $existRule = [
@@ -296,8 +297,12 @@ class AuthController extends BaseController
                         new UserPhoneUnique()
                     ],
                 ];
-                $validator = \Validator::make(array($type=>$account), $existRule)->fails();
-                $response = $response->header('Signed-in', intval($validator));
+                $validator = Validator::make(array($type=>$account), $existRule)->fails();
+                $response = $response->accepted(null , array(
+                    'Signed-in'=>intval($validator)
+                ))->withHeader('Signed-in' , intval($validator));
+            }else{
+                $response = $response->accepted();
             }
         }else{
             $response = $response->errorMethodNotAllowed();
@@ -325,13 +330,13 @@ class AuthController extends BaseController
             ]
         ];
         $validationField = array('user_phone'=>$user_phone_country.$user_phone);
-        \Validator::make($validationField, $rule)->validate();
-        $phone = \DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+        Validator::make($validationField, $rule)->validate();
+        $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
         if(!blank($phone))
         {
             $code = (new RandomStringGenerator('1234567890'))->generate(6);
-            \DB::table('phone_password_resets')->where('phone_country' , $user_phone_country)->where('phone' , $user_phone)->delete();
-            \DB::table('phone_password_resets')->insert(
+            DB::table('phone_password_resets')->where('phone_country' , $user_phone_country)->where('phone' , $user_phone)->delete();
+            DB::table('phone_password_resets')->insert(
                 array(
                     'phone_country'=>$user_phone_country,
                     'phone'=>$user_phone,
@@ -342,6 +347,15 @@ class AuthController extends BaseController
             $this->dispatch((new Sms($user_phone , $code , $user_phone_country))->onQueue('forget_pwd_sms'));
         }
         return $this->response->noContent();
+    }
+
+    public function signInPhoneCode(Request $request)
+    {
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $device_uuid = strval($request->input('device_uuid' , ""));
+        $this->sendSignInPhoneCode($request);
+        return $this->response->accepted();
     }
 
 
