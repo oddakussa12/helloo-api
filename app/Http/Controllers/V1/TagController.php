@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\V1;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Resources\TagCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Repositories\Contracts\TagRepository;
 
 class TagController extends BaseController
@@ -19,25 +21,6 @@ class TagController extends BaseController
         $this->tag = $tag;
     }
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        return TagCollection::collection($this->tag->all());
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -47,9 +30,46 @@ class TagController extends BaseController
      */
     public function store(Request $request)
     {
-        //
-
-
+        $newTagIds = array();
+        $dateTime = Carbon::now()->toDateTimeString();
+        $userId = auth()->id();
+        $tags = $request->input('tags');
+        $fields = array_filter($tags , function($value){
+            return !blank($value);
+        });
+        $tags = app(TagRepository::class)->getByTag($fields);
+        $originIds = $tags->pluck('tag_id')->all();
+        $userTags = $tags->pluck('tag')->all();
+        $fields = array_diff($fields , $userTags);
+        if(!blank($fields))
+        {
+            DB::beginTransaction();
+            try{
+                array_walk($fields , function($v , $k) use ($dateTime , $newTagIds){
+                    $tagId = DB::table('tags')->insertGetId(array('tag'=>$v , 'created_at'=>$dateTime , 'updated_at'=>$dateTime));
+                    array_push($newTagIds , $tagId);
+                });
+                $tagIds = array_merge($originIds , $newTagIds);
+                $originUserTags = DB::table('users_tags')->where('user_id' , $userId)->whereIn('tag_id' , $tagIds)->get();
+                $originUserTagIds = $originUserTags->pluck('tag_id')->all();
+                $tagIds = array_diff($tagIds , $originUserTagIds);
+                $userData = array_map(function($tagId) use ($userId , $dateTime){
+                    return array(
+                        'user_id'=>$userId,
+                        'tag_id'=>$tagId,
+                        'created_at'=>$dateTime,
+                        'updated_at'=>$dateTime
+                    );
+                } , $tagIds);
+                DB::table('users_tags')->insert($userData);
+                DB::commit();
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::error('tag_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            }
+        }
+        return $this->response->created();
     }
 
     /**
@@ -63,28 +83,7 @@ class TagController extends BaseController
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -97,63 +96,5 @@ class TagController extends BaseController
         //
     }
 
-    public function test()
-    {
-        $this->tag->create(array(
-            array(
-                'tag_slug'=>'popular_science',
-                'tag_sort'=>'1',
-                'zh-CN'=>array(
-                    'tag_name'=>'科普'
-                ),
-                'en'=>array(
-                    'tag_name'=>'Knowledge'
-                ),
-                'id'=>array(
-                    'tag_name'=>'Pengetahuan'
-                ),
-                'ko'=>array(
-                    'tag_name'=>'지식'
-                ),
-                'hi'=>array(
-                    'tag_name'=>'ज्ञान'
-                ),
-                'ja'=>array(
-                    'tag_name'=>'知識'
-                ),
-                'ar'=>array(
-                    'tag_name'=>'المعرفه'
-                ),
-                'ru'=>array(
-                    'tag_name'=>'Знания'
-                ),
-                'th'=>array(
-                    'tag_name'=>'ความรู้'
-                ),
-                'vi'=>array(
-                    'tag_name'=>'Hiểu biết'
-                ),
-                'es'=>array(
-                    'tag_name'=>'Conocimiento'
-                ),
-                'fr'=>array(
-                    'tag_name'=>'Connaissance'
-                ),
-                'de'=>array(
-                    'tag_name'=>'Wissen'
-                ),
-                'zh-TW'=>array(
-                    'tag_name'=>'科普'
-                ),
-                'zh-HK'=>array(
-                    'tag_name'=>'科普'
-                ),
-            )
-        ));
-    }
 
-    public function hot()
-    {
-        return TagCollection::collection($this->tag->hot());
-    }
 }

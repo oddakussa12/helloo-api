@@ -75,7 +75,11 @@ $api->group($V1Params , function ($api){
 
         $api->get('ry/token' , 'RySetController@token')->name('ry.token');
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
-            $api->post('user/update/myself' , 'AuthController@update')->name('myself.update');
+            $api->post('tag' , 'TagController@store')->name('tag.store');
+            $api->get('user/tag' , 'AuthController@tag')->name('user.tag');
+            $api->put('user/myself' , 'AuthController@update')->name('myself.update');
+            $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
+            $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
         });
         $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
         $api->get('user/ry/filter' , 'UserController@filter')->name('user.ry.online.filter');

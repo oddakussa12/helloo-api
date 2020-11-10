@@ -3,20 +3,23 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\Sms;
+use Carbon\Carbon;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
 use App\Rules\UserPhoneUnique;
-use Illuminate\Support\Carbon;
+use App\Resources\TagCollection;
+use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Foundation\Auth\User\Update;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
-use App\Custom\Uuid\RandomStringGenerator;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
+use App\Repositories\Contracts\UserTagRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
 
 class AuthController extends BaseController
@@ -84,11 +87,66 @@ class AuthController extends BaseController
         return $this->response->noContent();
     }
 
+    public function fill(Request $request)
+    {
+        $fields = array();
+        $user = auth()->user();
+//        $country_code = strtolower(strval($request->input('country_code')));
+        $password = strtolower(strval($request->input('password' , '')));
+        $user_birthday = strval($request->input('user_birthday' , ''));
+        $user_about = strval($request->input('user_about' , ''));
+        $user_avatar = strval($request->input('user_avatar' , ''));
+        $user_gender = $request->input('user_gender');
+        $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
+        if(!empty($password)&&empty($user->getAuthPassword()))
+        {
+            $fields['user_pwd'] = bcrypt($password);
+        }
+        if(!empty($user_birthday)&&$user->user_birthday=="1900-01-01")
+        {
+            $fields['user_birthday'] = $user_birthday;
+        }
+//        if(!empty($country_code)&&$user->user_country_id==0)
+//        {
+//            $fields['user_country_id'] = $country_code;
+//        }
+        if(!empty($user_avatar)&&$user->user_avatar=='default_avatar.jpg')
+        {
+            $fields['user_avatar'] = $user_avatar;
+        }
+
+        if($user_gender!==null&&$user->user_gender==-1)
+        {
+            $fields['user_gender'] = intval($user_gender);
+        }
+        if(!blank($user_nick_name)&&empty($user->user_nick_name))
+        {
+            $fields['user_nick_name'] = strval($user_nick_name);
+        }
+        $fields = array_filter($fields , function($value){
+            return !blank($value);
+        });
+        if(!empty($fields))
+        {
+            if(!empty($user_about)&&empty($user->user_about))
+            {
+                $fields['user_about'] = $user_about;
+            }
+            Validator::make($fields, $this->updateRules())->validate();
+            if($user->user_birthday=="1900-01-01"||$user->user_avatar=='default_avatar.jpg'||$user->user_gender==-1||empty($user->user_nick_name)||empty($user->getAuthPassword()))
+            {
+                $this->activate($user , $fields);
+            }
+        }
+        $user = $this->user->find($user->getKey());
+        return new UserCollection($user);
+    }
+
     public function update(Request $request)
     {
         $fields = array();
         $user = auth()->user();
-        $country_code = strtolower(strval($request->input('country_code')));
+//        $country_code = strtolower(strval($request->input('country_code')));
         $user_birthday = strval($request->input('user_birthday' , ''));
         $user_about = strval($request->input('user_about' , ''));
         $user_avatar = strval($request->input('user_avatar' , ''));
@@ -98,10 +156,10 @@ class AuthController extends BaseController
         {
             $fields['user_birthday'] = $user_birthday;
         }
-        if(!empty($country_code))
-        {
-            $fields['user_country_id'] = $country_code;
-        }
+//        if(!empty($country_code))
+//        {
+//            $fields['user_country_id'] = $country_code;
+//        }
         if(!empty($user_avatar))
         {
             $fields['user_avatar'] = $user_avatar;
@@ -126,8 +184,7 @@ class AuthController extends BaseController
             Validator::make($fields, $this->updateRules())->validate();
             $user = $this->user->update($user,$fields);
         }
-        $user->user_avatar = $user->user_avatar_link;
-        return $user;
+        return new UserCollection($user);
     }
     protected function respondWithToken($token , $extend=true)
     {
@@ -180,7 +237,7 @@ class AuthController extends BaseController
     public function me()
     {
         $user = auth()->user();
-        return $this->response->array($user);
+        return new UserCollection($user);
     }
 
     public function username()
@@ -244,7 +301,7 @@ class AuthController extends BaseController
         }catch (\Exception $e)
         {
             DB::rollBack();
-            \Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
@@ -257,9 +314,6 @@ class AuthController extends BaseController
         return $this->respondWithToken($token , false);
     }
 
-    public function randUsername(){
-        return (new RandomStringGenerator())->generate(16);
-    }
 
 
 
@@ -334,7 +388,7 @@ class AuthController extends BaseController
         $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
         if(!blank($phone))
         {
-            $code = (new RandomStringGenerator('1234567890'))->generate(6);
+            $code = $this->getCode();
             DB::table('phone_password_resets')->where('phone_country' , $user_phone_country)->where('phone' , $user_phone)->delete();
             DB::table('phone_password_resets')->insert(
                 array(
@@ -349,13 +403,25 @@ class AuthController extends BaseController
         return $this->response->noContent();
     }
 
+    public function password(Request $request)
+    {
+        $this->updatePassword($request);
+        return $this->response->accepted();
+    }
+
     public function signInPhoneCode(Request $request)
     {
-        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
-        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-        $device_uuid = strval($request->input('device_uuid' , ""));
         $this->sendSignInPhoneCode($request);
         return $this->response->accepted();
+    }
+
+    public function tag(Request $request)
+    {
+        $userId = auth()->id();
+        $userTags = app(UserTagRepository::class)->getByUserIds($userId);
+        $tagIds = $userTags->pluck('tag_id')->all();
+        $tags = app(TagRepository::class)->findByMany($tagIds);
+        return TagCollection::collection($tags);
     }
 
 

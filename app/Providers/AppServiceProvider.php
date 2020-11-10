@@ -4,23 +4,20 @@ namespace App\Providers;
 
 use App\Models\Tag;
 use App\Models\User;
-use App\Models\Post;
+use App\Models\UserTag;
 use App\Models\UserFriend;
-use App\Models\PostComment;
 use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
-use App\Repositories\Contracts\PostRepository;
+use App\Repositories\Contracts\UserTagRepository;
 use App\Repositories\Contracts\UserFriendRepository;
-use App\Repositories\Contracts\PostCommentRepository;
 use App\Repositories\Eloquent\EloquentTagRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
-use App\Repositories\Eloquent\EloquentPostRepository;
+use App\Repositories\Eloquent\EloquentUserTagRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRepository;
 use App\Repositories\Contracts\UserFriendRequestRepository;
-use App\Repositories\Eloquent\EloquentPostCommentRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRequestRepository;
 
 
@@ -65,19 +62,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
         $this->app->bind(UserRepository::class, function () {
             return new EloquentUserRepository(new User());
         });
-        $this->app->bind(PostRepository::class, function () {
-            return new EloquentPostRepository(new Post());
-        });
-        $this->app->bind(PostCommentRepository::class, function () {
-            return new EloquentPostCommentRepository(new PostComment());
-        });
+
         $this->app->bind(TagRepository::class, function () {
             return new EloquentTagRepository(new Tag());
         });
+
+        $this->app->bind(UserTagRepository::class, function () {
+            return new EloquentUserTagRepository(new UserTag());
+        });
+
         $this->app->bind(UserFriendRepository::class, function () {
             return new EloquentUserFriendRepository(new UserFriend());
         });

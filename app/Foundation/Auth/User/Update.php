@@ -2,9 +2,11 @@
 namespace App\Foundation\Auth\User;
 
 use App\Jobs\Sms;
+use App\Models\User;
 use App\Jobs\EasySms;
 use App\Rules\UserPhone;
 use App\Mail\UpdateEmail;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -118,6 +120,32 @@ trait Update
         Redis::set($key, $code);
         Redis::expire($key,config('common.phone_code_wait_time'));
         Sms::dispatch($user_phone , $code , $user_phone_country , 'update_phone')->onQueue('user_update_phone');
+    }
+
+    public function updatePassword($request)
+    {
+        $auth = auth()->user();
+        $password = strval($request->input('password' , ""));
+        $validationField = array(
+            'password'=>$password
+        );
+        $rule = [
+            'password'=>[
+                'bail',
+                'required',
+                'string',
+                'min:6',
+                'max:16',
+                function ($attribute, $value, $fail) use ($auth){
+                    if (!$this->verifyPassword($auth ,$value)) {
+                        $fail(trans('auth.password_error'));
+                    }
+                }
+            ],
+        ];
+        Validator::make($validationField, $rule)->validate();
+        $auth->user_pwd = $password;
+        $auth->save();
     }
 
     public function updateName($request)
@@ -391,17 +419,13 @@ trait Update
                 'filled',
                 'string'
             ],
-//            'user_cover'=>[
-//                'bail',
-//                'filled',
-//                'string'
-//            ],
-//            'user_picture'=>[
-//                'bail',
-//                'filled',
-//                'string',
-//                'json'
-//            ]
+            'user_pwd'=>[
+                'bail',
+                'filled',
+                'string',
+                'min:6',
+                'max:16'
+            ],
         );
     }
 
@@ -455,6 +479,38 @@ trait Update
         Redis::set($key, $code);
         Redis::expire($key,config('common.user_sign_in_phone_code_wait_time'));
         EasySms::dispatch($user_phone , $code , $user_phone_country , 'sign_in')->onQueue('sign_in_sms');
+    }
+
+    public function activate(User $user ,$data)
+    {
+        $flag = false;
+        $now = Carbon::now();
+        $userId = $user->getKey();
+        $key = 'helloo:account:service:account-activation';
+        $userKey = "helloo:account:service:account:".$user->getKey();
+        if($user->user_activation==0){
+            $data['user_activation'] = 1;
+            $data['user_activated_at'] = $now->toDateTimeString();
+            DB::beginTransaction();
+            try{
+                $result = DB::table('users')->where('user_id' , $userId)->update($data);
+                $res = Redis::zadd($key , $now->timestamp , $userId);
+                if($res<=0||$result<=0)
+                {
+                    throw new \Exception('Sorry, your account activation failed！');
+                }
+                DB::commit();
+                Redis::del($userKey);
+                $flag = true;
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                \Log::error('account_activation_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            }
+        }else{
+            $flag = true;
+        }
+        return $flag;
     }
 
     public function getCode()

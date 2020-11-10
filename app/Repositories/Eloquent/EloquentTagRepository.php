@@ -13,25 +13,9 @@ use App\Repositories\Contracts\TagRepository;
 class EloquentTagRepository  extends EloquentBaseRepository implements TagRepository
 {
 
-    public function all()
+    public function getByTag(array $tags)
     {
-        $tags = $this->model;
-        if (method_exists($this->model, 'translations')) {
-            return $tags->with('translations')
-                ->orderBy('tag_sort', 'DESC')
-                ->orderBy($this->model->getCreatedAtColumn(), 'DESC')
-                ->get();
-        }
-        return $tags->orderBy('tag_sort', 'DESC')->orderBy($this->model->getCreatedAtColumn(), 'DESC')->get();
-    }
-
-    public function hot()
-    {
-        $tags = $this->model;
-        if (method_exists($this->model, 'translations')) {
-            return $tags->with('translations')->orderBy('tag_sort', 'DESC')->limit(7)->get();
-        }
-        return $tags->orderBy('tag_sort', 'DESC')->limit(7)->get();
+        return $this->model->whereIn('tag' , $tags)->get();
     }
 
 }
