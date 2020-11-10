@@ -16,7 +16,7 @@ class SmsManager extends Manager
             $templates = config('laravel-sms.other_templates');
         }elseif($type=='sign_in')
         {
-            $templates = config('laravel-sms.sign_in');
+            $templates = config('laravel-sms.sign_in_templates');
         }else{
             $templates = $this->generateTemplates(self::VERIFY_SMS);
         }

@@ -1,37 +1,7 @@
 <?php
 
 return [
-    /*
-     * The scheme information
-     * -------------------------------------------------------------------
-     *
-     * The key-value paris: {name} => {value}
-     *
-     * Examples:
-     * 'Log' => '10 backup'
-     * 'SmsBao' => '100'
-     * 'CustomAgent' => [
-     *     '5 backup',
-     *     'agentClass' => '/Namespace/ClassName'
-     * ]
-     *
-     * Supported agents:
-     * 'Log', 'YunPian', 'YunTongXun', 'SubMail', 'Luosimao',
-     * 'Ucpaas', 'JuHe', 'Alidayu', 'SendCloud', 'SmsBao',
-     * 'Qcloud', 'Aliyun'
-     *
-     */
-    'scheme' => [
-        'Aliyun'=>100,
-    ],
 
-    /*
-     * The configuration
-     * -------------------------------------------------------------------
-     *
-     * Expected the name of agent to be a string.
-     *
-     */
     'agents' => [
         /*
          * -----------------------------------
@@ -41,7 +11,7 @@ return [
          * website:http://www.yunpian.com
          * support content sms.
          */
-        'YunPian' => [
+        'yunPian' => [
             //用户唯一标识，必须
             'apikey' => 'your_api_key',
         ],
@@ -54,7 +24,7 @@ return [
          * website：http://www.yuntongxun.com/
          * support template sms.
          */
-        'YunTongXun' => [
+        'yuntongxun' => [
             //主帐号
             'accountSid'    => 'your_account_sid',
             //主帐号令牌
@@ -195,22 +165,22 @@ return [
          * website:https://www.aliyun.com/product/sms
          * support template sms.
          */
-        'Aliyun' => [
-            'accessKeyId'       => env('ALI_KEY' , ''),
-            'accessKeySecret'   => env('ALI_SECRET' , ''),
-            'signName'          => env('ALI_SMS_SIGN_NAME' , ''),
-            'regionId'          => env('ALI_SMS_REGION_ID' , ''),
+        'aliyun' => [
+            'access_key_id' => env('ALI_SMS_KEY' , ''),
+            'access_key_secret' => env('ALI_SMS_SECRET' , ''),
+            'sign_name' => env('ALI_SMS_SIGN_NAME' , ''),
+//            'regionId'          => env('ALI_SMS_REGION_ID' , ''),
         ],
-
         'yunxin' => [
             'app_key'       => env('YUN_XIN_APP_KEY' , ''),
             'app_secret'   => env('YUN_XIN_APP_SECRET' , ''),
             'code_length'          => env('YUN_XIN_SMS_CODE_LENGTH' , 4),
             'need_up'          => env('YUN_XIN_NEED_UP' , false),
         ],
-    ],
-    'aws'=>[
-        'key'=>env('AWS_KEY' , ''),
-        'secret'=>env('AWS_SECRET' , ''),
+
+        'aws'=>[
+            'key'=>env('AWS_KEY' , ''),
+            'secret'=>env('AWS_SECRET' , ''),
+        ]
     ]
 ];

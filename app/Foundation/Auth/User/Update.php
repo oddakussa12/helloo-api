@@ -2,6 +2,7 @@
 namespace App\Foundation\Auth\User;
 
 use App\Jobs\Sms;
+use App\Jobs\EasySms;
 use App\Rules\UserPhone;
 use App\Mail\UpdateEmail;
 use Illuminate\Validation\Rule;
@@ -330,7 +331,7 @@ trait Update
                 },
             ]
         ];
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         $data = array(
             'user_email'=>$user_email
         );
@@ -404,6 +405,36 @@ trait Update
         );
     }
 
+
+    private function sendForgetPwdPhoneCode($request)
+    {
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $key = 'helloo:account:service:account-reset-password-sms-code:'.$user_phone;
+        $rule = [
+            'user_phone' => [
+                'bail',
+                'required',
+                new UserPhone()
+            ]
+        ];
+        $validationField = array('user_phone'=>$user_phone_country.$user_phone);
+        Validator::make($validationField, $rule)->validate();
+        $code = $this->getCode();
+        DB::table('phone_password_resets')->insert(
+            array(
+                'phone_country'=>$user_phone_country,
+                'phone'=>$user_phone,
+                'code'=>$code,
+                'created_at'=>date('Y-m-d H:i:s' , time()),
+                'updated_at'=>date('Y-m-d H:i:s' , time()),
+            )
+        );
+        Redis::set($key, $code);
+        Redis::expire($key,config('common.user_reset_pwd_sms_wait_time'));
+        EasySms::dispatch($user_phone , $code , $user_phone_country , 'forget_password')->onQueue('forget_pwd_sms');
+    }
+
     public function sendSignInPhoneCode($request)
     {
         $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
@@ -420,9 +451,14 @@ trait Update
             ],
         ];
         \Validator::make($validationField, $rule)->validate();
-        $code = (new RandomStringGenerator('1234567890'))->generate(6);
+        $code = $this->getCode();
         Redis::set($key, $code);
         Redis::expire($key,config('common.user_sign_in_phone_code_wait_time'));
-        Sms::dispatch($user_phone , $code , $user_phone_country , 'sign_in')->onQueue('sign_in_phone_code');
+        EasySms::dispatch($user_phone , $code , $user_phone_country , 'sign_in')->onQueue('sign_in_sms');
+    }
+
+    public function getCode()
+    {
+        return (new RandomStringGenerator('1234567890'))->generate();
     }
 }

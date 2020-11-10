@@ -4,8 +4,10 @@ namespace App\Http\Controllers\V1;
 
 
 use Illuminate\Http\Request;
+use App\Messages\SignInMessage;
 use Overtrue\EasySms\PhoneNumber;
 use App\Custom\Uuid\RandomStringGenerator;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 
 
 
@@ -14,17 +16,14 @@ class TestController extends BaseController
     public function index()
     {
         $sms = app('easy-sms');
+        $number = new PhoneNumber(17600128988);
         try{
-            $sms->send('17600128988', [
-                'content'  => '您的验证码为: 6379',
-                'template' => '14876688',
-                'data' => [
-                    'code' => 6379
-                ],
-            ]);
-        }catch (\Exception $e)
+            $result = $sms->send($number, new SignInMessage(1234) , array('aliYunCustom'));
+            \Log::error($result);
+        }catch (NoGatewayAvailableException $e)
         {
-            \Log::error($e->getMessage());
+            $exception = $e->getLastException();
+            \Log::error($exception->getMessage());
         }
 
     }

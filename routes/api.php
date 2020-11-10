@@ -83,9 +83,7 @@ $api->group($V1Params , function ($api){
         $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
         $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
         $api->post('user/update/myself/email' , 'AuthController@updateUserEmail')->name('myself.update.email');
-        $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired') , 'blacklist']] , function ($api){
-            $api->post('user/phone/code' , 'AuthController@signInPhoneCode')->name('sign.in.phone.code');
-        });
+
 
         $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
 
@@ -106,6 +104,9 @@ $api->group($V1Params , function ($api){
     });
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
+    });
+    $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired') , 'blacklist']] , function ($api){
+        $api->post('user/phone/code' , 'AuthController@signInPhoneCode')->name('sign.in.phone.code');
     });
 
     $api->resource('device', 'DeviceController', ['only' => ['store']]);

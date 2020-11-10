@@ -116,7 +116,24 @@ return [
     'other_templates' => [
         'Aliyun' => env('SMS_UPDATE_PHONE_TEMPLATE_ID' , 'SMS_183445108'),
     ],
+    'sign_in_templates' => [
+        'Aliyun' => env('SMS_SIGN_UP_TEMPLATE_ID' , 'SMS_205431924'),
+    ],
 
+    'sms_templates'=>[
+      'yunxin'=>[
+          'sign_in'=>env('YUN_XIN_SMS_SIGN_UP_TEMPLATE_ID' , '14881706'),
+          'forget_password'=>env('YUN_XIN_SMS_FORGET_PASSWORD_TEMPLATE_ID' , '14872716'),
+      ],
+      'aliyun'=>[
+          'sign_in'=>env('ALIYUN_SMS_SIGN_UP_TEMPLATE_ID' , 'SMS_205431924'),
+          'forget_password'=>env('ALIYUN_SMS_FORGET_PASSWORD_TEMPLATE_ID' , 'SMS_205437803'),
+      ]
+    ],
+    'sign_name'=>[
+      'yunxin'=>  env('YUN_XIN_SIGN_NAME' , 'Helloo'),
+      'aliyun'=>  env('ALIYUN_SIGN_NAME' , 'Helloo'),
+    ],
     /*
     |--------------------------------------------------------------------------
     | 模版数据管理

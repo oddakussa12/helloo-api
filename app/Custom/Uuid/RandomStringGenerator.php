@@ -39,7 +39,7 @@ class RandomStringGenerator
      * @param int $length
      * @return string
      */
-    public function generate($length)
+    public function generate($length=4)
     {
         $token = '';
 

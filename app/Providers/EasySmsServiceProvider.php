@@ -5,6 +5,8 @@ namespace App\Providers;
 
 use Overtrue\EasySms\EasySms;
 use Illuminate\Support\ServiceProvider;
+use App\Custom\EasySms\Gateways\AliyunCustomGateway;
+use App\Custom\EasySms\Gateways\YunxinCustomGateway;
 use Overtrue\EasySms\Strategies\OrderStrategy;
 
 class EasySmsServiceProvider extends ServiceProvider
@@ -17,9 +19,16 @@ class EasySmsServiceProvider extends ServiceProvider
     public function register()
     {
         $config = $this->getConfig();
+
         $this->app->singleton('easy-sms', function ($app) use ($config){
-            return new EasySms($config);
+            $easySms =  new EasySms($config);
+            return $easySms->extend('aliYunCustom', function($config) {
+                return new AliyunCustomGateway($config);
+            })->extend('yunXinCustom', function($config) {
+                return new YunxinCustomGateway($config);
+            });
         });
+
     }
 
     public function getConfig()
@@ -35,7 +44,7 @@ class EasySmsServiceProvider extends ServiceProvider
 
                 // 默认可用的发送网关
                 'gateways' => [
-                    'yunxin'
+                    'yunxin','aliyun'
                 ],
             ],
             // 可用的网关配置
@@ -43,20 +52,10 @@ class EasySmsServiceProvider extends ServiceProvider
                 'errorlog' => [
                     'file' => 'storage/log/laravel.log',
                 ],
-                'yunpian' => [
-                    'api_key' => '824f0ff2f71cab52936axxxxxxxxxx',
-                ],
-                'aliyun' => [
-                    'access_key_id' => '',
-                    'access_key_secret' => '',
-                    'sign_name' => '',
-                ],
-                'yunxin' => [
-                    'app_key' => '4422695a31e00df8bcdb669eb2dbb398',
-                    'app_secret' => 'ef0db8065542',
-                    'code_length' => 4, // 随机验证码长度，范围 4～10，默认为 4
-                    'need_up' => false, // 是否需要支持短信上行
-                ],
+                'aliyun' =>  config('easy-sms.agents.aliyun'),
+                'aliYunCustom' =>  config('easy-sms.agents.aliyun'),
+                'yunxin' => config('easy-sms.agents.yunxin'),
+                'yunXinCustom' => config('easy-sms.agents.yunxin'),
             ],
         ];
     }
