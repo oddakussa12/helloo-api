@@ -26,15 +26,17 @@ $V1Params = [
 $api->group($V1Params , function ($api){
 
     $api->group(['middleware'=>'redisThrottle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
-        $api->post('user/forgetPwd' , 'AuthController@forgetPwd')->name('user.forget.pwd');
+        $api->post('user/forgetPwd' , 'AuthController@forgetPwdCode')->name('user.forget.pwd');
     });
 
-    $api->post('user/resetPwd' , 'AuthController@resetPwd')->name('user.reset.pwd');
     $api->post('user/phone/resetPwd' , 'AuthController@resetPwdByPhone')->name('user.phone.reset.pwd');
 
     $api->post('user/phone/signIn' , 'AuthController@signIn')->name('sign.in');
     $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
-    $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
+    $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired')]] , function ($api){
+        $api->post('user/phone/code' , 'AuthController@signInPhoneCode')->name('sign.in.phone.code');
+    });
+//    $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
 
 
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
@@ -60,7 +62,7 @@ $api->group($V1Params , function ($api){
         /*****好友 结束*****/
 
         /*****好友请求 开始*****/
-        $api->group(['middleware'=>['blacklist' , 'repeatedSubmit']] , function ($api){
+        $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
             $api->post('friend/request' , 'UserFriendRequestController@store')->name('user.friend.request.store');//发起好友请求
             $api->patch('friend/{friend}/accept' , 'UserFriendRequestController@accept')->name('user.friend.request.accept');//好友请求响应接受
             $api->patch('friend/{friend}/refuse' , 'UserFriendRequestController@refuse')->name('user.friend.request.refuse');//好友请求响应拒绝
@@ -75,6 +77,7 @@ $api->group($V1Params , function ($api){
 
         $api->get('ry/token' , 'RySetController@token')->name('ry.token');
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
+            $api->get('tag' , 'TagController@index')->name('tag.index');
             $api->post('tag' , 'TagController@store')->name('tag.store');
             $api->get('user/tag' , 'AuthController@tag')->name('user.tag');
             $api->put('user/myself' , 'AuthController@update')->name('myself.update');
@@ -82,12 +85,7 @@ $api->group($V1Params , function ($api){
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
         });
         $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
-        $api->get('user/ry/filter' , 'UserController@filter')->name('user.ry.online.filter');
-        $api->post('user/update/myself/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
-        $api->post('user/update/myself/name' , 'AuthController@updateUserName')->name('myself.update.name');
         $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
-        $api->post('user/update/myself/email' , 'AuthController@updateUserEmail')->name('myself.update.email');
-
 
         $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
 
@@ -109,9 +107,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
     });
-    $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired') , 'blacklist']] , function ($api){
-        $api->post('user/phone/code' , 'AuthController@signInPhoneCode')->name('sign.in.phone.code');
-    });
+
 
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 

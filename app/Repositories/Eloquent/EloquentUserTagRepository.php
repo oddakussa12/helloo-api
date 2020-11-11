@@ -13,9 +13,9 @@ use App\Repositories\Contracts\UserTagRepository;
 class EloquentUserTagRepository  extends EloquentBaseRepository implements UserTagRepository
 {
 
-    public function getByUserIds($userIds)
+    public function getByUserId($userId)
     {
-        return $this->model->whereIn('user_id' , $userIds)->get();
+        return $this->model->where('user_id' , $userId)->get();
     }
 
 }

@@ -157,6 +157,15 @@ class RySetController extends BaseController
         $userId = $user->user_id;
         $name = empty($user->user_nick_name)?'guest':$user->user_nick_name;
         $avatar = $user->user_avatar_link;
+        $key = 'helloo:account:service:account-ry-token:'.$userId;
+        if(Redis::exists($key))
+        {
+            $token = Redis::get($key);
+            if(!empty($token))
+            {
+                return $response->array(\json_decode($token , true));
+            }
+        }
         try{
             $token = app('rcloud')->getUser()->register(array(
                 'id'=> $userId,
@@ -173,6 +182,8 @@ class RySetController extends BaseController
                 ));
             }
             throw_if($token['code']!=200 , new \Exception($token['code'].'===>'.$token['msg']));
+            Redis::set($key , \json_encode($token));
+            Redis::expire($key , 60*60*24*15);
         }catch (\Throwable $e)
         {
             $token = array(

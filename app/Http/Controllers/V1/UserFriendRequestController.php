@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\FriendLevel;
-use App\Models\UserFriend;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
-use App\Custom\Constant\Constant;
 use App\Models\UserFriendRequest;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
@@ -60,26 +59,11 @@ class UserFriendRequestController extends BaseController
     {
         $friendId = intval($request->input('friend_id'));
         $user     = auth()->user();
-        $userName = $user->user_name;
-        $userNickName = $user->user_nick_name;
-        $key = "temp_account";
-        if(Redis::exists($key))
-        {
-            $users = array_values(Redis::smembers($key));
-            if(str_contains(strtolower($userName) , $users)||str_contains(strtolower($userNickName) , $users))
-            {
-                return $this->response->created();
-            }
-        }
         $userId   = $user->user_id;
         $requests = new UserFriendRequest();
         $requests->request_from_id = $userId;
         $requests->request_to_id   = $friendId;
         $requests->save();
-
-        list($user_id, $friend_id) = FriendLevel::sortId($userId, $friendId);
-        Redis::del(Constant::RY_CHAT_FRIEND_IS_FRIEND. $user_id."_".$friend_id);
-
         // 融云推送 聊天
         FriendLevel::sendMsgToRyByPerson($requests->request_from_id, $requests->request_to_id, 'Yooul:FriendRequest', [
             'content'  => 'friend request',
@@ -94,33 +78,54 @@ class UserFriendRequestController extends BaseController
         $user   = auth()->user();
         $userId = $user->user_id;
         $state  = 1;
-
-        UserFriendRequest::where('request_from_id', $friendId)->where('request_to_id', $userId)->update(['request_state'=>$state]);
-
-        $userFriend = UserFriend::where('user_id', $userId)->where('friend_id', $friendId)->first();
-        $friendUser = UserFriend::where('user_id', $friendId)->where('friend_id', $userId)->first();
-
-        $friends    = [];
-        $createdAt  = time();
-        blank($userFriend) && array_push($friends, ['user_id'=>$userId,'friend_id'=>$friendId,'created_at'=>$createdAt]);
-        blank($friendUser) && array_push($friends, ['user_id'=>$friendId,'friend_id'=>$userId,'created_at'=>$createdAt]);
-
-        if(!blank($friends)) {
-            UserFriend::insert($friends);
+        $flag = true;
+        DB::beginTransaction();
+        try{
+            $friendRequest = DB::table('friends_requests')->where('request_from_id', $friendId)->where('request_to_id', $userId)->where('request_state' , 0)->update(['request_state'=>$state]);
+            if($friendRequest>0)
+            {
+                $userFriend = DB::table('users_friends')->where('user_id', $userId)->where('friend_id', $friendId)->first();
+                $friendUser = DB::table('users_friends')->where('user_id', $friendId)->where('friend_id', $userId)->first();
+                if(blank($userFriend)&&blank($friendUser))
+                {
+                    DB::table('users_friends')->insert(array(
+                        array('user_id'=>$userId , 'friend_id'=>$friendId),
+                        array('user_id'=>$friendId , 'friend_id'=>$userId)
+                    ));
+                }else{
+                    if(blank($userFriend))
+                    {
+                        DB::table('users_friends')->insert(array(
+                            array('user_id'=>$userId , 'friend_id'=>$friendId)
+                        ));
+                    }elseif(blank($friendUser))
+                    {
+                        DB::table('users_friends')->insert(array(
+                            array('user_id'=>$friendId , 'friend_id'=>$userId)
+                        ));
+                    }else{
+                        ($userFriend->relation==0||$friendUser->relation==0)&&$flag=false;
+                        $userFriend->relation==0&&DB::table('users_friends')->where('user_id', $userId)->where('friend_id', $friendId)->update(['relation'=>$state]);
+                        $friendUser->relation==0&&DB::table('users_friends')->where('user_id', $friendId)->where('friend_id', $userId)->update(['relation'=>$state]);
+                    }
+                }
+            }else{
+                $flag = false;
+            }
+            DB::commit();
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            $flag = false;
+            Log::error('friend_request_accept_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
         }
 
-        list($user_id, $friend_id) = FriendLevel::sortId($userId, $friendId);
-        Redis::del(Constant::RY_CHAT_FRIEND_IS_FRIEND. $user_id."_".$friend_id);
-
         // 融云推送 聊天
-        FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
+        $flag&&FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
             'content'  => 'friend response',
             'reposed'  => $state,
             'userInfo' => $user
         ], $this->agent);
-
-        Redis::del(config('redis-key.user.user_friend').'_'.$userId);
-
         return $this->response->accepted();
     }
 
@@ -129,10 +134,9 @@ class UserFriendRequestController extends BaseController
         $requestState = -1;
         $user         = auth()->user();
         $userId       = $user->user_id;
-        UserFriendRequest::where('request_from_id', $friendId)->where('request_to_id', $userId)->update(['request_state'=>$requestState]);
-
+        $friendRequest = DB::table('friends_requests')->where('request_from_id', $friendId)->where('request_to_id', $userId)->where('request_state' , 0)->update(['request_state'=>$requestState]);
         // 融云推送 聊天
-        FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
+        $friendRequest>0&&FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
             'content'  => 'friend response',
             'reposed'  => $requestState,
             'userInfo' => $user

@@ -2,132 +2,88 @@
 namespace App\Foundation\Auth\User;
 
 use App\Jobs\Sms;
+use Carbon\Carbon;
 use App\Models\User;
 use App\Jobs\EasySms;
 use App\Rules\UserPhone;
 use App\Mail\UpdateEmail;
-use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Custom\EasySms\PhoneNumber;
+use App\Messages\UpdatePhoneMessage;
 use Illuminate\Support\Facades\Redis;
+use App\Messages\ForgetPasswordMessage;
 use Illuminate\Support\Facades\Validator;
 use App\Custom\Uuid\RandomStringGenerator;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
 trait Update
 {
-    public function fillAuth($request)
+
+    public function resetByPhone($request)
     {
-        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , '')) , "+") , "0");
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-        $user_email = strval($request->input('user_email' , ''));
-        $validationField = array(
-            'email'=>$user_email
-        );
-        !empty($user_phone)&&$validationField['phone'] = $user_phone_country.$user_phone;
-        $rule = [
-            'phone' => [
+        $code = strval($request->input('code' , ''));
+        $password = strval($request->input('password'));
+        $password_confirmation = strval($request->input('password_confirmation'));
+        $rules = [
+            'code' => 'bail|required|string|size:4',
+            'user_phone' => [
                 'bail',
-                'required_without:email',
-                new UserPhone(),
-                function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
-                    $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
-                    if(!blank($phone))
-                    {
-                        $fail(trans('validation.unique'));
-                    }
-                }
+                'required',
+                'string',
+                new UserPhone()
             ],
-            'email'=> [
-                'bail',
-                'required_without:phone',
-                'email',
-                function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
-                    $email = DB::table('users')->where('user_email', $value)->first();
-                    if(!blank($email))
-                    {
-                        $fail(trans('validation.unique'));
-                    }
-                }
-            ]
+            'password' => 'bail|required|string|confirmed|min:6|max:16',
+            'password_confirmation' => 'bail|required|string|same:password',
         ];
-        Validator::make($validationField, $rule)->validate();
-        $auth = auth()->user();
-        if(!empty($user_email)&&$auth->user_email!=$user_email)
+        $validationField = array(
+            'code' => $code,
+            'user_phone'=>$user_phone_country.$user_phone,
+            'password'=>$password,
+            'password_confirmation'=>$password_confirmation,
+        );
+        Validator::make($validationField, $rules)->validate();
+        $user = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+        if(blank($user))
         {
-            $auth->user_email = $user_email;
-            $auth->save();
-            $this->updateUser($auth , array(
-                'user_email'=>$user_email
-            ));
-        }elseif (!empty($user_phone)&&!empty($user_phone_country))
+            abort(404 , 'Account does not exist!');
+        }
+        $key = 'helloo:account:service:account-reset-password-sms-code:'.$user_phone_country.$user_phone;
+        $userCode = strval(Redis::get($key));
+        if(empty($code)||empty($userCode)||$code!=$userCode)
         {
-            $userPhone = DB::table('users_phones')->where('user_id', $auth->user_id)->first();
-            if(empty($userPhone))
-            {
-                DB::table('users_phones')->insert(
-                    array(
-                        'user_id'=>$auth->user_id,
-                        'user_phone_country'=>$user_phone_country,
-                        'user_phone'=>$user_phone
-                    )
-                );
-                $this->updateUser($auth , array(
-                    'user_phone_country'=>$user_phone_country,
-                    'user_phone'=>$user_phone,
-                ));
-            }
+            abort(422 , 'Phone verification code error!');
+        }
+        Redis::del($key);
+        $res = DB::table('users')->where($user->user_id)->update(
+            array('user_pwd'=>bcrypt($password))
+        );
+        if($res<=0)
+        {
+            \Log::error("用户{$user->user_id}密码{$password}更新失败！");
         }
     }
+
     public function verifyPassword(UserContract $user, $password)
     {
         $credentials['password'] = $password;
         return auth()->getProvider()->validateCredentials($user , $credentials);
     }
 
-    public function sendPhoneCode($request)
-    {
-        $userId = auth()->id();
-        $key = 'user.'.$userId.'.change.phone.code';
-        $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
-        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-        $validationField = array(
-            'phone'=>$user_phone_country.$user_phone,
-        );
-        $rule = [
-            'phone' => [
-                'bail',
-                'required',
-                new UserPhone(),
-                function ($attribute, $value, $fail) use ($key){
-//                    if(Redis::exists($key))
-//                    {
-//                        $fail(trans('auth.throttle_limit'));
-//                    }
-                },
-                function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
-                    $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
-                    if(!blank($phone))
-                    {
-                        $fail(trans('validation.unique'));
-                    }
-                }
-            ],
-        ];
-        Validator::make($validationField, $rule)->validate();
-        $code = (new RandomStringGenerator('1234567890'))->generate(6);
-        Redis::set($key, $code);
-        Redis::expire($key,config('common.phone_code_wait_time'));
-        Sms::dispatch($user_phone , $code , $user_phone_country , 'update_phone')->onQueue('user_update_phone');
-    }
 
     public function updatePassword($request)
     {
         $auth = auth()->user();
         $password = strval($request->input('password' , ""));
+        $new_password = strval($request->input('new_password' , ""));
+        $password_confirmation = strval($request->input('password_confirmation' , ""));
         $validationField = array(
-            'password'=>$password
+            'password'=>$password,
+            'new_password'=>$new_password,
+            'password_confirmation'=>$password_confirmation,
         );
         $rule = [
             'password'=>[
@@ -142,76 +98,32 @@ trait Update
                     }
                 }
             ],
+            'new_password'=>[
+                'bail',
+                'required',
+                'string',
+                'min:6',
+                'max:32'
+            ],
+            'password_confirmation' => 'bail|required|string|same:new_password',
         ];
         Validator::make($validationField, $rule)->validate();
-        $auth->user_pwd = $password;
+        $auth->user_pwd = $new_password;
         $auth->save();
     }
 
-    public function updateName($request)
-    {
-        $auth = auth()->user();
-        $user_name = strval($request->input('name'));
-        $password = strval($request->input('password' , ""));
-        $validationField = array(
-            'name'=>$user_name,
-            'password'=>$password
-        );
-        $rule = [
-            'name' => [
-                'bail',
-                'string',
-                'min:4',
-                'max:32',
-                'regex:/^[0-9a-zA-Z]+$/u',
-                function ($attribute, $value, $fail) use ($auth){
-                    if(!$this->isCanUpdateName($auth->user_id))
-                    {
-                        $fail('Too close to the last username change date');
-                    }
-                },
-                function ($attribute, $value, $fail){
-                    $user = DB::table('users')->where('user_name', $value)->first();
-                    if(!blank($user))
-                    {
-                        $fail(trans('validation.unique'));
-                    }
-                }
-            ],
-            'password'=>[
-                'bail',
-                'required',
-                'string',
-                'min:6',
-                'max:16',
-                function ($attribute, $value, $fail) use ($auth){
-                    if (!$this->verifyPassword($auth ,$value)) {
-                        $fail(trans('auth.password_error'));
-                    }
-                }
-            ],
-        ];
-        Validator::make($validationField, $rule)->validate();
-        $auth->user_name = $user_name;
-        $auth->save();
-        $this->updateUser($auth , array(
-            'user_name'=>$user_name,
-            'user_name_updated_at'=>time()
-        ));
-    }
+
 
     public function updatePhone($request)
     {
         $auth = auth()->user();
         $userId = $auth->user_id;
-        $key = 'user.'.$userId.'.change.phone.code';
+        $key = 'helloo:account:service:account-update-phone-sms-code:'.$userId;
         $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-        $password = strval($request->input('password' , ""));
         $code = strval($request->input('code' , ""));
         $validationField = array(
             'phone'=>$user_phone_country.$user_phone,
-            'password'=>$password,
             'code'=>$code
         );
         $rule = [
@@ -227,18 +139,6 @@ trait Update
                     }
                 }
             ],
-            'password'=>[
-                'bail',
-                'required',
-                'string',
-                'min:6',
-                'max:16',
-                function ($attribute, $value, $fail) use ($auth){
-                    if (!$this->verifyPassword($auth ,$value)) {
-                        $fail(trans('auth.password_error'));
-                    }
-                }
-            ],
             'code'=>[
                 'bail',
                 'required',
@@ -253,6 +153,7 @@ trait Update
             ]
         ];
         Validator::make($validationField, $rule)->validate();
+        Redis::del($key);
         $userPhone = DB::table('users_phones')->where('user_id', $userId)->first();
         if(!empty($userPhone))
         {
@@ -268,106 +169,10 @@ trait Update
             );
             DB::table('users_phones')->insert(array_merge(array('user_id'=>$userId) , $data));
         }
-        $this->updateUser($auth , $data);
-        Redis::del($key);
     }
 
-    public function sendEmailCode($request)
-    {
-        $userId = auth()->id();
-        $key = 'user.'.$userId.'.change.email.code';
-        $user_email = strval($request->input('user_email'));
-        $validationField = array(
-            'email'=>$user_email,
-        );
-        $rule = [
-            'email' => [
-                'bail',
-                'required',
-                'email',
-                function ($attribute, $value, $fail) use ($key){
-//                    if(Redis::exists($key))
-//                    {
-////                        $fail(trans('auth.throttle_limit'));
-//                    }
-                },
-                function ($attribute, $value, $fail){
-                    $user = DB::table('users')->where('user_email', $value)->first();
-                    if(!blank($user))
-                    {
-                        $fail(trans('validation.unique'));
-                    }
-                }
-            ]
-        ];
-        Validator::make($validationField, $rule)->validate();
-        $code = (new RandomStringGenerator('1234567890'))->generate(6);
-        Redis::set($key, $code);
-        Redis::expire($key,config('common.email_code_wait_time'));
-        Mail::to($user_email)->queue((new UpdateEmail($code))
-            ->onQueue('user_update_email'));
-    }
 
-    public function updateEmail($request)
-    {
-        $auth = auth()->user();
-        $userId = $auth->user_id;
-        $key = 'user.'.$userId.'.change.email.code';
-        $user_email = strval($request->input('user_email'));
-        $password = strval($request->input('password' , ""));
-        $code = strval($request->input('code'));
-        $validationField = array(
-            'email'=>$user_email,
-            'password'=>$password,
-            'code'=>$code,
-        );
-        $rule = [
-            'email' => [
-                'bail',
-                'required',
-                'email',
-                function ($attribute, $value, $fail){
-                    $user = DB::table('users')->where('user_email', $value)->first();
-                    if(!blank($user))
-                    {
-                        $fail(trans('validation.unique'));
-                    }
-                }
-            ],
-            'password'=>[
-                'bail',
-                'required',
-                'string',
-                'min:6',
-                'max:16',
-                function ($attribute, $value, $fail) use ($auth){
-                    if (!$this->verifyPassword($auth ,$value)) {
-                        $fail(trans('auth.password_error'));
-                    }
-                }
-            ],
-            'code'=>[
-                'bail',
-                'required',
-                'string',
-                'size:6',
-                function ($attribute, $value, $fail) use ($key){
-                    if(!Redis::exists($key)||$value!=Redis::get($key))
-                    {
-                        $fail('Verification code error');
-                    }
-                },
-            ]
-        ];
-        Validator::make($validationField, $rule)->validate();
-        $data = array(
-            'user_email'=>$user_email
-        );
-        $auth->fill($data);
-        $auth->save();
-        $this->updateUser($auth , $data);
-        Redis::del($key);
-    }
+
 
     public function updateMessages()
     {
@@ -434,36 +239,67 @@ trait Update
     {
         $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
-        $key = 'helloo:account:service:account-reset-password-sms-code:'.$user_phone;
+        $key = 'helloo:account:service:account-reset-password-sms-code:'.$user_phone_country.$user_phone;
         $rule = [
             'user_phone' => [
                 'bail',
                 'required',
-                new UserPhone()
+                new UserPhone(),
             ]
         ];
         $validationField = array('user_phone'=>$user_phone_country.$user_phone);
         Validator::make($validationField, $rule)->validate();
-        $code = $this->getCode();
-        DB::table('phone_password_resets')->insert(
-            array(
-                'phone_country'=>$user_phone_country,
-                'phone'=>$user_phone,
-                'code'=>$code,
-                'created_at'=>date('Y-m-d H:i:s' , time()),
-                'updated_at'=>date('Y-m-d H:i:s' , time()),
-            )
+        $userPhone = DB::table('users_phones')->where("user_phone_country" , $user_phone_country)->where("user_phone" , $user_phone)->first();
+        if(!blank($userPhone))
+        {
+            $code = $this->getCode();
+            $phone = new PhoneNumber($user_phone , $user_phone_country);
+            $message = new ForgetPasswordMessage($code);
+            EasySms::dispatch($phone , $message , function() use ($key , $code){
+                Redis::set($key, $code);
+                Redis::expire($key,config('common.user_reset_pwd_sms_wait_time'));
+            })->onQueue('forget_pwd_sms');
+        }
+
+    }
+
+    public function sendUpdatePhoneCode($request)
+    {
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $key = 'helloo:account:service:account-update-phone-sms-code:'.$user_phone_country.$user_phone;
+        $validationField = array(
+            'phone'=>$user_phone_country.$user_phone,
         );
-        Redis::set($key, $code);
-        Redis::expire($key,config('common.user_reset_pwd_sms_wait_time'));
-        EasySms::dispatch($user_phone , $code , $user_phone_country , 'forget_password')->onQueue('forget_pwd_sms');
+        $rule = [
+            'phone' => [
+                'bail',
+                'required',
+                new UserPhone(),
+                function ($attribute, $value, $fail) use ($user_phone_country , $user_phone){
+                    $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+                    if(!blank($phone))
+                    {
+                        $fail(trans('validation.custom.phone.unique'));
+                    }
+                }
+            ]
+        ];
+        Validator::make($validationField, $rule)->validate();
+        $code = $this->getCode();
+        $phone = new PhoneNumber($user_phone , $user_phone_country);
+        $message = new UpdatePhoneMessage($code);
+        EasySms::dispatch($phone , $message , function() use ($key , $code){
+            Redis::set($key, $code);
+            Redis::expire($key,config('common.user_update_phone_code_wait_time'));
+        })->onQueue('update_phone_sms');
     }
 
     public function sendSignInPhoneCode($request)
     {
         $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
-        $key = 'helloo:account:service:account-sign-in-sms-code:'.$user_phone;
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        $key = 'helloo:account:service:account-sign-in-sms-code:'.$user_phone_country.$user_phone;
         $validationField = array(
             'phone'=>$user_phone_country.$user_phone,
         );
@@ -474,11 +310,14 @@ trait Update
                 new UserPhone()
             ],
         ];
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         $code = $this->getCode();
-        Redis::set($key, $code);
-        Redis::expire($key,config('common.user_sign_in_phone_code_wait_time'));
-        EasySms::dispatch($user_phone , $code , $user_phone_country , 'sign_in')->onQueue('sign_in_sms');
+        $phone = new PhoneNumber($user_phone , $user_phone_country);
+        $message = new ForgetPasswordMessage($code);
+        EasySms::dispatch($phone , $message , function() use ($key , $code){
+            Redis::set($key, $code);
+            Redis::expire($key,config('common.user_sign_in_phone_code_wait_time'));
+        })->onQueue('sign_in_sms');
     }
 
     public function activate(User $user ,$data)
@@ -505,7 +344,7 @@ trait Update
             }catch (\Exception $e)
             {
                 DB::rollBack();
-                \Log::error('account_activation_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+                Log::error('account_activation_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
             }
         }else{
             $flag = true;

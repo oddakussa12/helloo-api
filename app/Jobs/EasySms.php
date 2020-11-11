@@ -2,19 +2,23 @@
 
 namespace App\Jobs;
 
-use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
+use Carbon\Carbon;
 use SmsManager;
 use Aws\Sns\SnsClient;
 use Illuminate\Bus\Queueable;
 use App\Messages\SignInMessage;
 use Aws\Exception\AwsException;
 use Aws\Credentials\Credentials;
+use Illuminate\Support\Facades\DB;
 use App\Custom\EasySms\PhoneNumber;
 use Illuminate\Queue\SerializesModels;
 use App\Messages\ForgetPasswordMessage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Overtrue\EasySms\Contracts\MessageInterface;
+use Overtrue\EasySms\Contracts\PhoneNumberInterface;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 
 class EasySms implements ShouldQueue
 {
@@ -25,26 +29,20 @@ class EasySms implements ShouldQueue
      * @var null
      */
     private $phone;
-    /**
-     * @var null
-     */
-    private $code;
-    /**
-     * @var string
-     */
-    private $user_phone_country;
 
     /**
-     * @var string
+     * @var object
      */
-    private $type;
+    private $message;
+    private $callback;
 
-    public function __construct($phone=null , $code='' , $user_phone_country="86" , $type='')
+    public function __construct($phone ,  $message , $callback=null)
     {
         $this->phone = $phone;
-        $this->code = $code;
-        $this->user_phone_country = $user_phone_country;
-        $this->type = $type;
+
+        $this->message = $message;
+
+        $this->callback = $callback;
     }
 
     /**
@@ -55,25 +53,50 @@ class EasySms implements ShouldQueue
     public function handle()
     {
         $sms = app('easy-sms');
-        $message = array();
-        if($this->type='sign_in')
+        $now = Carbon::now()->toDateTimeString();
+        if($this->phone instanceof PhoneNumberInterface)
         {
-            $message = new SignInMessage($this->code);
-        }elseif($this->type='forget_password'){
-            $message = new ForgetPasswordMessage($this->code);
+            $phone = $this->phone->getUniversalNumber();
+        }else{
+            $phone = $this->phone;
         }
-
-        $phone = new PhoneNumber($this->phone , $this->user_phone_country);
-
+        if($this->message instanceof MessageInterface)
+        {
+            $code = $this->message->code;
+        }else{
+            $message = $this->message;
+            $code = $message['code'];
+        }
+        $id = DB::table('short_messages')->insertGetId(
+            array(
+                'phone'=>$phone,
+                'code'=>$code ,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            )
+        );
         try{
-            $result = $sms->send($phone, $message);
+            $sms->send($this->phone, $this->message);
+            if($this->callback instanceof \Closure)
+            {
+                $callback = $this->callback;
+                $callback();
+            }
+            $result = 1;
+            $messages = 'success';
         }catch (NoGatewayAvailableException $e)
         {
+            $result = 0;
+            $messages = array();
             $exceptions = $e->getExceptions();
             foreach ($exceptions as $gateway=>$exception)
             {
                 \Log::error($exception->getMessage());
+                $messages[$gateway] = $exception->getMessage();
             }
         }
+        DB::table('short_messages')->where('id' , $id)->update(
+            array('message'=>$messages , 'status'=>$result)
+        );
     }
 }

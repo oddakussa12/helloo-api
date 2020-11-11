@@ -13,7 +13,7 @@ use App\Repositories\Contracts\TagRepository;
 class EloquentTagRepository  extends EloquentBaseRepository implements TagRepository
 {
 
-    public function getByTag(array $tags)
+    public function getByTags(array $tags)
     {
         return $this->model->whereIn('tag' , $tags)->get();
     }

@@ -14,7 +14,7 @@ class UserFriend extends Model
 
     protected $primaryKey = 'id';
 
-    protected $fillable = ['user_id' , 'friend_id'];
+    protected $fillable = ['user_id' , 'friend_id' , 'relation'];
 
     public $paginateParamName = 'friend_page';
 

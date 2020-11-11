@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Jobs\Sms;
 use Carbon\Carbon;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
@@ -366,40 +365,13 @@ class AuthController extends BaseController
 
     public function resetPwdByPhone(Request $request)
     {
-        $response = $this->resetByPhone($request);
-        if($response!==true)
-        {
-            return $this->response->errorNotFound(trans(strval($response)));
-        }
+        $this->resetByPhone($request);
         return $this->response->noContent();
     }
 
-    private function forgetPwdByPhone($user_phone , $user_phone_country)
+    public function forgetPwdCode(Request $request)
     {
-        $rule = [
-            'user_phone' => [
-                'bail',
-                'required',
-                new UserPhone()
-            ]
-        ];
-        $validationField = array('user_phone'=>$user_phone_country.$user_phone);
-        Validator::make($validationField, $rule)->validate();
-        $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
-        if(!blank($phone))
-        {
-            $code = $this->getCode();
-            DB::table('phone_password_resets')->where('phone_country' , $user_phone_country)->where('phone' , $user_phone)->delete();
-            DB::table('phone_password_resets')->insert(
-                array(
-                    'phone_country'=>$user_phone_country,
-                    'phone'=>$user_phone,
-                    'code'=>$code,
-                    'created_at'=>date('Y-m-d H:i:s' , time()),
-                )
-            );
-            $this->dispatch((new Sms($user_phone , $code , $user_phone_country))->onQueue('forget_pwd_sms'));
-        }
+        $this->sendForgetPwdPhoneCode($request);
         return $this->response->noContent();
     }
 

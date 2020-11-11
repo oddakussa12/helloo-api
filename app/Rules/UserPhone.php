@@ -2,6 +2,8 @@
 namespace App\Rules;
 
 use libphonenumber\PhoneNumberUtil;
+use Illuminate\Support\Facades\Log;
+use libphonenumber\NumberParseException;
 use Illuminate\Contracts\Validation\Rule;
 
 class UserPhone implements Rule
@@ -21,12 +23,8 @@ class UserPhone implements Rule
         try {
             $numberProto = $phoneUtil->parse($value);
             $result = $phoneUtil->isValidNumber($numberProto);
-            if($result===false)
+            if($result===true)
             {
-                \Log::error('ValidNumber one');
-                \Log::error(request()->route()->getName());
-                \Log::error(\json_encode(request()->all()));
-            }else{
                 $phone = $numberProto->getNationalNumber();
                 $phoneCountry = $numberProto->getCountryCode();
                 if($phoneCountry=='86')
@@ -34,13 +32,26 @@ class UserPhone implements Rule
                     $result = (bool)preg_match('/^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/', $phone, $matches);
                 }
             }
+            if($result===false)
+            {
+                $error = array(
+                    'type'=>'forget_pwd_phone_valid_error',
+                    'ip'=>getRequestIpAddress(),
+                    'route'=>request()->route()->getName(),
+                    'params'=>request()->all(),
+                );
+                Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
+            }
             return $result;
-        } catch (\libphonenumber\NumberParseException $e) {
-            \Log::error('ValidNumber two');
-            \Log::error(getRequestIpAddress());
-            \Log::error(request()->route()->getName());
-            \Log::error(\json_encode(request()->all()));
-            \Log::error($e->getMessage().":".$value);
+        } catch (NumberParseException $e) {
+            $error = array(
+                'type'=>'forget_pwd_phone_error',
+                'ip'=>getRequestIpAddress(),
+                'route'=>request()->route()->getName(),
+                'params'=>request()->all(),
+                'message'=>$e->getMessage(),
+            );
+            Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
             return false;
         }
     }

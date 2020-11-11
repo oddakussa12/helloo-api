@@ -142,6 +142,11 @@ class User extends Authenticatable implements JWTSubject
         return getContinentByCountry($this->user_country);
     }
 
+    public function SignupInfo()
+    {
+        return $this->hasOne(SignupInfo::class , 'user_id' , 'user_id');
+    }
+
 
 
 

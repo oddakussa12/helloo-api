@@ -13,7 +13,8 @@ class Tag extends Model
 
     const UPDATED_AT = 'updated_at';
 
-    public $guarded = [];
+
+    protected $fillable = ['tag'];
 
     public $table = 'tags';
 
