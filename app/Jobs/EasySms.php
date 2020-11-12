@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Carbon\Carbon;
 use SmsManager;
 use Aws\Sns\SnsClient;
+use App\Custom\Anonymous;
 use Illuminate\Bus\Queueable;
 use App\Messages\SignInMessage;
 use Aws\Exception\AwsException;
@@ -16,7 +17,7 @@ use App\Messages\ForgetPasswordMessage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Overtrue\EasySms\Contracts\MessageInterface;
+use App\Messages\Contracts\MessageInterface;
 use Overtrue\EasySms\Contracts\PhoneNumberInterface;
 use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 
@@ -34,15 +35,13 @@ class EasySms implements ShouldQueue
      * @var object
      */
     private $message;
-    private $callback;
 
-    public function __construct($phone ,  $message , $callback=null)
+    public function __construct($phone ,  $message)
     {
         $this->phone = $phone;
 
         $this->message = $message;
 
-        $this->callback = $callback;
     }
 
     /**
@@ -77,10 +76,9 @@ class EasySms implements ShouldQueue
         );
         try{
             $sms->send($this->phone, $this->message);
-            if($this->callback instanceof \Closure)
+            if($this->message instanceof MessageInterface&&method_exists($this->message , 'afterSend'))
             {
-                $callback = $this->callback;
-                $callback();
+                $this->message->afterSend($phone);
             }
             $result = 1;
             $messages = 'success';
@@ -91,12 +89,12 @@ class EasySms implements ShouldQueue
             $exceptions = $e->getExceptions();
             foreach ($exceptions as $gateway=>$exception)
             {
-                \Log::error($exception->getMessage());
                 $messages[$gateway] = $exception->getMessage();
             }
+            \Log::error(\json_encode($messages , JSON_UNESCAPED_UNICODE));
         }
         DB::table('short_messages')->where('id' , $id)->update(
-            array('message'=>$messages , 'status'=>$result)
+            array('message'=>\json_encode($messages , JSON_UNESCAPED_UNICODE) , 'status'=>$result)
         );
     }
 }

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Jobs\EasySms;
 use App\Rules\UserPhone;
 use App\Mail\UpdateEmail;
+use App\Custom\Anonymous;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -255,10 +256,7 @@ trait Update
             $code = $this->getCode();
             $phone = new PhoneNumber($user_phone , $user_phone_country);
             $message = new ForgetPasswordMessage($code);
-            EasySms::dispatch($phone , $message , function() use ($key , $code){
-                Redis::set($key, $code);
-                Redis::expire($key,config('common.user_reset_pwd_sms_wait_time'));
-            })->onQueue('forget_pwd_sms');
+            EasySms::dispatch($phone , $message)->onQueue('forget_pwd_sms');
         }
 
     }
@@ -289,10 +287,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new UpdatePhoneMessage($code);
-        EasySms::dispatch($phone , $message , function() use ($key , $code){
-            Redis::set($key, $code);
-            Redis::expire($key,config('common.user_update_phone_code_wait_time'));
-        })->onQueue('update_phone_sms');
+        EasySms::dispatch($phone , $message)->onQueue('update_phone_sms');
     }
 
     public function sendSignInPhoneCode($request)
@@ -314,10 +309,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new ForgetPasswordMessage($code);
-        EasySms::dispatch($phone , $message , function() use ($key , $code){
-            Redis::set($key, $code);
-            Redis::expire($key,config('common.user_sign_in_phone_code_wait_time'));
-        })->onQueue('sign_in_sms');
+        EasySms::dispatch($phone , $message)->onQueue('sign_in_sms');
     }
 
     public function activate(User $user ,$data)

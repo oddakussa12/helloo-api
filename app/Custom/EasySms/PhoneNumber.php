@@ -17,9 +17,9 @@ namespace App\Custom\EasySms;
  * @author overtrue <i@overtrue.me>
  */
 
-use Overtrue\EasySms\PhoneNumber as Number;
+use Overtrue\EasySms\Contracts\PhoneNumberInterface;
 
-class PhoneNumber extends Number
+class PhoneNumber implements PhoneNumberInterface
 {
     /**
      * @var int

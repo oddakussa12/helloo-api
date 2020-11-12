@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -50,6 +51,10 @@ class RyOnline implements ShouldQueue
     public function handle()
     {
         $allUsers = $this->users;
+        if(isset($allUsers['offlineUsers'])||isset($allUsers['onlineUsers']))
+        {
+            return;
+        }
         $users = (array)(collect($allUsers)->sortByDesc('time')->toArray());
         $users = assoc_unique($users , 'userid');
         $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';

@@ -2,9 +2,7 @@
 
 namespace App\Messages;
 
-use Overtrue\EasySms\Message;
-use Overtrue\EasySms\Gateways\YunxinGateway;
-use Overtrue\EasySms\Gateways\AliyunGateway;
+use Illuminate\Support\Facades\Redis;
 use Overtrue\EasySms\Strategies\OrderStrategy;
 use Overtrue\EasySms\Contracts\GatewayInterface;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;
@@ -46,5 +44,13 @@ class ForgetPasswordMessage extends Message
         return [
             'code'=>$this->code
         ];
+    }
+
+    public function afterSend($phone , $code='')
+    {
+        $code = empty($code)?$this->code:$code;
+        $key = $key = 'helloo:account:service:account-reset-password-sms-code:'.$phone;
+        Redis::set($key, $code);
+        Redis::expire($key,config('common.user_reset_pwd_sms_wait_time'));
     }
 }

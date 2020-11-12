@@ -2,6 +2,7 @@
 
 namespace App\Messages;
 
+use Illuminate\Support\Facades\Redis;
 use Overtrue\EasySms\Message;
 use Overtrue\EasySms\Gateways\YunxinGateway;
 use Overtrue\EasySms\Gateways\AliyunGateway;
@@ -40,16 +41,19 @@ class SignInMessage extends Message
         return '';
     }
 
-    public function getPhone()
-    {
-
-    }
-
     // 模板参数
     public function getData(GatewayInterface $gateway = null)
     {
         return [
             'code'=>$this->code
         ];
+    }
+
+    public function afterSend($phone , $code='')
+    {
+        $code = empty($code)?$this->code:$code;
+        $key = 'helloo:account:service:account-sign-in-sms-code:'.$phone;
+        Redis::set($key, $code);
+        Redis::expire($key,config('common.user_sign_in_phone_code_wait_time'));
     }
 }

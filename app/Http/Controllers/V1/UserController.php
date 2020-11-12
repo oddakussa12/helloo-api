@@ -64,7 +64,8 @@ class UserController extends BaseController
 
     public function randomVideo(Request $request)
     {
-        $random = $this->user->randomVideo();
+        $self = auth()->id();
+        $random = $this->user->randomVideo($self);
         if($random['flag']==true)
         {
             $random['user'] = new UserCollection($this->user->findByUserId($random['userId']));
@@ -75,7 +76,8 @@ class UserController extends BaseController
 
     public function randomVoice(Request $request)
     {
-        $random = $this->user->randomVoice();
+        $self = auth()->id();
+        $random = $this->user->randomVoice($self);
         if($random['flag']==true)
         {
             $random['user'] = new UserCollection($this->user->findByUserId($random['userId']));
