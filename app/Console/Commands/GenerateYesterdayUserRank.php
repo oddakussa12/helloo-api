@@ -38,6 +38,6 @@ class GenerateYesterdayUserRank extends Command
      */
     public function handle()
     {
-        app(UserRepository::class)->generateYesterdayUserRank();
+
     }
 }

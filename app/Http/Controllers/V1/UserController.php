@@ -2,23 +2,15 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Custom\Constant\Constant;
-use App\Models\Es;
-use App\Models\User;
-use App\Events\Follow;
-use App\Events\UnFollow;
-use App\Models\UserEmoji;
-use App\Models\UserFriend;
-use App\Models\UserVisitLog;
-use App\Resources\UserSearchCollection;
+
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
+use App\Resources\TagCollection;
 use App\Resources\UserCollection;
-use App\Resources\FollowCollection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Storage;
+use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
+use App\Repositories\Contracts\UserTagRepository;
 
 class UserController extends BaseController
 {
@@ -107,7 +99,8 @@ class UserController extends BaseController
 
     public function randRyOnlineUser(Request $request)
     {
-        $userId = $this->user->randDiffRyOnlineUser();
+        $self = auth()->id();
+        $userId = $this->user->randomIm($self);
         $userId = $userId>=100?mt_rand(1 , 10):$userId;
         $user = $this->user->findByUserId($userId);
         if(blank($user))
@@ -148,5 +141,28 @@ class UserController extends BaseController
         return $users;
     }
 
+    public function tag($userId)
+    {
+        $userTags = app(UserTagRepository::class)->getByUserId($userId);
+        $tagIds = $userTags->pluck('tag_id')->all();
+        $tags = app(TagRepository::class)->findByMany($tagIds);
+        return TagCollection::collection($tags);
+    }
 
+    public function like($userId)
+    {
+        $authId = auth()->id();
+        $like = DB::table('likes')->where('user_id' , $authId)->where('like_id' , $userId)->first();
+        if(empty($like))
+        {
+            $liked = DB::table('users')->where('user_id' , $userId)->first();
+            if(empty($liked))
+            {
+                DB::table('likes')->insert(
+                    array('user_id'=>$authId , 'like_id'=>$userId)
+                );
+            }
+        }
+        return $this->response->created();
+    }
 }

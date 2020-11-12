@@ -325,6 +325,7 @@ trait Update
         $flag = false;
         $now = Carbon::now();
         $userId = $user->getKey();
+        $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
         $key = 'helloo:account:service:account-activation';
         $userKey = "helloo:account:service:account:".$user->getKey();
         if($user->user_activation==0){
@@ -336,14 +337,17 @@ trait Update
                 $res = Redis::zadd($key , $now->timestamp , $userId);
                 if($res<=0||$result<=0)
                 {
+                    Redis::zrem($key , $userId);
                     throw new \Exception('Sorry, your account activation failed！');
                 }
-                DB::commit();
                 Redis::del($userKey);
+                isset($data['user_gender'])&&Redis::zadd($genderSortSetKey , intval($data['user_gender']) , $userId);
                 $flag = true;
+                DB::commit();
             }catch (\Exception $e)
             {
                 DB::rollBack();
+                Redis::zrem($key , $userId);
                 Log::error('account_activation_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
             }
         }else{

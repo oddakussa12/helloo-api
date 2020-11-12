@@ -18,4 +18,5 @@ class EloquentUserTagRepository  extends EloquentBaseRepository implements UserT
         return $this->model->where('user_id' , $userId)->get();
     }
 
+
 }

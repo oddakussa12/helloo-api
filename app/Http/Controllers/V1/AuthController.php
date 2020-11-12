@@ -9,7 +9,6 @@ use App\Rules\UserPhone;
 use App\Events\SignupEvent;
 use Illuminate\Http\Request;
 use App\Rules\UserPhoneUnique;
-use App\Resources\TagCollection;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +17,6 @@ use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
-use App\Repositories\Contracts\UserTagRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
 
 class AuthController extends BaseController
@@ -387,14 +385,6 @@ class AuthController extends BaseController
         return $this->response->accepted();
     }
 
-    public function tag(Request $request)
-    {
-        $userId = auth()->id();
-        $userTags = app(UserTagRepository::class)->getByUserIds($userId);
-        $tagIds = $userTags->pluck('tag_id')->all();
-        $tags = app(TagRepository::class)->findByMany($tagIds);
-        return TagCollection::collection($tags);
-    }
 
 
 

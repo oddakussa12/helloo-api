@@ -16,6 +16,18 @@ class Tag extends Model
 
     protected $fillable = ['tag'];
 
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'id',
+        'status' ,
+        'created_at',
+        'updated_at',
+    ];
+
     public $table = 'tags';
 
 }

@@ -24,13 +24,6 @@ class CacheUserDecorator extends BaseCacheDecorator implements UserRepository
             return $this->repository->all();
         });
     }
-
-    public function likePost($userId)
-    {
-        return $this->remember(function () use ($userId) {
-            return $this->repository->likePost($userId);
-        });
-    }
-
+    
 
 }

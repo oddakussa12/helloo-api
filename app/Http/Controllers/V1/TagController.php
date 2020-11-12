@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Resources\TagCollection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Resources\TagCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Repositories\Contracts\TagRepository;
@@ -28,6 +28,14 @@ class TagController extends BaseController
         return TagCollection::collection($this->tag->all());
     }
 
+    public function user($userId)
+    {
+        $userTags = app(UserTagRepository::class)->getByUserIds($userId);
+        $tagIds = $userTags->pluck('tag_id')->all();
+        $tags = app(TagRepository::class)->findByMany($tagIds);
+        return TagCollection::collection($tags);
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -40,8 +48,12 @@ class TagController extends BaseController
         $newTagIds = array();
         $dateTime = Carbon::now()->toDateTimeString();
         $userId = auth()->id();
-        $tags = $request->input('tags');
-        $fields = array_filter($tags , function($value){
+        $tags = (array)$request->input('tags');
+
+        $fields = array_map(function($v){
+            return str_replace("#" , "" , $v);
+        }, $tags);
+        $fields = array_filter($fields , function($value){
             return !blank($value);
         });
         $paramsTags = array_slice($fields , 0 , 19);

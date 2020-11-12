@@ -40,7 +40,6 @@ class RyOnline implements ShouldQueue
         $this->time = $this->chinaNow->timestamp;
         $this->date = date('Y-m-d H:i:s' , $this->time);
         $this->users = $users;
-        $this->topics = config('topics');
     }
 
     /**
@@ -50,66 +49,66 @@ class RyOnline implements ShouldQueue
      */
     public function handle()
     {
-        $chinaNow = $this->chinaNow;
-        $users = $this->users;
-        $online = array();
-        $male = array();
-        $female = array();
-        $offlineUsers = $users['offlineUsers'];
-        $onlineUsers = $users['onlineUsers'];
-        $maleKey = 'helloo:account:service:account-ry-online-male-status';
-        $femaleKey = 'helloo:account:service:account-ry-online-female-status';
-        $userRepository = app(UserRepository::class);
-        if(!blank($onlineUsers))
+        $allUsers = $this->users;
+        $users = (array)(collect($allUsers)->sortByDesc('time')->toArray());
+        $users = assoc_unique($users , 'userid');
+        $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
+        $key = 'helloo:account:service:account-random-im-set';
+        $maleKey = 'helloo:account:service:account-random-male-im-set';
+        $femaleKey = 'helloo:account:service:account-random-female-im-set';
+        $bitKey = 'helloo:account:service:account-online-status-bit';
+        $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
+        $offlineUsers = collect($users)->whereIn('status', array(1 , 2));
+        $offlineUserIds = $offlineUsers->pluck('userid')->all();
+        $onlineUsers = collect($users)->where('status', 0);
+        $onlineUserIds = $onlineUsers->pluck('userid')->all();
+        if(!blank($onlineUserIds))
         {
-            foreach ($onlineUsers as $u)
-            {
-                $userId = $u['userid'];
-                $user = $userRepository->findByUserId($userId);
-                if(blank($user))
+            Redis::sadd($key , $onlineUserIds);
+            $male = array();
+            $female = array();
+            array_walk($onlineUserIds , function ($user , $k) use ($genderSortSetKey , &$male , &$female){
+                $gender = Redis::zscore($genderSortSetKey , $user);
+                if($gender!==null)
                 {
-                    continue;
+                    if($gender==0)
+                    {
+                        array_push($female , $user);
+                    }else{
+                        array_push($male , $user);
+                    }
                 }
-                $user_nick_name = $user['user_nick_name'];
-                $user_age = isset($user['user_birthday'])?age($user['user_birthday']):0;
-                $user_gender = $user['user_gender'];
-                if($user_gender==0)
-                {
-                    array_push($female , $userId);
-                }else{
-                    array_push($male , $userId);
-                }
-                $user_avatar = $user['user_avatar'];
-                $user = DB::table('ry_online_users')->where('user_id' , $userId)->first();
-                if(blank($user))
-                {
-                    array_push($online , array(
-                        'user_id'=>$userId,
-                        'user_nick_name'=>$user_nick_name??'guest',
-                        'user_age'=>$user_age,
-                        'user_gender'=>$user_gender??0,
-                        'user_avatar'=>$user_avatar??'default_avatar.jpg',
-                        'created_at'=>$this->time,
-                        'updated_at'=>$this->time,
-                        'user_created_at'=>$user_created_at??$this->date,
-                    ));
-
-                }
-            }
+            });
             !blank($male)&&Redis::sadd($maleKey , $male);
             !blank($female)&&Redis::sadd($femaleKey , $female);
-            !blank($online)&&DB::table('ry_online_users')->insert($online);
         }
-        if(!blank($offlineUsers))
+        $setVoiceKey = 'helloo:account:service:account-random-voice-set';
+        $setMaleVoiceKey = 'helloo:account:service:account-random-male-voice-set';
+        $setFemaleVoiceKey = 'helloo:account:service:account-random-female-voice-set';
+        $setVideoKey = 'helloo:account:service:account-random-video-set';
+        $setMaleVideoKey = 'helloo:account:service:account-random-male-video-set';
+        $setFemaleVideoKey = 'helloo:account:service:account-random-female-video-set';
+        if(!blank($offlineUserIds))
         {
-            $offlineUserIds = collect($offlineUsers)->pluck('userid')->all();
+            Redis::srem($key , $offlineUserIds);
             Redis::srem($maleKey , $offlineUserIds);
             Redis::srem($femaleKey , $offlineUserIds);
-            $userIds = join(',' , $offlineUserIds);
-            $userIds = rtrim($userIds , ',');
-            DB::statement("delete from `f_ry_online_users` where user_id in ({$userIds});");
-        };
-        $allUsers = array_merge($onlineUsers , $offlineUsers);
+            Redis::srem($setVoiceKey , $offlineUserIds);
+            Redis::srem($setVideoKey , $offlineUserIds);
+            Redis::srem($setMaleVoiceKey , $offlineUserIds);
+            Redis::srem($setMaleVideoKey , $offlineUserIds);
+            Redis::srem($setFemaleVoiceKey , $offlineUserIds);
+            Redis::srem($setFemaleVideoKey , $offlineUserIds);
+        }
+        $time = time();
+        !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
+            $userId = intval($user['userid']);
+            $status = $user['status'];
+            $status = intval($status)>0?0:1;
+            Redis::setBit($bitKey , $userId , $status);
+            Redis::zadd($lastActivityTime , $time , $userId);
+        });
+        $chinaNow = $this->chinaDateTime;
         $key = 'helloo:account:service:account-au'.date('Ymd' , strtotime($chinaNow)); //20191125
         foreach ($allUsers as $user)
         {

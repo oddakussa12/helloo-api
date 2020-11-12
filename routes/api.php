@@ -79,7 +79,7 @@ $api->group($V1Params , function ($api){
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
             $api->get('tag' , 'TagController@index')->name('tag.index');
             $api->post('tag' , 'TagController@store')->name('tag.store');
-            $api->get('user/tag' , 'AuthController@tag')->name('user.tag');
+            $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
             $api->put('user/myself' , 'AuthController@update')->name('myself.update');
             $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');

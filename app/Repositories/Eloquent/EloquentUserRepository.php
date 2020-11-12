@@ -7,29 +7,18 @@
  */
 namespace App\Repositories\Eloquent;
 
-use App\Custom\Constant\Constant;
-use App\Models\UserFriend;
-use App\Models\UserVisitLog;
-use App\Resources\UserCollection;
+
 use Carbon\Carbon;
-use App\Models\Post;
-use App\Models\Like;
 use App\Models\User;
 use App\Jobs\RyOnline;
 use App\Models\BlockUser;
 use App\Models\BlackUser;
 use App\Models\BlockPost;
-use App\Models\UserRegion;
-use App\Models\PostComment;
-use App\Models\UserTaggable;
-use App\Jobs\RyOnlineExplore;
 use App\Models\YesterdayScore;
 use Illuminate\Support\Facades\DB;
 use App\Events\UserProfileLikeEvent;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 use App\Events\UserProfileRevokeLikeEvent;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -40,41 +29,22 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function __construct($model)
     {
         parent::__construct($model);
-
     }
 
-    public function getDefaultPasswordField()
-    {
-        return $this->model->default_password_field;
-    }
-
-    public function getDefaultNameField()
-    {
-        return $this->model->default_name_field;
-    }
-
-    public function getDefaultEmailField()
-    {
-        return $this->model->default_email_field;
-    }
 
     public function update($model, $data)
     {
         $user = parent::update($model, $data);
         $key = "helloo:account:service:account:".$model->getKey();
+        $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
         Redis::del($key);
+        isset($data['user_gender'])&&Redis::zadd($genderSortSetKey , intval($data['user_gender']) , $model->getKey());
         return $user;
     }
 
     public function store($data)
     {
         return $this->model->create($data);
-    }
-
-    public function likePost($userId)
-    {
-        $user = $this->model->where('user_id', $userId)->first();
-        return $user->likePost->pluck('pivot.post_like_state');
     }
 
     public function findByUserId($userId)
@@ -99,11 +69,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function findOrFail($userId)
     {
         return $this->model->findOrFail($userId);
-    }
-
-    public function findOauth($oauth, $id)
-    {
-        return $this->model->where(array('user_' . $oauth => $id))->first();
     }
 
     public function findOtherMyFollow($userId)
@@ -204,88 +169,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where($where)->first();
     }
 
-    public function getUserRank()
-    {
-        $rankTopTenUser = $this->getYesterdayUserRank();
-
-        $userIds = $rankTopTenUser->pluck('user_id')->all();
-
-        $followers = $this->userFollow($userIds);
-
-        $rankTopTenUser->each(function ($item, $key) use ($followers) {
-            $item->user_follow_state = in_array($item->user_id, $followers);
-        });
-        return $rankTopTenUser->sortByDesc('user_rank_score')->values();
-    }
-
-    public function getActiveUser()
-    {
-        return Cache::rememberForever('user_rank', function () {
-            $userId = collect();
-            $userInfo = collect();
-            $chinaNow = Carbon::now()->subDay(1);
-            $post = DB::table('posts')
-                ->whereNull('post_deleted_at')
-                ->whereDate('post_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
-                ->whereDate('post_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))->groupBy('user_id')
-                ->select(DB::raw('count(*) as post_num'), 'user_id')
-                ->groupBy('user_id')
-                ->orderBy('post_num', 'desc')
-                ->get();
-            $postUserId = $post->pluck('user_id');
-            $userId = $userId->merge($postUserId);
-            $comment = DB::table('posts_comments')
-                ->whereNull('comment_deleted_at')
-                ->whereDate('comment_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
-                ->whereDate('comment_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))->groupBy('user_id')
-                ->select(DB::raw('count(*) as comment_num'), 'user_id')
-                ->groupBy('user_id')
-                ->orderBy('comment_num', 'desc')
-                ->get();
-            $commentUserId = $comment->pluck('user_id');
-            $userId = $userId->merge($commentUserId);
-            $like = DB::table('common_likes')
-                ->whereDate('created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
-                ->whereDate('created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))->groupBy('user_id')
-                ->select(DB::raw('count(*) as like_num'), 'user_id')
-                ->groupBy('user_id')
-                ->orderBy('like_num', 'desc')
-                ->get();
-            $likeUserId = $like->pluck('user_id');
-            $userId = $userId->merge($likeUserId)->unique()->values();
-            $userId = DB::table('users')
-                ->whereIn('user_id', $userId)
-                ->where('user_is_guest', 0)
-                ->select('user_id')
-                ->pluck('user_id');
-            $userId->each(function ($item, $key) use (&$userInfo, $post, $comment, $like) {
-                $scoring = 0;
-                $postCollect = $post->where('user_id', $item)->first();
-                $commentCollect = $comment->where('user_id', $item)->first();
-                $likeCollect = $like->where('user_id', $item)->first();
-                if (!empty($postCollect)) {
-                    $postNum = $postCollect->post_num;
-                    $scoring += $postNum * 2;
-                }
-                if (!empty($commentCollect)) {
-                    $commentNum = $commentCollect->comment_num;
-                    $scoring += $commentNum * 3;
-                }
-                if (!empty($likeCollect)) {
-                    $likeNum = $likeCollect->like_num;
-                    $scoring += $likeNum * 1;
-                }
-                $userInfo->put($item, collect(array('user_id' => $item, 'score' => $scoring)));
-            });
-            return $userInfo->sortByDesc('score')->take(10)->values();
-        });
-    }
-
-    public function getActiveUserId()
-    {
-        $activeUser = $this->getYesterdayUserRank();
-        return $activeUser->pluck('user_rank_score', 'user_id')->all();
-    }
 
 
     public function getYesterdayUserRank()
@@ -308,89 +191,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         });
     }
 
-    public function generateYesterdayUserRank()
-    {
-        $yesterdayRankKey = 'user_yesterday_rank';
-        $chinaNow = Carbon::now()->subDay(1);
-
-        //清除当前缓存防止多次生成
-        Redis::del($yesterdayRankKey);
-        DB::table('yesterday_scores')->where('rank_date', date('Y-m-d', strtotime($chinaNow)))->delete();
-
-
-        $post = Post::where('post_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
-            ->where('post_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))
-            ->groupBy('user_id')
-            ->select(DB::raw('count(*) as post_num'), 'user_id')
-            ->orderBy('post_num', 'desc')
-            ->orderBy('user_id', 'desc');
-        $post->chunk(10, function ($posts) use ($yesterdayRankKey) {
-            foreach ($posts as $post) {
-                $postNum = $post->post_num;
-                $score = $postNum * 2;
-                if (Redis::zrank($yesterdayRankKey, $post->user_id) == null) {
-                    Redis::zadd($yesterdayRankKey, $score, $post->user_id);
-                } else {
-                    Redis::zincrby($yesterdayRankKey, $score, $post->user_id);
-                }
-            }
-        });
-        $comment = PostComment::where('comment_created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
-            ->where('comment_created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))
-            ->groupBy('user_id')
-            ->select(DB::raw('count(*) as comment_num'), 'user_id')
-            ->orderBy('comment_num', 'desc')
-            ->orderBy('user_id', 'desc');
-
-        $comment->chunk(10, function ($comments) use ($yesterdayRankKey) {
-            foreach ($comments as $comment) {
-                $commentNum = $comment->comment_num;
-                $score = $commentNum * 3;
-                if (Redis::zrank($yesterdayRankKey, $comment->user_id) == null) {
-                    Redis::zadd($yesterdayRankKey, $score, $comment->user_id);
-                } else {
-                    Redis::zincrby($yesterdayRankKey, $score, $comment->user_id);
-                }
-            }
-        });
-
-        $like = Like::where('created_at', '>=', date('Y-m-d 00:00:00', strtotime($chinaNow)))
-            ->where('created_at', '<=', date('Y-m-d 23:59:59', strtotime($chinaNow)))
-            ->groupBy('user_id')
-            ->select(DB::raw('count(*) as like_num'), 'user_id')
-            ->orderBy('like_num', 'desc')
-            ->orderBy('user_id');
-        $like->chunk(10, function ($likes) use ($yesterdayRankKey) {
-            foreach ($likes as $like) {
-                $likeNum = $like->like_num;
-                $score = $likeNum;
-                if (Redis::zrank($yesterdayRankKey, $like->user_id) == null) {
-                    Redis::zadd($yesterdayRankKey, $score, $like->user_id);
-                } else {
-                    Redis::zincrby($yesterdayRankKey, $score, $like->user_id);
-                }
-            }
-        });
-        $i = 0;
-        $rankCount = Redis::zcard($yesterdayRankKey) - 1;
-        do {
-            $turn = $i + 9;
-            if ($i >= $rankCount) {
-                break;
-            }
-            $rankData = array();
-            $userScores = Redis::zrevrange($yesterdayRankKey, $i, $turn, 'WITHSCORES');
-            foreach ($userScores as $user_id => $user_score) {
-                array_push($rankData, array('user_id' => $user_id, 'user_score' => $user_score, 'rank_date' => date('Y-m-d', strtotime($chinaNow))));
-            }
-            if (!empty($rankData)) {
-                DB::table('yesterday_scores')->insert($rankData);
-            }
-            $i = $turn + 1;
-        } while (true);
-        Cache::forget('user_rank');
-        $this->getYesterdayUserRank();
-    }
 
     public function unblockUser($userId)
     {
@@ -475,304 +275,196 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $id = \Auth::id();
         }
         return Redis::sMembers($this->hiddenPostsMemKey($id));
-
-    }
-
-    public function initHiddenUsers($id = 0)
-    {
-        if ($id === 0) {
-            $id = \Auth::id();
-        }
-        $data = collect();
-        Redis::hmset('user.' . $id . '.data', array('hiddenUsers' => $data));
-        return $data->all();
-    }
-
-    public function initHiddenPosts($id = 0)
-    {
-        if ($id === 0) {
-            $id = \Auth::id();
-        }
-        $data = collect();
-        Redis::hmset('user.' . $id . '.data', array('hiddenPosts' => $data));
-        return $data->all();
     }
 
     protected function randRyOnlineUser()
     {
-        $key = 'helloo:account:service:account-ry-online-status';
+        $key = 'helloo:account:service:account-random-im-set';
         return Redis::srandmember($key);
     }
 
-    public function randDiffRyOnlineUserByHobby()
+    protected function randRyVoiceUser($self)
     {
-        $selfUser = intval(request()->input('self'));
-        if ($selfUser > 0) {
-            RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
-            $where = '';
-            $country_code = config('countries');
-            $usedUser = (array)request()->input('used', array());
-            $usedUser = array_slice($usedUser, 0, 29);
-            array_push($usedUser, $selfUser);
-            $usedUser = array_unique($usedUser);
-            $usedUser = array_filter($usedUser, function ($v) {
-                return !empty($v);
-            });
-            $usedUser = array_merge($usedUser, [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
-            $userIds = join(',', $usedUser);
-            if (!blank($userIds)) {
-                if (blank($where)) {
-                    $where .= "where u1.user_id not in ({$userIds})";
-                } else {
-                    $where .= " AND u1.user_id not in ({$userIds})";
-                }
-                $where .= " AND u1.user_id not in ({$userIds})";
-            }
-            $hobby = strval(request()->input('hobby'));
-            if (!blank($hobby) && in_array($hobby, array('kpop', 'anime', 'sad', 'music', 'games', 'sports'))) {
-                if (blank($where)) {
-                    $where .= "where u1.{$hobby} = 1";
-                } else {
-                    $where .= " AND u1.{$hobby} = 1";
-                }
-            }
-            $onlineSql = <<<DOC
-SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 WHERE u1.user_id >= u2.user_id {$where} ORDER BY u1.user_id LIMIT 1;
-DOC;
-//            $onlineSql = <<<DOC
-//SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
-//DOC;
-            $user = collect(\DB::select($onlineSql))->first();
-            if (blank($user)) {
-                return $this->findOrFail($this->randRyOnlineUser());
-            }
-            $country_id = intval($user->user_country_id - 1);
-            $user->user_level = 0;
-            $user->user_country = strtolower($country_code[$country_id]);
-            $user->user_avatar_link = config('common.qnUploadDomain.avatar_domain') . $user->user_avatar . '?imageView2/0/w/50/h/50/interlace/1|imageslim';
-            $user->user_continent = getContinentByCountry($user->user_country);
-            return $user;
-        } else {
-            return $this->findOrFail($this->randRyOnlineUser());
-        }
+        $setKey = 'helloo:account:service:account-random-voice-set';
+        return Redis::spop($setKey);
     }
 
-    public function randDiffRyOnlineUserV2()
+    protected function randRyVideoUser($self)
     {
-        $selfUser = intval(request()->input('self'));
-        if ($selfUser > 0) {
-            RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
-            $where = '';
-            $country_code = config('countries');
-            $user_gender = intval(request()->input('user_gender', 2));
-            $country = strval(request()->input('country', 0));
-            $country_op = intval(request()->input('country_op', 0));
-            $user_country = array_search(strtoupper($country), config('countries'));
-            $user_country_id = $user_country === false ? 0 : $user_country + 1;
-//            $operator = $country_op===0?'!=':'=';
-            $usedUser = (array)request()->input('used', array());
-            $userAge = strval(request()->input('user_age', "0,0"));
-            $usedUser = array_slice($usedUser, 0, 29);
-            array_push($usedUser, $selfUser);
-            $usedUser = array_unique($usedUser);
-            $usedUser = array_filter($usedUser, function ($v) {
-                return !empty($v);
-            });
-            $usedUser = array_merge($usedUser, [35525, 219367, 28583, 28527, 69684, 97623, 28761]);
-            $userIds = join(',', $usedUser);
-            if (in_array($user_gender, array(0, 1))) {
-                if (blank($where)) {
-                    $where .= "where u1.user_gender = {$user_gender}";
-                } else {
-                    $where .= " AND u1.user_gender = {$user_gender}";
-                }
-            }
-            if (in_array($country_op, array(0, 1))) {
-                $operator = $country_op === 0 ? '!=' : '=';
-                if (blank($where)) {
-                    $where .= "where u1.user_country_id {$operator} {$user_country_id}";
-                } else {
-                    $where .= " AND u1.user_country_id {$operator} {$user_country_id}";
-                }
-            }
-            if (!blank($userIds)) {
-                if (blank($where)) {
-                    $where .= "where u1.user_id not in ({$userIds})";
-                } else {
-                    $where .= " AND u1.user_id not in ({$userIds})";
-                }
-            }
-            if ($userAge != '0,0') {
-                $userAge = $userAge . ",";
-                list ($userStartAge, $userEndAge) = explode(',', $userAge);
-                $userStartAge = intval($userStartAge);
-                $userEndAge = intval($userEndAge);
-                if ($userStartAge > 0 && $userStartAge < $userEndAge && $userEndAge <= 100) {
-                    if (blank($where)) {
-                        $where .= "where u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
-                    } else {
-                        $where .= " AND u1.user_age BETWEEN {$userStartAge} AND {$userEndAge}";
-                    }
-                }
-            }
-            !blank($where) && $where = $where . " AND";
-            $onlineSql = <<<DOC
-SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 JOIN (SELECT ROUND(RAND() * ((SELECT MAX(`user_id`) FROM `f_ry_online_users`)-(SELECT MIN(`user_id`) FROM `f_ry_online_users`))+(SELECT MIN(`user_id`) FROM `f_ry_online_users`)) AS user_id) AS u2 {$where} u1.user_id >= u2.user_id ORDER BY u1.user_id LIMIT 1;
-DOC;
-//            $onlineSql = <<<DOC
-//SELECT u1.user_id,u1.user_name,u1.user_nick_name,u1.user_avatar,u1.user_country_id FROM `f_ry_online_users` AS u1 {$where} ORDER BY u1.updated_at desc LIMIT 1;
-//DOC;
-            $user = collect(\DB::select($onlineSql))->first();
-            if (blank($user)) {
-                return $this->findOrFail($this->randRyOnlineUser());
-            }
-            $country_id = intval($user->user_country_id - 1);
-            $user->user_level = 0;
-            $user->user_country = strtolower($country_code[$country_id]);
-            $user->user_avatar_link = config('common.qnUploadDomain.avatar_domain') . $user->user_avatar . '?imageView2/0/w/50/h/50/interlace/1|imageslim';
-            $user->user_continent = getContinentByCountry($user->user_country);
-            return $user;
-        } else {
-            return $this->findOrFail($this->randRyOnlineUser());
-        }
+        $setKey = 'helloo:account:service:account-random-video-set';
+        return Redis::spop($setKey);
     }
 
-    public function randDiffRyOnlineUser()
+
+    public function randomIm($self)
     {
-        $selfUser = intval(request()->input('self'));
-        if ($selfUser > 0) {
-            RyOnlineExplore::dispatch($selfUser)->onConnection('sqs')->onQueue('ry_user_online_explore');
-            return $this->randRyOnlineUser();
-        } else {
-            return $this->randRyOnlineUser();
+        $key = 'helloo:account:service:account-random-im-set';
+        $maleKey = 'helloo:account:service:account-random-male-im-set';
+        $femaleKey = 'helloo:account:service:account-random-female-im-set';
+        $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
+        $gender = Redis::zscore($genderSortSetKey , $self);
+        Redis::sadd($key , $self);
+        if($gender!==null)
+        {
+            if($gender==0)
+            {
+                Redis::sadd($femaleKey , $self);
+            }else{
+                Redis::sadd($maleKey , $self);
+            }
         }
+        $turn = 0;
+        while (true)
+        {
+            usleep(500000);
+            if($turn>5)
+            {
+                $userId = 0;
+                break;
+            }
+            $userId = $this->randRyOnlineUser();
+            if(!empty($userId)&&$userId!=$self)
+            {
+                break;
+            }
+            $turn++;
+        }
+        return $userId;
     }
 
-    public function randomVideo()
+    public function randomVideo($self)
     {
         $flag = false;
         $setKey = 'helloo:account:service:account-random-video-set';
-        $self = auth()->id();
-        $count = Redis::scard($setKey);
-        if($count>0)
+        Redis::sadd($setKey , $self);
+        $turn = 1;
+        while (true)
         {
-            $randomId = Redis::spop($setKey);
-            if($count==1&&$randomId==$self)
+            usleep(500000);
+            if($turn>10)
             {
-                Redis::sadd($setKey , $self);
-                $roomId = md5($self);
-                return array('flag'=>$flag , 'roomId'=>$roomId);
+                $userId = 0;
+                break;
             }
-            $roomId = md5($randomId);
-            $flag = true;
-            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
-        }else{
-            Redis::sadd($setKey , $self);
+            $userId = $this->randRyVideoUser();
+            $userId==$self&&Redis::sadd($setKey , $self);
+            if(!empty($userId)&&$userId!=$self)
+            {
+                break;
+            }
+            $turn++;
+        }
+        if($userId==0)
+        {
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
+        }else{
+            $flag = true;
+            $roomId = md5($userId);
+            return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
         }
+//        $setKey = 'helloo:account:service:account-random-video-set';
+//        $count = Redis::scard($setKey);
+//        if($count>0)
+//        {
+//            $randomId = Redis::spop($setKey);
+//            if($count==1&&$randomId==$self)
+//            {
+//                Redis::sadd($setKey , $self);
+//                $roomId = md5($self);
+//                return array('flag'=>$flag , 'roomId'=>$roomId);
+//            }
+//            $roomId = md5($randomId);
+//            $flag = true;
+//            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
+//        }else{
+//            Redis::sadd($setKey , $self);
+//            $roomId = md5($self);
+//            return array('flag'=>$flag , 'roomId'=>$roomId);
+//        }
     }
 
-    public function randomVoice()
+    public function randomVoice($self)
     {
         $flag = false;
         $setKey = 'helloo:account:service:account-random-voice-set';
-        $self = auth()->id();
-        $count = Redis::scard($setKey);
-        if($count>0)
+        Redis::sadd($setKey , $self);
+        $turn = 1;
+        while (true)
         {
-            $randomId = Redis::spop($setKey);
-            if($count==1&&$randomId==$self)
+            usleep(500000);
+            if($turn>10)
             {
-                Redis::sadd($setKey , $self);
-                $roomId = md5($self);
-                return array('flag'=>$flag , 'roomId'=>$roomId);
+                $userId = 0;
+                break;
             }
-            $roomId = md5($randomId);
-            $flag = true;
-            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
-        }else{
-            Redis::sadd($setKey , $self);
+            $userId = $this->randRyVoiceUser();
+            $userId==$self&&Redis::sadd($setKey , $self);
+            if(!empty($userId)&&$userId!=$self)
+            {
+                break;
+            }
+            $turn++;
+        }
+        if($userId==0)
+        {
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
+        }else{
+            $flag = true;
+            $roomId = md5($userId);
+            return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
         }
+
+//        $flag = false;
+//        $setKey = 'helloo:account:service:account-random-voice-set';
+//        $self = auth()->id();
+//        $count = Redis::scard($setKey);
+//        if($count>0)
+//        {
+//            $randomId = Redis::spop($setKey);
+//            if($count==1&&$randomId==$self)
+//            {
+//                Redis::sadd($setKey , $self);
+//                $roomId = md5($self);
+//                return array('flag'=>$flag , 'roomId'=>$roomId);
+//            }
+//            $roomId = md5($randomId);
+//            $flag = true;
+//            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
+//        }else{
+//            Redis::sadd($setKey , $self);
+//            $roomId = md5($self);
+//            return array('flag'=>$flag , 'roomId'=>$roomId);
+//        }
     }
 
     public function removeVoice()
     {
         $self = auth()->id();
         $setKey = 'helloo:account:service:account-random-voice-set';
-        Redis::sram($setKey , $self);
+        Redis::srem($setKey , $self);
     }
 
     public function removeVideo()
     {
         $self = auth()->id();
         $setKey = 'helloo:account:service:account-random-video-set';
-        Redis::sram($setKey , $self);
-    }
-
-    public function voiceSet($userId)
-    {
-        $key = 'helloo:account:service:account-random-voice-set';
-        Redis::sadd($key , $userId);
-        $randomId = Redis::spop($key);
-        if($randomId==$userId)
-        {
-            Redis::sadd($key , $userId);
-            return $this->voiceSet($userId);
-        }
-        return $randomId;
+        Redis::srem($setKey , $self);
     }
 
     public function updateUserOnlineState($users)
     {
-        $users = (array)(collect($users)->sortByDesc('time')->toArray());
-        $users = assoc_unique($users , 'userid');
-        $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
-        $key = 'helloo:account:service:account-ry-online-status';
-        $bitKey = 'helloo:account:service:account-ry-online-status-bit';
-        $offlineUsers = collect($users)->whereIn('status', array(1 , 2));
-        $offlineUserIds = $offlineUsers->pluck('userid')->all();
-        $onlineUsers = collect($users)->where('status', 0);
-        $onlineUserIds = $onlineUsers->pluck('userid')->all();
-        !blank($onlineUserIds)&&Redis::sadd($key , $onlineUserIds);
-        !blank($offlineUserIds)&&Redis::srem($key , $offlineUserIds);
-        $setVoiceKey = 'helloo:account:service:account-random-voice-set';
-        $setVideoKey = 'helloo:account:service:account-random-voice-set';
-        !blank($offlineUserIds)&&Redis::sram($setVoiceKey , $offlineUserIds);
-        !blank($offlineUserIds)&&Redis::sram($setVideoKey , $offlineUserIds);
-        $time = time();
-        !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
-            $userId = intval($user['userid']);
-            $status = $user['status'];
-            $status = intval($status)>0?0:1;
-            Redis::setBit($bitKey , $userId , $status);
-            Redis::zadd($lastActivityTime , $time , $userId);
-        });
-        RyOnline::dispatch(array(
-            'offlineUsers'=>$offlineUsers->all(),
-            'onlineUsers'=>$onlineUsers->all(),
-        ))->onConnection('sqs-fifo')->onQueue('helloo_ry_user_online.fifo');
-
+        RyOnline::dispatch($users)->onConnection('sqs-fifo')->onQueue('helloo_ry_user_online.fifo');
     }
 
     public function isOnline($id)
     {
-        $bitKey = 'helloo:account:service:account-ry-online-status-bit';
+        $bitKey = 'helloo:account:service:account-online-status-bit';
         $statue = Redis::getBit($bitKey, $id);
         return (bool)intval($statue);
     }
 
-    protected function cacheUserData($id)
-    {
-        $user = $this->model->where($this->model->getKeyName(), $id)->firstOrFail();
-        $userData = [
-            'hiddenPosts' => $this->hiddenPosts($user->user_id),
-        ];
-        Redis::hmset('user.' . $id . '.data', $userData);
-        return $userData;
-    }
 
     /**
      * @param $id
@@ -804,10 +496,6 @@ DOC;
         }
     }
 
-    public function randFollow()
-    {
-
-    }
 
     public function isDeletedUser($name)
     {
@@ -867,72 +555,11 @@ DOC;
         }
     }
 
-    public function attachTags(Model $user, $tag_slug)
-    {
-        $userTags = config('user-tag');
-        $tag_slug = array_filter($tag_slug, function ($v) use ($userTags) {
-            return in_array($v, $userTags);
-        });
-        $tagIds = array_map(function ($v) use ($userTags) {
-            return array_search($v, $userTags);
-        }, $tag_slug);
-        $tagIds = array_filter($tagIds, function ($v) {
-            return is_int($v);
-        });
-        $taggable_id = $user->getKey();
-        $taggable_type = $user->getMorphClass();
-        $userTaggable = UserTaggable::where('taggable_id', $taggable_id)->where('taggable_type', $taggable_type)->pluck('tag_id')->all();
-        $newTagIds = array_diff($tagIds, $userTaggable);
-        $removeTagIds = array_diff($userTaggable, $tagIds);
-        $newTags = array_map(function ($v) use ($taggable_id, $taggable_type) {
-            return array('taggable_id' => $taggable_id, 'tag_id' => $v, 'taggable_type' => $taggable_type);
-        }, $newTagIds);
-        !blank($newTags) && UserTaggable::insert($newTags);
-        !blank($removeTagIds) && UserTaggable::where('taggable_id', $taggable_id)->whereIn('tag_id', $removeTagIds)->delete();
-    }
 
-    public function referFriend()
-    {
-        $userIds = $this->randReferFriend();
-        $referFriends = array();
-        $userIds = array_unique(array_merge($userIds, $referFriends));
-        $userIds = array_diff($userIds, array(auth()->id()));
-        $query = $this->model->query();
-        return $query->whereIn("user_id", $userIds)->get();
-    }
-
-    public function randReferFriend()
-    {
-        $key = 'ry_user_online_status';
-        return Redis::srandmember($key, config('common.refer_friend_num'));
-    }
-
-    public function attachRegions(Model $user, $region_slug)
-    {
-        $userRegions = config('user-region');
-        $region_slug = array_filter($region_slug, function ($v) use ($userRegions) {
-            return in_array($v, $userRegions);
-        });
-        $regionIds = array_map(function ($v) use ($userRegions) {
-            return array_search($v, $userRegions);
-        }, $region_slug);
-        $regionIds = array_filter($regionIds, function ($v) {
-            return is_int($v);
-        });
-        $userId = $user->getKey();
-        $userRegions = UserRegion::where('user_id', $userId)->pluck('region_id')->all();
-        $newRegionIds = array_diff($regionIds, $userRegions);
-        $removeRegionIds = array_diff($userRegions, $regionIds);
-        $newRegions = array_map(function ($v) use ($userId) {
-            return array('user_id' => $userId, 'region_id' => $v);
-        }, $newRegionIds);
-        !blank($newRegions) && UserRegion::insert($newRegions);
-        !blank($removeRegionIds) && UserRegion::where('user_id', $userId)->whereIn('region_id', $removeRegionIds)->delete();
-    }
 
     public function onlineUsersCount()
     {
-        $key = 'helloo:account:service:account-ry-online-status';
+        $key = 'helloo:account:service:account-random-im-set';
         return Redis::scard($key);
     }
 
@@ -972,14 +599,14 @@ DOC;
     {
         $num = intval(request()->input('num', 50));
         $num = $num < 10 || $num > 100 ? 50 : $num;
-        $key = 'helloo:account:service:account-ry-online-status';
+        $key = 'helloo:account:service:account-random-im-set';
         return Redis::srandmember($key, $num);
     }
 
     public function userFollow($userIds)
     {
         if (auth()->check() && !empty($userIds)) {
-            return \DB::table('common_follows')->where('user_id', auth()->id())->where('followable_type', "App\Models\User")->where('relation', "follow")->whereIn('followable_id', $userIds)->pluck('followable_id')->all();
+            return DB::table('common_follows')->where('user_id', auth()->id())->where('followable_type', "App\Models\User")->where('relation', "follow")->whereIn('followable_id', $userIds)->pluck('followable_id')->all();
         }
         return array();
     }
@@ -1013,92 +640,8 @@ DOC;
         return false;
     }
 
-    /**
-     * @param $user
-     * @param int $switch
-     * @return
-     * 初始化 用户主页 浏览量
-     */
-    public function virtualViewCount($user, $switch = Constant::USER_MAIN_VISIT_STATUS)
-    {
-        if ($user->virtual_view_count === null) {
-            $view = DB::select("SELECT
-            ROUND(1*SQRT(UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(u.user_created_at))+IF(IFNULL(MAX(p.post_like_num),0)<5,57,587)*SQRT(SUM(IFNULL(p.post_like_num,0))+SUM(IFNULL(p.post_comment_num,0)))) AS 'view_count'
-            FROM f_users u LEFT JOIN f_posts p ON u.user_id = p.user_id WHERE u.user_id =?", [$user->user_id]);
 
-            $view = current($view);
-            User::where('user_id', $user->user_id)->update(['virtual_view_count' => $view->view_count ?? 0]);
-            $user->virtual_view_count = $view->view_count;
-        }
-        $user->view_count = $user->virtual_view_count + Redis::hget(config('redis-key.user.user_visit'), $user->user_id) ?? 0;
-        $user->view_status = $switch;
-        unset($user->virtual_view_count);
-        return $user;
-    }
 
-    /**
-     * @param $id
-     * @return array
-     * 我的主页 访客统计
-     */
-    public function viewPage($id)
-    {
-        $user     = $this->findOrFail($id);
-        $total    = Redis::hget(config('redis-key.user.user_visit'), $id);
 
-        $total    = $user->virtual_view_count + $total;
-        $today    = date('Y-m-d');
-        $count    = UserVisitLog::where('friend_id', $id)->where('created_at', '>=', $today)->count();
-        $data     = DB::select("select * from (select * from f_users_visit_log where friend_id={$id} and created_at >= '{$today}' order by created_at desc) as a group by user_id limit 10");
-        $userIds  = !empty($data) ? array_column($data, 'user_id') : [];
-
-        $friends  = UserFriend::where('user_id', $id)->whereIn('friend_id', $userIds)->pluck('friend_id')->toArray();
-        $userList = User::whereIn('user_id', $userIds)->get();
-
-        $userList->each(function ($user) use ($data, $friends) {
-            $user->is_friend = in_array($user->user_id, $friends);
-            foreach ($data as $datum) {
-                if ($datum->user_id == $user->user_id) {
-                    $user->time = $datum->created_at;
-                    $user->visit_time = dateTrans($datum->created_at);
-                }
-            }
-            /*$data->each(function ($item) use ($user) {
-                if ($item->user_id == $user->user_id) {
-                    $user->time = $item->created_at->timestamp;
-                    $user->visit_time = dateTrans($item->created_at);
-                }
-            });*/
-        });
-
-        return [
-            'total' => $total,
-            'todayCount' => $count,
-            'todayUser' => count($data),
-            'userList' => UserCollection::collection($userList->sortByDesc('time')->values())
-        ];
-
-    }
-
-    /**
-     * @param $user
-     * @return
-     * 获取好友聊天次数最多的用户信息
-     */
-    public function getFriendMaxTalk($user)
-    {
-       $userId = $user->user_id;
-       $data = DB::table('users_friends_talk')->select(DB::raw('user_id, friend_id, (user_id_count+friend_id_count) total'))
-           ->WHERE(DB::raw("(user_id=$userId or friend_id=$userId) and is_delete=0 and deleted_at"))->orderByDesc('total')->first();
-
-       if (!empty($data)) {
-            $id   = $user->user_id==$data->user_id ? $data->friend_id : $data->user_id;
-            $info = $this->find($id);
-
-            $user->friend_talk_name    = !empty($info->user_nick_name) ? $info->user_nick_name : (!empty($info->user_name) ? $info->user_name : '');
-            $user->friend_talk_country = getUserCountryName($info->user_country_id);
-       }
-       return $user;
-    }
 
 }
