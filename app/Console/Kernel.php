@@ -25,8 +25,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('remove:random_user')
-            ->everyMinute();
+//        $schedule->command('remove:random_user')
+//            ->everyMinute();
         $schedule->command('geoip:update')
             ->daily();
     }
