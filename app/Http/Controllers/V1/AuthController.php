@@ -234,6 +234,10 @@ class AuthController extends BaseController
     public function me()
     {
         $user = auth()->user();
+        $userId = $user->user_id;
+        $likedKey = 'helloo:account:service:account-liked-num';
+        $user->likedCount = Redis::zscore($likedKey , $userId);
+//        $user->friendCount = 0;
         return new UserCollection($user);
     }
 

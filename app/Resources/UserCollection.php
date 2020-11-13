@@ -21,6 +21,12 @@ class UserCollection extends Resource
      */
     public function toArray($request)
     {
+        $resource = $this->resource;
+//        if($request->routeIs('user.show')||$request->routeIs('my.profile'))
+//        {
+//            $resource->likedCount = 0;
+//            $resource->friendCount = 0;
+//        }
         return $this->resource;
     }
 }

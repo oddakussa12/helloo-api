@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Redis;
 use Overtrue\EasySms\Gateways\YunxinGateway;
 use Overtrue\EasySms\Gateways\AliyunGateway;
 use Overtrue\EasySms\Strategies\OrderStrategy;
-use Overtrue\EasySms\Contracts\GatewayInterface;
+use App\Custom\EasySms\Contracts\GatewayInterface;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;
 use App\Custom\EasySms\Gateways\AliyunCustomGateway;
 
@@ -53,6 +53,6 @@ class UpdatePhoneMessage extends Message
         $code = empty($code)?$this->code:$code;
         $key = 'helloo:account:service:account-update-phone-sms-code:'.$phone;
         Redis::set($key, $code);
-        Redis::expire($key,config('common.user_update_phone_code_wait_time'));
+        Redis::expire($key,config('common.user_update_phone_sms_wait_time'));
     }
 }

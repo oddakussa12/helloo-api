@@ -11,12 +11,12 @@
 
 namespace App\Custom\EasySms\Gateways;
 
-use Overtrue\EasySms\Gateways\Gateway;
-use Overtrue\EasySms\Contracts\MessageInterface;
-use Overtrue\EasySms\Contracts\PhoneNumberInterface;
-use Overtrue\EasySms\Exceptions\GatewayErrorException;
+
 use Overtrue\EasySms\Support\Config;
 use Overtrue\EasySms\Traits\HasHttpRequest;
+use App\Messages\Contracts\MessageInterface;
+use Overtrue\EasySms\Contracts\PhoneNumberInterface;
+use Overtrue\EasySms\Exceptions\GatewayErrorException;
 
 /**
  * Class YunxinGateway.
@@ -70,8 +70,6 @@ class YunxinCustomGateway extends Gateway
         $headers = $this->buildHeaders($config);
 
         try {
-            \Log::error($params);
-            \Log::error($headers);
             $result = $this->post($endpoint, $params, $headers);
 
             if (!isset($result['code']) || self::SUCCESS_CODE !== $result['code']) {

@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use SmsManager;
 use Aws\Sns\SnsClient;
 use App\Custom\Anonymous;
@@ -12,6 +13,7 @@ use Aws\Exception\AwsException;
 use Aws\Credentials\Credentials;
 use Illuminate\Support\Facades\DB;
 use App\Custom\EasySms\PhoneNumber;
+use libphonenumber\PhoneNumberUtil;
 use Illuminate\Queue\SerializesModels;
 use App\Messages\ForgetPasswordMessage;
 use Illuminate\Queue\InteractsWithQueue;
@@ -56,8 +58,33 @@ class EasySms implements ShouldQueue
         if($this->phone instanceof PhoneNumberInterface)
         {
             $phone = $this->phone->getUniversalNumber();
+            $phoneCountry = $this->phone->getIDDCode();
         }else{
             $phone = $this->phone;
+            $phoneUtil = PhoneNumberUtil::getInstance();
+            try {
+                $numberProto = $phoneUtil->parse($phone);
+                $result = $phoneUtil->isValidNumber($numberProto);
+                if($result===true)
+                {
+                    $phoneCountry = $numberProto->getCountryCode();
+                }else{
+                    $error = array(
+                        'type'=>'send_sms_phone_valid_error',
+                        'params'=>$phone,
+                    );
+                    Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
+                    return false;
+                }
+            }catch (\Exception $e)
+            {
+                $error = array(
+                    'type'=>'send_sms_phone_illegal_error',
+                    'params'=>$phone,
+                );
+                Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
+                return false;
+            }
         }
         if($this->message instanceof MessageInterface)
         {

@@ -24,12 +24,10 @@ class UserController extends BaseController
     /**
      * @var \Illuminate\Config\Repository|\Illuminate\Foundation\Application|mixed
      */
-    private $searchUser;
 
     public function __construct(UserRepository $user)
     {
         $this->user = $user;
-        $this->searchUser = config('scout.elasticsearch.user');
     }
 
 
@@ -44,8 +42,11 @@ class UserController extends BaseController
         if ($this->isBlocked($id)) {
             return $this->response->errorNotFound();
         }
-
-        $user        = $this->user->findOrFail($id);
+        $user = $this->user->findOrFail($id);
+        $like = DB::table('likes')->where('user_id' , auth()->id())->where('like_id' , $id)->first();
+        $user->likeState = !blank($like);
+        $user->likedCount = 0;
+//        $user->friendCount = 0;
         return new UserCollection($user);
     }
 

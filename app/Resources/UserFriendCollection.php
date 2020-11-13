@@ -9,6 +9,6 @@ class UserFriendCollection extends Resource
 {
     public function toArray($request)
     {
-        parent::toArray($request);
+        return $this->resource;
     }
 }

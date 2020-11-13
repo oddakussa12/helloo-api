@@ -12,13 +12,12 @@ use App\Repositories\Contracts\UserFriendRepository;
 
 class EloquentUserFriendRepository  extends EloquentBaseRepository implements UserFriendRepository
 {
-    public function paginateByUser($userId , $perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
+    public function paginateByUser($userId)
     {
-        $pageName = isset($this->model->paginateParamName)?$this->model->paginateParamName:$pageName;
-        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate($perPage , $columns , $pageName , $page);
+        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate($this->perPage , ["*"] , $this->pageName);
     }
     public function getAllByUser($userId, $perPage = 15)
     {
-        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->get();
+//        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate($this->perPage , ['*'] , $this->pageName);
     }
 }

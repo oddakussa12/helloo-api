@@ -11,12 +11,11 @@
 
 namespace App\Custom\EasySms\Gateways;
 
-use Overtrue\EasySms\Gateways\Gateway;
-use Overtrue\EasySms\Contracts\MessageInterface;
-use Overtrue\EasySms\Contracts\PhoneNumberInterface;
-use Overtrue\EasySms\Exceptions\GatewayErrorException;
 use Overtrue\EasySms\Support\Config;
 use Overtrue\EasySms\Traits\HasHttpRequest;
+use App\Messages\Contracts\MessageInterface;
+use Overtrue\EasySms\Contracts\PhoneNumberInterface;
+use Overtrue\EasySms\Exceptions\GatewayErrorException;
 
 /**
  * Class AliyunGateway.
@@ -45,7 +44,7 @@ class AliyunCustomGateway extends Gateway
 
     /**
      * @param \Overtrue\EasySms\Contracts\PhoneNumberInterface $to
-     * @param \Overtrue\EasySms\Contracts\MessageInterface     $message
+     * @param MessageInterface     $message
      * @param \Overtrue\EasySms\Support\Config                 $config
      *
      * @return array
@@ -77,7 +76,7 @@ class AliyunCustomGateway extends Gateway
         ];
 
         $params['Signature'] = $this->generateSign($params);
-        \Log::error($params);
+
         $result = $this->get(self::ENDPOINT_URL, $params);
 
         if ('OK' != $result['Code']) {

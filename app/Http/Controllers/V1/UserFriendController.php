@@ -68,15 +68,13 @@ class UserFriendController extends BaseController
     public function my(Request $request)
     {
         $userId = auth()->id();
-        $userFriends = $this->userFriend->getAllByUser($userId);
+        $userFriends = $this->userFriend->paginateByUser($userId);
         $friendIds = $userFriends->pluck('friend_id')->all();
         $friends = app(UserRepository::class)->findByMany($friendIds);
-        $friends = $friends->each(function($friend , $key) use ($userFriends){
-            // $friend->friend_nick_name = $userFriends->where('friend_id', $friend->user_id)->pluck('friend_nick_name')->first();
-            $friend->make_friend_created_at = $userFriends->where('friend_id', $friend->user_id)->pluck('created_at')->first();
+        $userFriends->each(function($userFriend , $key) use ($friends){
+            $userFriend->friend = new UserCollection($friends->where('user_id', $userFriend->friend_id)->first());
         });
-
-        return UserCollection::collection($friends);
+        return UserFriendCollection::collection($userFriends);
     }
 
     /**

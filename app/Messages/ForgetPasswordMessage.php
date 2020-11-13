@@ -4,7 +4,7 @@ namespace App\Messages;
 
 use Illuminate\Support\Facades\Redis;
 use Overtrue\EasySms\Strategies\OrderStrategy;
-use Overtrue\EasySms\Contracts\GatewayInterface;
+use App\Custom\EasySms\Contracts\GatewayInterface;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;
 use App\Custom\EasySms\Gateways\AliyunCustomGateway;
 
@@ -30,7 +30,7 @@ class ForgetPasswordMessage extends Message
     {
         if($gateway instanceof AliyunCustomGateway)
         {
-            return 'SMS_205438419';
+            return domain()==config('app.url')?'SMS_205438419':'SMS_205437803';
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
             return '14872716';
@@ -42,6 +42,7 @@ class ForgetPasswordMessage extends Message
     public function getData(GatewayInterface $gateway = null)
     {
         return [
+            'sign_name'=>'HellooCN',
             'code'=>$this->code
         ];
     }

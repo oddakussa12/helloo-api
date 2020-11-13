@@ -28,13 +28,13 @@ class TagController extends BaseController
         return TagCollection::collection($this->tag->all());
     }
 
-    public function user($userId)
-    {
-        $userTags = app(UserTagRepository::class)->getByUserIds($userId);
-        $tagIds = $userTags->pluck('tag_id')->all();
-        $tags = app(TagRepository::class)->findByMany($tagIds);
-        return TagCollection::collection($tags);
-    }
+//    public function user($userId)
+//    {
+//        $userTags = app(UserTagRepository::class)->getByUserIds($userId);
+//        $tagIds = $userTags->pluck('tag_id')->all();
+//        $tags = app(TagRepository::class)->findByMany($tagIds);
+//        return TagCollection::collection($tags);
+//    }
 
 
     /**

@@ -11,7 +11,7 @@
 
 namespace App\Messages\Contracts;
 
-use Overtrue\EasySms\Contracts\GatewayInterface;
+use App\Custom\EasySms\Contracts\GatewayInterface;
 
 /**
  * Interface MessageInterface.
@@ -32,7 +32,7 @@ interface MessageInterface
     /**
      * Return message content.
      *
-     * @param \Overtrue\EasySms\Contracts\GatewayInterface|null $gateway
+     * @param GatewayInterface|null $gateway
      *
      * @return string
      */
@@ -41,7 +41,7 @@ interface MessageInterface
     /**
      * Return the template id of message.
      *
-     * @param \Overtrue\EasySms\Contracts\GatewayInterface|null $gateway
+     * @param GatewayInterface|null $gateway
      *
      * @return string
      */
@@ -50,7 +50,7 @@ interface MessageInterface
     /**
      * Return the template data of message.
      *
-     * @param \Overtrue\EasySms\Contracts\GatewayInterface|null $gateway
+     * @param GatewayInterface|null $gateway
      *
      * @return array
      */

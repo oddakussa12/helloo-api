@@ -3,7 +3,7 @@
 
 namespace App\Providers;
 
-use Overtrue\EasySms\EasySms;
+use App\Custom\EasySms\EasySms;
 use Illuminate\Support\ServiceProvider;
 use App\Custom\EasySms\Gateways\AliyunCustomGateway;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;

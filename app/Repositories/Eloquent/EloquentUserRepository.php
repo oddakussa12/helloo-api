@@ -535,6 +535,26 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->where('user_nick_name', 'like', "%{$name}%")->orderByRaw("REPLACE(user_nick_name,'{$name}','')")->select('user_id', 'user_name', 'user_nick_name', 'user_level', 'user_avatar', 'user_score', 'user_country_id', 'user_is_guest')->limit(5)->get();
     }
 
+    public function like($userId)
+    {
+        $likedKey = 'helloo:account:service:account-liked-num';
+//        $likeKey = 'helloo:account:service:account-like-num';
+        $authId = auth()->id();
+        $like = DB::table('likes')->where('user_id' , $authId)->where('like_id' , $userId)->first();
+        if(empty($like))
+        {
+            $liked = DB::table('users')->where('user_id' , $userId)->first();
+            if(empty($liked))
+            {
+                DB::table('likes')->insert(
+                    array('user_id'=>$authId , 'like_id'=>$userId)
+                );
+                $likeNum = DB::table('likes')->where('like_id' , $userId)->count();
+                Redis::zadd($likedKey , $likeNum , $userId);
+            }
+        }
+    }
+
     public function profileLike($id)
     {
         $likeUser = auth()->user();

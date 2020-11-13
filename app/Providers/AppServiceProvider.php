@@ -16,7 +16,7 @@ use App\Repositories\Contracts\UserFriendRepository;
 use App\Repositories\Eloquent\EloquentTagRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentUserTagRepository;
-use App\Repositories\Eloquent\EloqusentUserFriendRepository;
+use App\Repositories\Eloquent\EloquentUserFriendRepository;
 use App\Repositories\Contracts\UserFriendRequestRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRequestRepository;
 

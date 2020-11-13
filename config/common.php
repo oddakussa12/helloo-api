@@ -82,8 +82,9 @@ return [
     /************/
     'user_sign_in_phone_code_throttle_num' =>env('USER_SIGN_IN_PHONE_CODE_THROTTLE_NUM', 10),
     'user_sign_in_phone_code_throttle_expired' =>env('USER_SIGN_IN_PHONE_CODE_THROTTLE_EXPIRED', 10),
-    'user_sign_in_phone_code_wait_time' =>env('USER_SIGN_IN_PHONE_CODE_WAIT_TIME', 500),
-    'user_reset_pwd_sms_wait_time' =>env('USER_RESET_PWD_SMS_WAIT_TIME', 500),
+    'user_update_phone_sms_wait_time' =>env('USER_UPDATE_PHONE_SMS_WAIT_TIME', 300),
+    'user_sign_in_sms_wait_time' =>env('USER_SIGN_IN_PHONE_SMS_WAIT_TIME', 300),
+    'user_reset_pwd_sms_wait_time' =>env('USER_RESET_PWD_SMS_WAIT_TIME', 300),
 
     /************/
 

@@ -47,9 +47,9 @@ $api->group($V1Params , function ($api){
         $api->get('user/video/random' , 'UserController@randomVideo')->name('user.video.random');
         $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
 
-        /*****测试题 开始*****/
+        /*****报告 开始*****/
         $api->resource('answer', 'AnswerController',['only' => ['store']]);
-        /*****测试题 结束*****/
+        /*****报告 结束*****/
 
         /*****报告 开始*****/
         $api->resource('report', 'ReportController',['only' => ['store']]);
@@ -81,7 +81,6 @@ $api->group($V1Params , function ($api){
             $api->post('tag' , 'TagController@store')->name('tag.store');
             $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
             $api->put('user/myself' , 'AuthController@update')->name('myself.update');
-            $api->put('user/{user}/like' , 'UserController@like')->name('user.like');
             $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
         });
