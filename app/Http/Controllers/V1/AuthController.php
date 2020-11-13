@@ -31,8 +31,6 @@ class AuthController extends BaseController
         $this->user = $user;
     }
 
-
-
     public function signIn(Request $request)
     {
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
@@ -183,6 +181,7 @@ class AuthController extends BaseController
         }
         return new UserCollection($user);
     }
+
     protected function respondWithToken($token , $extend=true)
     {
         $user = auth()->user();
@@ -226,18 +225,13 @@ class AuthController extends BaseController
         return $credentials;
     }
 
-
-    /**
-     * @return mixed
-     * 个人主页
-     */
     public function me()
     {
         $user = auth()->user();
         $userId = $user->user_id;
         $likedKey = 'helloo:account:service:account-liked-num';
         $user->likedCount = Redis::zscore($likedKey , $userId);
-//        $user->friendCount = 0;
+        $user->friendCount = 0;
         return new UserCollection($user);
     }
 
@@ -245,7 +239,6 @@ class AuthController extends BaseController
     {
         return 'name';
     }
-
 
     public function handleSignIn(Request $request)
     {
@@ -314,9 +307,6 @@ class AuthController extends BaseController
         $token = auth()->login($user);
         return $this->respondWithToken($token , false);
     }
-
-
-
 
     public function accountVerification($account , $type)
     {
@@ -389,7 +379,36 @@ class AuthController extends BaseController
         return $this->response->accepted();
     }
 
+    public function verifyAuthPassword(Request $request)
+    {
+        $auth = auth()->user();
+        $password = strval($request->input('password' , ''));
+        $validationField = array(
+            'password'=>$password
+        );
+        $rule = array(
+            'password'=>[
+                'bail',
+                'required',
+                'string',
+                'min:6',
+                'max:16',
+                function ($attribute, $value, $fail) use ($auth){
+                    if (!$this->verifyPassword($auth ,$value)) {
+                        $fail(trans('auth.password_error'));
+                    }
+                }
+            ],
+        );
+        \Validator::make($validationField, $rule)->validate();
+        return $this->response->noContent();
+    }
 
+    public function updateAuth(Request $request)
+    {
+        $this->updatePhone($request);
+        return $this->response->accepted();
+    }
 
 
 }

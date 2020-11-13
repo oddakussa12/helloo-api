@@ -48,7 +48,7 @@ class Constant {
 
 
     //队列服务  redis  sqs
-    const QUEUE_PUSH_TYPE='sqs';
+    const QUEUE_PUSH_TYPE='redis';
 
     // 融云聊天-加好友队列
     const QUEUE_RY_CHAT_FRIEND="friend";

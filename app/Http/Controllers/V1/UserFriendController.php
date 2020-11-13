@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserFriendRepository;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Jenssegers\Agent\Agent;
 
@@ -110,45 +111,24 @@ class UserFriendController extends BaseController
         if (empty($userId) || empty($friendId)) {
             return $this->response->noContent();
         }
-
-        DB::transaction(function() use ($userId, $friendId) {
-
+        $flag = false;
+        DB::beginTransaction();
+        try {
             // 删除好友关系
-            DB::delete("delete from `f_users_friends` where `user_id`={$friendId} and `friend_id`={$userId}");
-            DB::delete("delete from `f_users_friends` where `user_id`={$userId}   and `friend_id`={$friendId}");
-
-            // 删除情侣关系相关
-            $time = time();
-
-            list($user_id, $friend_id) = FriendSignIn::sortId($userId, $friendId);
-
-            $lastKey = $user_id.'_'.$friend_id;
-            Redis::del(config('redis-key.user.user_friend').'_'.$userId);
-            Redis::del(Constant::RY_CHAT_FRIEND_IS_FRIEND.$lastKey);
-            Redis::del(Constant::RY_CHAT_FRIEND_SIGN_IN.$lastKey);
-            Redis::del(Constant::RY_CHAT_FRIEND_RELATIONSHIP.$lastKey);
-            Redis::del(Constant::FRIEND_RELATIONSHIP_MAIN.$lastKey);
-            Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$userId);
-            Redis::del(Constant::FRIEND_RELATIONSHIP_HOME_TOP.$friendId);
-
-            $sql = " set is_delete = 1, deleted_at = $time where user_id= $user_id and friend_id = $friend_id ";
-
-            // 签到
-            DB::update("update f_users_friends_sign_in $sql");
-            // DB::update("update f_users_friends_sign_in_month $sql");
-
-            // 关系等级及历史
-            DB::update("update f_users_friends_level  $sql");
-            DB::update("update f_users_friends_level_history $sql");
-
-            // 聊天记录条数统计
-            DB::update("update f_users_friends_talk $sql");
-            DB::update("update f_users_friends_talk_list $sql");
-
-        });
+            $userResult = DB::delete("delete from `f_users_friends` where `user_id`={$userId}   and `friend_id`={$friendId}");
+            $friendResult = DB::delete("delete from `f_users_friends` where `user_id`={$friendId} and `friend_id`={$userId}");
+            if($userResult>0&&$friendResult>0)
+            {
+                $flag = true;
+            }
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            Log::error('friend_delete_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+        }
 
         // 融云推送 聊天
-        FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendDelete', [
+        $flag&&FriendLevel::sendMsgToRyBySystem($userId, $friendId, 'Yooul:FriendDelete', [
             'content'        => 'friend delete',
             'userInfo'       => $user
         ], userAgent(new Agent()));

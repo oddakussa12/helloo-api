@@ -43,8 +43,6 @@ class RySystem implements ShouldQueue
                 'un' => !empty($user->user_nick_name) ? $user->user_nick_name : ($user->user_name ?? ''),
                 'ua' => userCover($user->user_avatar ?? ''),
                 'ui' => $user->user_id,
-                'uc' => $user->user_country,
-                'ul' => $user->user_level,
                 'ug' => $user->user_gender,
                 'devicePlatformName' => userAgentMobile($userAgent) ?? '',
             ];
@@ -73,6 +71,5 @@ class RySystem implements ShouldQueue
             'content'    => $this->content
         ));
 
-        // dump('System', $result, $this->content);
     }
 }

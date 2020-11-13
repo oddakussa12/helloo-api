@@ -47,6 +47,10 @@ $api->group($V1Params , function ($api){
         $api->get('user/video/random' , 'UserController@randomVideo')->name('user.video.random');
         $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
 
+        $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
+        $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
+        $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+
         /*****报告 开始*****/
         $api->resource('answer', 'AnswerController',['only' => ['store']]);
         /*****报告 结束*****/
@@ -57,18 +61,18 @@ $api->group($V1Params , function ($api){
 
         /*****好友 开始*****/
         $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');//我的好友
-        $api->post('my/friend' , 'UserFriendController@update')->name('my.friend.update');//好友备注
+//        $api->post('my/friend' , 'UserFriendController@update')->name('my.friend.update');//好友备注
         $api->delete('my/friend/{friend}' , 'UserFriendController@destroy')->name('my.friend.destroy');//删除我的好友
         /*****好友 结束*****/
 
         /*****好友请求 开始*****/
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
             $api->post('friend/request' , 'UserFriendRequestController@store')->name('user.friend.request.store');//发起好友请求
-            $api->patch('friend/{friend}/accept' , 'UserFriendRequestController@accept')->name('user.friend.request.accept');//好友请求响应接受
-            $api->patch('friend/{friend}/refuse' , 'UserFriendRequestController@refuse')->name('user.friend.request.refuse');//好友请求响应拒绝
+            $api->patch('friend/request/{request}/accept' , 'UserFriendRequestController@accept')->name('user.friend.request.accept');//好友请求响应接受
+            $api->patch('friend/request/{request}/refuse' , 'UserFriendRequestController@refuse')->name('user.friend.request.refuse');//好友请求响应拒绝
         });
 
-        $api->get('my/friend/request' , 'UserFriendRequestController@my')->name('my.friend.request');//我的好友请求
+//        $api->get('my/friend/request' , 'UserFriendRequestController@my')->name('my.friend.request');//我的好友请求
         /*****好友请求 结束*****/
 
 
@@ -83,15 +87,15 @@ $api->group($V1Params , function ($api){
             $api->put('user/myself' , 'AuthController@update')->name('myself.update');
             $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
+            $api->patch('user/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
         });
         $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
-        $api->post('user/update/myself/phone' , 'AuthController@updateUserPhone')->name('myself.update.phone');
 
         $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
 
         $api->post('user/{user}/block', 'UserController@block')->name('user.block');
-        $api->post('user/{user}/unblock', 'UserController@unblock')->name('user.unblock');
 
+        $api->post('user/{user}/unblock', 'UserController@unblock')->name('user.unblock');
 
         $api->resource('position' , 'PositionController', ['only' => ['store']]); //用户地址位置
 
@@ -99,22 +103,14 @@ $api->group($V1Params , function ($api){
 
         $api->put('app/mode/{mode}' , 'AppController@mode')->where('model', 'out|in')->name('app.mode');
 
-        $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
-        $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
-        $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
-
     });
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
     });
 
-
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountVerification')->where('type', 'phone|nick_name')->name('user.account.verification');
-
-
-
 
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
 

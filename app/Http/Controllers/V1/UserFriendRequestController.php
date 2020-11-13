@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\FriendLevel;
+use Illuminate\Support\Facades\Redis;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use App\Models\UserFriendRequest;
@@ -59,29 +60,39 @@ class UserFriendRequestController extends BaseController
     {
         $friendId = intval($request->input('friend_id'));
         $user     = auth()->user();
+        if($friendId==$user->user_id)
+        {
+            return $this->response->created();
+        }
+        $friend = app(UserRepository::class)->findOrFail($friendId);
         $userId   = $user->user_id;
         $requests = new UserFriendRequest();
         $requests->request_from_id = $userId;
-        $requests->request_to_id   = $friendId;
+        $requests->request_to_id   = $friend->user_id;
         $requests->save();
         // 融云推送 聊天
-        FriendLevel::sendMsgToRyByPerson($requests->request_from_id, $requests->request_to_id, 'Yooul:FriendRequest', [
+        FriendLevel::sendMsgToRyBySystem($requests->request_from_id, $requests->request_to_id, 'Yooul:FriendRequest', [
             'content'  => 'friend request',
-            'userInfo' => $user
+            'userInfo' => $user,
+            'request_id'=>$requests->request_id
         ], $this->agent);
-
-        return $this->response->created();
     }
 
-    public function accept($friendId)
+    public function accept($requestId)
     {
         $user   = auth()->user();
         $userId = $user->user_id;
+        $friendRequest = UserFriendRequest::where('request_id' , $requestId)->first();
+        if(empty($friendRequest)||$friendRequest->request_state!=0||$friendRequest->request_from_id!=$userId)
+        {
+            return $this->response->accepted();
+        }
+        $friendId = $friendRequest->request_to_id;
         $state  = 1;
         $flag = true;
         DB::beginTransaction();
         try{
-            $friendRequest = DB::table('friends_requests')->where('request_from_id', $friendId)->where('request_to_id', $userId)->where('request_state' , 0)->update(['request_state'=>$state]);
+            $friendRequest = DB::table('friends_requests')->where('request_id', $requestId)->update(['request_state'=>$state]);
             if($friendRequest>0)
             {
                 $userFriend = DB::table('users_friends')->where('user_id', $userId)->where('friend_id', $friendId)->first();
@@ -104,9 +115,7 @@ class UserFriendRequestController extends BaseController
                             array('user_id'=>$friendId , 'friend_id'=>$userId)
                         ));
                     }else{
-                        ($userFriend->relation==0||$friendUser->relation==0)&&$flag=false;
-                        $userFriend->relation==0&&DB::table('users_friends')->where('user_id', $userId)->where('friend_id', $friendId)->update(['relation'=>$state]);
-                        $friendUser->relation==0&&DB::table('users_friends')->where('user_id', $friendId)->where('friend_id', $userId)->update(['relation'=>$state]);
+                        $flag=false;
                     }
                 }
             }else{
@@ -119,24 +128,38 @@ class UserFriendRequestController extends BaseController
             $flag = false;
             Log::error('friend_request_accept_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
         }
-
-        // 融云推送 聊天
-        $flag&&FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
-            'content'  => 'friend response',
-            'reposed'  => $state,
-            'userInfo' => $user
-        ], $this->agent);
+        if($flag)
+        {
+            $likedKey = 'helloo:account:service:account-friend-num';
+            $userFriendCount = intval(DB::table('users_friends')->where('user_id', $userId)->count());
+            $friendFriendCount = intval(DB::table('users_friends')->where('user_id', $friendId)->count());
+            Redis::zadd($likedKey , $userFriendCount , $userId);
+            Redis::zadd($likedKey , $friendFriendCount , $userId);
+            // 融云推送 聊天
+            FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Helloo:FriendRequestReposed', [
+                'content'  => 'friend response',
+                'reposed'  => $state,
+                'userInfo' => $user
+            ], $this->agent);
+        }
         return $this->response->accepted();
     }
 
-    public function refuse($friendId)
+    public function refuse($requestId)
     {
         $requestState = -1;
-        $user         = auth()->user();
-        $userId       = $user->user_id;
-        $friendRequest = DB::table('friends_requests')->where('request_from_id', $friendId)->where('request_to_id', $userId)->where('request_state' , 0)->update(['request_state'=>$requestState]);
+        $user   = auth()->user();
+        $userId = $user->user_id;
+        $friendRequest = UserFriendRequest::where('request_id' , $requestId)->first();
+        if(empty($friendRequest)||$friendRequest->request_state!=0||$friendRequest->request_from_id!=$userId)
+        {
+            return $this->response->accepted();
+        }
+        $friendId = $friendRequest->request_to_id;
+        $friendRequest->request_state = $requestState;
+        $result = $friendRequest->save();
         // 融云推送 聊天
-        $friendRequest>0&&FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Yooul:FriendRequestReposed', [
+        $result&&FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Helloo:FriendRequestReposed', [
             'content'  => 'friend response',
             'reposed'  => $requestState,
             'userInfo' => $user

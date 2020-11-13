@@ -46,7 +46,7 @@ class UserController extends BaseController
         $like = DB::table('likes')->where('user_id' , auth()->id())->where('like_id' , $id)->first();
         $user->likeState = !blank($like);
         $user->likedCount = 0;
-//        $user->friendCount = 0;
+        $user->friendCount = 0;
         return new UserCollection($user);
     }
 

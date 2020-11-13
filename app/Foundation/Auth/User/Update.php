@@ -144,7 +144,7 @@ trait Update
                 'bail',
                 'required',
                 'string',
-                'size:6',
+                'size:4',
                 function ($attribute, $value, $fail) use ($key){
                     if(!Redis::exists($key)||$value!=Redis::get($key))
                     {
