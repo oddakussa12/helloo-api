@@ -14,7 +14,7 @@ use \Exception;
 class Api{
     private $appKey;                //appKey
     private $appSecret;             //secret
-    const   SERVERAPIURL = 'http://api.cn.ronghub.com';    //IM服务地址
+    const   SERVERAPIURL = 'http://api-sg01.ronghub.com';    //IM服务地址
     const   SMSURL = 'http://api.sms.ronghub.com';          //短信服务地址
     private $format;                //数据格式 json/xml
 
