@@ -337,7 +337,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $flag = false;
         $setKey = 'helloo:account:service:account-random-video-set';
         $sortSetKey = 'helloo:account:service:account-random-video-sort-set';
-        Redis::sadd($setKey , $self);
+//        Redis::sadd($setKey , $self);
         Redis::zadd($sortSetKey , time() , $self);
         $turn = 1;
         while (true)
@@ -349,7 +349,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 break;
             }
             $userId = $this->randRyVideoUser();
-            $userId==$self&&Redis::sadd($setKey , $self);
+//            $userId==$self&&Redis::sadd($setKey , $self);
             if(!empty($userId)&&$userId!=$self)
             {
                 break;
@@ -358,6 +358,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
         if($userId==0)
         {
+            Redis::sadd($setKey , $self);
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
         }else{
