@@ -134,7 +134,7 @@ class UserController extends BaseController
         $data = $this->user->planet();
         $data = array_unique($data);
         $userId = intval(auth()->id());
-        $data = array_rand(61 , 108);
+        $data = range(61 , 108);
         $data = array_diff($data , [$userId]);
 //        array_push($data , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8);//test
         $users = $this->user->findByMany($data);
