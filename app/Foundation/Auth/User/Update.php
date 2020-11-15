@@ -8,6 +8,7 @@ use App\Jobs\EasySms;
 use App\Rules\UserPhone;
 use App\Mail\UpdateEmail;
 use App\Custom\Anonymous;
+use App\Messages\SignInMessage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -308,7 +309,7 @@ trait Update
         Validator::make($validationField, $rule)->validate();
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
-        $message = new ForgetPasswordMessage($code);
+        $message = new SignInMessage($code);
         EasySms::dispatch($phone , $message)->onQueue('sign_in_sms');
     }
 

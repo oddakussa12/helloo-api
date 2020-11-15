@@ -14,36 +14,54 @@ class AnswerController extends BaseController
     public function store(Request $request)
     {
         $user = auth()->user();
-        if($user->user_activation==0)
+        $answer = '';
+        if($user->user_activation==1)
         {
             $userId = $user->user_id;
             $answers = (array)$request->input('answers');
             $answers = array_filter($answers , function($v , $k){
-                return !blank($v)&&!blank($k)&&!in_array($v , array(1, 2))&&!in_array($k , array("one" , 'two' , 'three' , 'four' , 'five' , 'six'));
+                return !blank($k)&&in_array($v , array(0, 1))&&in_array($k , array("one" , 'two' , 'three' , 'four' , 'five' , 'six'));
             } , ARRAY_FILTER_USE_BOTH);
             $count = count($answers);
             $dateTime = Carbon::now()->toDateTimeString();
             if($count==6)
             {
-                $answers = collect($answers)->map(function ($v, $key) use ($userId ,$dateTime){
+                $answers = collect($answers)->map(function ($v, $key) use ($userId ,$dateTime , &$answer){
                     switch ($key)
                     {
                         case 'one':
                             $qId = 1;
+                            if($v==0)
+                            {
+                                $answer = $answer.strval(1);
+                            }else{
+                                $answer = $answer.strval(2);
+                            }
+                            break;
                         case 'two':
                             $qId = 2;
+                            break;
                         case 'three':
                             $qId = 3;
+                            break;
                         case 'four':
                             $qId = 4;
+                            break;
                         case 'five':
                             $qId = 5;
+                            break;
                         default:
+                            if($v==0)
+                            {
+                                $answer = $answer.strval(1);
+                            }else{
+                                $answer = $answer.strval(2);
+                            }
                             $qId = 6;
-
+                            break;
                     }
                     return array('user_id'=>$userId , 'question_id'=>$qId , 'answer'=>$v , 'created_at'=>$dateTime);
-                });
+                })->toArray();
                 DB::beginTransaction();
                 try{
                     DB::table('answers')->insert($answers);
@@ -62,7 +80,24 @@ class AnswerController extends BaseController
                 }
             }
         }
-        return $this->response->created();
+        if($answer == '12')
+        {
+            $type = "A";
+        }elseif ($answer == '22')
+        {
+            $type = "B";
+        }elseif ($answer == '11')
+        {
+            $type = "C";
+        }elseif ($answer == '21')
+        {
+            $type = "D";
+        }else{
+            $type = 'E';
+        }
+        return $this->response->created(null , array(
+            'type'=>$type
+        ));
     }
 
 }

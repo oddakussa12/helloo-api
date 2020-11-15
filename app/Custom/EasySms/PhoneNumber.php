@@ -120,7 +120,7 @@ class PhoneNumber implements PhoneNumberInterface
      *
      * @return string|null
      */
-    public function getPrefixedIDDCode(string $prefix)
+    public function getPrefixedIDDCode(string $prefix='')
     {
         return $this->IDDCode ? $prefix.$this->IDDCode : null;
     }

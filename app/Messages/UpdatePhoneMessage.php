@@ -32,10 +32,10 @@ class UpdatePhoneMessage extends Message
     {
         if($gateway instanceof AliyunCustomGateway)
         {
-            return 'SMS_205438419';
+            return domain()==config('app.url')?'SMS_205467340':'SMS_205471436';
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
-            return '14872716';
+            return '14876715';
         }
         return '';
     }
@@ -44,6 +44,7 @@ class UpdatePhoneMessage extends Message
     public function getData(GatewayInterface $gateway = null)
     {
         return [
+            'sign_name'=>'HellooCN',
             'code'=>$this->code
         ];
     }

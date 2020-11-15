@@ -25,7 +25,7 @@ $V1Params = [
 
 $api->group($V1Params , function ($api){
 
-    $api->group(['middleware'=>'redisThrottle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')] , function ($api){
+    $api->group(['middleware'=>['repeatedSubmit' , 'redisThrottle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')]] , function ($api){
         $api->post('user/forgetPwd' , 'AuthController@forgetPwdCode')->name('user.forget.pwd');
     });
 
@@ -88,6 +88,10 @@ $api->group($V1Params , function ($api){
             $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
             $api->patch('user/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
+            $api->group(['middleware'=>['redisThrottle:'.config('common.update_phone_throttle_num').','.config('common.update_phone_throttle_expired')]] , function ($api){
+                $api->post('user/new/phone' , 'AuthController@newPhoneCode')->name('myself.update.phone');
+            });
+            $api->put('user/{user}/like' , 'UserController@like')->name('user.like');
         });
         $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
 

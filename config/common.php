@@ -54,6 +54,8 @@ return [
     'forget_password_throttle_expired' =>env('FORGET_PASSWORD_THROTTLE_EXPIRED', 10),
     'forget_password_phone_throttle_num' =>env('FORGET_PASSWORD_PHONE_THROTTLE_NUM', 2),
     'forget_password_phone_throttle_expired' =>env('FORGET_PASSWORD_PHONE_THROTTLE_EXPIRED', 10),
+    'update_phone_throttle_num' =>env('UPDATE_PHONE_THROTTLE_NUM', 2),
+    'update_phone_throttle_expired' =>env('UPDATE_PHONE_THROTTLE_EXPIRED', 10),
     'post_throttle_num' =>env('POST_THROTTLE_NUM', 1),
     'post_throttle_expired' =>env('POST_THROTTLE_EXPIRED', 1),
     'post_comment_throttle_num' =>env('POST_COMMENT_THROTTLE_NUM', 2),
@@ -80,7 +82,7 @@ return [
     'user_unlike_throttle_expired' =>env('USER_UNLIKE_THROTTLE_EXPIRED', 1),
 
     /************/
-    'user_sign_in_phone_code_throttle_num' =>env('USER_SIGN_IN_PHONE_CODE_THROTTLE_NUM', 10),
+    'user_sign_in_phone_code_throttle_num' =>env('USER_SIGN_IN_PHONE_CODE_THROTTLE_NUM', 2),
     'user_sign_in_phone_code_throttle_expired' =>env('USER_SIGN_IN_PHONE_CODE_THROTTLE_EXPIRED', 10),
     'user_update_phone_sms_wait_time' =>env('USER_UPDATE_PHONE_SMS_WAIT_TIME', 300),
     'user_sign_in_sms_wait_time' =>env('USER_SIGN_IN_PHONE_SMS_WAIT_TIME', 300),

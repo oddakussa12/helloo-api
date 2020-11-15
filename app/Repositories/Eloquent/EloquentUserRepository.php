@@ -303,7 +303,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $femaleKey = 'helloo:account:service:account-random-female-im-set';
         $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
         $gender = Redis::zscore($genderSortSetKey , $self);
-        Redis::sadd($key , $self);
         if($gender!==null)
         {
             if($gender==0)
@@ -319,6 +318,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             usleep(500000);
             if($turn>5)
             {
+                Redis::sadd($key , $self);
                 $userId = 0;
                 break;
             }

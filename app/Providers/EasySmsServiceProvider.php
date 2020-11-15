@@ -5,9 +5,10 @@ namespace App\Providers;
 
 use App\Custom\EasySms\EasySms;
 use Illuminate\Support\ServiceProvider;
+use App\Custom\EasySms\Gateways\AwsGateway;
+use Overtrue\EasySms\Strategies\OrderStrategy;
 use App\Custom\EasySms\Gateways\AliyunCustomGateway;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;
-use Overtrue\EasySms\Strategies\OrderStrategy;
 
 class EasySmsServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,8 @@ class EasySmsServiceProvider extends ServiceProvider
                 return new AliyunCustomGateway($config);
             })->extend('yunXinCustom', function($config) {
                 return new YunxinCustomGateway($config);
+            })->extend('aws', function($config) {
+                return new AwsGateway($config);
             });
         });
 
@@ -56,6 +59,7 @@ class EasySmsServiceProvider extends ServiceProvider
                 'aliYunCustom' =>  config('easy-sms.agents.aliyun'),
                 'yunxin' => config('easy-sms.agents.yunxin'),
                 'yunXinCustom' => config('easy-sms.agents.yunxin'),
+                'aws' => config('easy-sms.agents.aws'),
             ],
         ];
     }

@@ -104,7 +104,7 @@ class UserController extends BaseController
     {
         $self = auth()->id();
         $userId = $this->user->randomIm($self);
-        $userId = $userId>=100?mt_rand(1 , 10):$userId;
+        $userId = $userId>=1000?mt_rand(1 , 10):$userId;
         $user = $this->user->findByUserId($userId);
         if(blank($user))
         {

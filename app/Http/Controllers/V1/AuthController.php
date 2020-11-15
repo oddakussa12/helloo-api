@@ -86,8 +86,9 @@ class AuthController extends BaseController
     {
         $fields = array();
         $user = auth()->user();
+        \Log::error($request->all());
 //        $country_code = strtolower(strval($request->input('country_code')));
-        $password = strtolower(strval($request->input('password' , '')));
+        $password = strval($request->input('password' , ''));
         $user_birthday = strval($request->input('user_birthday' , ''));
         $user_about = strval($request->input('user_about' , ''));
         $user_avatar = strval($request->input('user_avatar' , ''));
@@ -285,7 +286,7 @@ class AuthController extends BaseController
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>Uuid::uuid1(),
-            'user_pwd'=>encrypt(123456)
+            'user_pwd'=>encrypt(Uuid::uuid1()->toString())
         );
         DB::beginTransaction();
         try{
@@ -370,6 +371,12 @@ class AuthController extends BaseController
     public function password(Request $request)
     {
         $this->updatePassword($request);
+        return $this->response->accepted();
+    }
+
+    public function newPhoneCode(Request $request)
+    {
+        $this->sendUpdatePhoneCode($request);
         return $this->response->accepted();
     }
 

@@ -101,8 +101,14 @@ class EasySms implements ShouldQueue
                 'updated_at'=>$now,
             )
         );
+        if($phoneCountry==86)
+        {
+            $gateways = ['aliYunCustom'];
+        }else{
+            $gateways = ['aliYunCustom'];
+        }
         try{
-            $sms->send($this->phone, $this->message);
+            $sms->send($this->phone, $this->message , $gateways);
             if($this->message instanceof MessageInterface&&method_exists($this->message , 'afterSend'))
             {
                 $this->message->afterSend($phone);
@@ -120,7 +126,7 @@ class EasySms implements ShouldQueue
             }
             \Log::error(\json_encode($messages , JSON_UNESCAPED_UNICODE));
         }
-        DB::table('short_messages')->where('id' , $id)->update(
+        $result==1&&DB::table('short_messages')->where('id' , $id)->update(
             array('message'=>\json_encode($messages , JSON_UNESCAPED_UNICODE) , 'status'=>$result)
         );
     }
