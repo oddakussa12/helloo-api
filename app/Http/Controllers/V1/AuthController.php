@@ -142,6 +142,8 @@ class AuthController extends BaseController
     {
         $fields = array();
         $user = auth()->user();
+        $oldGender = $user->user_gender;
+        $genderKey = 'helloo:account:service:account-gender';
 //        $country_code = strtolower(strval($request->input('country_code')));
         $user_birthday = strval($request->input('user_birthday' , ''));
         $user_about = strval($request->input('user_about' , ''));
@@ -166,7 +168,8 @@ class AuthController extends BaseController
         }
         if($user_gender!==null)
         {
-            $fields['user_gender'] = intval($user_gender);
+            $score = Redis::zscore($genderKey , $user->getKey());
+            $score===null&&$fields['user_gender'] = intval($user_gender);
         }
         if(!blank($user_nick_name))
         {
@@ -179,6 +182,10 @@ class AuthController extends BaseController
         {
             Validator::make($fields, $this->updateRules())->validate();
             $user = $this->user->update($user,$fields);
+            if($user->user_gender!=$oldGender)
+            {
+                Redis::zadd($genderKey , time() , $user->getKey());
+            }
         }
         return new UserCollection($user);
     }
@@ -233,6 +240,8 @@ class AuthController extends BaseController
         $likedKey = 'helloo:account:service:account-liked-num';
         $user->likedCount = intval(Redis::zscore($likedKey , $userId));
         $user->friendCount = 0;
+        $genderKey = 'helloo:account:service:account-gender';
+        $user->userGenderChanged = !(Redis::zscore($genderKey , $userId)===null);
         return new UserCollection($user);
     }
 
