@@ -76,13 +76,12 @@ $api->group($V1Params , function ($api){
 
 
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
-        $api->resource('user' , 'UserController' , ['only' => ['show']]);
 
         $api->get('ry/token' , 'RySetController@token')->name('ry.token');
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
             $api->get('tag' , 'TagController@index')->name('tag.index');
             $api->post('tag' , 'TagController@store')->name('tag.store');
-            $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
+//            $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
             $api->put('user/myself' , 'AuthController@update')->name('myself.update');
             $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
@@ -105,8 +104,13 @@ $api->group($V1Params , function ($api){
         $api->post('device/update', 'DeviceController@update')->name('device.update');
 
         $api->put('app/mode/{mode}' , 'AppController@mode')->where('model', 'out|in')->name('app.mode');
+        
+        $api->post('statistics/duration' , 'StatisticsController@duration')->name('statistics.duration');
 
     });
+    $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
+    $api->resource('user' , 'UserController' , ['only' => ['show']]);
+
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
     });
@@ -117,9 +121,7 @@ $api->group($V1Params , function ($api){
 
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
 
-    $api->group(['middleware'=>['appAuth']] , function($api){
-        $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
-    });
+    $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
 
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/token' , 'TestController@token')->name('test.token');

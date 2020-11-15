@@ -56,7 +56,7 @@ class TagController extends BaseController
         $fields = array_filter($fields , function($value){
             return !blank($value);
         });
-        $paramsTags = array_slice($fields , 0 , 19);
+        $paramsTags = array_slice($fields , 0 , 20);
         $tags = app(TagRepository::class)->getByTags($paramsTags);
         $originUserTags = app(UserTagRepository::class)->getByUserId($userId);
         $originUserTagIds = $originUserTags->pluck('tag_id')->all();

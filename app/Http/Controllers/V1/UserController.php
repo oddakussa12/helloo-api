@@ -44,11 +44,11 @@ class UserController extends BaseController
             return $this->response->errorNotFound();
         }
         $user = $this->user->findOrFail($id);
-        $like = DB::table('likes')->where('user_id' , auth()->id())->where('like_id' , $id)->first();
-        $user->likeState = !blank($like);
+        $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('like_id' , $id)->first()):false;
         $likedKey = 'helloo:account:service:account-liked-num';
         $user->likedCount = intval(Redis::zscore($likedKey , $id));
         $user->friendCount = 0;
+        $user->likeState = $likeState;
         return new UserCollection($user);
     }
 
