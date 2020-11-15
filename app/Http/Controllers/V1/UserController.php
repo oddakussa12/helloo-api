@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserTagRepository;
+use Illuminate\Support\Facades\Redis;
 
 class UserController extends BaseController
 {
@@ -45,7 +46,8 @@ class UserController extends BaseController
         $user = $this->user->findOrFail($id);
         $like = DB::table('likes')->where('user_id' , auth()->id())->where('like_id' , $id)->first();
         $user->likeState = !blank($like);
-        $user->likedCount = 0;
+        $likedKey = 'helloo:account:service:account-liked-num';
+        $user->likedCount = intval(Redis::zscore($likedKey , $id));
         $user->friendCount = 0;
         return new UserCollection($user);
     }
