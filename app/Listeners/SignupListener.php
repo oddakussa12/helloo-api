@@ -21,12 +21,11 @@ class SignupListener
     {
         //获取事件中保存的信息
         $user = $event->getUser();
-        $extend = $event->getExtend();
-        $this->initUser($user , $extend);
-        $this->updateUserLists($user->user_name , $user->user_email);
+//        $extend = $event->getExtend();
+
         $agent = $event->getAgent();
         $addresses = $event->getAddresses();
-        $ip = $user->user_ip_address;
+        $ip = $event->getIp();
         //登录信息
         $signup_info = [
             'signup_ip' => $ip,

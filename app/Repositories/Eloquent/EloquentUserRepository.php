@@ -308,14 +308,15 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             if($gender==0)
             {
                 Redis::sadd($femaleKey , $self);
-            }else{
+            }elseif($gender==1){
                 Redis::sadd($maleKey , $self);
             }
         }
         $turn = 0;
+        $s = 600000;
         while (true)
         {
-            usleep(500000);
+            usleep($s);
             if($turn>5)
             {
                 Redis::sadd($key , $self);
@@ -327,6 +328,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             {
                 break;
             }
+            $s = $s-50000;
             $turn++;
         }
         return $userId;
@@ -335,14 +337,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function randomVideo($self)
     {
         $flag = false;
+        $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-video-set';
         $sortSetKey = 'helloo:account:service:account-random-video-sort-set';
 //        Redis::sadd($setKey , $self);
         Redis::zadd($sortSetKey , time() , $self);
+        Redis::sadd($imKey , $self);
         $turn = 1;
+        $s = 600000;
         while (true)
         {
-            usleep(500000);
+            usleep($s);
             if($turn>10)
             {
                 $userId = 0;
@@ -354,6 +359,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             {
                 break;
             }
+            $s = $s-50000;
             $turn++;
         }
         if($userId==0)
@@ -390,14 +396,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function randomVoice($self)
     {
         $flag = false;
+        $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-voice-set';
         $sortSetKey = 'helloo:account:service:account-random-video-sort-set';
 //        Redis::sadd($setKey , $self);
         Redis::zadd($sortSetKey , time() , $self);
+        Redis::sadd($imKey , $self);
         $turn = 1;
+        $s = 600000;
         while (true)
         {
-            usleep(500000);
+            usleep($s);
             if($turn>10)
             {
                 $userId = 0;
@@ -409,6 +418,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             {
                 break;
             }
+            $s = $s-50000;
             $turn++;
         }
         if($userId==0)

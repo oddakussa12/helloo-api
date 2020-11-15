@@ -15,7 +15,7 @@ class AnswerController extends BaseController
     {
         $user = auth()->user();
         $answer = '';
-        if($user->user_activation==1)
+        if($user->user_activation==1&&$user->user_answer==0)
         {
             $userId = $user->user_id;
             $answers = (array)$request->input('answers');
@@ -67,15 +67,15 @@ class AnswerController extends BaseController
                     DB::table('answers')->insert($answers);
                     DB::table('users')->where('user_id' , $userId)->update(
                         array(
-                            'user_activation'=>1,
-                            'user_activated_at'=>$dateTime
+                            'user_answer'=>1,
+                            'user_answered_at'=>$dateTime
                         )
                     );
                     DB::commit();
                 }catch (\Exception $e)
                 {
                     DB::rollBack();
-                    \Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+                    \Log::error('submit_answer_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
                     throw new StoreResourceFailedException('answer submission failed!');
                 }
             }

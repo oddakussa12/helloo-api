@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \Torann\GeoIP\Console\Update::class,
         \App\Console\Commands\RemoveRandomUser::class,
+        \App\Console\Commands\StoreVisitLog::class,
     ];
 
     /**
@@ -25,8 +26,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-//        $schedule->command('remove:random_user')
-//            ->everyMinute();
+        $schedule->command('store:visit_log')
+            ->dailyAt('20:00')->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('geoip:update')
             ->daily();
     }

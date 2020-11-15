@@ -51,7 +51,7 @@ class RyOnline implements ShouldQueue
     public function handle()
     {
         $allUsers = $this->users;
-        if(isset($allUsers['offlineUsers'])||isset($allUsers['onlineUsers']))
+        if(empty($allUsers)||isset($allUsers['offlineUsers'])||isset($allUsers['onlineUsers']))
         {
             return;
         }
@@ -131,13 +131,13 @@ class RyOnline implements ShouldQueue
                     $ip = $ipPort;
                 }
             }
-            $referer = strval($user['os']);
+            $src = strval($user['os']);
             Redis::rpush($key."_op_list" , \json_encode(array(
+                'visited_at'=>$time,
                 'user_id'=>$userId,
-                'ip'=>$ip,
-                'referer'=>$referer,
-                'referer'=>$referer,
-                'created_at'=>$this->chinaDateTime
+                'referer'=>$src,
+                'version'=>0,
+                'ip'=>$ip
             )));//20201108
         }
 

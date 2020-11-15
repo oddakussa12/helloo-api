@@ -38,7 +38,7 @@ $api->group($V1Params , function ($api){
     });
 //    $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
 
-
+    $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
 
         $api->get('user/im/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
@@ -48,7 +48,6 @@ $api->group($V1Params , function ($api){
         $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
 
         $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
-        $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
         $api->get('user/ry/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
 
         /*****报告 开始*****/
@@ -122,6 +121,7 @@ $api->group($V1Params , function ($api){
         $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
     });
 
+    $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/index' , 'TestController@index')->name('test.index');
 

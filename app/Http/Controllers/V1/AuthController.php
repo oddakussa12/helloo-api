@@ -7,6 +7,7 @@ use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use App\Rules\UserPhoneUnique;
 use App\Resources\UserCollection;
@@ -86,7 +87,6 @@ class AuthController extends BaseController
     {
         $fields = array();
         $user = auth()->user();
-        \Log::error($request->all());
 //        $country_code = strtolower(strval($request->input('country_code')));
         $password = strval($request->input('password' , ''));
         $user_birthday = strval($request->input('user_birthday' , ''));
@@ -282,7 +282,17 @@ class AuthController extends BaseController
             return $this->respondWithToken($token , false);
         }
         $now = Carbon::now()->toDateTimeString();
+        $agent = new Agent();
+        if($agent->match('HellooAndroid'))
+        {
+            $src = 'android';
+        }elseif($agent->match('HellooiOS')){
+            $src = 'ios';
+        }else{
+            $src = 'unknown';
+        }
         $user_fields = array(
+            'user_src'=>$src,
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>Uuid::uuid1(),

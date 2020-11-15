@@ -71,12 +71,15 @@ class TestController extends BaseController
 
     public function token()
     {
-        $token = app('rcloud')->getUser()->register(array(
-            'id'=> time(),
-            'name'=> (new RandomStringGenerator())->generate(16),
-            'portrait'=> "https://qnwebothersia.mmantou.cn/default_avatar.jpg?imageView2/0/w/50/h/50/interlace/1|imageslim"
-        ));
-        return $this->response->array($token);
+        if(domain()==config('app.url'))
+        {
+            $token = app('rcloud')->getUser()->register(array(
+                'id'=> time(),
+                'name'=> (new RandomStringGenerator())->generate(16),
+                'portrait'=> "https://qnwebothersia.mmantou.cn/default_avatar.jpg?imageView2/0/w/50/h/50/interlace/1|imageslim"
+            ));
+            return $this->response->array($token);
+        }
     }
 
 

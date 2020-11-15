@@ -36,6 +36,7 @@ class User extends Authenticatable implements JWTSubject
         'user_src' ,
 //        'user_country_id' ,
         'user_about' ,
+        'user_answer' ,
         'user_activation' ,
         'user_activated_at' ,
     ];
@@ -60,7 +61,8 @@ class User extends Authenticatable implements JWTSubject
         'user_country_id' ,
         'user_created_at',
         'user_updated_at',
-        'user_activated_at'
+        'user_activated_at',
+        'user_answered_at'
     ];
 
 

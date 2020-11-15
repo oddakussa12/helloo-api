@@ -126,7 +126,7 @@ class EasySms implements ShouldQueue
             }
             \Log::error(\json_encode($messages , JSON_UNESCAPED_UNICODE));
         }
-        $result==1&&DB::table('short_messages')->where('id' , $id)->update(
+        DB::table('short_messages')->where('id' , $id)->update(
             array('message'=>\json_encode($messages , JSON_UNESCAPED_UNICODE) , 'status'=>$result)
         );
     }

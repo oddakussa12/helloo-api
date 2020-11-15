@@ -23,12 +23,29 @@ class OperationLog extends BaseMiddleware
     {
         if(auth()->check())
         {
+            $agent = new Agent();
             $chinaNow = Carbon::now('Asia/Shanghai');
             $time = strval($chinaNow->timestamp);
             $now = $chinaNow->format('Ymd');
+            $version = $agent->getHttpHeader('HellooVersion');
+            if($agent->match('HellooAndroid'))
+            {
+                $src = 'android';
+            }elseif($agent->match('HellooiOS')){
+                $src = 'ios';
+            }else{
+                $src = 'unknown';
+            }
             $key = 'helloo:account:service:account-au'.date('Ymd' , $now);
             $user_id = (int) auth()->id();
-            Redis::rpush($key."_op_list" , strval($user_id).'.'.$time);//20201017
+            $data = array(
+                'visited_at'=>$time,
+                'user_id'=>$user_id,
+                'referer'=>$src,
+                'version'=>$version,
+                'ip'=>getRequestIpAddress()
+            );
+            Redis::rpush($key."_op_list" , \json_encode($data , JSON_UNESCAPED_UNICODE));//20201017
             $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';;
             Redis::zadd($lastActivityTime , $time , intval(auth()->id()));
         }
