@@ -135,6 +135,8 @@ class AuthController extends BaseController
             }
         }
         $user = $this->user->find($user->getKey());
+        $genderKey = 'helloo:account:service:account-gender';
+        $user->userGenderChanged = !(Redis::zscore($genderKey , $user->getKey())===null);
         return new UserCollection($user);
     }
 
