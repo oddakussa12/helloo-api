@@ -118,7 +118,7 @@ return [
 //        ],
 
         'single' => [
-            'host' => env('REDIS_SINGLE_HOST', '127.0.0.1'),
+            'host' => env('REDIS_SINGLE_HOST', '172.31.100.93'),
             'password' => env('REDIS_SINGLE_PASSWORD', null),
             'port' => env('REDIS_SINGLE_PORT', 6379),
             'database' => 0,
