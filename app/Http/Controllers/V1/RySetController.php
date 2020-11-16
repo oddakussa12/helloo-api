@@ -174,7 +174,6 @@ class RySetController extends BaseController
             ));
             if(empty($token))
             {
-                ry_server(true);
                 $token = app('rcloud')->getUser()->register(array(
                     'id'=> $userId,
                     'name'=> $name,

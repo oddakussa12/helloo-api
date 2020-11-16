@@ -71,7 +71,7 @@ class TestController extends BaseController
 
     public function token()
     {
-        if(domain()==config('app.url'))
+        if(domain()!=config('app.url'))
         {
             $token = app('rcloud')->getUser()->register(array(
                 'id'=> time(),

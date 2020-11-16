@@ -1,13 +1,10 @@
 <?php
 namespace App\Foundation\Auth\User;
 
-use App\Jobs\Sms;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Jobs\EasySms;
 use App\Rules\UserPhone;
-use App\Mail\UpdateEmail;
-use App\Custom\Anonymous;
 use App\Messages\SignInMessage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -257,7 +254,7 @@ trait Update
             $code = $this->getCode();
             $phone = new PhoneNumber($user_phone , $user_phone_country);
             $message = new ForgetPasswordMessage($code);
-            EasySms::dispatch($phone , $message)->onQueue('forget_pwd_sms');
+            EasySms::dispatch($phone , $message)->onQueue('helloo_forget_pwd_sms');
         }
 
     }
@@ -288,7 +285,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new UpdatePhoneMessage($code);
-        EasySms::dispatch($phone , $message)->onQueue('update_phone_sms');
+        EasySms::dispatch($phone , $message)->onQueue('helloo_update_phone_sms');
     }
 
     public function sendSignInPhoneCode($request)
@@ -310,7 +307,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new SignInMessage($code);
-        EasySms::dispatch($phone , $message)->onQueue('sign_in_sms');
+        EasySms::dispatch($phone , $message)->onQueue('helloo_sign_in_sms');
     }
 
     public function activate(User $user ,$data)
