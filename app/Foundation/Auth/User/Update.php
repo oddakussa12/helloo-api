@@ -254,7 +254,7 @@ trait Update
             $code = $this->getCode();
             $phone = new PhoneNumber($user_phone , $user_phone_country);
             $message = new ForgetPasswordMessage($code);
-            EasySms::dispatch($phone , $message)->onQueue('helloo_forget_pwd_sms');
+            EasySms::dispatch($phone , $message)->onConnection('sqs')->onQueue('helloo_forget_pwd_sms');
         }
 
     }
@@ -285,7 +285,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new UpdatePhoneMessage($code);
-        EasySms::dispatch($phone , $message)->onQueue('helloo_update_phone_sms');
+        EasySms::dispatch($phone , $message)->onConnection('sqs')->onQueue('helloo_update_phone_sms');
     }
 
     public function sendSignInPhoneCode($request)
@@ -307,7 +307,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new SignInMessage($code);
-        EasySms::dispatch($phone , $message)->onQueue('helloo_sign_in_sms');
+        EasySms::dispatch($phone , $message)->onConnection('sqs')->onQueue('helloo_sign_in_sms');
     }
 
     public function activate(User $user ,$data)
