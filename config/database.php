@@ -127,17 +127,14 @@ return [
         'options' => [
             'cluster' => 'redis',
         ],
-        'clusters' => [
-
-            'default' =>[
-                [
-                    'host' => env('REDIS_CLUSTER_HOST', '127.0.0.1'),
-                    'password' => env('REDIS_CLUSTER_PASSWORD', null),
-                    'port' => env('REDIS_CLUSTER_PORT', 6379),
-                    'database' => 0,
-                ]
-            ],
-        ]
+        'default' =>[
+            [
+                'host' => env('REDIS_CLUSTER_HOST', '127.0.0.1'),
+                'password' => env('REDIS_CLUSTER_PASSWORD', null),
+                'port' => env('REDIS_CLUSTER_PORT', 6379),
+                'database' => 0,
+            ]
+        ],
 
     ],
 
