@@ -166,6 +166,9 @@ class UserController extends BaseController
                 DB::table('likes')->insert(
                     array('user_id'=>$authId , 'like_id'=>$userId)
                 );
+                $count = intval(DB::table('users')->where('like_id' , $userId)->count());
+                $likedKey = 'helloo:account:service:account-liked-num';
+                Redis::zadd($likedKey , $count , $userId);
             }
         }
         return $this->response->created();
