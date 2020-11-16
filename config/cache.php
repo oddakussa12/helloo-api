@@ -70,7 +70,7 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => 'default',
+            'connection' => env('REDIS_DEFAULT_CONNECTION' , 'default'),
         ],
 
     ],
