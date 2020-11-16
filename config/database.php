@@ -108,7 +108,7 @@ return [
 
         'client' => 'predis',
 
-        'cluster'=>false,
+        'cluster'=>true,
 
 //        'default' =>[
 //            'host' => env('REDIS_HOST', '127.0.0.1'),
