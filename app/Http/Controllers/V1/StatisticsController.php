@@ -14,8 +14,8 @@ class StatisticsController extends BaseController
     {
         $time = floatval($request->input('time' , 0));
         $target = intval($request->input('target_id' , 0));
-        $status = intval($request->input('status' , 0));//initiative  passive  abnormal
-        $type = intval($request->input('type' , 'video'));
+        $status = strval($request->input('status' , 0));//initiative  passive  abnormal
+        $type = strval($request->input('type' , 'video'));
         app(UserRepository::class)->findOrFail($target);
         DB::table('duration_statistics')->insert(
             array(
@@ -24,7 +24,7 @@ class StatisticsController extends BaseController
                 'time'=>$time,
                 'status'=>$status,
                 'type'=>$type,
-                'created_at'=>Carbon::now()->timestamp,
+                'created_at'=>Carbon::now()->toDateTimeString(),
             )
         );
         return $this->response->created();
