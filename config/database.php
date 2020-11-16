@@ -110,12 +110,12 @@ return [
 
         'cluster'=>true,
 
-        'default' =>[
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'password' => env('REDIS_PASSWORD', null),
-            'port' => env('REDIS_PORT', 6379),
-            'database' => 0,
-        ],
+//        'default' =>[
+//            'host' => env('REDIS_HOST', '127.0.0.1'),
+//            'password' => env('REDIS_PASSWORD', null),
+//            'port' => env('REDIS_PORT', 6379),
+//            'database' => 0,
+//        ],
 
         'single' => [
             'host' => env('REDIS_SINGLE_HOST', '127.0.0.1'),
@@ -129,7 +129,7 @@ return [
         ],
         'clusters' => [
 
-            'default_clusters' =>[
+            'default' =>[
                 [
                     'host' => env('REDIS_CLUSTER_HOST', '127.0.0.1'),
                     'password' => env('REDIS_CLUSTER_PASSWORD', null),
