@@ -118,4 +118,5 @@ return [
     'emoji_md5'=>env('EMOJI_MD5' , ''),
     'prohibited_content'=>env('PROHIBITED_CONTENT' , ''),
     'prohibited_default_uuid'=>env('PROHIBITED_DEFAULT_UUID' , ''),
+    'is_verification' =>env('IS_VERIFICATION' , true),
 ];

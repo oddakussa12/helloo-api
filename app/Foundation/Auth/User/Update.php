@@ -45,7 +45,7 @@ trait Update
                     $code = Redis::get($key);
                     if($code===null||$code!=$value)
                     {
-//                        $fail('sms error');
+                        config('common.is_verification')&&$fail('sms error');
                     }else{
                         Redis::del($key);
                     }

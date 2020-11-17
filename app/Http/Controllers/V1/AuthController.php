@@ -65,7 +65,7 @@ class AuthController extends BaseController
         if(!empty($phone))
         {
             $user = $this->user->find($phone->user_id);
-            if(!password_verify($password, $user->user_pwd))
+            if(!config('common.is_verification')||password_verify($password, $user->user_pwd))
             {
                 $token = auth()->login($user);
                 return $this->respondWithToken($token , false);
@@ -254,13 +254,15 @@ class AuthController extends BaseController
 
     public function handleSignIn(Request $request)
     {
+        $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $code = strval($request->input('code' , ''));
         $phone = $user_phone_country.$user_phone;
         $validationField = array(
             'user_phone'=>$phone,
-            'code'=> $code
+            'code'=> $code,
+            'password'=> $password,
         );
         $rule = [
             'user_phone' => [
@@ -269,6 +271,7 @@ class AuthController extends BaseController
                 'required',
                 new UserPhone()
             ],
+            'password' => 'bail|required|string|min:6|max:16',
             'code' => [
                 'bail',
                 'string',
@@ -278,7 +281,7 @@ class AuthController extends BaseController
                     $code = Redis::get($key);
                     if($code===null||$code!=$value)
                     {
-//                        $fail('sms error');
+                        config('common.is_verification')&&$fail('sms error');
                     }else{
                         Redis::del($key);
                     }
@@ -290,6 +293,10 @@ class AuthController extends BaseController
         if(!empty($phone))
         {
             $user = $this->user->find($phone->user_id);
+            if(!config('common.is_verification')||!password_verify($password, $user->user_pwd))
+            {
+                return $this->response->errorUnauthorized(trans('auth.phone_failed'));
+            }
             $token = auth()->login($user);
             return $this->respondWithToken($token , false);
         }
@@ -303,12 +310,13 @@ class AuthController extends BaseController
         }else{
             $src = 'unknown';
         }
+        $password = empty($password)?Uuid::uuid1()->toString():$password;
         $user_fields = array(
             'user_src'=>$src,
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>Uuid::uuid1(),
-            'user_pwd'=>encrypt(Uuid::uuid1()->toString())
+            'user_pwd'=>encrypt($password)
         );
         DB::beginTransaction();
         try{
