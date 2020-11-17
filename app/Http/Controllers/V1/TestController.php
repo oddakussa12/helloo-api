@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 
+use Illuminate\Queue\RedisQueue;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
 use Illuminate\Http\Request;

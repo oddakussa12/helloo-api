@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PyChat extends Model
 {
-    use Translatable,SoftDeletes;
+    use SoftDeletes;
 
     protected $table = "pychats";
 

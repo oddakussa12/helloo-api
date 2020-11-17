@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 
 class Region extends Model
 {
-    use Translatable;
 
     public $primaryKey = 'region_id';
 

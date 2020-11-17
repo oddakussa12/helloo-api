@@ -4,18 +4,16 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Jenssegers\Agent\Agent;
-use App\Traits\tag\HasTags;
 use App\Traits\CachablePost;
 use App\Traits\like\CanBeLiked;
 use App\Traits\dislike\CanBeDisliked;
-use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\favorite\CanBeFavorited;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
 {
-    use Translatable,CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,HasTags,CachablePost;
+    use CanBeLiked,CanBeDisliked,CanBeFavorited,SoftDeletes,CachablePost;
 
     public $currentLocale = 'en';
 

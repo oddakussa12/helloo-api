@@ -4,14 +4,13 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use App\Traits\like\CanBeLiked;
-use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\favorite\CanBeFavorited;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PostComment extends Model
 {
-    use Translatable,CanBeLiked,CanBeFavorited,SoftDeletes;
+    use CanBeLiked,CanBeFavorited,SoftDeletes;
 
     protected $table = "posts_comments";
 

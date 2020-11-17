@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Dimsav\Translatable\Translatable;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 
 class DatabaseNotification extends Model
 {
-    use Translatable;
     /**
      * Indicates if the IDs are auto-incrementing.
      *

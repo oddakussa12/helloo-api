@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
-use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RyRoomChat extends Model
 {
-    use Translatable,SoftDeletes;
+    use SoftDeletes;
 
     protected $table = "ry_rooms_chats";
 

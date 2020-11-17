@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\tag\HasSlug;
 use Spatie\EloquentSortable\Sortable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;

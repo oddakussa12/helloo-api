@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Dimsav\Translatable\Translatable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PyChatRoom extends Model
 {
