@@ -28,7 +28,7 @@ trait Update
         $phone = $user_phone_country.$user_phone;
         $password = strval($request->input('password'));
         $rules = [
-            'phone' => [
+            'user_phone' => [
                 'bail',
                 'required',
                 'string',
@@ -53,7 +53,7 @@ trait Update
         ];
         $validationField = array(
             'code' => $code,
-            'phone'=>$phone,
+            'user_phone'=>$phone,
             'password'=>$password,
         );
         Validator::make($validationField, $rules)->validate();
@@ -62,7 +62,7 @@ trait Update
         {
             abort(404 , 'Account does not exist!');
         }
-        $res = DB::table('users')->where($user->user_id)->update(
+        $res = DB::table('users')->where('user_id' , $user->user_id)->update(
             array('user_pwd'=>bcrypt($password))
         );
         if($res<=0)
@@ -147,6 +147,7 @@ trait Update
                 'bail',
                 'required',
                 'string',
+                'size:4',
                 function ($attribute, $value, $fail) use ($key){
                     if(!Redis::exists($key)||$value!=Redis::get($key))
                     {

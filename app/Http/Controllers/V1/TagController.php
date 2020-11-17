@@ -25,7 +25,13 @@ class TagController extends BaseController
 
     public function index()
     {
-        return TagCollection::collection($this->tag->all());
+        $locale = locale();
+        $locale = empty($locale)?'en':$locale;
+        $tags = collect(config("tags.{$locale}"));
+        $tags = $tags->map(function ($item, $key) {
+            return array('tag'=>$item);
+        });
+        return TagCollection::collection($tags);
     }
 
 //    public function user($userId)
