@@ -25,24 +25,37 @@ trait Update
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $code = strval($request->input('code' , ''));
+        $phone = $user_phone_country.$user_phone;
         $password = strval($request->input('password'));
-        $password_confirmation = strval($request->input('password_confirmation'));
         $rules = [
-            'code' => 'bail|required|string|size:4',
             'user_phone' => [
                 'bail',
                 'required',
                 'string',
                 new UserPhone()
             ],
-            'password' => 'bail|required|string|confirmed|min:6|max:16',
-            'password_confirmation' => 'bail|required|string|same:password',
+            'password' => 'bail|required|string|min:6|max:16',
+            'code' => [
+                'bail',
+                'required',
+                'string',
+                'size',
+                function ($attribute, $value, $fail) use ($phone){
+                    $key = 'helloo:account:service:account-reset-password-sms-code:'.$phone;
+                    $code = Redis::get($key);
+                    if($code===null||$code!=$value)
+                    {
+//                        $fail('sms error');
+                    }else{
+                        Redis::del($key);
+                    }
+                },
+            ],
         ];
         $validationField = array(
             'code' => $code,
-            'user_phone'=>$user_phone_country.$user_phone,
+            'user_phone'=>$phone,
             'password'=>$password,
-            'password_confirmation'=>$password_confirmation,
         );
         Validator::make($validationField, $rules)->validate();
         $user = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
@@ -50,13 +63,6 @@ trait Update
         {
             abort(404 , 'Account does not exist!');
         }
-        $key = 'helloo:account:service:account-reset-password-sms-code:'.$user_phone_country.$user_phone;
-        $userCode = strval(Redis::get($key));
-        if(empty($code)||empty($userCode)||$code!=$userCode)
-        {
-            abort(422 , 'Phone verification code error!');
-        }
-        Redis::del($key);
         $res = DB::table('users')->where($user->user_id)->update(
             array('user_pwd'=>bcrypt($password))
         );
@@ -176,7 +182,6 @@ trait Update
     public function updateMessages()
     {
         return [
-            'name.unique'=>'This account already exists'
         ];
     }
 
@@ -221,14 +226,34 @@ trait Update
             'user_avatar'=>[
                 'bail',
                 'filled',
-                'string'
+                'string',
+                Rule::in(array(
+                    'default_avatar_1.png',
+                    'default_avatar_2.png',
+                    'default_avatar_3.png',
+                    'default_avatar_4.png',
+                    'default_avatar_5.png',
+                    'default_avatar_6.png',
+                    'default_avatar_7.png',
+                    'default_avatar_8.png',
+                    'default_avatar_9.png',
+                    'default_avatar_10.png',
+                    'default_avatar_11.png',
+                    'default_avatar_12.png',
+                    'default_avatar_13.png',
+                    'default_avatar_14.png',
+                    'default_avatar_15.png',
+                    'default_avatar_16.png',
+                    'default_avatar_17.png',
+                    'default_avatar_18.png',
+                ))
             ],
             'user_pwd'=>[
                 'bail',
                 'filled',
                 'string',
                 'min:6',
-                'max:16'
+                'max:32'
             ],
         );
     }
@@ -254,8 +279,10 @@ trait Update
             $code = $this->getCode();
             $phone = new PhoneNumber($user_phone , $user_phone_country);
             $message = new ForgetPasswordMessage($code);
-            EasySms::dispatch($phone , $message)->onConnection('sqs')->onQueue('helloo_forget_pwd_sms');
+            EasySms::dispatch($phone , $message)->onConnection('redis')->onQueue('helloo_{forget_pwd_sms}');
+            return $code;
         }
+        return;
 
     }
 
@@ -285,7 +312,8 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new UpdatePhoneMessage($code);
-        EasySms::dispatch($phone , $message)->onConnection('sqs')->onQueue('helloo_update_phone_sms');
+        EasySms::dispatch($phone , $message)->onConnection('redis')->onQueue('helloo_{update_phone_sms}');
+        return $code;
     }
 
     public function sendSignInPhoneCode($request)
@@ -307,7 +335,8 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new SignInMessage($code);
-        EasySms::dispatch($phone , $message)->onConnection('sqs')->onQueue('helloo_sign_in_sms');
+        EasySms::dispatch($phone , $message)->onConnection('redis')->onQueue('helloo_{sign_in_sms}');
+        return $code;
     }
 
     public function activate(User $user ,$data)

@@ -136,7 +136,7 @@ class AuthController extends BaseController
         }
         $user = $this->user->find($user->getKey());
         $genderKey = 'helloo:account:service:account-gender';
-        $user->userGenderChanged = !(Redis::zscore($genderKey , $user->getKey())===null);
+        $user->userGenderChanged = Redis::zscore($genderKey , $user->getKey())===null;
         return new UserCollection($user);
     }
 
@@ -243,7 +243,7 @@ class AuthController extends BaseController
         $user->likedCount = intval(Redis::zscore($likedKey , $userId));
         $user->friendCount = 0;
         $genderKey = 'helloo:account:service:account-gender';
-        $user->userGenderChanged = !(Redis::zscore($genderKey , $userId)===null);
+        $user->userGenderChanged = Redis::zscore($genderKey , $userId)===null;
         return new UserCollection($user);
     }
 
@@ -276,10 +276,11 @@ class AuthController extends BaseController
                 function ($attribute, $value, $fail) use ($phone){
                     $key = 'helloo:account:service:account-sign-in-sms-code:'.$phone;
                     $code = Redis::get($key);
-                    Redis::del($key);
-                    if($code!=$value)
+                    if($code===null||$code!=$value)
                     {
 //                        $fail('sms error');
+                    }else{
+                        Redis::del($key);
                     }
                 },
             ]
@@ -385,8 +386,8 @@ class AuthController extends BaseController
 
     public function forgetPwdCode(Request $request)
     {
-        $this->sendForgetPwdPhoneCode($request);
-        return $this->response->noContent();
+        $code = $this->sendForgetPwdPhoneCode($request);
+        return $this->response->created(null ,array('code'=>$code));
     }
 
     public function password(Request $request)
@@ -397,14 +398,14 @@ class AuthController extends BaseController
 
     public function newPhoneCode(Request $request)
     {
-        $this->sendUpdatePhoneCode($request);
-        return $this->response->accepted();
+        $code = $this->sendUpdatePhoneCode($request);
+        return $this->response->created(null ,array('code'=>$code));
     }
 
     public function signInPhoneCode(Request $request)
     {
-        $this->sendSignInPhoneCode($request);
-        return $this->response->accepted();
+        $code = $this->sendSignInPhoneCode($request);
+        return $this->response->created(null , array('code'=>$code));
     }
 
     public function verifyAuthPassword(Request $request)

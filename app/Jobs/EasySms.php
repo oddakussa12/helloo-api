@@ -105,7 +105,7 @@ class EasySms implements ShouldQueue
         {
             $gateways = ['aliYunCustom'];
         }else{
-            $gateways = ['aliYunCustom'];
+            $gateways = ['yunXinCustom'];
         }
         try{
             $sms->send($this->phone, $this->message , $gateways);

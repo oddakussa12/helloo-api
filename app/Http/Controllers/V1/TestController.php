@@ -19,9 +19,9 @@ class TestController extends BaseController
     public function index()
     {
         $sms = app('easy-sms');
-        $number = new PhoneNumber(8617600128988);
+        $number = new PhoneNumber(7529908826 , 44);
         try{
-            $result = $sms->send($number, new SignInMessage(1234) , array('aws'));
+            $result = $sms->send($number, new SignInMessage(1234) , array('yunXinCustom'));
             \Log::error($result);
         }catch (NoGatewayAvailableException $e)
         {
