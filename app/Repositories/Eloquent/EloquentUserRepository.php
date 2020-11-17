@@ -340,11 +340,13 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-video-set';
         $sortSetKey = 'helloo:account:service:account-random-video-sort-set';
-//        Redis::sadd($setKey , $self);
+        $cancelSetKey = 'helloo:account:service:account-cancel-video-random:'.$self;
+        Redis::del($cancelSetKey);
         Redis::zadd($sortSetKey , time() , $self);
         Redis::sadd($imKey , $self);
         $turn = 1;
         $s = 600000;
+        $userId = 0;
         while (true)
         {
             usleep($s);
@@ -353,44 +355,34 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 $userId = 0;
                 break;
             }
-            $userId = $this->randRyVideoUser();
-//            $userId==$self&&Redis::sadd($setKey , $self);
+            if(!$this->isCancelVideoRandom($self))
+            {
+                $userId = intval($this->randRyVideoUser());
+            }
             if(!empty($userId)&&$userId!=$self)
             {
                 break;
             }
+
             $s = $s-50000;
             $turn++;
         }
         if($userId==0)
         {
-            Redis::sadd($setKey , $self);
+            !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
         }else{
-            $flag = true;
-            $roomId = md5($userId);
-            return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+            if($this->isCancelVoiceRandom($self))
+            {
+                $roomId = md5($self);
+                return array('flag'=>$flag , 'roomId'=>$roomId);
+            }else{
+                $flag = true;
+                $roomId = md5($userId);
+                return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+            }
         }
-//        $setKey = 'helloo:account:service:account-random-video-set';
-//        $count = Redis::scard($setKey);
-//        if($count>0)
-//        {
-//            $randomId = Redis::spop($setKey);
-//            if($count==1&&$randomId==$self)
-//            {
-//                Redis::sadd($setKey , $self);
-//                $roomId = md5($self);
-//                return array('flag'=>$flag , 'roomId'=>$roomId);
-//            }
-//            $roomId = md5($randomId);
-//            $flag = true;
-//            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
-//        }else{
-//            Redis::sadd($setKey , $self);
-//            $roomId = md5($self);
-//            return array('flag'=>$flag , 'roomId'=>$roomId);
-//        }
     }
 
     public function randomVoice($self)
@@ -399,11 +391,13 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-voice-set';
         $sortSetKey = 'helloo:account:service:account-random-video-sort-set';
-//        Redis::sadd($setKey , $self);
+        $cancelSetKey = 'helloo:account:service:account-cancel-voice-random:'.$self;
+        Redis::del($cancelSetKey);
         Redis::zadd($sortSetKey , time() , $self);
         Redis::sadd($imKey , $self);
         $turn = 1;
         $s = 600000;
+        $userId = 0;
         while (true)
         {
             usleep($s);
@@ -412,8 +406,10 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 $userId = 0;
                 break;
             }
-            $userId = $this->randRyVoiceUser();
-//            $userId==$self&&Redis::sadd($setKey , $self);
+            if(!$this->isCancelVoiceRandom($self))
+            {
+                $userId = intval($this->randRyVoiceUser());
+            }
             if(!empty($userId)&&$userId!=$self)
             {
                 break;
@@ -423,41 +419,27 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
         if($userId==0)
         {
-            Redis::sadd($setKey , $self);
+            !$this->isCancelVoiceRandom($self)&&Redis::sadd($setKey , $self);
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
         }else{
-            $flag = true;
-            $roomId = md5($userId);
-            return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+            if($this->isCancelVoiceRandom($self))
+            {
+                $roomId = md5($self);
+                return array('flag'=>$flag , 'roomId'=>$roomId);
+            }else{
+                $flag = true;
+                $roomId = md5($userId);
+                return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+            }
         }
-
-//        $flag = false;
-//        $setKey = 'helloo:account:service:account-random-voice-set';
-//        $self = auth()->id();
-//        $count = Redis::scard($setKey);
-//        if($count>0)
-//        {
-//            $randomId = Redis::spop($setKey);
-//            if($count==1&&$randomId==$self)
-//            {
-//                Redis::sadd($setKey , $self);
-//                $roomId = md5($self);
-//                return array('flag'=>$flag , 'roomId'=>$roomId);
-//            }
-//            $roomId = md5($randomId);
-//            $flag = true;
-//            return array('userId'=>$randomId , 'flag'=>$flag , 'roomId'=>$roomId);
-//        }else{
-//            Redis::sadd($setKey , $self);
-//            $roomId = md5($self);
-//            return array('flag'=>$flag , 'roomId'=>$roomId);
-//        }
     }
 
     public function removeVoice()
     {
         $self = auth()->id();
+        $cancelSetKey = 'helloo:account:service:account-cancel-voice-random:'.$self;
+        Redis::set($cancelSetKey, 1, "nx", "ex", 30);
         $setKey = 'helloo:account:service:account-random-voice-set';
         Redis::srem($setKey , $self);
     }
@@ -465,8 +447,22 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function removeVideo()
     {
         $self = auth()->id();
+        $cancelSetKey = 'helloo:account:service:account-cancel-video-random:'.$self;
+        Redis::set($cancelSetKey, 1, "nx", "ex", 30);
         $setKey = 'helloo:account:service:account-random-video-set';
         Redis::srem($setKey , $self);
+    }
+
+    public function isCancelVideoRandom($self)
+    {
+        $cancelSetKey = 'helloo:account:service:account-cancel-video-random:'.$self;
+        return Redis::exists($cancelSetKey);
+    }
+
+    public function isCancelVoiceRandom($self)
+    {
+        $cancelSetKey = 'helloo:account:service:account-cancel-voice-random:'.$self;
+        return Redis::exists($cancelSetKey);
     }
 
     public function updateUserOnlineState($users)
@@ -552,16 +548,16 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $likedKey = 'helloo:account:service:account-liked-num';
 //        $likeKey = 'helloo:account:service:account-like-num';
         $authId = auth()->id();
-        $like = DB::table('likes')->where('user_id' , $authId)->where('like_id' , $userId)->first();
+        $like = DB::table('likes')->where('user_id' , $authId)->where('liked_id' , $userId)->first();
         if(empty($like))
         {
             $liked = DB::table('users')->where('user_id' , $userId)->first();
             if(empty($liked))
             {
                 DB::table('likes')->insert(
-                    array('user_id'=>$authId , 'like_id'=>$userId)
+                    array('user_id'=>$authId , 'liked_id'=>$userId)
                 );
-                $likeNum = DB::table('likes')->where('like_id' , $userId)->count();
+                $likeNum = DB::table('likes')->where('liked_id' , $userId)->count();
                 Redis::zadd($likedKey , $likeNum , $userId);
             }
         }

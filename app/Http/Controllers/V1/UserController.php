@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 
 use App\Traits\CachableUser;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Resources\TagCollection;
 use App\Resources\UserCollection;
@@ -44,7 +45,7 @@ class UserController extends BaseController
             return $this->response->errorNotFound();
         }
         $user = $this->user->findOrFail($id);
-        $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('like_id' , $id)->first()):false;
+        $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('liked_id' , $id)->first()):false;
         $likedKey = 'helloo:account:service:account-liked-num';
         $user->likedCount = intval(Redis::zscore($likedKey , $id));
         $user->friendCount = 0;
@@ -157,16 +158,16 @@ class UserController extends BaseController
     public function like($userId)
     {
         $authId = auth()->id();
-        $like = DB::table('likes')->where('user_id' , $authId)->where('like_id' , $userId)->first();
-        if(empty($like))
+        $like = DB::table('likes')->where('user_id' , $authId)->where('liked_id' , $userId)->first();
+        if(empty($like)&&$authId!=$userId)
         {
             $liked = DB::table('users')->where('user_id' , $userId)->first();
-            if(empty($liked))
+            if(!empty($liked))
             {
                 DB::table('likes')->insert(
-                    array('user_id'=>$authId , 'like_id'=>$userId)
+                    array('user_id'=>$authId , 'liked_id'=>$userId , 'created_at'=>Carbon::now()->toDateTimeString())
                 );
-                $count = intval(DB::table('users')->where('like_id' , $userId)->count());
+                $count = intval(DB::table('likes')->where('liked_id' , $userId)->count());
                 $likedKey = 'helloo:account:service:account-liked-num';
                 Redis::zadd($likedKey , $count , $userId);
             }
