@@ -28,6 +28,7 @@ class TagController extends BaseController
         $locale = locale();
         $locale = empty($locale)?'en':$locale;
         $tags = collect(config("tags.{$locale}"));
+        $tags = $tags->isEmpty()?collect(config("tags.en")):$tags;
         $tags = $tags->map(function ($item, $key) {
             return array('tag'=>$item);
         });
