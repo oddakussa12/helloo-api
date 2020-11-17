@@ -28,7 +28,7 @@ trait Update
         $phone = $user_phone_country.$user_phone;
         $password = strval($request->input('password'));
         $rules = [
-            'user_phone' => [
+            'phone' => [
                 'bail',
                 'required',
                 'string',
@@ -39,7 +39,6 @@ trait Update
                 'bail',
                 'required',
                 'string',
-                'size',
                 function ($attribute, $value, $fail) use ($phone){
                     $key = 'helloo:account:service:account-reset-password-sms-code:'.$phone;
                     $code = Redis::get($key);
@@ -54,7 +53,7 @@ trait Update
         ];
         $validationField = array(
             'code' => $code,
-            'user_phone'=>$phone,
+            'phone'=>$phone,
             'password'=>$password,
         );
         Validator::make($validationField, $rules)->validate();
@@ -148,7 +147,6 @@ trait Update
                 'bail',
                 'required',
                 'string',
-                'size:4',
                 function ($attribute, $value, $fail) use ($key){
                     if(!Redis::exists($key)||$value!=Redis::get($key))
                     {
