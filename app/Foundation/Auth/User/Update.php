@@ -265,13 +265,13 @@ trait Update
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $key = 'helloo:account:service:account-reset-password-sms-code:'.$user_phone_country.$user_phone;
         $rule = [
-            'user_phone' => [
+            'phone' => [
                 'bail',
                 'required',
                 new UserPhone(),
             ]
         ];
-        $validationField = array('user_phone'=>$user_phone_country.$user_phone);
+        $validationField = array('phone'=>$user_phone_country.$user_phone);
         Validator::make($validationField, $rule)->validate();
         $userPhone = DB::table('users_phones')->where("user_phone_country" , $user_phone_country)->where("user_phone" , $user_phone)->first();
         if(!blank($userPhone))

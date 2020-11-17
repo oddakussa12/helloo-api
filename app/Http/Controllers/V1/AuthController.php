@@ -254,7 +254,7 @@ class AuthController extends BaseController
 
     public function handleSignIn(Request $request)
     {
-        $password = strval($request->input('password' , ""));
+//        $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $code = strval($request->input('code' , ''));
@@ -262,7 +262,7 @@ class AuthController extends BaseController
         $validationField = array(
             'user_phone'=>$phone,
             'code'=> $code,
-            'password'=> $password,
+//            'password'=> $password,
         );
         $rule = [
             'user_phone' => [
@@ -271,7 +271,7 @@ class AuthController extends BaseController
                 'required',
                 new UserPhone()
             ],
-            'password' => 'bail|required|string|min:6|max:16',
+//            'password' => 'bail|required|string|min:6|max:16',
             'code' => [
                 'bail',
                 'string',
@@ -293,10 +293,10 @@ class AuthController extends BaseController
         if(!empty($phone))
         {
             $user = $this->user->find($phone->user_id);
-            if(!config('common.is_verification')||!password_verify($password, $user->user_pwd))
-            {
-                return $this->response->errorUnauthorized(trans('auth.phone_failed'));
-            }
+//            if(!config('common.is_verification')||!password_verify($password, $user->user_pwd))
+//            {
+//                return $this->response->errorUnauthorized(trans('auth.phone_failed'));
+//            }
             $token = auth()->login($user);
             return $this->respondWithToken($token , false);
         }
