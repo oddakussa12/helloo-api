@@ -94,7 +94,7 @@ class EasySms implements ShouldQueue
         $id = DB::table('short_messages')->insertGetId(
             array(
                 'gateways'=>\json_encode($gateways),
-                'phone'=>$phone,
+                'phone'=>ltrim($phone , "+"),
                 'code'=>$code ,
                 'created_at'=>$now,
                 'updated_at'=>$now,

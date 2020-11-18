@@ -51,6 +51,7 @@ class UpdatePhoneMessage extends Message
 
     public function afterSend($phone , $code='')
     {
+        $phone = ltrim($phone , '+');
         $code = empty($code)?$this->code:$code;
         $key = 'helloo:account:service:account-update-phone-sms-code:'.$phone;
         Redis::set($key, $code);

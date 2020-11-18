@@ -49,6 +49,7 @@ class ForgetPasswordMessage extends Message
 
     public function afterSend($phone , $code='')
     {
+        $phone = ltrim($phone , '+');
         $code = empty($code)?$this->code:$code;
         $key = $key = 'helloo:account:service:account-reset-password-sms-code:'.$phone;
         Redis::set($key, $code);
