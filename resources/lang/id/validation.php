@@ -141,6 +141,9 @@ return [
         'email' => [
             'unique' => 'Kotak surat ini telah terdaftar, silakan masuk!',
         ],
+        'code' =>[
+            'error' => 'Verification code error!'
+        ]
     ],
 
     /*

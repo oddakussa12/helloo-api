@@ -282,7 +282,7 @@ class AuthController extends BaseController
                     $code = Redis::get($key);
                     if($code===null||$code!=$value)
                     {
-                        config('common.is_verification')&&$fail('sms error');
+                        config('common.is_verification')&&$fail(trans('validation.custom.code.error'));
                     }else{
                         Redis::del($key);
                     }

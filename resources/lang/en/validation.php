@@ -114,6 +114,9 @@ return [
         'email' => [
             'unique' => 'This mailbox has been registered, please log in!',
         ],
+        'code' =>[
+            'error' => 'Verification code error!'
+        ]
     ],
 
     /*
