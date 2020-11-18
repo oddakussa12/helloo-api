@@ -18,7 +18,7 @@ class AnswerController extends BaseController
         if($user->user_activation==1&&$user->user_answer==0)
         {
             $userId = $user->user_id;
-            $answers = (array)$request->input('answers');
+            $answers = (array)$request->all();
             $answers = array_filter($answers , function($v , $k){
                 return !blank($k)&&in_array($v , array(0, 1))&&in_array($k , array("one" , 'two' , 'three' , 'four' , 'five' , 'six'));
             } , ARRAY_FILTER_USE_BOTH);
