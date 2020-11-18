@@ -3,19 +3,11 @@
 namespace App\Jobs;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
-use SmsManager;
-use Aws\Sns\SnsClient;
-use App\Custom\Anonymous;
 use Illuminate\Bus\Queueable;
-use App\Messages\SignInMessage;
-use Aws\Exception\AwsException;
-use Aws\Credentials\Credentials;
 use Illuminate\Support\Facades\DB;
-use App\Custom\EasySms\PhoneNumber;
+use Illuminate\Support\Facades\Log;
 use libphonenumber\PhoneNumberUtil;
 use Illuminate\Queue\SerializesModels;
-use App\Messages\ForgetPasswordMessage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -93,20 +85,21 @@ class EasySms implements ShouldQueue
             $message = $this->message;
             $code = $message['code'];
         }
-        $id = DB::table('short_messages')->insertGetId(
-            array(
-                'phone'=>$phone,
-                'code'=>$code ,
-                'created_at'=>$now,
-                'updated_at'=>$now,
-            )
-        );
         if($phoneCountry==86)
         {
             $gateways = ['aliYunCustom'];
         }else{
             $gateways = ['yunXinCustom'];
         }
+        $id = DB::table('short_messages')->insertGetId(
+            array(
+                'gateways'=>\json_encode($gateways),
+                'phone'=>$phone,
+                'code'=>$code ,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            )
+        );
         try{
             $sms->send($this->phone, $this->message , $gateways);
             if($this->message instanceof MessageInterface&&method_exists($this->message , 'afterSend'))
@@ -124,7 +117,7 @@ class EasySms implements ShouldQueue
             {
                 $messages[$gateway] = $exception->getMessage();
             }
-            \Log::error(\json_encode($messages , JSON_UNESCAPED_UNICODE));
+            Log::error(\json_encode($messages , JSON_UNESCAPED_UNICODE));
         }
         DB::table('short_messages')->where('id' , $id)->update(
             array('message'=>\json_encode($messages , JSON_UNESCAPED_UNICODE) , 'status'=>$result)

@@ -39,6 +39,7 @@ trait Update
                 'bail',
                 'required',
                 'string',
+                'size:4',
                 function ($attribute, $value, $fail) use ($phone){
                     $key = 'helloo:account:service:account-reset-password-sms-code:'.$phone;
                     $code = Redis::get($key);
@@ -67,7 +68,7 @@ trait Update
         );
         if($res<=0)
         {
-            \Log::error("用户{$user->user_id}密码{$password}更新失败！");
+            Log::error("用户{$user->user_id}密码{$password}更新失败！");
         }
     }
 

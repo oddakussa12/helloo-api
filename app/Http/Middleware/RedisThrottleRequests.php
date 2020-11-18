@@ -13,14 +13,6 @@ class RedisThrottleRequests extends Throttle
 
     public function handle($request, Closure $next, $maxAttempts = 1, $decayMinutes = 1)
     {
-        if ($user = $this->getAuth($request)) {
-            $userId = $user->getAuthIdentifier();
-            $officialKey = config('common.official_user_id');
-            if(Redis::exists($officialKey)&&Redis::sismember($officialKey , $userId))
-            {
-                return $next($request);
-            }
-        }
         $decaySeconds = ceil(intval($decayMinutes*60));
 
         $key = $this->resolveRequestSignature($request);

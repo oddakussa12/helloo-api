@@ -25,7 +25,7 @@ $V1Params = [
 
 $api->group($V1Params , function ($api){
 
-    $api->group(['middleware'=>['repeatedSubmit' , 'redisThrottle:'.config('common.forget_password_throttle_num').','.config('common.forget_password_throttle_expired')]] , function ($api){
+    $api->group(['middleware'=>['repeatedSubmit' , 'redisThrottle:'.config('common.forget_password_phone_throttle_num').','.config('common.forget_password_phone_throttle_num')]] , function ($api){
         $api->post('user/forgetPwd' , 'AuthController@forgetPwdCode')->name('user.forget.pwd');
     });
 

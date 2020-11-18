@@ -276,6 +276,7 @@ class AuthController extends BaseController
                 'bail',
                 'string',
                 'required',
+                'size:4',
                 function ($attribute, $value, $fail) use ($phone){
                     $key = 'helloo:account:service:account-sign-in-sms-code:'.$phone;
                     $code = Redis::get($key);
@@ -395,7 +396,7 @@ class AuthController extends BaseController
     public function forgetPwdCode(Request $request)
     {
         $code = $this->sendForgetPwdPhoneCode($request);
-        return $this->response->created(null ,array('code'=>$code));
+        return $this->response->created();
     }
 
     public function password(Request $request)
@@ -407,13 +408,13 @@ class AuthController extends BaseController
     public function newPhoneCode(Request $request)
     {
         $code = $this->sendUpdatePhoneCode($request);
-        return $this->response->created(null ,array('code'=>$code));
+        return $this->response->created();
     }
 
     public function signInPhoneCode(Request $request)
     {
         $code = $this->sendSignInPhoneCode($request);
-        return $this->response->created(null , array('code'=>$code));
+        return $this->response->created();
     }
 
     public function verifyAuthPassword(Request $request)
