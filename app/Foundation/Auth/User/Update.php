@@ -332,6 +332,11 @@ trait Update
             ],
         ];
         Validator::make($validationField, $rule)->validate();
+        $phone = DB::table('users_phones')->where('user_phone_country', $user_phone_country)->where('user_phone', $user_phone)->first();
+        if(!blank($phone))
+        {
+            return;
+        }
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new SignInMessage($code);
