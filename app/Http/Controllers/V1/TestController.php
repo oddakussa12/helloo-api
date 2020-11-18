@@ -37,7 +37,7 @@ class TestController extends BaseController
         $period = 1000;
         $key = "test_{test}";
         $this->now = $now = millisecond();   # 毫秒时间戳
-        $redis = Redis::connection('single');
+        $redis = Redis::connection();
         $redis->multi(); //使用管道提升性能
         $redis->zadd($key, $now, $now); //value 和 score 都使用毫秒时间戳
         $redis->zremrangebyscore($key, 0, $now - $period * 1000); //移除时间窗口之前的行为记录，剩下的都是时间窗口内的
