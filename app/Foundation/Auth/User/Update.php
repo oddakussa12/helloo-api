@@ -68,7 +68,7 @@ trait Update
         );
         if($res<=0)
         {
-            Log::error("用户{$user->user_id}密码{$password}更新失败！");
+            Log::error("user {$user->user_id} password {$password} update fail！");
         }
     }
 

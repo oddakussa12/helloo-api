@@ -85,7 +85,6 @@ class AuthController extends BaseController
 
     public function fill(Request $request)
     {
-        \Log::error($request->all());
         $fields = array();
         $user = auth()->user();
 //        $country_code = strtolower(strval($request->input('country_code')));
@@ -97,7 +96,7 @@ class AuthController extends BaseController
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
         if(!empty($password)&&empty($user->getAuthPassword()))
         {
-            $fields['user_pwd'] = bcrypt($password);
+            $fields['user_pwd'] = $password;
         }
         if(!empty($user_birthday)&&$user->user_birthday=="1900-01-01")
         {
@@ -132,6 +131,7 @@ class AuthController extends BaseController
             Validator::make($fields, $this->updateRules())->validate();
             if($user->user_birthday=="1900-01-01"||$user->user_avatar=='default_avatar.jpg'||$user->user_gender==-1||empty($user->user_nick_name)||empty($user->getAuthPassword()))
             {
+                $fields['user_pwd'] = bcrypt($fields['user_pwd']);
                 $this->activate($user , $fields);
             }
         }
