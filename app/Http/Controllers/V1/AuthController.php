@@ -85,7 +85,6 @@ class AuthController extends BaseController
 
     public function fill(Request $request)
     {
-        \Log::error($request->all());
         $fields = array();
         $user = auth()->user();
 //        $country_code = strtolower(strval($request->input('country_code')));
@@ -312,13 +311,13 @@ class AuthController extends BaseController
         }else{
             $src = 'unknown';
         }
-        $password = empty($password)?Uuid::uuid1()->toString():$password;
+//        $password = empty($password)?Uuid::uuid1()->toString():$password;
         $user_fields = array(
             'user_src'=>$src,
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>Uuid::uuid1(),
-            'user_pwd'=>encrypt($password)
+//            'user_pwd'=>encrypt($password)
         );
         DB::beginTransaction();
         try{
