@@ -380,6 +380,11 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             }else{
                 $flag = true;
                 $roomId = md5($userId);
+                $data = array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+                if(!$this->official($userId))
+                {
+                    $data['official'] = 'Bingo！🎉 You have been matched with a Helloo Star.';
+                }
                 return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
             }
         }
@@ -670,6 +675,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
         }
         return false;
+    }
+
+    public function official($userId)
+    {
+        $sekKey = 'helloo:account:service:account-official';
+        return boolval(Redis::sismember($sekKey , $userId));
     }
 
 
