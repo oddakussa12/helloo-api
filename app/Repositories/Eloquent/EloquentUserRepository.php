@@ -389,9 +389,9 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                         $text = "Selamat ! Anda telah dipertemukan dengan Artis Helloo";
                     }elseif($locale=='zh-CN')
                     {
-                        $text = 'Bingo！🎉 You have been matched with a Helloo Star.';
-                    }else{
                         $text = '恭喜您匹配到了Helloo Star.';
+                    }else{
+                        $text = 'Bingo！🎉 You have been matched with a Helloo Star.';
                     }
                     $data['official'] = $text;
                 }
