@@ -85,6 +85,7 @@ class AuthController extends BaseController
 
     public function fill(Request $request)
     {
+        \Log::error($request->all());
         $fields = array();
         $user = auth()->user();
 //        $country_code = strtolower(strval($request->input('country_code')));

@@ -252,8 +252,8 @@ trait Update
                 'bail',
                 'filled',
                 'string',
-                'min:6',
-                'max:32'
+//                'min:6',
+//                'max:32'
             ],
         );
     }
