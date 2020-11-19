@@ -254,6 +254,7 @@ class AuthController extends BaseController
 
     public function handleSignIn(Request $request)
     {
+        \Log::error($request->all());
 //        $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
