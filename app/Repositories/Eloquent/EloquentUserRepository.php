@@ -395,7 +395,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $flag = false;
         $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-voice-set';
-        $sortSetKey = 'helloo:account:service:account-random-video-sort-set';
+        $sortSetKey = 'helloo:account:service:account-random-voice-sort-set';
         $cancelSetKey = 'helloo:account:service:account-cancel-voice-random:'.$self;
         Redis::del($cancelSetKey);
         Redis::zadd($sortSetKey , time() , $self);
