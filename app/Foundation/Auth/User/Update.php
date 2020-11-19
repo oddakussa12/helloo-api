@@ -252,6 +252,7 @@ trait Update
                 'bail',
                 'filled',
                 'string',
+                'between:6,32'
 //                'min:6',
 //                'max:32'
             ],
