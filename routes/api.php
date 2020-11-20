@@ -40,15 +40,14 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
-
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
             $api->get('user/im/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
             $api->get('user/voice/random' , 'UserController@randomVoice')->name('user.voice.random');
-            $api->delete('user/voice/random' , 'UserController@removeVoice')->name('user.voice.random.delete');
             $api->get('user/video/random' , 'UserController@randomVideo')->name('user.video.random');
-            $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
             $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
         });
+        $api->delete('user/voice/random' , 'UserController@removeVoice')->name('user.voice.random.delete');
+        $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
 
         /*****报告 开始*****/
         $api->resource('answer', 'AnswerController',['only' => ['store']]);

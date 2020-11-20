@@ -454,7 +454,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         $self = auth()->id();
         $cancelSetKey = 'helloo:account:service:account-cancel-voice-random:'.$self;
-        Redis::set($cancelSetKey, 1, "nx", "ex", 30);
+        Redis::set($cancelSetKey, 1, "nx", "ex", 6);
         $setKey = 'helloo:account:service:account-random-voice-set';
         Redis::srem($setKey , $self);
     }
@@ -463,7 +463,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         $self = auth()->id();
         $cancelSetKey = 'helloo:account:service:account-cancel-video-random:'.$self;
-        Redis::set($cancelSetKey, 1, "nx", "ex", 30);
+        Redis::set($cancelSetKey, 1, "nx", "ex", 6);
         $setKey = 'helloo:account:service:account-random-video-set';
         Redis::srem($setKey , $self);
     }
