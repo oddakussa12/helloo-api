@@ -373,7 +373,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
         }else{
-            if($this->isCancelVoiceRandom($self))
+            if($this->isCancelVideoRandom($self))
             {
                 $roomId = md5($self);
                 return array('flag'=>$flag , 'roomId'=>$roomId);
