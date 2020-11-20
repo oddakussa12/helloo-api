@@ -48,7 +48,7 @@ class RemoveRandomUser extends Command
     public function removeVoice()
     {
         $now = Carbon::now();
-        $ago = $now->subSeconds(30);
+        $ago = $now->subSeconds(25);
         $voiceSetKey = 'helloo:account:service:account-random-voice-set';
         $voiceSortSetKey = 'helloo:account:service:account-random-voice-sort-set';
         $perPage = 100;
@@ -73,7 +73,7 @@ class RemoveRandomUser extends Command
     public function removeVideo()
     {
         $now = Carbon::now();
-        $ago = $now->subSeconds(30);
+        $ago = $now->subSeconds(25);
         $videoSetKey = 'helloo:account:service:account-random-video-set';
         $videoSortSetKey = 'helloo:account:service:account-random-video-sort-set';
         $perPage = 100;

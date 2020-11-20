@@ -93,7 +93,6 @@ class RyOnline implements ShouldQueue
         $setVideoKey = 'helloo:account:service:account-random-video-set';
         $setMaleVideoKey = 'helloo:account:service:account-random-male-video-set';
         $setFemaleVideoKey = 'helloo:account:service:account-random-female-video-set';
-        \Log::error($offlineUserIds);
         if(!blank($offlineUserIds))
         {
             Redis::srem($key , $offlineUserIds);
