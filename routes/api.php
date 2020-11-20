@@ -123,6 +123,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
 
+    $api->get('app/index' , 'AppController@index')->name('app.index');
+
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/index' , 'TestController@index')->name('test.index');

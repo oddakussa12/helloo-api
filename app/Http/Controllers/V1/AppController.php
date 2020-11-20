@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\App;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 
 class AppController extends BaseController
@@ -13,39 +14,36 @@ class AppController extends BaseController
 
     public function index(Request $request)
     {
+        $agent = new Agent();
+        $version = strval($request->input('version' , $agent->getHttpHeader('HellooVersion')));
         $params = $request->only('platform' , 'version' , 'time_stamp');
-        $signature = strtolower(strval($request->input('signature')));
-        if(!empty($signature))
+        $platform = strtolower(strval($params['platform']??''));
+        $platform = in_array($platform , array('ios' , 'android'))?$platform:'android';
+        $app = $this->getFirstApp();
+        $platform = $app[$platform];
+        if(empty($platform))
         {
-            $app_signature = app_signature($params);
-            if($signature==$app_signature)
-            {
-                $app = $this->getFirstApp();
-                $platform = $app[$params['platform']];
-                $platform->isUpgrade = version_compare($params['version'] , $platform['version'] , '<');
-                return $this->response->array($platform);
-            }
+            return $this->response->noContent();
         }
-        return $this->response->noContent();
+        $platform['isUpgrade'] = version_compare($version , $platform['version'] , '<');
+        return $this->response->array($platform);
     }
 
     public function getFirstApp()
     {
-        $ios = 0;
-        $android = 1;
-        return Cache::rememberForever('lastVersionApp' , function() use ($ios , $android){
-            $app = new App();
-            $ios_app = $app->where('platform' , $ios)->orderBy('id' , 'DESC')->first();
-            $android_app = $app->where('platform' , $android)->orderBy('id' , 'DESC')->first();
-            return array($ios_app , $android_app);
-        });
-    }
-
-    public function clearCache(Request $request)
-    {
-        Cache::forget('lastVersionApp');
-        $this->getFirstApp();
-        return $this->response->noContent();
+        $lastVersion = 'helloo:app:service:last-version';
+        if(Redis::exists($lastVersion))
+        {
+            return \json_decode(Redis::get($lastVersion) , true);
+        }
+        $ios = 'ios';
+        $android = 'android';
+        $app = new App();
+        $ios_app = collect($app->where('platform' , $ios)->orderBy('id' , 'DESC')->first())->toArray();
+        $android_app = collect($app->where('platform' , $android)->orderBy('id' , 'DESC')->first())->toArray();
+        $data = array('ios'=>$ios_app , 'android'=>$android_app);
+        Redis::set($lastVersion , json_encode($data));
+        return $data;
     }
 
     public function mode($model)

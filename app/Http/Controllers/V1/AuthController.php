@@ -57,9 +57,9 @@ class AuthController extends BaseController
         ];
         try{
             Validator::make($validationField, $rule)->validate();
-        }catch (ValidationException $e)
+        }catch (ValidationException $exception)
         {
-            throw new ValidationException($e->validator);
+            throw new ValidationException($exception->validator);
         }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($phone))
@@ -439,7 +439,7 @@ class AuthController extends BaseController
                 }
             ],
         );
-        \Validator::make($validationField, $rule)->validate();
+        Validator::make($validationField, $rule)->validate();
         return $this->response->noContent();
     }
 

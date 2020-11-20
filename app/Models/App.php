@@ -22,4 +22,15 @@ class App extends Model
         // Do nothing.
     }
 
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'id',
+        'status',
+        'type',
+    ];
+
 }
