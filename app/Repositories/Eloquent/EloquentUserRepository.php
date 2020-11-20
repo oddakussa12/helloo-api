@@ -482,6 +482,8 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function updateUserOnlineState($users)
     {
+        \Log::error($users);
+        \Log::error(1);
         RyOnline::dispatch($users)->onConnection('sqs-fifo')->onQueue('helloo_ry_user_online.fifo');
     }
 
