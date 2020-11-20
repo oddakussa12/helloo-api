@@ -358,6 +358,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             if(!$this->isCancelVideoRandom($self))
             {
                 $userId = intval($this->randRyVideoUser());
+                $userId = $this->isCancelVideoRandom($userId)?0:$userId;
             }
             if(!empty($userId)&&$userId!=$self)
             {
@@ -424,6 +425,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             if(!$this->isCancelVoiceRandom($self))
             {
                 $userId = intval($this->randRyVoiceUser());
+                $userId = $this->isCancelVoiceRandom($userId)?0:$userId;
             }
             if(!empty($userId)&&$userId!=$self)
             {
