@@ -396,7 +396,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     }
                     $data['official'] = $text;
                 }
-                return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+                return $data;
             }
         }
     }

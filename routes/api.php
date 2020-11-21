@@ -124,6 +124,7 @@ $api->group($V1Params , function ($api){
 
     $api->get('app/index' , 'AppController@index')->name('app.index');
 
+    $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/index' , 'TestController@index')->name('test.index');
