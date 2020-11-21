@@ -89,7 +89,7 @@ class EasySms implements ShouldQueue
         {
             $gateways = ['aliYunCustom'];
         }else{
-            $gateways = ['yunXinCustom'];
+            $gateways = ['aws'];
         }
         $id = DB::table('short_messages')->insertGetId(
             array(

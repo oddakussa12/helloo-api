@@ -71,7 +71,7 @@ class YunxinCustomGateway extends Gateway
 
         try {
             $result = $this->post($endpoint, $params, $headers);
-            \Log::error($result);
+
             if (!isset($result['code']) || self::SUCCESS_CODE !== $result['code']) {
                 $code = isset($result['code']) ? $result['code'] : 0;
                 $error = isset($result['msg']) ? $result['msg'] : json_encode($result, JSON_UNESCAPED_UNICODE);
