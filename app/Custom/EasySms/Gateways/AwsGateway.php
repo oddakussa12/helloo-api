@@ -46,11 +46,15 @@ class AwsGateway extends Gateway
         ]);
         $message = $message->getContent();
         $phone = $to->getPrefixedIDDCode().$to->getNumber();
+        \Log::error($phone);
+        \Log::error($message);
         try {
-            return $smsClient->publish([
+            $result = $smsClient->publish([
                 'Message' => $message,
                 'PhoneNumber' => $phone,
             ]);
+            \Log::error($result);
+            return $result;
         } catch (AwsException $e) {
             throw new GatewayErrorException($e->getMessage(), $e->getCode());
         }
