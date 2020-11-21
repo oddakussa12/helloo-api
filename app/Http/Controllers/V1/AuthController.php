@@ -131,7 +131,7 @@ class AuthController extends BaseController
             Validator::make($fields, $this->updateRules())->validate();
             if($user->user_birthday=="1900-01-01"||$user->user_avatar=='default_avatar.jpg'||$user->user_gender==-1||empty($user->user_nick_name)||empty($user->getAuthPassword()))
             {
-                $fields['user_pwd'] = bcrypt($fields['user_pwd']);
+                isset($fields['user_pwd'])&&$fields['user_pwd'] = bcrypt($fields['user_pwd']);
                 $this->activate($user , $fields);
             }
         }
