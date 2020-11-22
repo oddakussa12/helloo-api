@@ -25,6 +25,8 @@ class RongCloudServiceProvider extends ServiceProvider
     {
         $this->app->bind('rcloud', function ($app) {
             $config = $app->config->get('latrell-rcloud');
+            \Log::error($config);
+            \Log::error($config);
             $server_url = array_random($config['server_url']);
             return new RongCloud($config['app_key'] , $config['app_secret'] , $server_url);
         });
