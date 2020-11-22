@@ -77,4 +77,5 @@ return [
     'prohibited_content'=>env('PROHIBITED_CONTENT' , ''),
     'prohibited_default_uuid'=>env('PROHIBITED_DEFAULT_UUID' , ''),
     'is_verification' =>env('IS_VERIFICATION' , true),
+    'global_sms' =>env('GLOBAL_SMS' , 'yunXinCustom'),
 ];
