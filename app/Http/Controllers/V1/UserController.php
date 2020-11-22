@@ -142,7 +142,7 @@ class UserController extends BaseController
         $userId = intval(auth()->id());
         $data = range(61 , 108);
         $data = array_diff($data , [$userId]);
-//        array_push($data , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8);//test
+        array_push($data , 1 , 2);//test
         $users = $this->user->findByMany($data);
         $total = $this->user->onlineUsersCount();
         $users = UserCollection::collection($users)->additional(array(
