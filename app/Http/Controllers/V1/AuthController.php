@@ -253,6 +253,88 @@ class AuthController extends BaseController
         return 'name';
     }
 
+    public function phoneSignUp(Request $request)
+    {
+        $password = strval($request->input('password' , ""));
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+//        $code = strval($request->input('code' , ''));
+        $phone = $user_phone_country.$user_phone;
+        $validationField = array(
+            'user_phone'=>$phone,
+//            'code'=> $code,
+            'password'=> $password,
+        );
+        $rule = [
+            'user_phone' => [
+                'bail',
+                'string',
+                'required',
+                new UserPhone()
+            ],
+            'password' => 'bail|required|string|min:6|max:16',
+//            'code' => [
+//                'bail',
+//                'string',
+//                'required',
+//                'size:4',
+//                function ($attribute, $value, $fail) use ($phone){
+//                    $key = 'helloo:account:service:account-sign-in-sms-code:'.$phone;
+//                    $code = Redis::get($key);
+//                    if($code===null||$code!=$value)
+//                    {
+//                        config('common.is_verification')&&$fail(trans('validation.custom.code.error'));
+//                    }else{
+//                        Redis::del($key);
+//                    }
+//                },
+//            ]
+        ];
+        Validator::make($validationField, $rule)->validate();
+        $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
+        if(!empty($phone))
+        {
+            abort(422 , 'You are already registered, please log in！');
+        }
+        $now = Carbon::now()->toDateTimeString();
+        $agent = new Agent();
+        if($agent->match('HellooAndroid'))
+        {
+            $src = 'android';
+        }elseif($agent->match('HellooiOS')){
+            $src = 'ios';
+        }else{
+            $src = 'unknown';
+        }
+        $password = empty($password)?Uuid::uuid1()->toString():$password;
+        $user_fields = array(
+            'user_src'=>$src,
+            'user_created_at'=>$now,
+            'user_updated_at'=>$now,
+            'user_uuid'=>Uuid::uuid1(),
+            'user_pwd'=>encrypt($password)
+        );
+        DB::beginTransaction();
+        try{
+            $userId = DB::table('users')->insertGetId($user_fields);
+            DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
+            DB::commit();
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            throw new StoreResourceFailedException('sign up failed');
+        }
+        $user = $this->user->find($userId);
+        $addresses = getRequestIpAddress();
+        event(new SignupEvent($user , $addresses , array(
+            'user_phone'=>$user_phone,
+            'user_phone_country'=>$user_phone_country,
+        )));
+        $token = auth()->login($user);
+        return $this->respondWithToken($token , false);
+    }
+
     public function handleSignIn(Request $request)
     {
 //        $password = strval($request->input('password' , ""));

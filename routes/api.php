@@ -33,6 +33,7 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/phone/signIn' , 'AuthController@signIn')->name('sign.in');
     $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
+    $api->post('user/phone/signUp' , 'AuthController@phoneSignUp')->name('user.phone.sign.up');
     $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired')]] , function ($api){
         $api->post('user/phone/code' , 'AuthController@signInPhoneCode')->name('sign.in.phone.code');
     });
