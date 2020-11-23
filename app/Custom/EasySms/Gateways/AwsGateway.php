@@ -47,11 +47,13 @@ class AwsGateway extends Gateway
         $message = $message->getContent();
         $phone = $to->getPrefixedIDDCode().$to->getNumber();
         try {
-            return $smsClient->publish([
+            $result = $smsClient->publish([
                 'Message' => $message,
                 'PhoneNumber' => $phone,
                 'AWS.SNS.SMS.SenderID' =>'Helloo'
             ]);
+            \Log::error($result);
+            return $result;
         } catch (AwsException $e) {
             throw new GatewayErrorException($e->getMessage(), $e->getCode());
         }
