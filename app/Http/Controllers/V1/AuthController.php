@@ -312,7 +312,7 @@ class AuthController extends BaseController
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>Uuid::uuid1(),
-            'user_pwd'=>encrypt($password)
+            'user_pwd'=>bcrypt($password)
         );
         DB::beginTransaction();
         try{
