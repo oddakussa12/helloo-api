@@ -46,6 +46,10 @@ class AwsGateway extends Gateway
         ]);
         $message = $message->getContent();
         $phone = $to->getPrefixedIDDCode().$to->getNumber();
+        \Log::error($awsKey);
+        \Log::error($awsSecret);
+        \Log::error($message);
+        \Log::error($phone);
         try {
             $result = $smsClient->publish([
                 'Message' => $message,
