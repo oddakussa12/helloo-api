@@ -382,7 +382,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 $flag = true;
                 $roomId = md5($userId);
                 $data = array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
-                if(!$this->official($userId))
+                if($this->official($userId))
                 {
                     $locale = locale();
                     if($locale=='id')
