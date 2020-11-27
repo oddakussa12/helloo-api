@@ -752,8 +752,8 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function official($userId)
     {
-        $sekKey = 'helloo:account:service:account-official';
-        return boolval(Redis::sismember($sekKey , $userId));
+        $key = 'helloo:account:service:account-official';
+        return boolval(Redis::zrank($key , $userId)!==null);
     }
 
 
