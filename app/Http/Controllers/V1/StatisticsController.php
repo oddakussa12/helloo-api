@@ -12,6 +12,7 @@ class StatisticsController extends BaseController
 
     public function duration(Request $request)
     {
+        \Log::error($request->all());
         $time = floatval($request->input('time' , 0));
         $target = intval($request->input('target_id' , 0));
         $status = strval($request->input('status' , 0));//initiative  passive  abnormal
