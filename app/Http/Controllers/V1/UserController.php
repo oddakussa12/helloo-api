@@ -138,15 +138,12 @@ class UserController extends BaseController
     public function planet()
     {
         $data = $this->user->planet();
-        $data = array_unique($data);
         $userId = intval(auth()->id());
-        $data = range(61 , 108);
         $data = array_diff($data , [$userId]);
-        array_push($data , 1 , 2);//test
         $users = $this->user->findByMany($data);
         $total = $this->user->onlineUsersCount();
         $users = UserCollection::collection($users)->additional(array(
-            'total'=>$total
+            'total'=>intval($total*mt_rand(45 , 56))
         ));
         return $users;
     }

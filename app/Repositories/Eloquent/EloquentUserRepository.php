@@ -649,7 +649,68 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $num = intval(request()->input('num', 50));
         $num = $num < 10 || $num > 100 ? 50 : $num;
         $key = 'helloo:account:service:account-random-im-set';
-        return Redis::srandmember($key, $num);
+        $userIds = Redis::srandmember($key, $num);
+        $backup = array(
+            1,
+            2,
+            63,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            73,
+            158,
+            159,
+            160,
+            161,
+            162,
+            163,
+            164,
+            165,
+            166,
+            232,
+            233,
+            260,
+            261,
+            268,
+            272,
+            273,
+            274,
+            275,
+            277,
+            279,
+            288,
+            292,
+            300,
+            302,
+            303,
+            304,
+            336,
+            337,
+            338,
+            339,
+            340,
+            341,
+            342,
+            343,
+            344,
+            345,
+            346,
+            347,
+            349,
+            350,
+            351,
+            352,
+            353,
+            357,
+        );
+        $userIds = array_merge($userIds , $backup);
+        $userIds = array_unique($userIds);
+        shuffle($userIds);
+        return array_slice($userIds , 0 , 52);
     }
 
     public function userFollow($userIds)
