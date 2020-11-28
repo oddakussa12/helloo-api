@@ -38,11 +38,13 @@ class OperationLog extends BaseMiddleware
             }
             $key = 'helloo:account:service:account-au'.date('Ymd' , $now);
             $user_id = (int) auth()->id();
+            $route = $request->route()->name();
             $data = array(
                 'visited_at'=>$time,
                 'user_id'=>$user_id,
                 'referer'=>$src,
                 'version'=>$version,
+                'route'=>$route,
                 'ip'=>getRequestIpAddress()
             );
             Redis::rpush($key."_op_list" , \json_encode($data , JSON_UNESCAPED_UNICODE));//20201017
