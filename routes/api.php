@@ -114,7 +114,7 @@ $api->group($V1Params , function ($api){
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
     });
-
+    $api->post('statistics/download' , 'StatisticsController@download')->name('statistics.download');
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountVerification')->where('type', 'phone|nick_name')->name('user.account.verification');
