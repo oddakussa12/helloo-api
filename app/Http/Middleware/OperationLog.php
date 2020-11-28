@@ -39,7 +39,6 @@ class OperationLog extends BaseMiddleware
             $key = 'helloo:account:service:account-au'.date('Ymd' , $now);
             $user_id = (int) auth()->id();
             $route = $request->route()->getName();
-            \Log::error($route);
             $data = array(
                 'visited_at'=>$time,
                 'user_id'=>$user_id,
