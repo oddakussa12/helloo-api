@@ -42,14 +42,21 @@ class StoreVisitLog extends Command
     {
         $yesterday = Carbon::yesterday('Asia/Shanghai');
         $date = $yesterday->format('Ymd');
+        $created_at =  $yesterday->toDateString();
         $key = 'helloo:account:service:account-au'.$date."_op_list"; //20191125
+        $key = 'helloo:account:service:account-au'.'20201118'."_op_list"; //20191125
         $index = 1;
         $visitData = array();
         while(true) {
             $data = Redis::Lpop($key);
             if($data!==null)
             {
-                array_push($visitData , \json_decode($data , true));
+                $visit = \json_decode($data , true);
+                if(is_array($visit))
+                {
+                    $visit['created_at'] = $created_at;
+                    array_push($visitData , $visit);
+                }
             }
             if($index%100==0||$data===null)
             {
