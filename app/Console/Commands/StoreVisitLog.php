@@ -44,7 +44,7 @@ class StoreVisitLog extends Command
         $date = $yesterday->format('Ymd');
         $created_at =  $yesterday->toDateString();
         $key = 'helloo:account:service:account-au'.$date."_op_list"; //20191125
-        $key = 'helloo:account:service:account-au'.'20201118'."_op_list"; //20191125
+//        $key = 'helloo:account:service:account-au'.'20201118'."_op_list"; //20191125
         $index = 1;
         $visitData = array();
         while(true) {
