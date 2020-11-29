@@ -26,7 +26,7 @@ class OperationLog extends BaseMiddleware
             $agent = new Agent();
             $chinaNow = Carbon::now('Asia/Shanghai');
             $time = strval($chinaNow->timestamp);
-            $now = $chinaNow->format('YmdHis');
+            $now = $chinaNow->format('Ymd');
             $version = $agent->getHttpHeader('HellooVersion');
             if($agent->match('HellooAndroid'))
             {
