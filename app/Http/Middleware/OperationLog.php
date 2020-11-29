@@ -26,7 +26,7 @@ class OperationLog extends BaseMiddleware
             $agent = new Agent();
             $chinaNow = Carbon::now('Asia/Shanghai');
             $time = strval($chinaNow->timestamp);
-            $now = $chinaNow->format('Ymd');
+            $now = $chinaNow->format('YmdHis');
             $version = $agent->getHttpHeader('HellooVersion');
             if($agent->match('HellooAndroid'))
             {
@@ -36,7 +36,7 @@ class OperationLog extends BaseMiddleware
             }else{
                 $src = 'unknown';
             }
-            $key = 'helloo:account:service:account-au'.date('Ymd' , $now);
+            $key = 'helloo:account:service:account-au'.$now;
             $user_id = (int) auth()->id();
             $route = $request->route()->getName();
             $data = array(
