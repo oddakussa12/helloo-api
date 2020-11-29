@@ -24,7 +24,7 @@ class OperationLog extends BaseMiddleware
         if(auth()->check())
         {
             $agent = new Agent();
-            $chinaNow = Carbon::yesterday('Asia/Shanghai');
+            $chinaNow = Carbon::now('Asia/Shanghai');
             $time = strval($chinaNow->timestamp);
             $now = $chinaNow->format('Ymd');
             $version = $agent->getHttpHeader('HellooVersion');

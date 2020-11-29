@@ -41,15 +41,15 @@ class StoreVisitLog extends Command
     public function handle()
     {
         $yesterday = Carbon::yesterday('Asia/Shanghai');
-        $date = $yesterday->toDateString();
-        $key = 'helloo:account:service:account-au'.date('Ymd' , strtotime($date)); //20191125
+        $date = $yesterday->format('Ymd');
+        $key = 'helloo:account:service:account-au'.$date."_op_list"; //20191125
         $index = 1;
         $visitData = array();
         while(true) {
             $data = Redis::Lpop($key);
             if($data!==null)
             {
-                array_push($visitData , \json_decode($date , true));
+                array_push($visitData , \json_decode($data , true));
             }
             if($index%100==0||$data===null)
             {
