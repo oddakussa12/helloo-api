@@ -55,6 +55,7 @@ class StoreVisitLog extends Command
                 if(is_array($visit))
                 {
                     $visit['created_at'] = $created_at;
+                    unset($visit['route']);
                     array_push($visitData , $visit);
                 }
             }
