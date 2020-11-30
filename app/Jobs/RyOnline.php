@@ -108,7 +108,7 @@ class RyOnline implements ShouldQueue
             Redis::srem($setFemaleVoiceKey , $offlineUserIds);
             Redis::srem($setFemaleVideoKey , $offlineUserIds);
         }
-        $time = time();
+        $time = $this->time;
         !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
             $userId = intval($user['userid']);
             $status = $user['status'];
