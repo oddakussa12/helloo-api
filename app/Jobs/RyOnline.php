@@ -20,6 +20,8 @@ class RyOnline implements ShouldQueue
 
     private $chinaNow;
 
+    private $chinaDate;
+
     private $chinaDateTime;
 
     private $users;
@@ -37,6 +39,7 @@ class RyOnline implements ShouldQueue
     public function __construct($users)
     {
         $this->chinaNow = Carbon::now('Asia/Shanghai');
+        $this->chinaDate = $this->chinaNow->toDateString();
         $this->chinaDateTime = $this->chinaNow->toDateTimeString();
         $this->time = $this->chinaNow->timestamp;
         $this->date = date('Y-m-d H:i:s' , $this->time);
@@ -105,7 +108,7 @@ class RyOnline implements ShouldQueue
             Redis::srem($setFemaleVoiceKey , $offlineUserIds);
             Redis::srem($setFemaleVideoKey , $offlineUserIds);
         }
-        $time = time();
+        $time = $this->time;
         !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
             $userId = intval($user['userid']);
             $status = $user['status'];
@@ -113,8 +116,7 @@ class RyOnline implements ShouldQueue
             Redis::setBit($bitKey , $userId , $status);
             Redis::zadd($lastActivityTime , $time , $userId);
         });
-        $chinaNow = $this->chinaDateTime;
-        $key = 'helloo:account:service:account-au'.date('Ymd' , strtotime($chinaNow)); //20191125
+        $key = 'helloo:account:service:account-au'.$this->chinaDate; //20191125
         foreach ($allUsers as $user)
         {
             $userId = $user['userid'];
@@ -137,6 +139,7 @@ class RyOnline implements ShouldQueue
                 'user_id'=>$userId,
                 'referer'=>$src,
                 'version'=>0,
+                'route'=>'ry',
                 'ip'=>$ip
             )));//20201108
         }

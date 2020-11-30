@@ -107,6 +107,8 @@ $api->group($V1Params , function ($api){
         
         $api->post('statistics/duration' , 'StatisticsController@duration')->name('statistics.duration');
 
+        $api->post('statistics/type/{type}/matchFailed' , 'StatisticsController@matchFailed')->where('type', 'im|voice|video')->name('statistics.matchFailed');
+
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
     $api->resource('user' , 'UserController' , ['only' => ['show']]);
@@ -115,6 +117,7 @@ $api->group($V1Params , function ($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
     });
     $api->post('statistics/download' , 'StatisticsController@download')->name('statistics.download');
+
     $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountVerification')->where('type', 'phone|nick_name')->name('user.account.verification');
