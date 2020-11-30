@@ -47,6 +47,7 @@ class StoreVisitLog extends Command
 //        $key = 'helloo:account:service:account-au'.'20201118'."_op_list"; //20191125
         $index = 1;
         $visitData = array();
+        $visitList = array();
         while(true) {
             $data = Redis::Lpop($key);
             if($data!==null)
@@ -55,15 +56,21 @@ class StoreVisitLog extends Command
                 if(is_array($visit))
                 {
                     $visit['created_at'] = $created_at;
-                    unset($visit['route']);
-                    array_push($visitData , $visit);
+                    if(isset($visit['route']))
+                    {
+                        array_push($visitData , $visit);
+                    }else{
+                        array_push($visitList , $visit);
+                    }
                 }
             }
             if($index%100==0||$data===null)
             {
                 !blank($visitData)&&DB::table('visit_logs')->insert($visitData);
+                !blank($visitList)&&DB::table('visit_logs')->insert($visitList);
                 $index = 0;
                 $visitData = array();
+                $visitList = array();
                 if($data===null)
                 {
                     break;
@@ -71,6 +78,5 @@ class StoreVisitLog extends Command
             }
             $index++;
         }
-
     }
 }
