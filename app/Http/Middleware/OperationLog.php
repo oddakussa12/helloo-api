@@ -6,7 +6,7 @@ use Auth;
 use Closure;
 use Carbon\Carbon;
 use Jenssegers\Agent\Agent;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 
@@ -28,8 +28,10 @@ class OperationLog extends BaseMiddleware
             $time = strval($chinaNow->timestamp);
             $now = $chinaNow->format('Ymd');
             $version = $agent->getHttpHeader('HellooVersion');
+            !empty($version)&&Log::error($version);
             if($agent->match('HellooAndroid'))
             {
+                Log::error('android');
                 $src = 'android';
             }elseif($agent->match('HellooiOS')){
                 $src = 'ios';
