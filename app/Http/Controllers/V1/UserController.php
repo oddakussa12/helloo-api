@@ -140,6 +140,11 @@ class UserController extends BaseController
         $data = $this->user->planet();
         $userId = intval(auth()->id());
         $data = array_diff($data , [$userId]);
+        $count = count($data);
+        if($count<50)
+        {
+            $data = array_merge($data , range(1 , 200));
+        }
         $users = $this->user->findByMany($data);
         $total = $this->user->onlineUsersCount();
         $users = UserCollection::collection($users)->additional(array(
