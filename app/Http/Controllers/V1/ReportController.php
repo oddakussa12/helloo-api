@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use App\Repositories\Contracts\UserRepository;
+use Illuminate\Support\Facades\Redis;
 
 class ReportController extends BaseController
 {
@@ -24,8 +25,12 @@ class ReportController extends BaseController
             $report = new Report();
             $report->user_id = $auth->getKey();
             $report->reported_id=$user->getKey();
-            $report->save();
-
+            $result = $report->save();
+            if($result)
+            {
+                $key = 'helloo:account:service:account-reported-sort-set';
+                Redis::zincrby($key , 1 , $userId);
+            }
         }
         return $this->response->noContent();
     }
