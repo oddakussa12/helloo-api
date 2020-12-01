@@ -109,6 +109,8 @@ $api->group($V1Params , function ($api){
 
         $api->post('statistics/type/{type}/matchFailed' , 'StatisticsController@matchFailed')->where('type', 'im|voice|video')->name('statistics.matchFailed');
 
+        $api->post('statistics/type/{type}/matchSucceed' , 'StatisticsController@matchSucceed')->where('type', 'im|voice|video')->name('statistics.matchSucceed');
+
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
     $api->resource('user' , 'UserController' , ['only' => ['show']]);

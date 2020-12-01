@@ -116,7 +116,7 @@ class RyOnline implements ShouldQueue
             Redis::setBit($bitKey , $userId , $status);
             Redis::zadd($lastActivityTime , $time , $userId);
         });
-        $key = 'helloo:account:service:account-au'.$this->chinaDate; //20191125
+        $key = 'helloo:account:service:account-au'.$this->chinaNow->format('Ymd'); //20191125
         foreach ($allUsers as $user)
         {
             $userId = $user['userid'];

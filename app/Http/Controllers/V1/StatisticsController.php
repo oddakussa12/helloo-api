@@ -37,10 +37,22 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    public function matchSucceed(Request $request , string $type)
+    {
+        $userId = auth()->id();
+        DB::table('match_statistics')->insert(array(
+            'user_id'=>$userId,
+            'type'=>$type,
+            'result'=>1,
+            'created_at'=>Carbon::now()->toDateTimeString(),
+        ));
+        return $this->response->created();
+    }
+
     public function matchFailed(Request $request , string $type)
     {
         $userId = auth()->id();
-        DB::table('failed_match')->insert(array(
+        DB::table('match_statistics')->insert(array(
             'user_id'=>$userId,
             'type'=>$type,
             'created_at'=>Carbon::now()->toDateTimeString(),
