@@ -36,6 +36,10 @@ class RyOnline implements ShouldQueue
 
     private $topics;
 
+    private $statusData;
+
+    private $visitData;
+
     public function __construct($users)
     {
         $this->chinaNow = Carbon::now('Asia/Shanghai');
@@ -44,6 +48,8 @@ class RyOnline implements ShouldQueue
         $this->time = $this->chinaNow->timestamp;
         $this->date = date('Y-m-d H:i:s' , $this->time);
         $this->users = $users;
+        $this->statusData = array();
+        $this->visitData = array();
     }
 
     /**
@@ -117,6 +123,9 @@ class RyOnline implements ShouldQueue
             Redis::zadd($lastActivityTime , $time , $userId);
         });
         $key = 'helloo:account:service:account-au'.$this->chinaNow->format('Ymd'); //20191125
+        $statusKey = 'helloo:account:service:account-status-change'.$this->chinaNow->format('Ymd'); //20191125
+        $statusData = $this->statusData;
+        $visitData = $this->visitData;
         foreach ($allUsers as $user)
         {
             $userId = $user['userid'];
@@ -134,16 +143,27 @@ class RyOnline implements ShouldQueue
                 }
             }
             $src = strval($user['os']);
-            Redis::rpush($key."_op_list" , \json_encode(array(
+            array_push($visitData , \json_encode(array(
                 'visited_at'=>$time,
                 'user_id'=>$userId,
                 'referer'=>$src,
                 'version'=>0,
                 'route'=>'ry',
                 'ip'=>$ip
-            )));//20201108
+            )));
+            $statusTime = $user['time'];
+            $status = intval($user['status']);
+            array_push($statusData , \json_encode(array(
+                'visited_at'=>$time,
+                'user_id'=>$userId,
+                'time'=>round($statusTime/1000),
+                'referer'=>$src,
+                'status'=>$status,
+                'ip'=>$ip
+            )));
         }
-
+        !blank($visitData)&&Redis::rpush($key."_op_list" , $visitData);//20201108;
+        !blank($statusData)&&Redis::rpush($statusKey."_list" , $statusData);//20201208
     }
 
 }

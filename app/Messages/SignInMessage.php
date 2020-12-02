@@ -24,7 +24,7 @@ class SignInMessage extends Message
     // 定义直接使用内容发送平台的内容
     public function getContent(GatewayInterface $gateway = null)
     {
-        return sprintf('Your Helloo security code is %s. Yours is logging in Helloo!. Please keep your account information in a safe place.', $this->code);
+        return sprintf('Your Lovbee APP security code is %s. Yours is logging in Helloo!. Please keep your account information in a safe place.', $this->code);
     }
 
     // 定义使用模板发送方式平台所需要的模板 ID
@@ -32,7 +32,7 @@ class SignInMessage extends Message
     {
         if($gateway instanceof AliyunCustomGateway)
         {
-            return domain()==config('app.url')?'SMS_205443411':'SMS_205431924';
+            return domain()==config('app.url')?'SMS_205894599':'SMS_205884518';
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
             return '14881706';
@@ -44,7 +44,7 @@ class SignInMessage extends Message
     public function getData(GatewayInterface $gateway = null)
     {
         return [
-            'sign_name'=>'HellooCN',
+            'sign_name'=>'Lovbee',
             'code'=>$this->code
         ];
     }

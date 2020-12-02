@@ -22,7 +22,7 @@ class ForgetPasswordMessage extends Message
     // 定义直接使用内容发送平台的内容
     public function getContent(GatewayInterface $gateway = null)
     {
-        return sprintf('Your Helloo security code is %s. You are trying to change the login password. Please keep your account information in a safe place.', $this->code);
+        return sprintf('Your Lovbee APP security code is %s. You are trying to change the login password. Please keep your account information in a safe place.', $this->code);
     }
 
     // 定义使用模板发送方式平台所需要的模板 ID
@@ -30,7 +30,7 @@ class ForgetPasswordMessage extends Message
     {
         if($gateway instanceof AliyunCustomGateway)
         {
-            return domain()==config('app.url')?'SMS_205438419':'SMS_205437803';
+            return domain()==config('app.url')?'SMS_205884521':'SMS_205879596';
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
             return '14872716';
@@ -42,7 +42,7 @@ class ForgetPasswordMessage extends Message
     public function getData(GatewayInterface $gateway = null)
     {
         return [
-            'sign_name'=>'HellooCN',
+            'sign_name'=>'Lovbee',
             'code'=>$this->code
         ];
     }

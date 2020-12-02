@@ -24,7 +24,7 @@ class UpdatePhoneMessage extends Message
     // 定义直接使用内容发送平台的内容
     public function getContent(GatewayInterface $gateway = null)
     {
-        return sprintf('【Helloo】Your Helloo security code is %s. You are trying to change your phone number. Please keep your account information in a safe place.', $this->code);
+        return sprintf('Your Lovbee APP security code is %s. You are trying to change your phone number. Please keep your account information in a safe place.', $this->code);
     }
 
     // 定义使用模板发送方式平台所需要的模板 ID
@@ -32,7 +32,7 @@ class UpdatePhoneMessage extends Message
     {
         if($gateway instanceof AliyunCustomGateway)
         {
-            return domain()==config('app.url')?'SMS_205467340':'SMS_205471436';
+            return domain()==config('app.url')?'SMS_205889647':'SMS_205879592';
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
             return '14876715';
@@ -44,7 +44,7 @@ class UpdatePhoneMessage extends Message
     public function getData(GatewayInterface $gateway = null)
     {
         return [
-            'sign_name'=>'HellooCN',
+            'sign_name'=>'Lovbee',
             'code'=>$this->code
         ];
     }
