@@ -24,7 +24,7 @@ use Overtrue\EasySms\Exceptions\GatewayErrorException;
  *
  * @see https://help.aliyun.com/document_detail/55451.html
  */
-class AliyunCustomGateway extends Gateway
+class AliyunCNCustomGateway extends Gateway
 {
     use HasHttpRequest;
 

@@ -9,6 +9,7 @@ use Overtrue\EasySms\Strategies\OrderStrategy;
 use App\Custom\EasySms\Contracts\GatewayInterface;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;
 use App\Custom\EasySms\Gateways\AliyunCustomGateway;
+use App\Custom\EasySms\Gateways\AliyunCNCustomGateway;
 
 class UpdatePhoneMessage extends Message
 {
@@ -32,7 +33,10 @@ class UpdatePhoneMessage extends Message
     {
         if($gateway instanceof AliyunCustomGateway)
         {
-            return domain()==config('app.url')?'SMS_205889647':'SMS_205879592';
+            return 'SMS_205889647';
+        }elseif ($gateway instanceof AliyunCNCustomGateway)
+        {
+            return 'SMS_205879592';
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
             return '14876715';

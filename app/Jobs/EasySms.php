@@ -87,7 +87,7 @@ class EasySms implements ShouldQueue
         }
         if($phoneCountry==86)
         {
-            $gateways = ['aliYunCustom'];
+            $gateways = ['aliYunCNCustom'];
         }else{
             $gateways = [config('common.global_sms')];
         }
