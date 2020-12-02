@@ -76,7 +76,7 @@ class AliyunCustomGateway extends Gateway
         ];
 
         $params['Signature'] = $this->generateSign($params);
-
+        \Log::error($params);
         $result = $this->get(self::ENDPOINT_URL, $params);
 
         if ('OK' != $result['Code']) {
