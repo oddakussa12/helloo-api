@@ -30,7 +30,7 @@ class ForgetPasswordMessage extends Message
     {
         if($gateway instanceof AliyunCustomGateway)
         {
-            return 'SMS_205879596';
+            return 'SMS_205884521';
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
             return '14872716';
