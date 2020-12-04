@@ -10,6 +10,7 @@ use Overtrue\EasySms\Strategies\OrderStrategy;
 use App\Custom\EasySms\Gateways\AliyunCustomGateway;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;
 use App\Custom\EasySms\Gateways\AliyunCNCustomGateway;
+use App\Custom\EasySms\Gateways\YuntongxunCustomGateway;
 
 class EasySmsServiceProvider extends ServiceProvider
 {
@@ -32,6 +33,8 @@ class EasySmsServiceProvider extends ServiceProvider
                 return new AwsGateway($config);
             })->extend('aliYunCNCustom', function($config) {
                 return new AliyunCNCustomGateway($config);
+            })->extend('yunTongXunCustom', function($config) {
+                return new YuntongxunCustomGateway($config);
             });
         });
 
@@ -64,6 +67,7 @@ class EasySmsServiceProvider extends ServiceProvider
                 'yunxin' => config('easy-sms.agents.yunxin'),
                 'yunXinCustom' => config('easy-sms.agents.yunxin'),
                 'aws' => config('easy-sms.agents.aws'),
+                'yunTongXunCustom' => config('easy-sms.agents.yuntongxun'),
             ],
         ];
     }

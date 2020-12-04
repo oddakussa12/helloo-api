@@ -29,12 +29,18 @@ class EasySms implements ShouldQueue
      * @var object
      */
     private $message;
+    
+
+    private $globalSms;
+
 
     public function __construct($phone ,  $message)
     {
         $this->phone = $phone;
 
         $this->message = $message;
+
+        $this->globalSms = config('common.global_sms');
 
     }
 
@@ -89,7 +95,8 @@ class EasySms implements ShouldQueue
         {
             $gateways = ['aliYunCNCustom'];
         }else{
-            $gateways = [config('common.global_sms')];
+            $globalSms = $this->globalSms;
+            $gateways = [$globalSms];
         }
         $id = DB::table('short_messages')->insertGetId(
             array(

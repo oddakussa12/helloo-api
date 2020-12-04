@@ -26,13 +26,14 @@ return [
          */
         'yuntongxun' => [
             //主帐号
-            'accountSid'    => 'your_account_sid',
+            'accountSid'    => env('YTX_ACCOUNT_SID' , ''),
             //主帐号令牌
-            'accountToken'  => 'your_account_token',
+            'accountToken'  => env('YTX_ACCOUNT_TOKEN' , ''),
             //应用Id
-            'appId'         => 'your_app_id',
+            'appId'         => env('YTX_APP_ID' , ''),
             //请求地址(不加协议前缀)
-            'serverIP'      => 'app.cloopen.com',
+//            'serverIP'      => 'app.cloopen.com',
+            'serverIP'      => env('YTX_SERVER_IP' , 'hksms.cloopen.com'),
             //请求端口
             'serverPort'    => '8883',
             //被叫号显

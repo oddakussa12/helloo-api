@@ -8,6 +8,7 @@ use App\Custom\EasySms\Contracts\GatewayInterface;
 use App\Custom\EasySms\Gateways\YunxinCustomGateway;
 use App\Custom\EasySms\Gateways\AliyunCustomGateway;
 use App\Custom\EasySms\Gateways\AliyunCNCustomGateway;
+use App\Custom\EasySms\Gateways\YuntongxunCustomGateway;
 
 class ForgetPasswordMessage extends Message
 {
@@ -23,7 +24,7 @@ class ForgetPasswordMessage extends Message
     // 定义直接使用内容发送平台的内容
     public function getContent(GatewayInterface $gateway = null)
     {
-        return sprintf('Your Lovbee APP security code is %s. You are trying to change the login password. Please keep your account information in a safe place.', $this->code);
+        return sprintf('Password Reset: your Lovbee code is %s. Do not share with others..', $this->code);
     }
 
     // 定义使用模板发送方式平台所需要的模板 ID
@@ -38,6 +39,9 @@ class ForgetPasswordMessage extends Message
         }elseif ($gateway instanceof YunxinCustomGateway)
         {
             return '14872716';
+        }elseif ($gateway instanceof YuntongxunCustomGateway)
+        {
+            return '799535';
         }
         return '';
     }

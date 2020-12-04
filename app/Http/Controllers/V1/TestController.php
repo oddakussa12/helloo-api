@@ -51,42 +51,77 @@ class TestController extends BaseController
         $replies = $redis->exec();
 //        return array('count'=>intval($replies[2]) , 'first'=>array_first($replies[3]));
     }
-    public function push()
+
+    public function broadcast()
     {
-        $user = app(UserRepository::class)->find(94);
         $content = array(
-            'content'=>'test message',
-            'userInfo'=>[
-                'extra'=> [
-                    'un' => !empty($user->user_nick_name) ? $user->user_nick_name : ($user->user_name ?? ''),
-                    'ua' => userCover($user->user_avatar ?? ''),
-                    'ui' => $user->user_id,
-                    'ug' => $user->user_gender,
-                    'devicePlatformName' => 'server',
-                ]
-            ]
+            'senderId'   => 'System',
+            "objectName" => "Helloo::BroadcastVideoUrl",
+            'content'    => array(
+                'content'=>'Whole network push',
+                'videoUrl'=>"https://f.video.weibocdn.com/R3Rjmslrlx07IsJmPztu01041200743K0E010.mp4?label=mp4_hd&template=480x640.24.0&trans_finger=7c347e6ee1691b93dc7e5726f4ef34b3&ori=0&ps=1EO8O2oFB1ePdo&Expires=1606974751&ssig=9csHBh3jaL&KID=unistore,video"
+            )
         );
-        $content = \json_encode($content , JSON_UNESCAPED_UNICODE);
-        $result = app('rcloud')->getMessage()->Broadcast()->recall(array(
-            'senderId'   => 'system',
-//            'targetId'   => $this->targetId,
-            "objectName" => "RC:SightMsg",
-            'content'    => \json_encode(array(
-                'sightUrl'=>1,
-                'content'=>1,
-                'duration'=>1,
-                'size'=>1,
-                'name'=>1,
-                'user'=>array(
-                    'id'=>1
-                ),
-                'extra'=>'extra'
-            ))
-,
-            'extra'=>array('user'=>1234567890),
-        ));
+        $result = app('rcloud')->getMessage()->Broadcast()->recall($content);
         Log::error($content);
         Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
+    }
+
+    public function push(Request $request)
+    {
+        $userId = intval($request->input('userId' , 0));
+        $userId = $userId<=0?94:$userId;
+        $user = app(UserRepository::class)->findOrFail($userId);
+        $auth = app(UserRepository::class)->findOrFail(61);
+        $content = array(
+            'senderId'   => 'System',
+            'targetId'   => $userId,
+            "objectName" => "Helloo:UserReported",
+            'content'    => \json_encode(array(
+                'content'=>'You have been reported',
+                'whistleblower'=> new UserCollection($auth)
+            )),
+            'pushContent'=>'You have been reported',
+            'pushExt'=>\json_encode(array(
+                'title'=>'You have been reported',
+                'forceShowPushContent'=>1
+            ))
+        );
+        $result = app('rcloud')->getMessage()->System()->send($content);
+//        $content = array(
+//            'content'=>'test message',
+//            'userInfo'=>[
+//                'extra'=> [
+//                    'un' => !empty($user->user_nick_name) ? $user->user_nick_name : ($user->user_name ?? ''),
+//                    'ua' => userCover($user->user_avatar ?? ''),
+//                    'ui' => $user->user_id,
+//                    'ug' => $user->user_gender,
+//                    'devicePlatformName' => 'server',
+//                ]
+//            ]
+//        );
+//        $content = \json_encode($content , JSON_UNESCAPED_UNICODE);
+//        $result = app('rcloud')->getMessage()->Broadcast()->recall(array(
+//            'senderId'   => 'system',
+////            'targetId'   => $this->targetId,
+//            "objectName" => "RC:SightMsg",
+//            'content'    => \json_encode(array(
+//                'sightUrl'=>1,
+//                'content'=>1,
+//                'duration'=>1,
+//                'size'=>1,
+//                'name'=>1,
+//                'user'=>array(
+//                    'id'=>1
+//                ),
+//                'extra'=>'extra'
+//            ))
+//,
+//            'extra'=>array('user'=>1234567890),
+//        ));
+        Log::error($content);
+        Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
+        return $this->response->created();
     }
 
 

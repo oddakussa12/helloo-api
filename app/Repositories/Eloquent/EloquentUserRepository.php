@@ -646,7 +646,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function planet()
     {
-        $num = intval(request()->input('num', 50));
+        $num = intval(request()->input('num', 55));
         $num = $num < 10 || $num > 100 ? 50 : $num;
         $key = 'helloo:account:service:account-random-im-set';
         $userIds = Redis::srandmember($key, $num);
@@ -707,9 +707,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             353,
             357,
         );
-        $userIds = array_merge($userIds , $backup);
-        $userIds = array_unique($userIds);
-        shuffle($userIds);
+        if(count($userIds)<=50)
+        {
+            $userIds = array_merge($userIds , $backup);
+            $userIds = array_unique($userIds);
+            shuffle($userIds);
+        }
         return array_slice($userIds , 0 , 52);
     }
 
