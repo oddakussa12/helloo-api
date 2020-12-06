@@ -96,12 +96,17 @@ class RyOnline implements ShouldQueue
             !blank($male)&&Redis::sadd($maleKey , $male);
             !blank($female)&&Redis::sadd($femaleKey , $female);
         }
+
         $setVoiceKey = 'helloo:account:service:account-random-voice-set';
         $setMaleVoiceKey = 'helloo:account:service:account-random-male-voice-set';
         $setFemaleVoiceKey = 'helloo:account:service:account-random-female-voice-set';
+        $setFilterVoiceKey = 'helloo:account:service:account-random-voice-filter-set';
+
         $setVideoKey = 'helloo:account:service:account-random-video-set';
         $setMaleVideoKey = 'helloo:account:service:account-random-male-video-set';
         $setFemaleVideoKey = 'helloo:account:service:account-random-female-video-set';
+        $setFilterVideoKey = 'helloo:account:service:account-random-video-filter-set';
+
         if(!blank($offlineUserIds))
         {
             Redis::srem($key , $offlineUserIds);
@@ -113,6 +118,8 @@ class RyOnline implements ShouldQueue
             Redis::srem($setMaleVideoKey , $offlineUserIds);
             Redis::srem($setFemaleVoiceKey , $offlineUserIds);
             Redis::srem($setFemaleVideoKey , $offlineUserIds);
+            Redis::srem($setFilterVoiceKey , $offlineUserIds);
+            Redis::srem($setFilterVideoKey , $offlineUserIds);
         }
         $time = $this->time;
         !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
