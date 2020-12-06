@@ -56,7 +56,7 @@ class StoreStatusLog extends Command
             }
             if($index%100==0||$data===null)
             {
-                !blank($visitData)&&DB::table('visit_logs')->insert($visitData);
+                !blank($visitData)&&DB::table('status_logs')->insert($visitData);
                 $index = 0;
                 $visitData = array();
                 if($data===null)
