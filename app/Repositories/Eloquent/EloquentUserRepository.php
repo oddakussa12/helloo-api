@@ -893,6 +893,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return boolval(Redis::zrank($key , $userId)!==null);
     }
 
+    public function officialSet($userId)
+    {
+        $setKey = 'helloo:account:service:account-random-official-video-set';
+        Redis::sadd($setKey , $userId);
+    }
+
 
 
 

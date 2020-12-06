@@ -30,8 +30,8 @@ class ReportController extends BaseController
             $result = $report->save();
             if($result)
             {
-                $job = new ReportJob($auth , $userId , $reportType);
-                $this->dispatch($job->onQueue('helloo_{user_report}'));
+//                $job = new ReportJob($auth , $userId , $reportType);
+//                $this->dispatch($job->onQueue('helloo_{user_report}'));
             }
         }
         return $this->response->noContent();
