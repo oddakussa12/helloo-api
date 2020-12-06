@@ -111,14 +111,16 @@ class AuthController extends BaseController
             $fields['user_avatar'] = $user_avatar;
         }
 
-        if($user_gender!==null&&$user->user_gender==-1)
+        if(in_array($user_gender , array(0 , 1 , '0' , '1'))&&$user->user_gender==-1)
         {
             $fields['user_gender'] = intval($user_gender);
         }
+
         if(!blank($user_nick_name)&&empty($user->user_nick_name))
         {
             $fields['user_nick_name'] = strval($user_nick_name);
         }
+
         $fields = array_filter($fields , function($value){
             return !blank($value);
         });
@@ -169,7 +171,7 @@ class AuthController extends BaseController
         {
             $fields['user_about'] = $user_about;
         }
-        if($user_gender!==null)
+        if(in_array($user_gender , array(0 , 1 , '0' , '1')))
         {
             $score = Redis::zscore($genderKey , $user->getKey());
             $score===null&&$fields['user_gender'] = intval($user_gender);

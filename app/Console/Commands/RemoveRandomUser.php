@@ -50,6 +50,7 @@ class RemoveRandomUser extends Command
         $now = Carbon::now();
         $ago = $now->subSeconds(25);
         $voiceSetKey = 'helloo:account:service:account-random-voice-set';
+        $voiceFilterSetKey = 'helloo:account:service:account-random-voice-filter-set';
         $voiceSortSetKey = 'helloo:account:service:account-random-voice-sort-set';
         $perPage = 100;
         $count = Redis::zcard($voiceSortSetKey);
@@ -67,6 +68,7 @@ class RemoveRandomUser extends Command
                 array_push($userIds , $userId);
             }
             Redis::srem($voiceSetKey , $userIds);
+            Redis::srem($voiceFilterSetKey , $userIds);
         }
     }
 
@@ -75,6 +77,7 @@ class RemoveRandomUser extends Command
         $now = Carbon::now();
         $ago = $now->subSeconds(25);
         $videoSetKey = 'helloo:account:service:account-random-video-set';
+        $videoFilterSetKey = 'helloo:account:service:account-random-video-filter-set';
         $videoSortSetKey = 'helloo:account:service:account-random-video-sort-set';
         $perPage = 100;
         $count = Redis::zcard($videoSortSetKey);
@@ -92,6 +95,7 @@ class RemoveRandomUser extends Command
                 array_push($userIds , $userId);
             }
             Redis::srem($videoSetKey , $userIds);
+            Redis::srem($videoFilterSetKey , $userIds);
         }
     }
 

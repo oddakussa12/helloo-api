@@ -11,6 +11,7 @@ namespace App\Repositories\Eloquent;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Jobs\RyOnline;
+use App\Custom\RedisList;
 use App\Models\BlockUser;
 use App\Models\BlackUser;
 use App\Models\BlockPost;
@@ -37,8 +38,10 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $user = parent::update($model, $data);
         $key = "helloo:account:service:account:".$model->getKey();
         $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
+        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
         Redis::del($key);
         isset($data['user_gender'])&&Redis::zadd($genderSortSetKey , intval($data['user_gender']) , $model->getKey());
+        isset($data['user_birthday'])&&Redis::zadd($ageSortSetKey , age($data['user_birthday']) , $model->getKey());
         return $user;
     }
 
@@ -167,28 +170,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function findByWhere($where)
     {
         return $this->model->where($where)->first();
-    }
-
-
-
-    public function getYesterdayUserRank()
-    {
-        return Cache::rememberForever('user_rank', function () {
-            $chinaNow = Carbon::now()->subDay(1);
-            $yesterdayTopTenRankUser = YesterdayScore::whereHas('user', function ($query) {
-                $query->where('user_is_guest', 0);
-            })->with('user')->where('yesterday_scores.rank_date', date('Y-m-d', strtotime($chinaNow)))
-                ->orderBy('user_score', 'DESC')
-                ->orderBy('user_id', 'DESC')
-                ->limit(10)->get();
-            $userRank = collect();
-            $yesterdayTopTenRankUser->each(function ($item, $key) use (&$userRank) {
-                $user = $item->user;
-                $user->user_rank_score = $item->user_score;
-                $userRank->push($user);
-            });
-            return $userRank;
-        });
     }
 
 
@@ -401,6 +382,80 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
     }
 
+    public function randomVideoV2($self)
+    {
+        $flag = false;
+        $gender = intval(request()->input('gender' , -1));//0女 1男 2全部 -1没选择
+        $sortSetKey = 'helloo:account:service:account-random-video-sort-set';
+        $imKey = 'helloo:account:service:account-random-im-set';
+        $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
+        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
+        $setKey = 'helloo:account:service:account-random-video-filter-set';
+        $cancelSetKey = 'helloo:account:service:account-cancel-video-random:'.$self;
+        Redis::del($cancelSetKey);
+        Redis::zadd($sortSetKey , time() , $self);
+        Redis::sadd($imKey , $self);
+        $redis = new RedisList();
+        $lock = $redis->tryGetLock('helloo:account:service:processing_video_matches_{helloo}', 1 , 30000);
+        while (!$lock)
+        {
+            usleep(mt_rand(100000, 1000000));
+            if($this->isCancelVideoRandom($self))
+            {
+                $redis->releaseLock('helloo:account:service:processing_video_matches_{helloo}');
+                break;
+            }
+            $lock = $redis->tryGetLock('helloo:account:service:processing_video_matches_{helloo}', 1 , 30000);
+        }
+        $members = Redis::smembers($setKey);
+        $members = array_diff($members , array($self));
+        if(in_array($gender , array(0 , 1)))
+        {
+            $members = array_filter($members , function ($v , $k) use ($gender, $genderSortSetKey){
+                $score = Redis::zscore($genderSortSetKey , $v);
+                return $gender === $score;
+            } , ARRAY_FILTER_USE_BOTH);
+        }
+        $age = intval(Redis::zscore($ageSortSetKey , $self));
+        if(blank($members))
+        {
+            $userId = $self;
+            !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
+        }else{
+            if($age>0)
+            {
+                $ageData = array();
+                foreach ($members as $member)
+                {
+                    $ageDiff = abs(intval(Redis::zscore($ageSortSetKey , $member))-$age);
+                    $ageData[$member] = $ageDiff;
+                }
+                asort($ageData , SORT_NUMERIC);
+                $ageData = array_slice(array_keys($ageData) , 0 , 3);
+                $userId = $ageData[array_rand($ageData)];
+            }else{
+                $userId = $members[array_rand($members)];
+            }
+            if(Redis::sismember($setKey , $userId))
+            {
+                if(!$this->isCancelVideoRandom($self))
+                {
+                    $flag = true;
+                    Redis::srem($setKey , $userId);
+                    Redis::srem($setKey , $self);
+                }else{
+                    $userId = $self;
+                }
+            }else{
+                $userId = $self;
+                !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
+            }
+        }
+        $roomId = md5($userId);
+        $redis->releaseLock('helloo:account:service:processing_video_matches_{helloo}');
+        return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+    }
+
     public function randomVoice($self)
     {
         $flag = false;
@@ -452,13 +507,90 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
     }
 
+
+    public function randomVoiceV2($self)
+    {
+        $flag = false;
+        $gender = intval(request()->input('gender' , -1));//0女 1男 2全部 -1没选择
+        $sortSetKey = 'helloo:account:service:account-random-voice-sort-set';
+        $imKey = 'helloo:account:service:account-random-im-set';
+        $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
+        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
+        $setKey = 'helloo:account:service:account-random-voice-filter-set';
+        $cancelSetKey = 'helloo:account:service:account-cancel-voice-random:'.$self;
+        Redis::del($cancelSetKey);
+        Redis::zadd($sortSetKey , time() , $self);
+        Redis::sadd($imKey , $self);
+        $redis = new RedisList();
+        $lock = $redis->tryGetLock('helloo:account:service:processing_voice_matches_{helloo}', 1 , 30000);
+        while (!$lock)
+        {
+            usleep(mt_rand(100000, 1000000));
+            if($this->isCancelVoiceRandom($self))
+            {
+                $redis->releaseLock('helloo:account:service:processing_voice_matches_{helloo}');
+                break;
+            }
+            $lock = $redis->tryGetLock('helloo:account:service:processing_voice_matches_{helloo}', 1 , 30000);
+        }
+        $members = Redis::smembers($setKey);
+        $members = array_diff($members , array($self));
+        if(in_array($gender , array(0 , 1)))
+        {
+            $members = array_filter($members , function ($v , $k) use ($gender, $genderSortSetKey){
+                $score = Redis::zscore($genderSortSetKey , $v);
+                return $gender === $score;
+            } , ARRAY_FILTER_USE_BOTH);
+        }
+        $age = intval(Redis::zscore($ageSortSetKey , $self));
+        if(blank($members))
+        {
+            $userId = $self;
+            !$this->isCancelVoiceRandom($self)&&Redis::sadd($setKey , $self);
+        }else{
+            if($age>0)
+            {
+                $ageData = array();
+                foreach ($members as $member)
+                {
+                    $ageDiff = abs(intval(Redis::zscore($ageSortSetKey , $member))-$age);
+                    $ageData[$member] = $ageDiff;
+                }
+                asort($ageData , SORT_NUMERIC);
+                $ageData = array_slice(array_keys($ageData) , 0 , 3);
+                $userId = $ageData[array_rand($ageData)];
+            }else{
+                $userId = $members[array_rand($members)];
+            }
+            if(Redis::sismember($setKey , $userId))
+            {
+                if(!$this->isCancelVoiceRandom($self))
+                {
+                    $flag = true;
+                    Redis::srem($setKey , $userId);
+                    Redis::srem($setKey , $self);
+                }else{
+                    $userId = $self;
+                }
+            }else{
+                $userId = $self;
+                !$this->isCancelVoiceRandom($self)&&Redis::sadd($setKey , $self);
+            }
+        }
+        $roomId = md5($userId);
+        $redis->releaseLock('helloo:account:service:processing_voice_matches_{helloo}');
+        return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
+    }
+
     public function removeVoice()
     {
         $self = auth()->id();
         $cancelSetKey = 'helloo:account:service:account-cancel-voice-random:'.$self;
         Redis::set($cancelSetKey, 1, "nx", "ex", 6);
         $setKey = 'helloo:account:service:account-random-voice-set';
+        $filterSetKey = 'helloo:account:service:account-random-voice-filter-set';
         Redis::srem($setKey , $self);
+        Redis::srem($filterSetKey , $self);
     }
 
     public function removeVideo()
@@ -467,7 +599,9 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $cancelSetKey = 'helloo:account:service:account-cancel-video-random:'.$self;
         Redis::set($cancelSetKey, 1, "nx", "ex", 6);
         $setKey = 'helloo:account:service:account-random-video-set';
+        $filterSetKey = 'helloo:account:service:account-random-video-filter-set';
         Redis::srem($setKey , $self);
+        Redis::srem($filterSetKey , $self);
     }
 
     public function isCancelVideoRandom($self)

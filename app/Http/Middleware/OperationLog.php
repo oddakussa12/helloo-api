@@ -48,7 +48,7 @@ class OperationLog extends BaseMiddleware
                 'ip'=>getRequestIpAddress()
             );
             Redis::rpush($key."_op_list" , \json_encode($data , JSON_UNESCAPED_UNICODE));//20201017
-            $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';;
+            $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
             Redis::zadd($lastActivityTime , $time , intval(auth()->id()));
         }
         return $next($request);

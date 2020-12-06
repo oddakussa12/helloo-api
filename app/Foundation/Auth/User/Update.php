@@ -351,6 +351,7 @@ trait Update
         $now = Carbon::now();
         $userId = $user->getKey();
         $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
+        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
         $key = 'helloo:account:service:account-activation';
         $userKey = "helloo:account:service:account:".$user->getKey();
         if($user->user_activation==0){
@@ -367,6 +368,7 @@ trait Update
                 }
                 Redis::del($userKey);
                 isset($data['user_gender'])&&Redis::zadd($genderSortSetKey , intval($data['user_gender']) , $userId);
+                isset($data['user_birthday'])&&Redis::zadd($ageSortSetKey , intval(age($data['user_birthday'])) , $userId);
                 $flag = true;
                 DB::commit();
             }catch (\Exception $e)

@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use App\Traits\CachableUser;
 use App\Jobs\Test as TestJob;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -42,8 +44,18 @@ class Test extends Command
      */
     public function handle()
     {
-        $password = bcrypt(123456);
-        var_dump(password_verify(1234567 , $password));
+        var_dump(array_slice(array(176) , 0 , 6));die;
+        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
+        User::chunk(100, function($users) use ($ageSortSetKey){
+            foreach($users as $user){
+                $age = age($user->user_birthday);
+                Redis::zadd($ageSortSetKey , $age , $user->getKey());
+//                $cache = collect($user)->toArray();
+//                $key = "helloo:account:service:account:".$user->getKey();
+//                Redis::hmset($key , $cache);
+//                Redis::expire($key , 60*60*24*30);
+            }
+        });
 //        $now = Carbon::now();
 //        $oneMonthAgo = $now->subDays(3)->format('Y-m-d 00:00:00');
 //        $newKey = config('redis-key.post.post_index_new');

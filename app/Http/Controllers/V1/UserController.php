@@ -143,7 +143,7 @@ class UserController extends BaseController
         $count = count($data);
         if($count<50)
         {
-            $data = array_merge($data , range(1 , 200));
+            $data = array_merge($data , range(63 , 200));
         }
         $users = $this->user->findByMany($data);
         $total = $this->user->onlineUsersCount();
@@ -179,5 +179,17 @@ class UserController extends BaseController
             }
         }
         return $this->response->created();
+    }
+
+    public function randomVideoV2(Request $request)
+    {
+        $self = auth()->id();
+        $random = $this->user->randomVideoV2($self);
+        if($random['flag']==true)
+        {
+            $random['user'] = new UserCollection($this->user->findByUserId($random['userId']));
+        }
+        unset($random['userId']);
+        return $this->response->array($random);
     }
 }

@@ -54,7 +54,7 @@ class AwsGateway extends Gateway
             $result = $smsClient->publish([
                 'Message' => $message,
                 'PhoneNumber' => $phone
-//                'AWS.SNS.SMS.SenderID' =>'Helloo'
+//                'AWS.SNS.SMS.SenderID' =>'Lovbee'
             ]);
             \Log::error($result);
             return $result;
