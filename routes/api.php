@@ -46,6 +46,7 @@ $api->group($V1Params , function ($api){
             $api->get('user/voice/random' , 'UserController@randomVoice')->name('user.voice.random');
             $api->get('user/video/random' , 'UserController@randomVideo')->name('user.video.random');
             $api->get('user/video/randomV2' , 'UserController@randomVideoV2')->name('user.video.random.v2');
+            $api->get('user/voice/randomV2' , 'UserController@randomVoiceV2')->name('user.voice.random.v2');
             $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
         });
         $api->delete('user/voice/random' , 'UserController@removeVoice')->name('user.voice.random.delete');

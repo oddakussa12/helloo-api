@@ -44,12 +44,14 @@ class Test extends Command
      */
     public function handle()
     {
-        var_dump(array_slice(array(176) , 0 , 6));die;
         $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
         User::chunk(100, function($users) use ($ageSortSetKey){
             foreach($users as $user){
-                $age = age($user->user_birthday);
-                Redis::zadd($ageSortSetKey , $age , $user->getKey());
+                if($user->user_activation==1)
+                {
+                    $age = age($user->user_birthday);
+                    Redis::zadd($ageSortSetKey , $age , $user->getKey());
+                }
 //                $cache = collect($user)->toArray();
 //                $key = "helloo:account:service:account:".$user->getKey();
 //                Redis::hmset($key , $cache);

@@ -192,4 +192,16 @@ class UserController extends BaseController
         unset($random['userId']);
         return $this->response->array($random);
     }
+
+    public function randomVoiceV2(Request $request)
+    {
+        $self = auth()->id();
+        $random = $this->user->randomVoiceV2($self);
+        if($random['flag']==true)
+        {
+            $random['user'] = new UserCollection($this->user->findByUserId($random['userId']));
+        }
+        unset($random['userId']);
+        return $this->response->array($random);
+    }
 }

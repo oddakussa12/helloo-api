@@ -35,8 +35,9 @@ class UserPhone implements Rule
             if($result===false)
             {
                 $error = array(
-                    'type'=>'forget_pwd_phone_valid_error',
+                    'type'=>'phone_valid_error',
                     'ip'=>getRequestIpAddress(),
+                    'url'=>request()->getPathInfo(),
                     'route'=>request()->route()->getName(),
                     'params'=>request()->all(),
                 );
@@ -45,8 +46,9 @@ class UserPhone implements Rule
             return $result;
         } catch (NumberParseException $e) {
             $error = array(
-                'type'=>'forget_pwd_phone_error',
+                'type'=>'phone_error',
                 'ip'=>getRequestIpAddress(),
+                'url'=>request()->getPathInfo(),
                 'route'=>request()->route()->getName(),
                 'params'=>request()->all(),
                 'message'=>$e->getMessage(),
