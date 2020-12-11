@@ -589,6 +589,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $set01Key = 'helloo:account:service:account-random-voice-filter-set-01';
         $set10Key = 'helloo:account:service:account-random-voice-filter-set-10';
         $set00Key = 'helloo:account:service:account-random-voice-filter-set-00';
+        $officialSetKey = 'helloo:account:service:account-random-official-video-set';
 
         Redis::srem($setKey , $self);
         Redis::srem($filterSetKey , $self);
@@ -596,6 +597,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         Redis::srem($set01Key , $self);
         Redis::srem($set10Key , $self);
         Redis::srem($set00Key , $self);
+        Redis::srem($officialSetKey , $self);
     }
 
     public function removeVideo()
