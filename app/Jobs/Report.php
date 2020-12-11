@@ -58,15 +58,18 @@ class Report implements ShouldQueue
                 "objectName" => "Helloo:UserReported",
                 'content'    => array(
                     'reportedLevel'=>$level,
-                    'reportedType'=>$this->reportedType,
+                    'reportType'=>$this->reportedType,
                     'content'=>'You have been reported',
                     'whistleblower'=> $this->auth
                 )
             );
             $result = app('rcloud')->getMessage()->System()->send($content);
-            Log::error($this->auth);
-            Log::error($content);
-            Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
+            $effect = array(
+                'type'=>'user_reported',
+                'result'=>$result,
+                'content'=>$content
+            );
+            Log::error(\json_encode($effect , JSON_UNESCAPED_UNICODE));
         }
     }
 
