@@ -36,6 +36,10 @@ class AuthController extends BaseController
     {
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
         $password = $request->input('password');
         $validationField = array(
             'phone'=>$user_phone_country.$user_phone,
@@ -260,6 +264,10 @@ class AuthController extends BaseController
         $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
 //        $code = strval($request->input('code' , ''));
         $phone = $user_phone_country.$user_phone;
         $validationField = array(
@@ -293,10 +301,14 @@ class AuthController extends BaseController
 //            ]
         ];
         Validator::make($validationField, $rule)->validate();
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($phone))
         {
-            abort(422 , 'You are already registered, please log in！');
+            abort(422 , trans('validation.custom.phone.unique'));
         }
         $now = Carbon::now()->toDateTimeString();
         $agent = new Agent();
@@ -342,6 +354,10 @@ class AuthController extends BaseController
 //        $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
         $code = strval($request->input('code' , ''));
         $phone = $user_phone_country.$user_phone;
         $validationField = array(

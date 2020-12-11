@@ -1,7 +1,10 @@
 <?php
 namespace App\Rules;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use libphonenumber\PhoneNumberUtil;
+use libphonenumber\NumberParseException;
 use Illuminate\Contracts\Validation\Rule;
 
 class UserPhoneUnique implements Rule
@@ -22,10 +25,23 @@ class UserPhoneUnique implements Rule
             $numberProto = $phoneUtil->parse($value);
             $phoneNum = $numberProto->getNationalNumber();
             $phoneCountry = $numberProto->getCountryCode();
-            $phone = \DB::table('users_phones')->where('user_phone_country', $phoneCountry)->where('user_phone', $phoneNum)->first();
+            if($phoneCountry=='62'&&substr($phoneNum , 0 , 2)=='62')
+            {
+                $phoneNum = substr($phoneNum , 2);
+            }
+            $phone = DB::table('users_phones')->where('user_phone_country', $phoneCountry)->where('user_phone', $phoneNum)->first();
             return blank($phone);
-        } catch (\libphonenumber\NumberParseException $e) {
-            \Log::error($e->getMessage());
+        } catch (NumberParseException $e) {
+            $error = array(
+                'type'=>'phone_unique_illegal',
+                'ip'=>getRequestIpAddress(),
+                'url'=>request()->getPathInfo(),
+                'route'=>request()->route()->getName(),
+                'params'=>request()->all(),
+                'error_type'=>$e->getErrorType(),
+                'error_message'=>$e->getMessage()
+            );
+            Log::info(\json_encode($error));
             return false;
         }
     }

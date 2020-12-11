@@ -317,6 +317,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function randomVideo($self)
     {
         $flag = false;
+        $lockedKey = 'helloo:account:service:account-reported-locked:'.$self;
+        if(Redis::exists($lockedKey))
+        {
+            $roomId = md5($self);
+            return array('flag'=>$flag , 'roomId'=>$roomId);
+        }
         $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-video-set';
         $officialSetKey = 'helloo:account:service:account-random-official-video-set';
@@ -424,6 +430,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function randomVoice($self)
     {
         $flag = false;
+        $lockedKey = 'helloo:account:service:account-reported-locked:'.$self;
+        if(Redis::exists($lockedKey))
+        {
+            $roomId = md5($self);
+            return array('flag'=>$flag , 'roomId'=>$roomId);
+        }
         $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-voice-set';
         $officialSetKey = 'helloo:account:service:account-random-official-voice-set';

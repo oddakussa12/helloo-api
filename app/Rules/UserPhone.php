@@ -23,13 +23,20 @@ class UserPhone implements Rule
         try {
             $numberProto = $phoneUtil->parse($value);
             $result = $phoneUtil->isValidNumber($numberProto);
+            $phone = $numberProto->getNationalNumber();
+            $phoneCountry = $numberProto->getCountryCode();
             if($result===true)
             {
-                $phone = $numberProto->getNationalNumber();
-                $phoneCountry = $numberProto->getCountryCode();
                 if($phoneCountry=='86')
                 {
                     $result = (bool)preg_match('/^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/', $phone, $matches);
+                }
+            }else{
+                if($phoneCountry=='62'&&substr($phone , 0 , 2)=='62')
+                {
+                    $phone = substr($phone , 2);
+                    $numberProto = $phoneUtil->parse("+".$phoneCountry.$phone);
+                    $result = $phoneUtil->isValidNumber($numberProto);
                 }
             }
             if($result===false)
@@ -41,7 +48,7 @@ class UserPhone implements Rule
                     'route'=>request()->route()->getName(),
                     'params'=>request()->all(),
                 );
-                Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
+                Log::info(\json_encode($error , JSON_UNESCAPED_UNICODE));
             }
             return $result;
         } catch (NumberParseException $e) {
@@ -51,9 +58,10 @@ class UserPhone implements Rule
                 'url'=>request()->getPathInfo(),
                 'route'=>request()->route()->getName(),
                 'params'=>request()->all(),
-                'message'=>$e->getMessage(),
+                'error_type'=>$e->getErrorType(),
+                'error_message'=>$e->getMessage()
             );
-            Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
+            Log::info(\json_encode($error , JSON_UNESCAPED_UNICODE));
             return false;
         }
     }

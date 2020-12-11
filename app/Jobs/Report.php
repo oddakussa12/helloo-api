@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Custom\RedisList;
 use Illuminate\Bus\Queueable;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -40,13 +41,24 @@ class Report implements ShouldQueue
         $reportedCount = intval(Redis::zscore($key , $this->reportedId));
         if($reportedCount!=$count)
         {
+            $redis = new RedisList();
+            $lockedKey = 'helloo:account:service:account-reported-locked:'.$this->reportedId;
+            $redis->releaseLock($lockedKey);
+            if($count<=2&&$count>0)
+            {
+                $redis->tryGetLock($lockedKey , 1 , 3600000);
+            }else{
+                $redis->tryGetLock($lockedKey , 1 , 86400000);
+            }
             Redis::zadd($key , $count , $this->reportedId);
+            $level = $count>3?3:$count;
             $content = array(
                 'senderId'   => 'System',
                 'targetId'   => $this->reportedId,
                 "objectName" => "Helloo:UserReported",
                 'content'    => array(
-                    'reportType'=>$this->reportedType,
+                    'reportedLevel'=>$level,
+                    'reportedType'=>$this->reportedType,
                     'content'=>'You have been reported',
                     'whistleblower'=> $this->auth
                 )

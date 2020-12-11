@@ -25,6 +25,10 @@ trait Update
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $code = strval($request->input('code' , ''));
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
         $phone = $user_phone_country.$user_phone;
         $password = strval($request->input('password'));
         $rules = [
@@ -265,6 +269,10 @@ trait Update
         $user_phone = ltrim(ltrim(strval($request->input('user_phone')) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         $key = 'helloo:account:service:account-reset-password-sms-code:'.$user_phone_country.$user_phone;
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
         $rule = [
             'phone' => [
                 'bail',
@@ -274,6 +282,10 @@ trait Update
         ];
         $validationField = array('phone'=>$user_phone_country.$user_phone);
         Validator::make($validationField, $rule)->validate();
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
         $userPhone = DB::table('users_phones')->where("user_phone_country" , $user_phone_country)->where("user_phone" , $user_phone)->first();
         if(!blank($userPhone))
         {
