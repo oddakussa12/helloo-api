@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 
+use Vonage\Voice\NCCO\NCCO;
 use Illuminate\Queue\RedisQueue;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
@@ -137,6 +138,43 @@ class TestController extends BaseController
 //            ));
 //            return $this->response->array($token);
         }
+    }
+
+    public function call()
+    {
+        $keypair = new \Vonage\Client\Credentials\Keypair(
+            file_get_contents('/home/www/.nexmo/private.key'),
+            'b71f9142-11b1-4340-b502-f524244c20b9'
+        );
+        $client = new \Vonage\Client($keypair);
+
+        $outboundCall = new \Vonage\Voice\OutboundCall(
+            new \Vonage\Voice\Endpoint\Phone('6285817281840'),
+            new \Vonage\Voice\Endpoint\Phone('8617600128988')
+        );
+        $ncco = new NCCO();
+        $number = mt_rand(1111 , 9999);
+        $talk = new \Vonage\Voice\NCCO\Action\Talk('Hi! Your verification code for lovbee is '.$number.'.');
+        $ncco->addAction($talk->setLoop(2));
+        $outboundCall->setNCCO($ncco);
+        $response = $client->voice()->createOutboundCall($outboundCall);
+
+        dump($response->getConversationUuid());
+        dump($response->getDirection());
+        dump($response->getFrom());
+        dump($response->getStatus());
+        dump($response->getTimestamp());
+        dump($response->getTo());
+        dump($response->getUuid());
+        dump($response->getNetwork());
+        dump($response->getRate());
+        dump($response->getStartTime());
+        dump($response->getEndTime());
+        dump($response->getDuration());
+        dump($response->getPrice());
+        dump($number);
+        dd($response);
+
     }
 
 

@@ -138,6 +138,7 @@ $api->group($V1Params , function ($api){
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');
     $api->get('test/token' , 'TestController@token')->name('test.token');
+    $api->get('test/call' , 'TestController@call')->name('test.call');
     $api->get('test/index' , 'TestController@index')->name('test.index');
 
 });

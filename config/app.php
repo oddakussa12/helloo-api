@@ -180,7 +180,6 @@ return [
         App\Providers\RouteServiceProvider::class,
         Jenssegers\Agent\AgentServiceProvider::class,
         Torann\GeoIP\GeoIPServiceProvider::class,
-//        Fenos\Notifynder\NotifynderServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         App\Providers\QiniuStorageServiceProvider::class,
         Overtrue\LaravelFollow\FollowServiceProvider::class,
@@ -189,9 +188,6 @@ return [
         App\Providers\NotificationServiceProvider::class,
         Toplan\PhpSms\PhpSmsServiceProvider::class,
         App\Providers\SmsManagerServiceProvider::class,
-        Laravel\Scout\ScoutServiceProvider::class,
-        ScoutEngines\Elasticsearch\ElasticsearchProvider::class,
-        LaravelFCM\FCMServiceProvider::class,
         App\Providers\DingoServiceProvider::class,
         App\Providers\ExpandQueueServiceProvider::class,
         App\Providers\EasySmsServiceProvider::class,
@@ -250,8 +246,6 @@ return [
         'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class,
         'PhpSms' => Toplan\PhpSms\Facades\Sms::class,
         'SmsManager' => Toplan\Sms\Facades\SmsManager::class,
-        'FCM'      => LaravelFCM\Facades\FCM::class,
-        'FCMGroup' => LaravelFCM\Facades\FCMGroup::class, // Optional
     ],
 
 ];
