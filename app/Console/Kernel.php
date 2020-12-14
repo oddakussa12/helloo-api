@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         \Torann\GeoIP\Console\Update::class,
         \App\Console\Commands\RemoveRandomUser::class,
         \App\Console\Commands\StoreVisitLog::class,
+        \App\Console\Commands\StoreStatusLog::class,
         \App\Console\Commands\RemoveExpiredOnlineUser::class,
     ];
 
@@ -29,6 +30,10 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('store:visit_log')
             ->dailyAt('20:00')->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('store:status_log')
+            ->dailyAt('19:00')->when(function(){
                 return config('common.cron_switch');
             });
         $schedule->command('remove:expired_online_user')
