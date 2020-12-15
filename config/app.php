@@ -186,8 +186,6 @@ return [
         App\Providers\LaravelLocalizationServiceProvider::class,
         App\Providers\RongCloudServiceProvider::class,
         App\Providers\NotificationServiceProvider::class,
-        Toplan\PhpSms\PhpSmsServiceProvider::class,
-        App\Providers\SmsManagerServiceProvider::class,
         App\Providers\DingoServiceProvider::class,
         App\Providers\ExpandQueueServiceProvider::class,
         App\Providers\EasySmsServiceProvider::class,
@@ -243,9 +241,7 @@ return [
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
         'GeoIP' => Torann\GeoIP\GeoIPFacade::class,
         'Notifynder' => Fenos\Notifynder\Facades\Notifynder::class,
-        'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class,
-        'PhpSms' => Toplan\PhpSms\Facades\Sms::class,
-        'SmsManager' => Toplan\Sms\Facades\SmsManager::class,
+        'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class
     ],
 
 ];

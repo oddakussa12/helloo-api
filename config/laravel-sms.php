@@ -79,9 +79,7 @@ return [
     | 如需缓存配置，则需使用 `Toplan\Sms\SmsManger::closure($closure)` 方法进行配置
     |
     */
-    'content' => Toplan\Sms\SmsManager::closure(function ($code, $minutes, $input) {
-        return "【Yooul】Your Yooul security code is {$code}. You are trying to change the login password. Please keep your account information in a safe place.";
-    }),
+    'content' => "【Yooul】Your Yooul security code is %s. You are trying to change the login password. Please keep your account information in a safe place.",
 
     'forget_password' => "【Yooul】Your Yooul security code is %s. You are trying to change the login password. Please keep your account information in a safe place.",
 
@@ -156,12 +154,8 @@ return [
     |
     */
     'data' => [
-        'code' => Toplan\Sms\SmsManager::closure(function ($code) {
-            return $code;
-        }),
-        'minutes' => Toplan\Sms\SmsManager::closure(function ($code, $minutes) {
-            return $minutes;
-        }),
+        'code' => '',
+        'minutes' => '',
     ],
 
     /*

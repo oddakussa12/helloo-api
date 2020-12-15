@@ -61,9 +61,14 @@ class TestController extends BaseController
             'content'    => array(
                 'content'=>'Whole network push',
                 'videoUrl'=>"https://f.video.weibocdn.com/R3Rjmslrlx07IsJmPztu01041200743K0E010.mp4?label=mp4_hd&template=480x640.24.0&trans_finger=7c347e6ee1691b93dc7e5726f4ef34b3&ori=0&ps=1EO8O2oFB1ePdo&Expires=1606974751&ssig=9csHBh3jaL&KID=unistore,video"
+            ),
+            'pushContent'=>'A test push notification content',
+            'pushExt'=>array(
+                'title'=>'A test push notification title',
+                'forceShowPushContent'=>1
             )
         );
-        $result = app('rcloud')->getMessage()->Broadcast()->recall($content);
+        $result = app('rcloud')->getMessage()->System()->broadcast($content);
         Log::error($content);
         Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
     }
