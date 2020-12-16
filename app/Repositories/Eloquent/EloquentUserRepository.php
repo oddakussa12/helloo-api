@@ -316,6 +316,10 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function randomVideo($self)
     {
+        if(intval(config('common.cron_switch'))!=0)
+        {
+            return $this->randomVideoV2($self);
+        }
         $flag = false;
         $lockedKey = 'helloo:account:service:account-reported-locked:'.$self;
         if(Redis::exists($lockedKey))

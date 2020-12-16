@@ -32,6 +32,20 @@ class UserController extends BaseController
         $this->user = $user;
     }
 
+    public function index(Request $request)
+    {
+        $phone = $request->input('phone' , '');
+        $phoneCountry = $request->input('phoneCountry' , '');
+        $userPhone = DB::table('users_phones')->where('user_phone_country' , $phoneCountry)->where('user_phone' , $phone)->first();
+        if(blank($userPhone))
+        {
+            return $this->response->array(array('data'=>array()));
+        }
+//        $userIds = $userPhones->pluck('user_id')->all();
+        $user = $this->user->findOrFail($userPhone->user_id);
+        return new UserCollection($user);
+    }
+
 
     /**
      * Display the specified resource.

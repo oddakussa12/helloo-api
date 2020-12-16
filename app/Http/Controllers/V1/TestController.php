@@ -56,10 +56,10 @@ class TestController extends BaseController
     public function broadcast()
     {
         $content = array(
-            'senderId'   => 'System',
+            'senderId'   => 334,
             "objectName" => "Helloo::BroadcastVideoUrl",
             'content'    => array(
-                'content'=>'Whole network push',
+                'content'=>'Whole network push_'.mt_rand(1111 , 9999),
                 'videoUrl'=>"https://f.video.weibocdn.com/R3Rjmslrlx07IsJmPztu01041200743K0E010.mp4?label=mp4_hd&template=480x640.24.0&trans_finger=7c347e6ee1691b93dc7e5726f4ef34b3&ori=0&ps=1EO8O2oFB1ePdo&Expires=1606974751&ssig=9csHBh3jaL&KID=unistore,video"
             ),
             'pushContent'=>'A test push notification content',

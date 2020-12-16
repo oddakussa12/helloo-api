@@ -2,6 +2,7 @@
 return [
     'official_user_id'=>'official_user_id',
     'cron_switch'=>env('CRON_SWITCH' , false),
+    'match_version'=>env('MATCH_VERSION' , 0),
     'online_domain'=>[
         'dev.api.helloo.mantouhealth.com',
         'api.helloo.mantouhealth.com',
