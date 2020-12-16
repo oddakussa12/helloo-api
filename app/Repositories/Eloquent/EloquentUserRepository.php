@@ -23,6 +23,7 @@ use App\Events\UserProfileRevokeLikeEvent;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
 use Dingo\Api\Exception\DeleteResourceFailedException;
+use Jenssegers\Agent\Agent;
 
 class EloquentUserRepository  extends EloquentBaseRepository implements UserRepository
 {
@@ -316,35 +317,45 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function randomVideo($self)
     {
-        if(intval(config('common.match_version'))!=0)
-        {
-            $data = $this->randomVideoV2($self);
-            if($data['flag'])
-            {
-                if($this->official($data['userId']))
-                {
-                    $locale = locale();
-                    if($locale=='id')
-                    {
-                        $text = "Selamat ! Anda telah dipertemukan dengan Artis Lovbee";
-                    }elseif($locale=='zh-CN')
-                    {
-                        $text = '恭喜您匹配到了Lovbee Star.';
-                    }else{
-                        $text = 'Bingo！🎉 You have been matched with a Lovbee Star.';
-                    }
-                    $data['official'] = $text;
-                }
-            }
-            return $data;
-        }
-        $flag = false;
+        $agent = new Agent();
+        $deviceId = $agent->getHttpHeader('deviceId');
         $lockedKey = 'helloo:account:service:account-reported-locked:'.$self;
-        if(Redis::exists($lockedKey))
+        if($this->deviceIdBlacklist($deviceId)||Redis::exists($lockedKey))
         {
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
         }
+
+        if(intval(config('common.match_version'))!=0)
+        {
+            $data = $this->randomVideoV2($self);
+        }else{
+            $data = $this->randomVideoV1($self);
+        }
+        if($data['flag'])
+        {
+            if($this->official($data['userId']))
+            {
+                $locale = locale();
+                if($locale=='id')
+                {
+                    $text = "Selamat ! Anda telah dipertemukan dengan Artis Lovbee";
+                }elseif($locale=='zh-CN')
+                {
+                    $text = '恭喜您匹配到了Lovbee Star.';
+                }else{
+                    $text = 'Bingo！🎉 You have been matched with a Lovbee Star.';
+                }
+                $data['official'] = $text;
+            }
+        }
+        return $data;
+
+    }
+
+    public function randomVideoV1($self)
+    {
+        $flag = false;
         $imKey = 'helloo:account:service:account-random-im-set';
         $setKey = 'helloo:account:service:account-random-video-set';
         $officialSetKey = 'helloo:account:service:account-random-official-video-set';
@@ -398,22 +409,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             }else{
                 $flag = true;
                 $roomId = md5($userId);
-                $data = array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
-                if($this->official($userId))
-                {
-                    $locale = locale();
-                    if($locale=='id')
-                    {
-                        $text = "Selamat ! Anda telah dipertemukan dengan Artis Lovbee";
-                    }elseif($locale=='zh-CN')
-                    {
-                        $text = '恭喜您匹配到了Lovbee Star.';
-                    }else{
-                        $text = 'Bingo！🎉 You have been matched with a Lovbee Star.';
-                    }
-                    $data['official'] = $text;
-                }
-                return $data;
+                return array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
             }
         }
     }
@@ -948,6 +944,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return Redis::spop($setKey);
     }
 
+    public function deviceIdBlacklist($deviceId)
+    {
+        $key = 'helloo:account:service:device-id-blacklist';
+        return boolval(Redis::zrank($key , $deviceId)!==null);
+    }
+
     public function official($userId)
     {
         $key = 'helloo:account:service:account-official';
@@ -1074,6 +1076,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 if($this->isCancelVideoRandom($userId))
                 {
                     Log::info('video match user id:'.$self.' =>'  , array(
+                        'userId'=>$userId,
                         'result'=>'member cancel video two'
                     ));
                     $userId = 0;
@@ -1084,6 +1087,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     if(!in_array($userId , $members))
                     {
                         Log::info('video match user id:'.$self.' =>'  , array(
+                            'userId'=>$userId,
                             'result'=>'member cancel video three'
                         ));
                         $userId = 0;
@@ -1107,7 +1111,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     {
                         Log::info('video match user id:'.$self.' =>'  , array(
                             'result'=>'success',
-                            'userId'=>'$userId',
+                            'userId'=>$userId,
                         ));
                         $flag = true;
                         $roomId = md5($userId);
@@ -1115,7 +1119,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     }else{
                         Log::info('video match user id:'.$self.' =>'  , array(
                             'result'=>'failure',
-                            'userId'=>'$userId',
+                            'userId'=>$userId,
                             'reason'=>'already matched',
                         ));
                         !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
@@ -1242,6 +1246,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 if($this->isCancelVideoRandom($userId))
                 {
                     Log::info('video match user id:'.$self.' =>'  , array(
+                        'userId'=>$userId,
                         'result'=>'member cancel video two'
                     ));
                     $userId = 0;
@@ -1252,6 +1257,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     if(!in_array($userId , $members))
                     {
                         Log::info('video match user id:'.$self.' =>'  , array(
+                            'userId'=>$userId,
                             'result'=>'member cancel video three'
                         ));
                         $userId = 0;
@@ -1275,7 +1281,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     {
                         Log::info('video match user id:'.$self.' =>'  , array(
                             'result'=>'success',
-                            'userId'=>'$userId',
+                            'userId'=>$userId,
                         ));
                         $flag = true;
                         $roomId = md5($userId);
@@ -1283,7 +1289,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     }else{
                         Log::info('video match user id:'.$self.' =>'  , array(
                             'result'=>'failure',
-                            'userId'=>'$userId',
+                            'userId'=>$userId,
                             'reason'=>'already matched',
                         ));
 //                        $redis->releaseLock('helloo:account:service:processing_video_matches_{helloo}_'.$userId);
@@ -1415,6 +1421,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 if($this->isCancelVideoRandom($userId))
                 {
                     Log::info('video match user id:'.$self.' =>'  , array(
+                        'userId'=>$userId,
                         'result'=>'member cancel video two'
                     ));
                     $userId = 0;
@@ -1425,6 +1432,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     if(!in_array($userId , $members))
                     {
                         Log::info('video match user id:'.$self.' =>'  , array(
+                            'userId'=>$userId,
                             'result'=>'member cancel video three'
                         ));
                         $userId = 0;
@@ -1448,7 +1456,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     {
                         Log::info('video match user id:'.$self.' =>'  , array(
                             'result'=>'success',
-                            'userId'=>'$userId',
+                            'userId'=>$userId,
                         ));
                         $flag = true;
                         $roomId = md5($userId);
@@ -1456,7 +1464,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     }else{
                         Log::info('video match user id:'.$self.' =>'  , array(
                             'result'=>'failure',
-                            'userId'=>'$userId',
+                            'userId'=>$userId,
                             'reason'=>'already matched',
                         ));
 //                        $redis->releaseLock('helloo:account:service:processing_video_matches_{helloo}_'.$userId);
