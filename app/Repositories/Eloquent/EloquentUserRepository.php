@@ -316,7 +316,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function randomVideo($self)
     {
-        if(intval(config('common.cron_switch'))!=0)
+        if(intval(config('common.match_version'))!=0)
         {
             return $this->randomVideoV2($self);
         }
