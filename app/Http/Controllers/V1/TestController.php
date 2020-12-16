@@ -19,6 +19,14 @@ use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 
 class TestController extends BaseController
 {
+    public function __construct()
+    {
+        if(in_array(domain() , config('common.online_domain')))
+        {
+            dd('Please use the test environment to test');
+        }
+    }
+
     public function index()
     {
         $sms = app('easy-sms');

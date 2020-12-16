@@ -54,9 +54,13 @@ $api->group($V1Params , function ($api){
         $api->delete('user/voice/random' , 'UserController@removeVoice')->name('user.voice.random.delete');
         $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
 
-        /*****报告 开始*****/
+        /*****答题 开始*****/
         $api->resource('answer', 'AnswerController',['only' => ['store']]);
-        /*****报告 结束*****/
+        /*****答题 结束*****/
+
+        /*****道具 开始*****/
+        $api->resource('props', 'PropsController',['only' => ['index']]);
+        /*****道具 结束*****/
 
         /*****报告 开始*****/
         $api->resource('report', 'ReportController',['only' => ['store']]);

@@ -318,7 +318,25 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         if(intval(config('common.match_version'))!=0)
         {
-            return $this->randomVideoV2($self);
+            $data = $this->randomVideoV2($self);
+            if($data['flag'])
+            {
+                if($this->official($data['userId']))
+                {
+                    $locale = locale();
+                    if($locale=='id')
+                    {
+                        $text = "Selamat ! Anda telah dipertemukan dengan Artis Lovbee";
+                    }elseif($locale=='zh-CN')
+                    {
+                        $text = '恭喜您匹配到了Lovbee Star.';
+                    }else{
+                        $text = 'Bingo！🎉 You have been matched with a Lovbee Star.';
+                    }
+                    $data['official'] = $text;
+                }
+            }
+            return $data;
         }
         $flag = false;
         $lockedKey = 'helloo:account:service:account-reported-locked:'.$self;
@@ -406,7 +424,13 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $gender = intval(request()->input('gender' , 2));//0女 1男 2全部 -1没选择
         $gender = in_array($gender , array(0 , 1 , 2))?$gender:2;
         $userGender = intval($user->user_gender);
-        Log::info($user->user_nick_name.'  gender:'.$userGender.'   match:'.$gender);
+        $userNickName = $user->user_nick_name;
+        Log::info('video match start user id:'.$self.' =>'  , array(
+            'userId'=>$self,
+            'userNickName'=>$userNickName,
+            'gender'=>$gender,
+            'userGender'=>$userGender,
+        ));
         if($userGender===-1)
         {
             $roomId = md5($self);
@@ -427,7 +451,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }else{
             $data = $this->randomMixVideo($self , $userGender);
         }
-        Log::info($user->user_nick_name.'  match'.\json_encode($data));
+        Log::info('video match result user id:'.$self.' user nick name:'.$userNickName.' =>' , $data);
         return $data;
     }
 
@@ -967,11 +991,20 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             );
         }
         $members = array();
+        Log::info('video match user id:'.$self.' =>'  , array(
+            'matchKey'=>$matchKey
+        ));
         array_walk($matchKey , function($v , $k) use (&$members){
             $members = array_merge($members , Redis::smembers($v));
         });
+        Log::info('video match user id:'.$self.' =>'  , array(
+            'members'=>$members
+        ));
         if(blank($members))
         {
+            Log::info('video match user id:'.$self.' =>'  , array(
+                'result'=>'members no data one'
+            ));
             if(!$this->isCancelVideoRandom($self))
             {
                 Redis::sadd($setKey , $self);
@@ -998,12 +1031,18 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             }
             if($status)
             {
+                Log::info('video match user id:'.$self.' =>'  , array(
+                    'result'=>'member cancel video one'
+                ));
                 $roomId = md5($self);
                 return array('flag'=>$flag , 'roomId'=>$roomId);
             }
 
             if(blank($members))
             {
+                Log::info('video match user id:'.$self.' =>'  , array(
+                    'result'=>'members no data two'
+                ));
                 !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                 $roomId = md5($self);
                 $data = array('flag'=>$flag , 'roomId'=>$roomId);
@@ -1018,13 +1057,25 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                         $ageData[$member] = $ageDiff;
                     }
                     asort($ageData , SORT_NUMERIC);
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'ageData'=>$ageData
+                    ));
                     $ageData = array_slice(array_keys($ageData) , 0 , 2);
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'ageDataSlice'=>$ageData
+                    ));
                     $userId = $ageData[array_rand($ageData)];
                 }else{
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'age'=>$age
+                    ));
                     $userId = $members[array_rand($members)];
                 }
                 if($this->isCancelVideoRandom($userId))
                 {
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'result'=>'member cancel video two'
+                    ));
                     $userId = 0;
                 }else{
                     array_walk($matchKey , function($v , $k) use (&$members){
@@ -1032,11 +1083,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     });
                     if(!in_array($userId , $members))
                     {
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'member cancel video three'
+                        ));
                         $userId = 0;
                     }
                 }
                 if($userId==0)
                 {
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'result'=>'failure'
+                    ));
                     !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                     $roomId = md5($self);
                     $data = array('flag'=>$flag , 'roomId'=>$roomId);
@@ -1048,10 +1105,19 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     $lock = $redis->tryGetLock('helloo:account:service:processing_video_matches_{helloo}_'.$userId, 1 , 5000);
                     if($lock)
                     {
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'success',
+                            'userId'=>'$userId',
+                        ));
                         $flag = true;
                         $roomId = md5($userId);
                         $data = array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
                     }else{
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'failure',
+                            'userId'=>'$userId',
+                            'reason'=>'already matched',
+                        ));
                         !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                         $roomId = md5($self);
                         $data = array('flag'=>$flag , 'roomId'=>$roomId);
@@ -1093,11 +1159,20 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             );
         }
         $members = array();
+        Log::info('video match user id:'.$self.' =>'  , array(
+            'matchKey'=>$matchKey
+        ));
         array_walk($matchKey , function($v , $k) use (&$members){
             $members = array_merge($members , Redis::smembers($v));
         });
+        Log::info('video match user id:'.$self.' =>'  , array(
+            'members'=>$members
+        ));
         if(blank($members))
         {
+            Log::info('video match user id:'.$self.' =>'  , array(
+                'result'=>'members no data one'
+            ));
             if(!$this->isCancelVideoRandom($self))
             {
                 Redis::sadd($setKey , $self);
@@ -1124,18 +1199,23 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             }
             if($status)
             {
+                Log::info('video match user id:'.$self.' =>'  , array(
+                    'result'=>'member cancel video one'
+                ));
                 $roomId = md5($self);
                 return array('flag'=>$flag , 'roomId'=>$roomId);
             }
 
             if(blank($members))
             {
+                Log::info('video match user id:'.$self.' =>'  , array(
+                    'result'=>'members no data two'
+                ));
                 !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                 $roomId = md5($self);
                 $data = array('flag'=>$flag , 'roomId'=>$roomId);
             }else{
                 $age = intval(Redis::zscore($ageSortSetKey , $self));
-                Log::error('age======'.$age);
                 if($age>0)
                 {
                     $ageData = array();
@@ -1145,14 +1225,25 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                         $ageData[$member] = $ageDiff;
                     }
                     asort($ageData , SORT_NUMERIC);
-                    Log::error('data======'.\json_encode($ageData));
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'ageData'=>$ageData
+                    ));
                     $ageData = array_slice(array_keys($ageData) , 0 , 1);
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'ageDataSlice'=>$ageData
+                    ));
                     $userId = $ageData[array_rand($ageData)];
                 }else{
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'age'=>$age
+                    ));
                     $userId = $members[array_rand($members)];
                 }
                 if($this->isCancelVideoRandom($userId))
                 {
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'result'=>'member cancel video two'
+                    ));
                     $userId = 0;
                 }else{
                     array_walk($matchKey , function($v , $k) use (&$members){
@@ -1160,11 +1251,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     });
                     if(!in_array($userId , $members))
                     {
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'member cancel video three'
+                        ));
                         $userId = 0;
                     }
                 }
                 if($userId==0)
                 {
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'result'=>'failure'
+                    ));
                     !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                     $roomId = md5($self);
                     $data = array('flag'=>$flag , 'roomId'=>$roomId);
@@ -1176,10 +1273,19 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     $lock = $redis->tryGetLock('helloo:account:service:processing_video_matches_{helloo}_'.$userId, 1 , 5000);
                     if($lock)
                     {
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'success',
+                            'userId'=>'$userId',
+                        ));
                         $flag = true;
                         $roomId = md5($userId);
                         $data = array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
                     }else{
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'failure',
+                            'userId'=>'$userId',
+                            'reason'=>'already matched',
+                        ));
 //                        $redis->releaseLock('helloo:account:service:processing_video_matches_{helloo}_'.$userId);
                         !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                         $roomId = md5($self);
@@ -1226,11 +1332,20 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             );
         }
         $members = array();
+        Log::info('video match user id:'.$self.' =>'  , array(
+            'matchKey'=>$matchKey
+        ));
         array_walk($matchKey , function($v , $k) use (&$members){
             $members = array_merge($members , Redis::smembers($v));
         });
+        Log::info('video match user id:'.$self.' =>'  , array(
+            'members'=>$members
+        ));
         if(blank($members))
         {
+            Log::info('video match user id:'.$self.' =>'  , array(
+                'result'=>'members no data one'
+            ));
             if(!$this->isCancelVideoRandom($self))
             {
                 Redis::sadd($setKey , $self);
@@ -1257,12 +1372,18 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             }
             if($status)
             {
+                Log::info('video match user id:'.$self.' =>'  , array(
+                    'result'=>'member cancel video one'
+                ));
                 $roomId = md5($self);
                 return array('flag'=>$flag , 'roomId'=>$roomId);
             }
 
             if(blank($members))
             {
+                Log::info('video match user id:'.$self.' =>'  , array(
+                    'result'=>'members no data two'
+                ));
                 !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                 $roomId = md5($self);
                 $data = array('flag'=>$flag , 'roomId'=>$roomId);
@@ -1277,13 +1398,25 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                         $ageData[$member] = $ageDiff;
                     }
                     asort($ageData , SORT_NUMERIC);
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'ageData'=>$ageData
+                    ));
                     $ageData = array_slice(array_keys($ageData) , 0 , 2);
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'ageDataSlice'=>$ageData
+                    ));
                     $userId = $ageData[array_rand($ageData)];
                 }else{
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'age'=>$age
+                    ));
                     $userId = $members[array_rand($members)];
                 }
                 if($this->isCancelVideoRandom($userId))
                 {
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'result'=>'member cancel video two'
+                    ));
                     $userId = 0;
                 }else{
                     array_walk($matchKey , function($v , $k) use (&$members){
@@ -1291,11 +1424,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     });
                     if(!in_array($userId , $members))
                     {
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'member cancel video three'
+                        ));
                         $userId = 0;
                     }
                 }
                 if($userId==0)
                 {
+                    Log::info('video match user id:'.$self.' =>'  , array(
+                        'result'=>'failure'
+                    ));
                     !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                     $roomId = md5($self);
                     $data = array('flag'=>$flag , 'roomId'=>$roomId);
@@ -1307,10 +1446,19 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     $lock = $redis->tryGetLock('helloo:account:service:processing_video_matches_{helloo}_'.$userId, 1 , 5000);
                     if($lock)
                     {
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'success',
+                            'userId'=>'$userId',
+                        ));
                         $flag = true;
                         $roomId = md5($userId);
                         $data = array('userId'=>$userId , 'flag'=>$flag , 'roomId'=>$roomId);
                     }else{
+                        Log::info('video match user id:'.$self.' =>'  , array(
+                            'result'=>'failure',
+                            'userId'=>'$userId',
+                            'reason'=>'already matched',
+                        ));
 //                        $redis->releaseLock('helloo:account:service:processing_video_matches_{helloo}_'.$userId);
                         !$this->isCancelVideoRandom($self)&&Redis::sadd($setKey , $self);
                         $roomId = md5($self);
