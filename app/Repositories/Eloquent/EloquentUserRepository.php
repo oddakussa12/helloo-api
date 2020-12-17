@@ -322,6 +322,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $lockedKey = 'helloo:account:service:account-reported-locked:'.$self;
         if($this->deviceIdBlacklist($deviceId)||Redis::exists($lockedKey))
         {
+            $flag = false;
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);
         }
