@@ -16,6 +16,8 @@ class SystemNotification extends Model
 
     const UPDATED_AT = 'updated_at';
 
+    public $timestamps = true;
+
     /**
      * The attributes that should be hidden for arrays.
      *
@@ -23,6 +25,7 @@ class SystemNotification extends Model
      */
     protected $hidden = [
         'id',
+        'from_id',
         'is_expired',
         'updated_at',
         'expired_at',

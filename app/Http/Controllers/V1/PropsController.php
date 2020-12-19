@@ -15,7 +15,7 @@ class PropsController extends BaseController
     public function index(Request $request)
     {
         $props = new Props();
-        $props = $props->paginate(50 , ['*'] , $props->paginateParamName);
+        $props = $props->where('is_delete' , 0)->paginate(50 , ['*'] , $props->paginateParamName);
         return PropsCollection::collection($props);
     }
 

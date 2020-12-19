@@ -123,9 +123,7 @@ $api->group($V1Params , function ($api){
 
         $api->get('notification/system' , 'NotificationController@system')->name('user.notification.system');
 
-        $api->get('notification/last' , 'NotificationController@last')->name('user.notification.last');
-
-        $api->get('notification/new' , 'NotificationController@new')->name('user.notification.new');
+        $api->get('notification/system/last' , 'NotificationController@last')->name('user.notification.last');
 
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
@@ -153,6 +151,7 @@ $api->group($V1Params , function ($api){
     $api->get('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/call' , 'TestController@call')->name('test.call');
     $api->get('test/index' , 'TestController@index')->name('test.index');
+//    $api->get('notification/bulkInsert' , 'NotificationController@bulkInsert')->name('notification.bulkInsert');
 
 });
 

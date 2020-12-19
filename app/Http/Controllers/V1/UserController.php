@@ -40,7 +40,7 @@ class UserController extends BaseController
         if(!blank($phone)&&!blank($phoneCountry))
         {
             $userPhone = DB::table('users_phones')->where('user_phone_country' , $phoneCountry)->where('user_phone' , $phone)->first();
-            if(blank($userPhone))
+            if(blank($userPhone)||$userPhone->user_id==auth()->id())
             {
                 return $this->response->array(array('data'=>array()));
             }
