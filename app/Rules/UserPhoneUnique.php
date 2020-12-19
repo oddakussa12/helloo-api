@@ -41,7 +41,7 @@ class UserPhoneUnique implements Rule
                 'error_type'=>$e->getErrorType(),
                 'error_message'=>$e->getMessage()
             );
-            Log::info(\json_encode($error));
+            Log::info('phone_unique_illegal' , $error);
             return false;
         }
     }

@@ -25,7 +25,6 @@ class UserPhone implements Rule
             $result = $phoneUtil->isValidNumber($numberProto);
             $phone = $numberProto->getNationalNumber();
             $phoneCountry = $numberProto->getCountryCode();
-            Log::info('result' , array($result));
             if($result===true)
             {
                 if($phoneCountry=='86')
@@ -49,7 +48,7 @@ class UserPhone implements Rule
                     'route'=>request()->route()->getName(),
                     'params'=>request()->all(),
                 );
-                Log::info(\json_encode($error , JSON_UNESCAPED_UNICODE));
+                Log::info('phone_valid_error' , $error);
             }
             return $result;
         } catch (NumberParseException $e) {
@@ -62,7 +61,7 @@ class UserPhone implements Rule
                 'error_type'=>$e->getErrorType(),
                 'error_message'=>$e->getMessage()
             );
-            Log::info(\json_encode($error , JSON_UNESCAPED_UNICODE));
+            Log::info('phone_error' , $error);
             return false;
         }
     }
