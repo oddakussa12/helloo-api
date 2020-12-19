@@ -25,11 +25,12 @@ class UserPhone implements Rule
             $result = $phoneUtil->isValidNumber($numberProto);
             $phone = $numberProto->getNationalNumber();
             $phoneCountry = $numberProto->getCountryCode();
+            Log::info('result' , array($result));
             if($result===true)
             {
                 if($phoneCountry=='86')
                 {
-                    $result = (bool)preg_match('/^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/', $phone, $matches);
+                    $result = (bool)preg_match('/^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6,7])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/', $phone, $matches);
                 }
             }else{
                 if($phoneCountry=='62'&&substr($phone , 0 , 2)=='62')

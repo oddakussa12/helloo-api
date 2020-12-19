@@ -36,14 +36,23 @@ class UserController extends BaseController
     {
         $phone = $request->input('phone' , '');
         $phoneCountry = $request->input('phoneCountry' , '');
-        $userPhone = DB::table('users_phones')->where('user_phone_country' , $phoneCountry)->where('user_phone' , $phone)->first();
-        if(blank($userPhone))
+        $keyword = strval($request->input('keyword' , ''));
+        if(!blank($phone)&&!blank($phoneCountry))
         {
+            $userPhone = DB::table('users_phones')->where('user_phone_country' , $phoneCountry)->where('user_phone' , $phone)->first();
+            if(blank($userPhone))
+            {
+                return $this->response->array(array('data'=>array()));
+            }
+            $users = $this->user->allWithBuilder()->where('user_id' , $userPhone->user_id)->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->get();
+            return UserCollection::collection($users);
+        }elseif (!blank($keyword))
+        {
+            $users = $this->user->allWithBuilder()->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->limit(20)->get();
+            return UserCollection::collection($users);
+        }else{
             return $this->response->array(array('data'=>array()));
         }
-//        $userIds = $userPhones->pluck('user_id')->all();
-        $user = $this->user->findOrFail($userPhone->user_id);
-        return new UserCollection($user);
     }
 
 

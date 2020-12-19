@@ -33,7 +33,7 @@ class StatisticsController extends BaseController
 
     public function download(Request $request)
     {
-        Log::error($request->all());
+        Log::info('download' , $request->all());
         return $this->response->created();
     }
 
@@ -57,6 +57,26 @@ class StatisticsController extends BaseController
             'type'=>$type,
             'created_at'=>Carbon::now()->toDateTimeString(),
         ));
+        return $this->response->created();
+    }
+
+    public function event(Request $request)
+    {
+        $event = $request->input('event' , '');
+    }
+
+    public function invitation(Request $request)
+    {
+        $beInvited = intval($request->input('user_id' , ''));
+        if($beInvited>0)
+        {
+            $userId = auth()->id();
+            DB::table('invitation_statistics')->insert(array(
+                'invited'=>$beInvited,
+                'user_id'=>$userId,
+                'created_at'=>Carbon::now()->toDateTimeString(),
+            ));
+        }
         return $this->response->created();
     }
 }

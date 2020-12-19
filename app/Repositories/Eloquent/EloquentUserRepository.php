@@ -320,8 +320,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $agent = new Agent();
         $deviceId = $agent->getHttpHeader('deviceId');
         $lockedKey = 'helloo:account:service:account-reported-locked:'.$self;
+        Log::info('video match init:'.$self);
         if($this->deviceIdBlacklist($deviceId)||Redis::exists($lockedKey))
         {
+            Log::info('video match user id:'.$self.' =>'  , array(
+                'result'=>'be reported or blocked'
+            ));
             $flag = false;
             $roomId = md5($self);
             return array('flag'=>$flag , 'roomId'=>$roomId);

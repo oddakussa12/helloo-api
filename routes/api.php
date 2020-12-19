@@ -115,9 +115,17 @@ $api->group($V1Params , function ($api){
         
         $api->post('statistics/duration' , 'StatisticsController@duration')->name('statistics.duration');
 
+        $api->post('statistics/invitation' , 'StatisticsController@invitation')->name('statistics.invitation');
+
         $api->post('statistics/type/{type}/matchFailed' , 'StatisticsController@matchFailed')->where('type', 'im|voice|video')->name('statistics.matchFailed');
 
         $api->post('statistics/type/{type}/matchSucceed' , 'StatisticsController@matchSucceed')->where('type', 'im|voice|video')->name('statistics.matchSucceed');
+
+        $api->get('notification/system' , 'NotificationController@system')->name('user.notification.system');
+
+        $api->get('notification/last' , 'NotificationController@last')->name('user.notification.last');
+
+        $api->get('notification/new' , 'NotificationController@new')->name('user.notification.new');
 
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');

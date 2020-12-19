@@ -189,6 +189,7 @@ return [
         App\Providers\DingoServiceProvider::class,
         App\Providers\ExpandQueueServiceProvider::class,
         App\Providers\EasySmsServiceProvider::class,
+        App\Providers\PinpointServiceProvider::class,
 
     ],
 
