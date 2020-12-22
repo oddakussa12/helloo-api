@@ -127,8 +127,14 @@ $api->group($V1Params , function ($api){
 
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
+
+    $api->get('user/contacts' , 'UserController@contacts')->name('user.contacts');
+    
     $api->resource('user' , 'UserController' , ['only' => ['show']]);
+
     $api->get('user' , 'UserController@index')->name('user.index');
+
+
 
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback

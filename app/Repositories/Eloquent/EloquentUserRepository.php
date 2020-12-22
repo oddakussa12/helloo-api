@@ -50,6 +50,17 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->create($data);
     }
 
+    /**
+     * @param $userIds
+     * @return array
+     */
+    public function findByUserIds($userIds)
+    {
+        return collect($userIds)->transform(function($userId , $key){
+            return [$this->findByUserId($userId)];
+        });
+    }
+
     public function findByUserId($userId)
     {
         $key = "helloo:account:service:account:".$userId;
@@ -1482,8 +1493,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
         return $data;
     }
-
-
-
+    
 
 }

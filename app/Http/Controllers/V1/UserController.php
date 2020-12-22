@@ -227,4 +227,47 @@ class UserController extends BaseController
         unset($random['userId']);
         return $this->response->array($random);
     }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function contacts(Request $request)
+    {
+        $keyPrefix = "helloo:account:service:account-{phone}-number:";
+        $contacts = (array)$request->all();
+        $contacts = collect($contacts)->filter(function($userPhone , $key){
+            return !blank($userPhone)&&isset($userPhone['phone_country'])&&isset($userPhone['phone']);
+        });
+        $contactKeys = $contacts->map(function($userPhone , $key) use ($keyPrefix){
+            return $keyPrefix.strval($userPhone['phone_country']).'-'.strval($userPhone['phone']);
+        });
+        if($contactKeys->isEmpty())
+        {
+            return $this->response->array(array('data'=>array()));
+        }
+        $userIds = Redis::mget($contactKeys->toArray());
+        $contactUserKeys = $contactKeys->combine($userIds)->toArray();
+        $contacts = $contacts->transform(function($item) use ($keyPrefix , $contactUserKeys){
+            $key = $keyPrefix.$item['phone_country'].'-'.$item['phone'];
+            $item['user_id'] = intval($contactUserKeys[$key]);
+            return $item;
+        });
+        $userIds = $contacts->filter(function($v , $k){
+            $userId = intval($v['user_id']);
+            return $userId>0;
+        })->pluck('user_id')->all();
+        $users = $this->user->findByUserIds($userIds);
+
+        $contacts = $contacts->transform(function($contact , $key) use ($users){
+            $contact['user'] = $users->where('user_id' , $contact['user_id'])->first();
+            return array(
+                'phone_country'=>$contact['phone_country'],
+                'phone'=>$contact['phone'],
+                'user'=>$contact['user'],
+            );
+        });
+
+        return UserCollection::collection($contacts);
+    }
 }

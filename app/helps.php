@@ -1445,3 +1445,26 @@ if (!function_exists('sensitiveWordFilter')) {
     }
 }
 
+if (!function_exists('arraySort')) {
+    /**
+     * @param $array
+     * @param $keys
+     * @param string $sort
+     * @return array
+     */
+    function arraySort($array, $keys, $sort='asc'): array
+    {
+        $newArr = $valArr = array();
+        foreach ($array as $key=>$value) {
+            $valArr[$key] = $value[$keys];
+        }
+        ($sort == 'asc') ?  asort($valArr) : arsort($valArr);
+        reset($valArr);
+        foreach($valArr as $key=>$value) {
+            $newArr[$key] = $array[$key];
+        }
+        return $newArr;
+    }
+}
+
+

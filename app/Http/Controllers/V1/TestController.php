@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\V1;
 
 
+use Godruoyi\Snowflake\Snowflake;
+use App\Models\User;
+use App\Custom\NetEaseIm\NetEaseIm;
+use Carbon\Carbon;
+use Ramsey\Uuid\Uuid;
 use Vonage\Voice\NCCO\NCCO;
 use Illuminate\Queue\RedisQueue;
 use App\Repositories\Contracts\UserRepository;
@@ -141,15 +146,37 @@ class TestController extends BaseController
 
     public function token()
     {
-        Log::error($this->redis());
         if(domain()!=config('app.url'))
         {
+            $user = new User();
+            $nowflake = new Snowflake();
+            $uuid = $nowflake->id();
+            $gender = mt_rand(0 , 1);
+            $user->user_uuid = $uuid;
+            $user->user_gender = $gender;
+            $user->user_pwd = bcrypt(123456);
+            $user->user_nick_name = substr($uuid , 0 , 8);
+            $user->user_activation = 1;
+            $user->user_activated_at = Carbon::now()->toDateTimeString();
+            $netEaseConfig = config('netease');
+            $netEase = new NetEaseIm(array(
+                'AppKey'=>$netEaseConfig['app_key'],
+                'AppSecret'=>$netEaseConfig['app_secret']
+            ));
+
+            $i = mt_rand(1 , 18);
+            $account = $netEase->create_acc_id($uuid , $user->user_nick_name , array(
+                'icon'=>"https://qnwebothersia.mmantou.cn/default_avatar_{$i}.png?imageView2/0/w/200/h/200/interlace/1|imageslim",
+                'mobile'=>'+62-8'.mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9),
+                'gender'=>$gender,
+                'birth'=>Carbon::now()->subYears(mt_rand(10 , 20))->subMonths(mt_rand(1 , 12))->subDays(mt_rand(1 , 10))->toDateString()
+            ));
 //            $token = app('rcloud')->getUser()->register(array(
 //                'id'=> time(),
 //                'name'=> (new RandomStringGenerator())->generate(16),
 //                'portrait'=> "https://qnwebothersia.mmantou.cn/default_avatar.jpg?imageView2/0/w/50/h/50/interlace/1|imageslim"
 //            ));
-//            return $this->response->array($token);
+            return $this->response->array($account->get_data());
         }
     }
 
