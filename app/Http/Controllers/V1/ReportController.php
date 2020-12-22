@@ -21,7 +21,7 @@ class ReportController extends BaseController
         $userId   = strval($request->input('user_id' , ''));
         $reportType   = strval($request->input('report_type' , 'default'));
         $auth     = auth()->user();
-        if(!blank($userId)&&$userId!=$auth->getKey()&&in_array($reportType , config('report_type'))) {
+        if(!blank($userId)&&$userId!=$auth->getKey()&&in_array($reportType , config('report_type'))&&!(app(UserRepository::class)->official($userId))) {
             $user = app(UserRepository::class)->findOrFail($userId);
             $report = new Report();
             $report->user_id = $auth->getKey();
