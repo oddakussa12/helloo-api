@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\V1;
 
 
-use App\Traits\CachableUser;
 use Carbon\Carbon;
+use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\TagCollection;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserTagRepository;
@@ -142,6 +143,19 @@ class UserController extends BaseController
         return new UserCollection($user);
     }
 
+    public function status(Request $request)
+    {
+        $userIds = (array)$request->all();
+        $data = collect($userIds)->filter(function($userId , $key){
+            return is_numeric($userId);
+        })->transform(function ($userId , $key){
+            return intval($userId);
+        })->unique()->transform(function ($userId , $key){
+            return array('userId'=>$userId , 'status'=>$this->user->isOnline($userId));
+        })->toArray();
+        return $this->response->array($data);
+    }
+
     public function isRyOnline($id)
     {
         return $this->response->array(array(
@@ -258,16 +272,20 @@ class UserController extends BaseController
             return $userId>0;
         })->pluck('user_id')->all();
         $users = $this->user->findByUserIds($userIds);
-
         $contacts = $contacts->transform(function($contact , $key) use ($users){
-            $contact['user'] = $users->where('user_id' , $contact['user_id'])->first();
+            $user = $users->where('user_id' , $contact['user_id'])->first();
+            if(!blank($user))
+            {
+                $user['status'] = $this->user->isOnline($contact['user_id']);
+            }
             return array(
                 'phone_country'=>$contact['phone_country'],
                 'phone'=>$contact['phone'],
-                'user'=>$contact['user'],
+                'user'=>$user,
             );
         });
 
         return UserCollection::collection($contacts);
     }
+
 }

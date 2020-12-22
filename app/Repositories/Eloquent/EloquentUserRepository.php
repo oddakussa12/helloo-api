@@ -57,7 +57,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function findByUserIds($userIds)
     {
         return collect($userIds)->transform(function($userId , $key){
-            return [$this->findByUserId($userId)];
+            return $this->findByUserId($userId);
         });
     }
 
@@ -1493,6 +1493,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
         return $data;
     }
-    
+
 
 }

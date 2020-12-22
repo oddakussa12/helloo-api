@@ -129,7 +129,9 @@ $api->group($V1Params , function ($api){
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
     $api->get('user/contacts' , 'UserController@contacts')->name('user.contacts');
-    
+
+    $api->get('user/status' , 'UserController@status')->name('user.status');
+
     $api->resource('user' , 'UserController' , ['only' => ['show']]);
 
     $api->get('user' , 'UserController@index')->name('user.index');
