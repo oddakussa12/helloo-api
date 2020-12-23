@@ -3,41 +3,45 @@ namespace App\Custom\NEIm\NEMessage;
 
 final class NeFIleMessage extends AbstractNeMessage
 {
-    
-    private $body = [];
-    
-    private $type = 6;
-    
-    public function toString() {
+
+    public $body = [];
+
+    public $type = 6;
+
+    /**
+     * @return false|string
+     */
+    public function toString()
+    {
         return json_encode($this->body);
     }
     
-    public function getType():int
+    public function getType()
     {
         return $this->type;
     }
     
-    public function set_name(string $name):void
+    public function setName(string $name)
     {
         $this->body['name'] = $name;
     }
     
-    public function set_md5(string $md5):void
+    public function setMd5(string $md5)
     {
         $this->body['md5'] = $md5;
     }
     
-    public function set_url(string $url):void
+    public function setUrl(string $url)
     {
         $this->body['url'] = $url;
     }
     
-    public function set_ext(string $ext):void
+    public function setExt(string $ext)
     {
         $this->body['ext'] = $ext;
     }
     
-    public function set_size(int $size):void
+    public function setSize(int $size)
     {
         $this->body['size'] = $size;
     }

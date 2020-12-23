@@ -21,12 +21,12 @@ abstract class AbstractNeMessage implements NEMessageInterface
         $this->options = $messageOptions;
     }
     
-    public function getOptions():string
+    public function getOptions()
     {
         return $this->options->toString();
     }
 
-    public function toString(): string
+    public function toString()
     {
         return json_encode($this->body);
     }

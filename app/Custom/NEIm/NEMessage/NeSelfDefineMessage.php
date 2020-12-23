@@ -3,10 +3,10 @@ namespace App\Custom\NEIm\NEMessage;
 
 class NeSelfDefineMessage extends AbstractNeMessage
 {
-    
-    private $body = [];
-    
-    private $type = 0;
+
+    public $body = [];
+
+    public $type = 0;
     
     public function toString() {
         return json_encode($this->body);

@@ -4,10 +4,13 @@ namespace App\Custom\NEIm\NEMessage;
 final class NeLocationMessage extends AbstractNeMessage
 {
     
-    private $body = [];
-    
-    private $type = 4;
-    
+    public $body = [];
+
+    public $type = 4;
+
+    /**
+     * @return false|string
+     */
     public function toString() {
         return json_encode($this->body);
     }

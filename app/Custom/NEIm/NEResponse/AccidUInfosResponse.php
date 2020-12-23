@@ -3,7 +3,11 @@ namespace App\Custom\NEIm\NeResponse;
 
 use App\Custom\NEIm\NetEaseImResponse;
 
-final class AccifUInfosResponse extends NetEaseImResponse
+/**
+ * Class AccidUInfosResponse
+ * @package App\Custom\NEIm\NeResponse
+ */
+final class AccidUInfosResponse extends NetEaseImResponse
 {
     
     private $uinfos = [];

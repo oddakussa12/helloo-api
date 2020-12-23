@@ -3,10 +3,10 @@ namespace App\Custom\NEIm\NEMessage;
 
 final class NeVideoMessage extends AbstractNeMessage
 {
-    
-    private $body = [];
-    
-    private $type = 3;
+
+    public $body = [];
+
+    public $type = 3;
     
     public function toString()
     {

@@ -1,16 +1,15 @@
 <?php
 namespace App\Custom\NEIm\NEException;
 
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
+use Illuminate\Support\Facades\Log;
+
 class NEException extends \RuntimeException
 {
-    private static $log_dir;
-    
     public function __construct(string $message = "", int $code = 0, \Throwable $previous = null) {
-        self::$log_dir = dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . "log" . DIRECTORY_SEPARATOR;
-        $logger = new Logger($message, [new \Monolog\Handler\StreamHandler(self::$log_dir . "e.log", Logger::ERROR)]);
-        $logger->error($message);
+        Log::info('net_ease_error' , array(
+            'message'=>$message,
+            'code'=>$code,
+        ));
         parent::__construct($message, $code, $previous);
     }
 }
