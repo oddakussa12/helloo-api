@@ -1,7 +1,7 @@
 <?php
-namespace App\Custom\NetEaseIm;
+namespace App\Custom\NEIm;
 
-use App\Custom\NetEaseIm\NEException\NEResponseFormatException;
+use App\Custom\NEIm\NEException\NEResponseFormatException;
 
 class NetEaseImResponse {
     

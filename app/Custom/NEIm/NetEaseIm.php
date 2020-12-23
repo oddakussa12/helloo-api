@@ -1,15 +1,15 @@
 <?php
-namespace App\Custom\NetEaseIm;
+namespace App\Custom\NEIm;
 
-use App\Custom\NetEaseIm\NEMessage\BatchP2PMessage;
-use App\Custom\NetEaseIm\NEMessage\AbstractNeMessage;
-use App\Custom\NetEaseIm\NEException\NEParamsCheckException;
-use App\Custom\NetEaseIm\NEException\NEUploadFileNotFoundException;
-use App\Custom\NetEaseIm\NEMessage\BroadcastMessage;
-use App\Custom\NetEaseIm\NEMessage\NeSelfDefineMessage;
-use App\Custom\NetEaseIm\NeResponse\BroadcastResponse;
-use App\Custom\NetEaseIm\NeResponse\SingleFileResponse;
-use App\Custom\NetEaseIm\NeResponse\AccidBlockMuteListResponse;
+use App\Custom\NEIm\NEMessage\BatchP2PMessage;
+use App\Custom\NEIm\NEMessage\AbstractNeMessage;
+use App\Custom\NEIm\NEException\NEParamsCheckException;
+use App\Custom\NEIm\NEException\NEUploadFileNotFoundException;
+use App\Custom\NEIm\NEMessage\BroadcastMessage;
+use App\Custom\NEIm\NEMessage\NeSelfDefineMessage;
+use App\Custom\NEIm\NeResponse\BroadcastResponse;
+use App\Custom\NEIm\NeResponse\SingleFileResponse;
+use App\Custom\NEIm\NeResponse\AccidBlockMuteListResponse;
 
 class NetEaseIm
 {
@@ -34,6 +34,7 @@ class NetEaseIm
         $this->httpRequest = new HttpRequest();
         $this->httpRequest->add_header("AppKey", $this->appKey);
         $this->httpRequest->add_header("Content-Type", self::CONTENT_TYPE);
+        $this->checkSumBuilder();
     }
     
     private function check_config(array $config):bool
@@ -57,16 +58,16 @@ class NetEaseIm
         //此部分生成随机字符串
         $hex_digits = self::HEX_DIGITS;
         for ($i = 0; $i < 128; $i++) {   //随机字符串最大128个字符，也可以小于该数
-            $this->Nonce .= $hex_digits[rand(0, 15)];
+            $this->nonce .= $hex_digits[rand(0, 15)];
         }
         $this->currentTime = time(); //当前时间戳，以秒为单位
 
         $join_string = $this->appSecret . $this->nonce . $this->currentTime;
         $this->checkSum = sha1($join_string);
-        $this->http_request->add_header("CurTime", $this->currentTime);
-        $this->http_request->add_header("Nonce", $this->nonce);
-        $this->http_request->add_header("CheckSum", $this->checkSum);
-        return $this->CheckSum;
+        $this->httpRequest->add_header("CurTime", $this->currentTime);
+        $this->httpRequest->add_header("Nonce", $this->nonce);
+        $this->httpRequest->add_header("CheckSum", $this->checkSum);
+        return $this->checkSum;
     }
     
     
@@ -84,68 +85,63 @@ class NetEaseIm
     public function create_acc_id(
             string $acc_id, string $name, array $left_param = []):NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data = [
             'accid' => $acc_id,
             'name' => $name,
         ];
         $data = array_merge($left_param, $data);
-        $this->http_request->set_url(NEConstants::create_acc_id);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::create_acc_id);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(
-                function(){return $this->http_request->https_post();});
+                function(){return $this->httpRequest->https_post();});
     }
     
     public function update_acc_id(string $acc_id, array $props, string $token): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data = [
             'accid' => $acc_id,
             'props' => json_encode($props),
             'token' => $token,
         ];
-        $this->http_request->set_url(NEConstants::update_accid);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::update_accid);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(
-                function(){return $this->http_request->https_post();});
+                function(){return $this->httpRequest->https_post();});
     }
     
     public function refresh_acc_id_token(string $acc_id): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data = [
             'accid' => $acc_id
         ];
-        $this->http_request->set_url(NEConstants::refresh_accid);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::refresh_accid);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(
-                function(){return $this->http_request->https_post();});
+                function(){return $this->httpRequest->https_post();});
     }
     
     public function block_acc_id(
             string $acc_id, bool $need_kick = false): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data = [
             'accid' => $acc_id,
             'needkick' => $need_kick ? 'true': 'false',
         ];
-        $this->http_request->set_url(NEConstants::block_accid);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::block_accid);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(
-                function(){return $this->http_request->https_post();});
+                function(){return $this->httpRequest->https_post();});
     }
     
     public function unblock_acc_id(string $acc_id): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data = [
             'accid' => $acc_id,
         ];
-        $this->http_request->set_url(NEConstants::unblock_accid);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::unblock_accid);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(
-                function(){return $this->http_request->https_post();});
+                function(){return $this->httpRequest->https_post();});
     }
     
     ###########################################accid infos start
@@ -155,7 +151,6 @@ class NetEaseIm
             string $sign = '', string $email = '', string $birth = '', 
             string $mobile = '', int $gender = 0, array $ex = []): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['accid'] = $acc_id;
         if (!empty($name))$data['name'] = $name;
         if (!empty($icon))$data['icon'] = $icon;
@@ -165,36 +160,34 @@ class NetEaseIm
         if (!empty($mobile))$data['mobile'] = $mobile;
         if (!empty($gender))$data['gender'] = $gender;
         if (!empty($ex))$data['ex'] = json_encode ($ex);
-        $this->http_request->set_url(NEConstants::update_accid_info);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::update_accid_info);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(
-                function(){return $this->http_request->https_post();});
+                function(){return $this->httpRequest->https_post();});
     }
     
     public function get_acc_id_infos(array $acc_ids):NetEaseImResponse
     {
-        $this->checkSumBuilder();
-        if (count($accids) > 200) throw new NEParamsCheckException(
+        if (count($acc_ids) > 200) throw new NEParamsCheckException(
                 "count of accids in query can not over 200");
-        $data['accid'] = json_encode($accids);
-        $this->http_request->set_url(NEConstants::get_accid_infos);
-        $this->http_request->set_data($data);
+        $data['accid'] = json_encode($acc_ids);
+        $this->httpRequest->set_url(NEConstants::get_accid_infos);
+        $this->httpRequest->set_data($data);
         return new NeResponse\AccifUInfosResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     #############################################accid infos end
     #############################################member setting start
     public function set_don_nop(
-            string $accid, bool $don_nop_open = true):NetEaseImResponse
+            string $acc_id, bool $don_nop_open = true):NetEaseImResponse
     {
-        $this->checkSumBuilder();
-        $data['accid'] = $accid;
+        $data['accid'] = $acc_id;
         $data['donnopOpen'] = $don_nop_open?'true':'false';
-        $this->http_request->set_url(NEConstants::set_dunnop);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::set_dunnop);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     #############################################member setting end
@@ -202,72 +195,67 @@ class NetEaseIm
     public function add_friend(
             string $acc_id, string $faccid, int $type, string $msg):NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['accid'] = $acc_id;
         $data['faccid'] = $faccid;
         $data['type'] = $type;
         $data['msg'] = $msg;
-        $this->http_request->set_url(NEConstants::add_friends);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::add_friends);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
     public function update_friends(
             string $acc_id, string $fac_cid, string $alias, string $ex):NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['accid'] = $acc_id;
         $data['faccid'] = $fac_cid;
         $data['alias'] = $alias;
         $data['ex'] = $ex;
-        $this->http_request->set_url(NEConstants::update_friends);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::update_friends);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
     public function delete_friends(
             string $acc_id, string $fac_cid):NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['accid'] = $acc_id;
         $data['faccid'] = $fac_cid;
-        $this->http_request->set_url(NEConstants::delete_friends);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::delete_friends);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
     public function get_friends_relations(
             string $acc_id, int $update_time, int $create_time):NeResponse\FriendsInfosResponse
     {
-        $this->checkSumBuilder();
         $data['accid'] = $acc_id;
         $data['updatetime'] = $update_time;
         $data['createtime'] = $create_time;
-        $this->http_request->set_url(NEConstants::get_friends);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::get_friends);
+        $this->httpRequest->set_data($data);
         return new NeResponse\FriendsInfosResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
     protected function quiet_black_sb(
             string $acc_id, string $targetAcc, int $relationType, int $value): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['accid'] = $acc_id;
         $data['targetAcc'] = $targetAcc;
         $data['relationType'] = $relationType;
         $data['value'] = $value;
-        $this->http_request->set_url(NEConstants::quiet_black_friends);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::quiet_black_friends);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
@@ -293,12 +281,11 @@ class NetEaseIm
     
     public function list_black_and_mute_list(string $acc_id):NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['accid'] = $acc_id;
-        $this->http_request->set_url(NEConstants::quiet_black_friends_list);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::quiet_black_friends_list);
+        $this->httpRequest->set_data($data);
         return new AccidBlockMuteListResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     ##############################################message 
@@ -340,7 +327,6 @@ class NetEaseIm
             string $bid = '',
             int $useYiDun = 0):NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['from'] = $message->from;
         $data['ope'] = $message->ope;
         $data['to'] = $message->to;
@@ -357,10 +343,10 @@ class NetEaseIm
         $data['forcepushall'] = $forcePushAll;
         if (!empty($bid)) $data['bid'] = $bid;
         if (!empty($useYidun)) $data['useYidun'] = $useYiDun;
-        $this->http_request->set_url(NEConstants::send_msg);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::send_msg);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
@@ -380,7 +366,6 @@ class NetEaseIm
             array $payload = [], array $ext = [], string $bid = '', 
             int $useYidun = 0): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['fromAccid'] = $messages->from;
         $data['toAccids'] = $messages->get_tos();
         $data['type'] = $messages->get_type();
@@ -391,10 +376,10 @@ class NetEaseIm
         if (!empty($ext)) $data['ext'] = json_encode($ext);
         if (!empty($bid)) $data['bid'] = $bid;
         if (!empty($useYidun)) $data['useYidun'] = $useYidun;
-        $this->http_request->set_url(NEConstants::batch_send_p2p_msg);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::batch_send_p2p_msg);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
@@ -413,7 +398,6 @@ class NetEaseIm
             NeSelfDefineMessage $message, int $msgtype = 0,array $pushcontent = [],
             array $payload = [], string $sound = '', int $save = 2): NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['from'] = $message->from;
         $data['msgtype'] = $msgtype;
         $data['to'] = $message->to;
@@ -423,10 +407,10 @@ class NetEaseIm
         if (!empty($sound)) $data['sound'] = $sound;
         $data['save'] = $save;
         $data['option'] = $message->get_options();
-        $this->http_request->set_url(NEConstants::self_define_sys_notify);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::self_define_sys_notify);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
@@ -442,7 +426,6 @@ class NetEaseIm
     public function upload_single_file(
             string $path, string $type, bool $ishttps = false) :NetEaseImResponse
     {
-        $this->checkSumBuilder();
         if (!file_exists($path)) {
             throw new NEUploadFileNotFoundException("File '{$path}' Not found!");
         }
@@ -450,10 +433,10 @@ class NetEaseIm
         $data['content'] = $content;
         if (!empty($type)) $data['type'] = $type;
         $data['ishttps'] = $ishttps;
-        $this->http_request->set_url(NEConstants::file_upload);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::file_upload);
+        $this->httpRequest->set_data($data);
         return new SingleFileResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
@@ -469,19 +452,18 @@ class NetEaseIm
     public function upload_single_file_multipart(
             string $path, string $type, bool $ishttps = false) :NetEaseImResponse
     {
-        $this->checkSumBuilder();
         if (!file_exists($path)) {
             throw new NEUploadFileNotFoundException("File '{$path}' Not found!");
         }
-        $this->http_request->add_header("Content-Type", "Content-Type:multipart/form-data;charset=utf-8");
+        $this->httpRequest->add_header("Content-Type", "Content-Type:multipart/form-data;charset=utf-8");
         $content = file_get_contents($path);
         $data['content'] = $content;
         if (!empty($type)) $data['type'] = $type;
         $data['ishttps'] = $ishttps;
-        $this->http_request->set_url(NEConstants::file_upload_multi);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::file_upload_multi);
+        $this->httpRequest->set_data($data);
         return new SingleFileResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
@@ -500,7 +482,6 @@ class NetEaseIm
             string $deleteMsgId, int $timetag, int $type, 
             string $from, string $to, string $msg = '', string $ignoreTime = '') :NetEaseImResponse
     {
-        $this->checkSumBuilder();
         $data['deleteMsgId'] = $deleteMsgId;
         $data['timetag'] = $timetag;
         $data['type'] = $type;
@@ -508,10 +489,10 @@ class NetEaseIm
         $data['to'] = $to;
         if (!empty($msg)) $data['msg'] = $msg;
         if (!empty($ignoreTime)) $data['ignoreTime'] = $ignoreTime;
-        $this->http_request->set_url(NEConstants::recall);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::recall);
+        $this->httpRequest->set_data($data);
         return new NetEaseImResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
     
@@ -533,16 +514,15 @@ class NetEaseIm
      */
     public function broadcast_message(BroadcastMessage $message): BroadcastResponse
     {
-        $this->checkSumBuilder();
         $data['body'] = $message->toString();
         $data['from'] = $message->from;
         $data['isOffline'] = $message->isOffline;
         $data['ttl'] = $message->ttl;
         $data['targetOs'] = $message->targetOs;
-        $this->http_request->set_url(NEConstants::broadcast);
-        $this->http_request->set_data($data);
+        $this->httpRequest->set_url(NEConstants::broadcast);
+        $this->httpRequest->set_data($data);
         return new BroadcastResponse(function(){
-            return $this->http_request->https_post();
+            return $this->httpRequest->https_post();
         });
     }
 }

@@ -1,9 +1,9 @@
 <?php
-namespace App\Custom\NetEaseIm\NEMessage;
+namespace App\Custom\NEIm\NEMessage;
 
-use App\Custom\NetEaseIm\NEMessage\Contracts\NeMessage as NEMessageInterface;
+use App\Custom\NEIm\NEMessage\Contracts\NEMessage as NEMessageInterface;
 
-class AbstractNeMessage implements NEMessageInterface
+abstract class AbstractNeMessage implements NEMessageInterface
 {
     public $from;
     
@@ -28,34 +28,34 @@ class AbstractNeMessage implements NEMessageInterface
 
     public function toString(): string
     {
-        // TODO: Implement toString() method.
+        return json_encode($this->body);
     }
 
-    public function setFrom($from): self
+    public function setFrom($from)
     {
         $this->from = $from;
         return $this;
     }
 
-    public function setOpe($ope): self
+    public function setOpe($ope)
     {
         $this->ope=$ope;
         return $this;
     }
 
-    public function setTo($to): self
+    public function setTo($to)
     {
         $this->to = $to;
         return $this;
     }
 
-    public function setType($type): self
+    public function setType($type)
     {
         $this->type = $type;
         return $this;
     }
 
-    public function setBody($body): self
+    public function setBody($body)
     {
         $this->body = $body;
         return $this;

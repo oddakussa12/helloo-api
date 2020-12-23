@@ -1,7 +1,7 @@
 <?php
-namespace App\Custom\NetEaseIm\NEMessage;
+namespace App\Custom\NEIm\NEMessage\Contracts;
 
-interface NEMessage
+interface NeMessage
 {
     public function setFrom($from):self;
 

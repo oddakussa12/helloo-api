@@ -190,6 +190,7 @@ return [
         App\Providers\ExpandQueueServiceProvider::class,
         App\Providers\EasySmsServiceProvider::class,
         App\Providers\PinpointServiceProvider::class,
+        App\Providers\NetEaseServiceProvider::class,
 
     ],
 

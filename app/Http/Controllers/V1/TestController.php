@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\V1;
 
 
+use App\Custom\NEIm\NEMessage\MessageOptions;
+use App\Custom\NEIm\NEMessage\NeTxtMessage;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\User;
-use App\Custom\NetEaseIm\NetEaseIm;
+use App\Custom\NEIm\NetEaseIm;
 use Carbon\Carbon;
 use Ramsey\Uuid\Uuid;
 use Vonage\Voice\NCCO\NCCO;
@@ -18,6 +20,7 @@ use App\Custom\EasySms\PhoneNumber;
 use App\Custom\Uuid\RandomStringGenerator;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 
 
@@ -148,28 +151,33 @@ class TestController extends BaseController
     {
         if(domain()!=config('app.url'))
         {
-            $user = new User();
-            $nowflake = new Snowflake();
-            $uuid = $nowflake->id();
+            $nowFlake = new Snowflake();
+            $uuid = $nowFlake->id();
+            $nickName = substr($uuid , 0 , 8);
             $gender = mt_rand(0 , 1);
-            $user->user_uuid = $uuid;
-            $user->user_gender = $gender;
-            $user->user_pwd = bcrypt(123456);
-            $user->user_nick_name = substr($uuid , 0 , 8);
-            $user->user_activation = 1;
-            $user->user_activated_at = Carbon::now()->toDateTimeString();
-            $netEaseConfig = config('netease');
-            $netEase = new NetEaseIm(array(
-                'AppKey'=>$netEaseConfig['app_key'],
-                'AppSecret'=>$netEaseConfig['app_secret']
+            $i = mt_rand(1 , 18);
+            $avatar = "https://qnwebothersia.mmantou.cn/default_avatar_{$i}.png?imageView2/0/w/200/h/200/interlace/1|imageslim";
+            $birth = Carbon::now()->subYears(mt_rand(10 , 20))->subMonths(mt_rand(1 , 12))->subDays(mt_rand(1 , 10))->toDateString();
+            DB::table('temp_users')->insert(array(
+                'user_uuid'=>$uuid,
+                'user_gender'=>$gender,
+                'user_nick_name'=>$nickName,
+                'user_pwd'=>bcrypt(123456),
+                'user_activation'=>1,
+                'user_birthday'=>$birth,
+                'user_avatar'=>$avatar,
+                'user_created_at'=>Carbon::now()->toDateTimeString(),
+                'user_activated_at'=>Carbon::now()->toDateTimeString(),
+                'user_activated_at'=>Carbon::now()->toDateTimeString(),
             ));
 
-            $i = mt_rand(1 , 18);
-            $account = $netEase->create_acc_id($uuid , $user->user_nick_name , array(
-                'icon'=>"https://qnwebothersia.mmantou.cn/default_avatar_{$i}.png?imageView2/0/w/200/h/200/interlace/1|imageslim",
+
+
+            $account = app('netEase')->create_acc_id($uuid , $nickName , array(
+                'icon'=>$avatar,
                 'mobile'=>'+62-8'.mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9),
                 'gender'=>$gender,
-                'birth'=>Carbon::now()->subYears(mt_rand(10 , 20))->subMonths(mt_rand(1 , 12))->subDays(mt_rand(1 , 10))->toDateString()
+                'birth'=>$birth
             ));
 //            $token = app('rcloud')->getUser()->register(array(
 //                'id'=> time(),
@@ -178,6 +186,36 @@ class TestController extends BaseController
 //            ));
             return $this->response->array($account->get_data());
         }
+    }
+
+    public function send()
+    {
+        $netEaseConfig = config('netease');
+        $netEase = new NetEaseIm(array(
+            'AppKey'=>$netEaseConfig['app_key'],
+            'AppSecret'=>$netEaseConfig['app_secret']
+        ));
+        $option = new MessageOptions();
+        $option = $option->setRoam(true)->setHistory(true)->setSenderSync(true)->setPush(true)->setRoute(false)->setBadge(true)->setNeedPushNick(true)->setPersistent(true);
+        $txt = new NeTxtMessage($option);
+        for($i=1;$i<=1000;$i++)
+        {
+            $txt = $txt->setFrom('181930645503606784')->setTo('181952804900831232')->setBody(array('msg'=>'hello'.millisecond()));
+            try{
+
+                $result = $netEase->message_send($txt);
+            }catch (\Exception $e)
+            {
+
+            }
+        }
+
+        dd($result);
+    }
+
+    public function group()
+    {
+
     }
 
     public function call()

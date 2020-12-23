@@ -128,9 +128,9 @@ $api->group($V1Params , function ($api){
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
-    $api->get('user/contacts' , 'UserController@contacts')->name('user.contacts');
+    $api->post('user/contacts' , 'UserController@contacts')->name('user.contacts');
 
-    $api->get('user/status' , 'UserController@status')->name('user.status');
+    $api->post('user/status' , 'UserController@status')->name('user.status');
 
     $api->resource('user' , 'UserController' , ['only' => ['show']]);
 
@@ -159,6 +159,7 @@ $api->group($V1Params , function ($api){
     $api->get('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/call' , 'TestController@call')->name('test.call');
     $api->get('test/index' , 'TestController@index')->name('test.index');
+    $api->get('test/send' , 'TestController@send')->name('test.send');
 //    $api->get('notification/bulkInsert' , 'NotificationController@bulkInsert')->name('notification.bulkInsert');
 
 });

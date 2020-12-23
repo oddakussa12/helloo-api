@@ -1,5 +1,5 @@
 <?php
-namespace App\Custom\NetEaseIm\NEMessage;
+namespace App\Custom\NEIm\NEMessage;
 
 class MessageOptions
 {
