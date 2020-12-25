@@ -1,7 +1,7 @@
 <?php
 namespace App\Custom\NEIm\NEMessage;
 
-final class NeTxtMessage extends AbstractNeMessage
+final class NeTxtMessage extends AbstractNEMessage
 {
 
     public $type = 0;

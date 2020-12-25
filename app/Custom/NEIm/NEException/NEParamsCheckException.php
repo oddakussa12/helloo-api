@@ -1,5 +1,5 @@
 <?php
-namespace pp\Custom\NEIm\NEException;
+namespace App\Custom\NEIm\NEException;
 
 class NEParamsCheckException extends NEException
 {

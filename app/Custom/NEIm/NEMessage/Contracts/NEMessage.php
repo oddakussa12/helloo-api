@@ -3,15 +3,15 @@ namespace App\Custom\NEIm\NEMessage\Contracts;
 
 interface NEMessage
 {
-    public function setFrom($from);
+    public function setFrom($from):self;
 
-    public function setOpe($ope);
+    public function setOpe($ope):self;
 
-    public function setTo($to);
+    public function setTo($to):self;
 
-    public function setType($type);
+    public function setType($type):self;
 
-    public function setBody($body);
+    public function setBody($body):self;
 
-    public function toString();
+    public function toString():string;
 }

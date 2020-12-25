@@ -2,7 +2,7 @@
 namespace App\Custom\NEIm;
 
 use App\Custom\NEIm\NEMessage\BatchP2PMessage;
-use App\Custom\NEIm\NEMessage\AbstractNeMessage;
+use App\Custom\NEIm\NEMessage\AbstractNEMessage;
 use App\Custom\NEIm\NEException\NEParamsCheckException;
 use App\Custom\NEIm\NEException\NEUploadFileNotFoundException;
 use App\Custom\NEIm\NEMessage\BroadcastMessage;
@@ -299,7 +299,7 @@ class NetEaseIm
      * 6 表示文件，
      * 100 自定义消息类型
      *
-     * @param AbstractNeMessage $message
+     * @param AbstractNEMessage $message
      * @param bool $antispam
      * @param array $antispamCustom
      * @param array $option
@@ -314,18 +314,18 @@ class NetEaseIm
      * @return NetEaseImResponse
      */
     public function message_send(
-            AbstractNeMessage $message,
-            bool $antispam =false,
-            array $antispamCustom = [],
-            array $option = [],
-            array $pushContent = [],
-            array $payload = [],
-            array $ext = [],
-            array $forcePushList = [],
-            string $forcePushContent = '',
-            bool $forcePushAll = true,
-            string $bid = '',
-            int $useYiDun = 0):NetEaseImResponse
+        AbstractNEMessage $message,
+        bool $antispam =false,
+        array $antispamCustom = [],
+        array $option = [],
+        array $pushContent = [],
+        array $payload = [],
+        array $ext = [],
+        array $forcePushList = [],
+        string $forcePushContent = '',
+        bool $forcePushAll = true,
+        string $bid = '',
+        int $useYiDun = 0):NetEaseImResponse
     {
         $data['from'] = $message->from;
         $data['ope'] = $message->ope;

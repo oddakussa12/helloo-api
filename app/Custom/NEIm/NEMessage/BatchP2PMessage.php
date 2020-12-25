@@ -9,7 +9,7 @@ class BatchP2PMessage{
     
     public $to;
     
-    public function __construct(AbstractNeMessage $message)
+    public function __construct(AbstractNEMessage $message)
     {
         $this->message = $message;
     }

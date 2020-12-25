@@ -1,7 +1,7 @@
 <?php
 namespace App\Custom\NEIm\NEMessage;
 
-class NeSelfDefineMessage extends AbstractNeMessage
+class NeSelfDefineMessage extends AbstractNEMessage
 {
 
     public $body = [];

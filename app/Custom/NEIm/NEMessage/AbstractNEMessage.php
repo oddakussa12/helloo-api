@@ -3,7 +3,7 @@ namespace App\Custom\NEIm\NEMessage;
 
 use App\Custom\NEIm\NEMessage\Contracts\NEMessage as NEMessageInterface;
 
-abstract class AbstractNeMessage implements NEMessageInterface
+abstract class AbstractNEMessage implements NEMessageInterface
 {
     public $from;
     

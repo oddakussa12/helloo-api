@@ -1,7 +1,7 @@
 <?php
 namespace App\Custom\NEIm\NEMessage;
 
-final class NeVoiceMessage extends AbstractNeMessage
+final class NeVoiceMessage extends AbstractNEMessage
 {
     
     private $body = [];
