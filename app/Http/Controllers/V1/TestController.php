@@ -196,19 +196,18 @@ class TestController extends BaseController
             'AppSecret'=>$netEaseConfig['app_secret']
         ));
         $option = new MessageOptions();
-        $option = $option->setRoam(true)->setHistory(true)->setSenderSync(true)->setPush(true)->setRoute(false)->setBadge(true)->setNeedPushNick(true)->setPersistent(true);
+        $option = $option->setRoam(true)
+                            ->setHistory(true)
+                            ->setSenderSync(true)
+                            ->setPush(true)
+                            ->setRoute(false)
+                            ->setBadge(true)
+                            ->setNeedPushNick(true)
+                            ->setPersistent(true);
         $txt = new NeTxtMessage($option);
-        for($i=1;$i<=1000;$i++)
-        {
-            $txt = $txt->setFrom('181930645503606784')->setTo('181952804900831232')->setBody(array('msg'=>'hello'.millisecond()));
-            try{
+        $txt = $txt->setFrom('181930645503606784')->setTo('182255020840845312')->setBody(array('msg'=>'hello'.millisecond()));
+        $result = $netEase->message_send($txt , false , [] , [] , array('pushcontent'=>'hhahah' , 'push'=>true , 'payload'=>[]));
 
-                $result = $netEase->message_send($txt);
-            }catch (\Exception $e)
-            {
-
-            }
-        }
 
         dd($result);
     }

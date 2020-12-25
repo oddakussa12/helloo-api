@@ -72,7 +72,10 @@ trait Update
         );
         if($res<=0)
         {
-            Log::error("user {$user->user_id} password {$password} update fail！");
+            Log::info("user_update_fail" , array(
+                'user_id'=>$user->user_id,
+                'password'=>$password,
+            ));
         }
     }
 

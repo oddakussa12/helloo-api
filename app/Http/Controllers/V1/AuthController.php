@@ -305,8 +305,8 @@ class AuthController extends BaseController
         {
             $user_phone = substr($user_phone , 2);
         }
-        $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
-        if(!empty($phone))
+        $userPhone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
+        if(!empty($userPhone))
         {
             abort(422 , trans('validation.custom.phone.unique'));
         }
@@ -340,6 +340,13 @@ class AuthController extends BaseController
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
+        if(intval($user_phone)%2==0)
+        {
+            $phoneKey = "helloo:account:service:account-phone-{even}-number";
+        }else{
+            $phoneKey = "helloo:account:service:account-phone-{odd}-number";
+        }
+        Redis::zadd($phoneKey , $userId , $phone);
         $addresses = getRequestIpAddress();
         event(new SignupEvent($user , $addresses , array(
             'user_phone'=>$user_phone,

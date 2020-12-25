@@ -4,8 +4,8 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\BlackUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use App\Repositories\Contracts\UserRepository;
 
 class RySetController extends BaseController
 {
@@ -190,7 +190,7 @@ class RySetController extends BaseController
                 'userId'=>$userId,
                 'message'=>$e->getMessage(),
             );
-            \Log::error(\json_encode($token));
+            Log::info('token_fail' , $token);
         }
         return $response->array($token);
 

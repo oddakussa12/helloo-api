@@ -28,6 +28,11 @@ class OperationLog extends BaseMiddleware
             $time = strval($chinaNow->timestamp);
             $now = $chinaNow->format('Ymd');
             $version = $agent->getHttpHeader('HellooVersion');
+            $deviceId = $agent->getHttpHeader('deviceId');
+            if(!empty($deviceId))
+            {
+                Log::info('deviceId' , array('deviceId'=>$deviceId , 'userId'=>auth()->id()));
+            }
             if($agent->match('HellooAndroid'))
             {
                 $src = 'android';

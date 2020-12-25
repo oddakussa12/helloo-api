@@ -248,31 +248,32 @@ class UserController extends BaseController
      */
     public function contacts(Request $request)
     {
+        $userOddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
+        $userEvenPhoneKey = "helloo:account:service:account-phone-{even}-number";
+
         $keyPrefix = "helloo:account:service:account-{phone}-number:";
         $contacts = (array)$request->all();
         $contacts = collect($contacts)->filter(function($userPhone , $key){
-            return !blank($userPhone)&&isset($userPhone['phone_country'])&&isset($userPhone['phone']);
+            return !blank($userPhone)&&isset($userPhone['phone_country'])&&isset($userPhone['phone'])&&is_numeric($userPhone['phone_country'])&&is_numeric($userPhone['phone']);
+        })->values();
+        $contacts = $contacts->slice(0 , 200);
+        $contacts = $contacts->map(function($userPhone , $key) use ($keyPrefix , $userOddPhoneKey , $userEvenPhoneKey){
+            $phone = intval(ltrim($userPhone['phone'] , 0));
+            $key = strval(ltrim(ltrim($userPhone['phone_country'] , "+") ,0)).'-'.strval(ltrim($userPhone['phone'] , 0));
+            if($phone%2===0)
+            {
+                $userId = intval(Redis::zscore($userEvenPhoneKey , $key));
+            }else{
+                $userId = intval(Redis::zscore($userOddPhoneKey , $key));
+            }
+            $userPhone['user_id'] = $userId;
+            return $userPhone;
         });
-        $contactKeys = $contacts->map(function($userPhone , $key) use ($keyPrefix){
-            return $keyPrefix.strval($userPhone['phone_country']).'-'.strval($userPhone['phone']);
-        });
-        if($contactKeys->isEmpty())
-        {
-            return $this->response->array(array('data'=>array()));
-        }
-        $userIds = Redis::mget($contactKeys->toArray());
-        $contactUserKeys = $contactKeys->combine($userIds)->toArray();
-        $contacts = $contacts->transform(function($item) use ($keyPrefix , $contactUserKeys){
-            $key = $keyPrefix.$item['phone_country'].'-'.$item['phone'];
-            $item['user_id'] = intval($contactUserKeys[$key]);
-            return $item;
-        });
-        $userIds = $contacts->filter(function($v , $k){
-            $userId = intval($v['user_id']);
-            return $userId>0;
-        })->pluck('user_id')->all();
+        $userIds = $contacts->pluck('user_id')->filter(function ($value, $key) {
+            return intval($value) > 0;
+        })->all();
         $users = $this->user->findByUserIds($userIds);
-        $contacts = $contacts->transform(function($contact , $key) use ($users){
+        $contacts = $contacts->map(function($contact , $key) use ($users){
             $user = $users->where('user_id' , $contact['user_id'])->first();
             if(!blank($user))
             {
@@ -284,7 +285,6 @@ class UserController extends BaseController
                 'user'=>$user,
             );
         });
-
         return UserCollection::collection($contacts);
     }
 

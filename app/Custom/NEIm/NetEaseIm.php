@@ -336,7 +336,6 @@ class NetEaseIm
         if (!empty($antispamCustom)) $data['antispamCustom'] = json_encode($antispamCustom);
         if (!empty($option)) $data['option'] = $message->getOptions();
         if (!empty($pushcontent)) $data['pushcontent'] = json_encode($pushContent);
-        if (!empty($payload)) $data['payload'] = json_encode($payload);
         if (!empty($ext)) $data['ext'] = json_encode($ext);
         if (!empty($forcepushlist)) $data['forcepushlist'] = json_encode($forcePushList);
         if (!empty($forcepushcontent)) $data['forcepushcontent'] = $forcePushContent;

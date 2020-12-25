@@ -44,6 +44,26 @@ class Test extends Command
      */
     public function handle()
     {
+        $evenPhoneKey = "helloo:account:service:account-phone-{even}-number";
+        $oddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
+        $evenData = array();
+        $oddData = array();
+        DB::table('users_phones')->orderByDesc('phone_id')->chunk(100 , function ($phones) use ($evenPhoneKey , $oddPhoneKey , $evenData , $oddData){
+            foreach ($phones as $phone)
+            {
+                $userPhone = intval($phone->user_phone);
+                if($userPhone%2===0)
+                {
+                    $evenData[$phone->user_phone_country.'-'.$phone->user_phone] = $phone->user_id;
+                }else{
+                    $oddData[$phone->user_phone_country.'-'.$phone->user_phone] = $phone->user_id;
+                }
+            }
+            Redis::zadd($evenPhoneKey , $evenData);
+            Redis::zadd($oddPhoneKey , $oddData);
+            $evenData = $oddData = array();
+        });
+        die;
         $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
         User::chunk(100, function($users) use ($ageSortSetKey){
             foreach($users as $user){

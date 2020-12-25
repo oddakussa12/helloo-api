@@ -1,6 +1,8 @@
 <?php
 namespace App\Custom\NEIm;
 
+use Illuminate\Support\Facades\Log;
+
 class HttpRequest {
     
     private $timeout = 60;
@@ -43,6 +45,7 @@ class HttpRequest {
     {
         $headers = $this->generate_sending_header();
         $url = $this->url;
+
         $data = http_build_query($this->data);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -53,7 +56,7 @@ class HttpRequest {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //处理http证书问题  
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->timeout);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
+        Log::info('params' , array('url'=>$url , 'data'=>$data , 'headers'=>$headers));
         $result = curl_exec($ch);
         if (false === $result) {
             $result = curl_errno($ch);
