@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\V1;
 
 
+use Aws\CognitoIdentity\CognitoIdentityClient;
 use App\Custom\NEIm\NEMessage\MessageOptions;
 use App\Custom\NEIm\NEMessage\NeTxtMessage;
+use Aws\Credentials\CredentialProvider;
+use Aws\DoctrineCacheAdapter;
+use Doctrine\Common\Cache\ApcuCache;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\User;
 use App\Custom\NEIm\NetEaseIm;
@@ -29,7 +33,7 @@ class TestController extends BaseController
 {
     public function __construct()
     {
-        if(in_array(domain() , config('common.online_domain')))
+        if(in_array(domain() , config('common.online_domain'))&&!app()->runningInConsole())
         {
             dd('Please use the test environment to test');
         }
@@ -217,40 +221,46 @@ class TestController extends BaseController
 
     }
 
-    public function call()
+    public function es()
     {
-        $keypair = new \Vonage\Client\Credentials\Keypair(
-            file_get_contents('/home/www/.nexmo/private.key'),
-            'b71f9142-11b1-4340-b502-f524244c20b9'
-        );
-        $client = new \Vonage\Client($keypair);
-
-        $outboundCall = new \Vonage\Voice\OutboundCall(
-            new \Vonage\Voice\Endpoint\Phone('6285817281840'),
-            new \Vonage\Voice\Endpoint\Phone('8617600128988')
-        );
-        $ncco = new NCCO();
-        $number = mt_rand(1111 , 9999);
-        $talk = new \Vonage\Voice\NCCO\Action\Talk('Hi! Your verification code for lovbee is '.$number.'.');
-        $ncco->addAction($talk->setLoop(2));
-        $outboundCall->setNCCO($ncco);
-        $response = $client->voice()->createOutboundCall($outboundCall);
-
-        dump($response->getConversationUuid());
-        dump($response->getDirection());
-        dump($response->getFrom());
-        dump($response->getStatus());
-        dump($response->getTimestamp());
-        dump($response->getTo());
-        dump($response->getUuid());
-        dump($response->getNetwork());
-        dump($response->getRate());
-        dump($response->getStartTime());
-        dump($response->getEndTime());
-        dump($response->getDuration());
-        dump($response->getPrice());
-        dump($number);
+        $params = [
+            'index' => 'weather'
+        ];
+        $response = app('elastic-search')->indices()->create($params);
         dd($response);
+    }
+
+    public function aws()
+    {
+        $identity_pool_id = 'cn-north-1:db5a6388-b548-4e7b-af73-492c11fa7a2c';
+//        $config = config('aws.cognito');
+//        $cache = new DoctrineCacheAdapter(new ApcuCache);
+//        $provider = CredentialProvider::defaultProvider();
+//        $cachedProvider = CredentialProvider::cache($provider, $cache);
+//        $config['credentials'] = $cachedProvider;
+//        $aws = app('aws');
+//        $identityTokenClient = $aws->createCognitoIdentity();
+//        /* Acquire new Identity */
+//        $identityToken = $identityTokenClient->getOpenIdTokenForDeveloperIdentity(array('IdentityPoolId' => $identity_pool_id, 'Logins' => array('login.helloo.com' => 'jkljka1sdjk')));
+//        Log::info('IdentityToken' , $identityToken->toArray());
+//        die;
+//        $config = config('aws.Pinpoint');
+//        $pinpointClient = $aws->createPinpoint($config);
+//
+//        try{
+//            $pinpoint = $pinpointClient->phoneNumberValidate(array(
+//                "NumberValidateRequest"=>array(
+//                    "PhoneNumber"=>"17600128988",
+//                    "IsoCountryCode"=>"86"
+//                )
+//            ));
+//            Log::info('pinpoint' , $pinpoint->toArray());
+//        }catch (\Exception $e)
+//        {
+//            Log::error($e->getMessage());
+//        }
+
+
 
     }
 

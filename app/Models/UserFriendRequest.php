@@ -18,6 +18,8 @@ class UserFriendRequest extends Model
 
     protected $fillable = ['request_from_id' , 'request_to_id' , 'request_state'];
 
+    protected $hidden = ['id'];
+
     public $paginateParamName = 'friend_page';
 
     public static function boot()

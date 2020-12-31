@@ -1,5 +1,5 @@
 <?php
-namespace App\Custom\NEIm\NeResponse;
+namespace App\Custom\NEIm\NEResponse;
 
 use App\Custom\NEIm\NetEaseImResponse;
 

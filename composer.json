@@ -10,6 +10,7 @@
     "require": {
         "php": ">=7.0.0",
         "aws/aws-sdk-php": "^3.147",
+        "aws/aws-sdk-php-laravel": "^3.6",
         "barryvdh/laravel-cors": "^0.11.3",
         "dingo/api": "2.2.3",
         "fenos/notifynder": "^4.3",

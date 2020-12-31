@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Custom\Uuid\RandomStringGenerator;
 use App\Models\User;
 use App\Traits\CachableUser;
 use App\Jobs\Test as TestJob;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -51,17 +53,26 @@ class Test extends Command
         DB::table('users_phones')->orderByDesc('phone_id')->chunk(100 , function ($phones) use ($evenPhoneKey , $oddPhoneKey , $evenData , $oddData){
             foreach ($phones as $phone)
             {
-                $userPhone = intval($phone->user_phone);
-                if($userPhone%2===0)
-                {
-                    $evenData[$phone->user_phone_country.'-'.$phone->user_phone] = $phone->user_id;
-                }else{
-                    $oddData[$phone->user_phone_country.'-'.$phone->user_phone] = $phone->user_id;
-                }
+                $key = 'helloo:account:service:account-ry-token:'.$phone->user_id;
+                Redis::del($key);
+//                DB::table('users')->insert(array(
+//                    'user_id'=>$phone->user_id,
+//                    'user_pwd'=>bcrypt(123456),
+//                    'user_nick_name'=>(new RandomStringGenerator())->generate(6),
+//                    'user_gender'=>mt_rand(0 ,1),
+//                    'user_avatar'=>"default_avatar_".mt_rand(1 , 18).'.png',
+//                    'user_birthday'=>Carbon::now()->subYears(mt_rand(5 , 20))->toDateString(),
+//                    'user_created_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
+//                    'user_updated_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
+//                    'user_activated_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
+//                    'user_answered_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
+//                    'user_answer'=>1,
+//                    'user_activation'=>1,
+//                ));
             }
-            Redis::zadd($evenPhoneKey , $evenData);
-            Redis::zadd($oddPhoneKey , $oddData);
-            $evenData = $oddData = array();
+//            Redis::zadd($evenPhoneKey , $evenData);
+//            Redis::zadd($oddPhoneKey , $oddData);
+//            $evenData = $oddData = array();
         });
         die;
         $ageSortSetKey = 'helloo:account:service:account-age-sort-set';

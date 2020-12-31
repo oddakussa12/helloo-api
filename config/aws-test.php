@@ -35,7 +35,25 @@ return [
             'key' => env('AWS_PINPOINT_KEY', ''),
             'secret' => env('AWS_PINPOINT_SECRET', '')
         ]
-    ]
+    ],
+    'CognitoIdentity' => [
+        'region' => env('AWS_COGNITO_IDENTITY_REGION', 'ap-southeast-1'),
+//        'profile' => env('AWS_COGNITO_IDENTITY_PROFILE', 'default'),
+        'version' => env('AWS_COGNITO_IDENTITY_VERSION', 'latest'),
+        'credentials' => [
+            'key' => env('AWS_COGNITO_IDENTITY_KEY', ''),
+            'secret' => env('AWS_COGNITO_IDENTITY_SECRET', '')
+        ]
+    ],
+    'Sts' => [
+        'region' => env('AWS_STS_REGION', 'ap-southeast-1'),
+        'profile' => env('AWS_STS_PROFILE', 'default'),
+        'version' => env('AWS_STS_VERSION', 'latest'),
+        'credentials' => [
+            'key' => env('AWS_STS_KEY', ''),
+            'secret' => env('AWS_STS_SECRET', '')
+        ]
+    ],
 
 
 ];

@@ -115,24 +115,45 @@ class UserFriendController extends BaseController
         DB::beginTransaction();
         try {
             // 删除好友关系
-            $userResult = DB::delete("delete from `f_users_friends` where `user_id`={$userId}   and `friend_id`={$friendId}");
-            $friendResult = DB::delete("delete from `f_users_friends` where `user_id`={$friendId} and `friend_id`={$userId}");
+            $userResult = DB::delete("delete from `t_users_friends` where `user_id`={$userId}   and `friend_id`={$friendId}");
+            $friendResult = DB::delete("delete from `t_users_friends` where `user_id`={$friendId} and `friend_id`={$userId}");
             if($userResult>0&&$friendResult>0)
             {
                 $flag = true;
+                DB::commit();
+            }else{
+                throw new \Exception('userId:'.$userId.' and friendId:'.$friendId.' delete fail');
             }
         }catch (\Exception $e)
         {
             DB::rollBack();
-            Log::error('friend_delete_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            Log::error('friend_delete_failed' , array(
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
         }
 
         // 融云推送 聊天
-        $flag&&FriendLevel::sendMsgToRyBySystem($userId, $friendId, 'Yooul:FriendDelete', [
-            'content'        => 'friend delete',
-            'userInfo'       => $user
-        ], userAgent(new Agent()));
-
+        if($flag)
+        {
+            $content = array(
+                'senderId'   => $userId,
+                'targetId'   => $friendId,
+                "objectName" => "Helloo:FriendDelete",
+                'content'    => array(
+                    'content'=>'friend delete',
+                    'user'=> collect(new UserCollection($user))->toArray()
+                ),
+                'pushContent'=>'friend delete',
+                'pushExt'=>\json_encode(array(
+                    'title'=>'friend delete',
+                    'forceShowPushContent'=>1
+                ))
+            );
+            Log::info('delete_content' , $content);
+            $result = app('rcloud')->getMessage()->System()->send($content);
+            Log::info('delete_result' , $result);
+        }
         return $this->response->noContent();
     }
 }

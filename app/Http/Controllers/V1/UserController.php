@@ -38,6 +38,7 @@ class UserController extends BaseController
         $phone = $request->input('phone' , '');
         $phoneCountry = $request->input('phoneCountry' , '');
         $keyword = strval($request->input('keyword' , ''));
+        $userId = auth()->id();
         if(!blank($phone)&&!blank($phoneCountry))
         {
             $userPhone = DB::table('users_phones')->where('user_phone_country' , $phoneCountry)->where('user_phone' , $phone)->first();
@@ -46,10 +47,23 @@ class UserController extends BaseController
                 return $this->response->array(array('data'=>array()));
             }
             $users = $this->user->allWithBuilder()->where('user_id' , $userPhone->user_id)->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->get();
+            $userIds = $users->pluck('user_id')->toArray();
+            $friendIds = DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray();
+            $users->each(function($user , $index) use ($friendIds){
+                $user->is_friend = in_array($user->user_id , $friendIds);
+            });
             return UserCollection::collection($users);
         }elseif (!blank($keyword))
         {
             $users = $this->user->allWithBuilder()->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->limit(20)->get();
+            $users = $users->filter(function($user) use ($userId){
+                return  $user->user_id!=$userId;
+            })->values();
+            $userIds = $users->pluck('user_id')->toArray();
+            $friendIds = DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray();
+            $users->each(function($user , $index) use ($friendIds){
+                $user->is_friend = in_array($user->user_id , $friendIds);
+            });
             return UserCollection::collection($users);
         }else{
             return $this->response->array(array('data'=>array()));
@@ -250,7 +264,7 @@ class UserController extends BaseController
     {
         $userOddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
         $userEvenPhoneKey = "helloo:account:service:account-phone-{even}-number";
-
+        $userId = auth()->id();
         $keyPrefix = "helloo:account:service:account-{phone}-number:";
         $contacts = (array)$request->all();
         $contacts = collect($contacts)->filter(function($userPhone , $key){
@@ -273,11 +287,18 @@ class UserController extends BaseController
             return intval($value) > 0;
         })->all();
         $users = $this->user->findByUserIds($userIds);
-        $contacts = $contacts->map(function($contact , $key) use ($users){
+        if(blank($userIds))
+        {
+            $friendIds = $userIds;
+        }else{
+            $friendIds = DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray();
+        }
+        $contacts = $contacts->map(function($contact , $key) use ($users , $friendIds){
             $user = $users->where('user_id' , $contact['user_id'])->first();
             if(!blank($user))
             {
                 $user['status'] = $this->user->isOnline($contact['user_id']);
+                $user['is_friend'] = in_array($contact['user_id'] , $friendIds);
             }
             return array(
                 'phone_country'=>$contact['phone_country'],

@@ -125,6 +125,10 @@ $api->group($V1Params , function ($api){
 
         $api->get('notification/system/last' , 'NotificationController@last')->name('user.notification.last');
 
+        $api->get('aws/identityToken' , 'AwsController@identityToken')->name('aws.identityToken');
+        
+        $api->get('aws/sts' , 'AwsController@sts')->name('aws.sts');
+
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
@@ -157,7 +161,9 @@ $api->group($V1Params , function ($api){
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');
     $api->get('test/token' , 'TestController@token')->name('test.token');
-    $api->get('test/call' , 'TestController@call')->name('test.call');
+    $api->get('test/es' , 'TestController@es')->name('test.es');
+
+    $api->get('test/aws' , 'TestController@aws')->name('test.aws');
     $api->get('test/index' , 'TestController@index')->name('test.index');
     $api->get('test/send' , 'TestController@send')->name('test.send');
 //    $api->get('notification/bulkInsert' , 'NotificationController@bulkInsert')->name('notification.bulkInsert');

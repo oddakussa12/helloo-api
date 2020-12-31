@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\FriendLevel;
-use Illuminate\Support\Facades\Redis;
+use App\Models\UserFriend;
+use Carbon\Carbon;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
+use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
+use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
@@ -64,58 +68,99 @@ class UserFriendRequestController extends BaseController
         {
             return $this->response->created();
         }
-        $friend = app(UserRepository::class)->findOrFail($friendId);
+        app(UserRepository::class)->findOrFail($friendId);
         $userId   = $user->user_id;
-        $requests = new UserFriendRequest();
-        $requests->request_from_id = $userId;
-        $requests->request_to_id   = $friend->user_id;
-        $requests->save();
-        // 融云推送 聊天
-        FriendLevel::sendMsgToRyBySystem($requests->request_from_id, $requests->request_to_id, 'Yooul:FriendRequest', [
-            'content'  => 'friend request',
-            'userInfo' => $user,
-            'request_id'=>$requests->request_id
-        ], $this->agent);
+        $friend = UserFriend::where('user_id' , $user->user_id)->where('friend_id' , $friendId)->first();
+        if(blank($friend))
+        {
+            $requestModel = UserFriendRequest::where('request_from_to' , $userId."-".$friendId)->first();
+            if(blank($requestModel))
+            {
+                $requests = new UserFriendRequest();
+                $request_id = (new Snowflake)->id();
+                $requests->request_id = $request_id;
+                $requests->request_from_to = $userId.'-'.$friendId;
+                $requests->request_from_id = $userId;
+                $requests->request_to_id = $friendId;
+                $requests->save();
+            }else{
+                $request_id = $requestModel->request_id;
+                $requestModel->request_state=0;
+                $requestModel->save();
+            }
+
+            $content = array(
+                'senderId'   => $userId,
+                'targetId'   => $friendId,
+                "objectName" => "Helloo:FriendRequest",
+                'content'    => array(
+                    'content'=>'friend request',
+                    'request_id'=>$request_id,
+                    'user'=> collect(new UserCollection($user))->toArray()
+                ),
+                'pushContent'=>'friend request',
+                'pushExt'=>\json_encode(array(
+                    'title'=>'friend request',
+                    'forceShowPushContent'=>1
+                ))
+            );
+            Log::info('request_content' , $content);
+            $result = app('rcloud')->getMessage()->System()->send($content);
+            Log::info('request_result' , $result);
+        }
+
+        return $this->response->created();
     }
 
     public function accept($requestId)
     {
         $user   = auth()->user();
         $userId = $user->user_id;
-        $friendRequest = UserFriendRequest::where('request_id' , $requestId)->first();
-        if(empty($friendRequest)||$friendRequest->request_state!=0||$friendRequest->request_from_id!=$userId)
+        $userRequest = new UserFriendRequest();
+        $request = $userRequest->where('request_id' , $requestId)->first();
+        if(empty($request)||$request->request_state!=0||$request->request_to_id!=$userId)
         {
             return $this->response->accepted();
         }
-        $friendId = $friendRequest->request_to_id;
+
+        $friendId = $request->request_from_id;
         $state  = 1;
         $flag = true;
+        $now = Carbon::now()->timestamp;
         DB::beginTransaction();
         try{
-            $friendRequest = DB::table('friends_requests')->where('request_id', $requestId)->update(['request_state'=>$state]);
+            $friendRequest = DB::table('friends_requests')->where('request_id', $requestId)->update([
+                'request_state'=>$state,
+                'request_updated_at'=>$now,
+            ]);
             if($friendRequest>0)
             {
                 $userFriend = DB::table('users_friends')->where('user_id', $userId)->where('friend_id', $friendId)->first();
-                $friendUser = DB::table('users_friends')->where('user_id', $friendId)->where('friend_id', $userId)->first();
-                if(blank($userFriend)&&blank($friendUser))
+                if(blank($userFriend))
                 {
                     DB::table('users_friends')->insert(array(
-                        array('user_id'=>$userId , 'friend_id'=>$friendId),
-                        array('user_id'=>$friendId , 'friend_id'=>$userId)
+                        array('user_id'=>$userId , 'friend_id'=>$friendId , 'created_at'=>$now)
                     ));
                 }else{
-                    if(blank($userFriend))
+                    if($userFriend->relation==0)
                     {
-                        DB::table('users_friends')->insert(array(
-                            array('user_id'=>$userId , 'friend_id'=>$friendId)
+                        DB::table('users_friends')->where('id' , $userFriend->id)->update(array(
+                            'relation'=>1
                         ));
-                    }elseif(blank($friendUser))
+                    }
+                }
+                $friendUser = DB::table('users_friends')->where('user_id', $friendId)->where('friend_id', $userId)->first();
+                if(blank($friendUser))
+                {
+                    DB::table('users_friends')->insert(array(
+                        array('user_id'=>$friendId , 'friend_id'=>$userId , 'created_at'=>$now)
+                    ));
+                }else{
+                    if($friendUser->relation==0)
                     {
-                        DB::table('users_friends')->insert(array(
-                            array('user_id'=>$friendId , 'friend_id'=>$userId)
+                        DB::table('users_friends')->where('id' , $friendUser->id)->update(array(
+                            'relation'=>1
                         ));
-                    }else{
-                        $flag=false;
                     }
                 }
             }else{
@@ -130,40 +175,79 @@ class UserFriendRequestController extends BaseController
         }
         if($flag)
         {
-            $likedKey = 'helloo:account:service:account-friend-num';
-            $userFriendCount = intval(DB::table('users_friends')->where('user_id', $userId)->count());
-            $friendFriendCount = intval(DB::table('users_friends')->where('user_id', $friendId)->count());
-            Redis::zadd($likedKey , $userFriendCount , $userId);
-            Redis::zadd($likedKey , $friendFriendCount , $userId);
-            // 融云推送 聊天
-            FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Helloo:FriendRequestReposed', [
-                'content'  => 'friend response',
-                'reposed'  => $state,
-                'userInfo' => $user
-            ], $this->agent);
+            $content = array(
+                'senderId'   => $userId,
+                'targetId'   => $friendId,
+                "objectName" => "Helloo:FriendRequestResponse",
+                'content'    => array(
+                    'response'  => 1,
+                    'content'=>'friend response',
+                    'request_id'=>$requestId,
+                    'user'=> collect(new UserCollection($user))->toArray()
+                ),
+                'pushContent'=>'friend response',
+                'pushExt'=>\json_encode(array(
+                    'title'=>'friend response',
+                    'forceShowPushContent'=>1
+                ))
+            );
+            Log::info('accept_content' , $content);
+            $result = app('rcloud')->getMessage()->System()->send($content);
+            Log::info('accept_result' , $result);
+            return $this->response->created();
         }
         return $this->response->accepted();
     }
 
     public function refuse($requestId)
     {
-        $requestState = -1;
         $user   = auth()->user();
         $userId = $user->user_id;
-        $friendRequest = UserFriendRequest::where('request_id' , $requestId)->first();
-        if(empty($friendRequest)||$friendRequest->request_state!=0||$friendRequest->request_from_id!=$userId)
+        $request = UserFriendRequest::where('request_id' , $requestId)->first();
+        if(empty($request)||$request->request_state!=0||$request->request_to_id!=$userId)
         {
             return $this->response->accepted();
         }
-        $friendId = $friendRequest->request_to_id;
-        $friendRequest->request_state = $requestState;
-        $result = $friendRequest->save();
-        // 融云推送 聊天
-        $result&&FriendLevel::sendMsgToRyByPerson($userId, $friendId, 'Helloo:FriendRequestReposed', [
-            'content'  => 'friend response',
-            'reposed'  => $requestState,
-            'userInfo' => $user
-        ], $this->agent);
+        $friendId = $request->request_from_id;
+        $state  = -1;
+        $flag = true;
+        $now = Carbon::now()->timestamp;
+        DB::beginTransaction();
+        try{
+            DB::table('friends_requests')->where('request_id', $requestId)->update([
+                'request_state'=>$state,
+                'request_updated_at'=>$now
+            ]);
+            DB::commit();
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            $flag = false;
+            Log::error('friend_request_accept_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+        }
+        if($flag)
+        {
+            $content = array(
+                'senderId'   => $userId,
+                'targetId'   => $friendId,
+                "objectName" => "Helloo:FriendRequestResponse",
+                'content'    => array(
+                    'response'  => $state,
+                    'content'=>'friend response',
+                    'request_id'=>$requestId,
+                    'user'=> collect(new UserCollection($user))->toArray()
+                ),
+                'pushContent'=>'friend response',
+                'pushExt'=>\json_encode(array(
+                    'title'=>'friend response',
+                    'forceShowPushContent'=>1
+                ))
+            );
+            Log::info('refuse_content' , $content);
+            $result = app('rcloud')->getMessage()->System()->send($content);
+            Log::info('refuse_result' , $result);
+            return $this->response->created();
+        }
         return $this->response->accepted();
     }
 }

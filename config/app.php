@@ -189,9 +189,9 @@ return [
         App\Providers\DingoServiceProvider::class,
         App\Providers\ExpandQueueServiceProvider::class,
         App\Providers\EasySmsServiceProvider::class,
-        App\Providers\PinpointServiceProvider::class,
         App\Providers\NetEaseServiceProvider::class,
-
+        App\Providers\ElasticSearchManagerServiceProvider::class,
+        App\Providers\AwsServiceProvider::class,
     ],
 
     /*
@@ -244,6 +244,7 @@ return [
         'GeoIP' => Torann\GeoIP\GeoIPFacade::class,
         'Notifynder' => Fenos\Notifynder\Facades\Notifynder::class,
         'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class
+
     ],
 
 ];
