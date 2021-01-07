@@ -90,17 +90,29 @@ class AwsController extends BaseController
             $expires = '+5 minutes';
             $contentType = "video/mp4";
             $contentTypeWith = "video/";
-            $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
+            if(in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
+                $action = "https://helloo-video.s3-ap-southeast-1.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.video.helloo.mantouhealth.com/';
+                $action = "https://helloo-video.s3.cn-north-1.amazonaws.com.cn/";
+            }
             $contentLengthRange = 1024*1024*10;
-            $action = "https://helloo-video.s3.cn-north-1.amazonaws.com.cn/";
         }else{
             $bucket = 'helloo-image';
             $expires = '+5 minutes';
             $contentType = "image/jpeg";
             $contentTypeWith = "image/";
-            $xAmzDomain = 'https://image.helloo.mantouhealth.com/';
+            if(in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://video.image.mantouhealth.com/';
+                $action = "https://helloo-image.s3-ap-southeast-1.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.image.helloo.mantouhealth.com/';
+                $action = "https://helloo-image.s3.cn-north-1.amazonaws.com.cn/";
+            }
             $contentLengthRange = 1024*1024*5;
-            $action = "https://helloo-image.s3.cn-north-1.amazonaws.com.cn/";
         }
         $formInputs = [
             'acl' => 'private' ,
