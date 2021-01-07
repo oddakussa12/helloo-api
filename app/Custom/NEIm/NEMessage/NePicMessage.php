@@ -4,11 +4,12 @@ namespace App\Custom\NEIm\NEMessage;
 final class NePicMessage extends AbstractNEMessage
 {
     
-    private $body = [];
+    public $body = [];
+
+    public $type = 1;
     
-    private $type = 1;
-    
-    public function toString() {
+    public function toString():string
+    {
         return json_encode($this->body);
     }
     

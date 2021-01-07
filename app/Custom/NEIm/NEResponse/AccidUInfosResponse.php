@@ -21,7 +21,8 @@ final class AccidUInfosResponse extends NetEaseImResponse
      * @override
      * @return type
      */
-    public function get_data() {
+    public function get_data():array
+    {
         return $this->uinfos;
     }
 }

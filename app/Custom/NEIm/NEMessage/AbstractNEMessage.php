@@ -26,36 +26,36 @@ abstract class AbstractNEMessage implements NEMessageInterface
         return $this->options->toString();
     }
 
-    public function toString()
+    public function toString():string
     {
         return json_encode($this->body);
     }
 
-    public function setFrom($from)
+    public function setFrom($from):self
     {
         $this->from = $from;
         return $this;
     }
 
-    public function setOpe($ope)
+    public function setOpe($ope):self
     {
         $this->ope=$ope;
         return $this;
     }
 
-    public function setTo($to)
+    public function setTo($to):self
     {
         $this->to = $to;
         return $this;
     }
 
-    public function setType($type)
+    public function setType($type):self
     {
         $this->type = $type;
         return $this;
     }
 
-    public function setBody($body)
+    public function setBody($body):self
     {
         $this->body = $body;
         return $this;

@@ -13,12 +13,13 @@ final class SingleFileResponse extends NetEaseImResponse
         parent::__construct($reqeust);
         if (!empty($this->response_array['url'])) $this->url = $this->response_array['url'];
     }
-    
+
     /**
      * @override
-     * @return type
+     * @return array
      */
-    public function get_data():array {
+    public function get_data():array
+    {
         return $this->friends;
     }
     

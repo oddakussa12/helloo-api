@@ -4,11 +4,12 @@ namespace App\Custom\NEIm\NEMessage;
 final class NeVoiceMessage extends AbstractNEMessage
 {
     
-    private $body = [];
+    public $body = [];
+
+    public $type = 2;
     
-    private $type = 2;
-    
-    public function toString() {
+    public function toString():string
+    {
         return json_encode($this->body);
     }
     

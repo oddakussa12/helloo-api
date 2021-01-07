@@ -8,7 +8,7 @@ final class NeVideoMessage extends AbstractNEMessage
 
     public $type = 3;
     
-    public function toString()
+    public function toString():string
     {
         return json_encode($this->body);
     }

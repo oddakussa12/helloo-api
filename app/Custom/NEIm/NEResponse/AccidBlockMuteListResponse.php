@@ -17,12 +17,13 @@ final class AccidBlockMuteListResponse extends NetEaseImResponse
         if (!empty($this->response_array['mutelist'])) $this->mutelist = $this->response_array['mutelist'];
         if (!empty($this->response_array['blacklist'])) $this->blacklist = $this->response_array['blacklist'];
     }
-    
+
     /**
      * @override
-     * @return type
+     * @return array
      */
-    public function get_data():array {
+    public function get_data():array
+    {
         return [
             'mutelist' => $this->mutelist,
             'blacklist' => $this->blacklist

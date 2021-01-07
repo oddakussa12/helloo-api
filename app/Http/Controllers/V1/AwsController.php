@@ -4,10 +4,11 @@ namespace App\Http\Controllers\V1;
 
 
 use JWTAuth;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Http\Request;
-use Aws\CognitoIdentity\CognitoIdentityClient;
 use Aws\Sts\StsClient;
+use Aws\S3\PostObjectV4;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
+use Aws\CognitoIdentity\CognitoIdentityClient;
 
 
 class AwsController extends BaseController
@@ -60,6 +61,77 @@ class AwsController extends BaseController
             Redis::expire($key , 600);
         }
         return $data;
+    }
+
+    public function preSignedUrl(string $key)
+    {
+//        $aws = app('aws');
+//        $s3 = $aws->createS3();
+//        $bucket = 'helloo-media';
+//        $cmd = $s3->getCommand('PutObject', [
+//            'ACL' => 'private',
+//            'Bucket' => $bucket,
+//            'Key' => $key,
+//            'ContentType' => 'application/x-www-form-urlencoded',
+//            'Policy' => $policy,
+//        ]);
+//        $preSignedRequest = $s3->createPresignedRequest($cmd, '+5 minutes');
+//        return $this->response->created(null , array('preSignedUrl'=>(string)$preSignedRequest->getUri()));
+    }
+
+    public function form($type)
+    {
+        $aws = app('aws');
+        $s3 = $aws->createS3();
+        $path = md5(auth()->id()).'/'.date('Ymd').'/';
+        if($type=='video')
+        {
+            $bucket = 'helloo-video';
+            $expires = '+5 minutes';
+            $contentType = "video/mp4";
+            $contentTypeWith = "video/";
+            $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
+            $contentLengthRange = 1024*1024*10;
+            $action = "https://helloo-video.s3.cn-north-1.amazonaws.com.cn/";
+        }else{
+            $bucket = 'helloo-image';
+            $expires = '+5 minutes';
+            $contentType = "image/jpeg";
+            $contentTypeWith = "image/";
+            $xAmzDomain = 'https://image.helloo.mantouhealth.com/';
+            $contentLengthRange = 1024*1024*5;
+            $action = "https://helloo-image.s3.cn-north-1.amazonaws.com.cn/";
+        }
+        $formInputs = [
+            'acl' => 'private' ,
+            'key' => $path ,
+            'Content-Type' => $contentType ,
+            'x-amz-domain'=>$xAmzDomain ,
+            'success_action_status'=>'201'
+        ];
+        $options = [
+            ['acl' => 'private'],
+            ['success_action_status'=>"201"],
+            ['bucket' => $bucket],
+            ['content-length-range', 1, $contentLengthRange], // 8 KiB
+            ['x-amz-domain'=>$xAmzDomain], // 8 KiB
+            ['starts-with', '$Content-Type', $contentTypeWith],
+            ['starts-with', '$key', $path],
+        ];
+        $postObject = new PostObjectV4(
+            $s3,
+            $bucket,
+            $formInputs,
+            $options,
+            $expires
+        );
+
+//        $formAttributes = $postObject->getFormAttributes();
+        $formInputs = $postObject->getFormInputs();
+        return $this->response->array(array(
+            'form'=>$formInputs,
+            'action'=>$action,
+        ));
     }
 
 }

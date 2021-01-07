@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
+use Ramsey\Uuid\Uuid;
 
 
 class Test extends Command
@@ -50,11 +51,14 @@ class Test extends Command
         $oddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
         $evenData = array();
         $oddData = array();
-        DB::table('users_phones')->orderByDesc('phone_id')->chunk(100 , function ($phones) use ($evenPhoneKey , $oddPhoneKey , $evenData , $oddData){
+        DB::table('users_phones')->where('user_id' , '<=' , 487)->orderByDesc('phone_id')->chunk(100 , function ($phones) use ($evenPhoneKey , $oddPhoneKey , $evenData , $oddData){
             foreach ($phones as $phone)
             {
-                $key = 'helloo:account:service:account-ry-token:'.$phone->user_id;
-                Redis::del($key);
+                DB::table('users')->where('user_id' , $phone->user_id)->update(array(
+                    'user_uuid'=>Uuid::uuid1()->toString()
+                ));
+//                $key = 'helloo:account:service:account-ry-token:'.$phone->user_id;
+//                Redis::del($key);
 //                DB::table('users')->insert(array(
 //                    'user_id'=>$phone->user_id,
 //                    'user_pwd'=>bcrypt(123456),

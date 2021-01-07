@@ -9,9 +9,10 @@ final class NeLocationMessage extends AbstractNEMessage
     public $type = 4;
 
     /**
-     * @return false|string
+     * @return string
      */
-    public function toString() {
+    public function toString():string
+    {
         return json_encode($this->body);
     }
     

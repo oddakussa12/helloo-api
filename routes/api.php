@@ -129,6 +129,10 @@ $api->group($V1Params , function ($api){
         
         $api->get('aws/sts' , 'AwsController@sts')->name('aws.sts');
 
+        $api->get('aws/{object}/preSignedUrl' , 'AwsController@preSignedUrl')->name('aws.preSignedUrl');
+        
+        $api->get('aws/{type}/form' , 'AwsController@form')->name('aws.form');
+
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
@@ -162,6 +166,7 @@ $api->group($V1Params , function ($api){
     $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');
     $api->get('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/es' , 'TestController@es')->name('test.es');
+    $api->get('test/esDoc' , 'TestController@esDoc')->name('test.esDoc');
 
     $api->get('test/aws' , 'TestController@aws')->name('test.aws');
     $api->get('test/index' , 'TestController@index')->name('test.index');

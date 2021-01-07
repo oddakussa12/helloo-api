@@ -15,12 +15,13 @@ final class FriendsInfosResponse extends NetEaseImResponse
         if (!empty($this->response_array['friends'])) $this->friends = $this->response_array['uinfos'];
         if (!empty($this->response_array['size'])) $this->size = $this->response_array['size'];
     }
-    
+
     /**
      * @override
-     * @return type
+     * @return array
      */
-    public function get_data():array {
+    public function get_data():array
+    {
         return $this->friends;
     }
     
