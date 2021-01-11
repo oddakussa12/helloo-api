@@ -79,7 +79,7 @@ class RyChat implements ShouldQueue
                 'required',
             ],
             'sensitiveType' => [
-                'required',
+                'filled',
                 Rule::in([0 , 1 , 2])
             ],
             'source' => [
