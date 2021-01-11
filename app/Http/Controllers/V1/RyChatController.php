@@ -3,20 +3,16 @@
 namespace App\Http\Controllers\V1;
 
 
-use App\Custom\Constant\Constant;
-use App\Jobs\FriendLevel;
-use App\Jobs\FriendSignIn;
-use App\Jobs\UserVisit;
-use App\Jobs\Test as TestJob;
 use Carbon\Carbon;
 use App\Jobs\RyChat;
-use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\Uuid;
 use App\Models\RyRoomChat;
 use App\Models\RyChatFailed;
 use Illuminate\Http\Request;
+use App\Custom\Constant\Constant;
 use App\Resources\UserCollection;
 use App\Services\TranslateService;
+use Illuminate\Support\Facades\Log;
 use App\Resources\RyChatCollection;
 use App\Models\RyChat as RyChatModel;
 use Illuminate\Support\Facades\Redis;
@@ -91,8 +87,6 @@ class RyChatController extends BaseController
      */
     public function store(Request $request)
     {
-        // $rand = rand(100000, 999999);
-        // Log::debug('message:: start '.$rand. '  time:'.microtime());
         $all = $request->all();
         $response = $this->response->noContent();
         $rule = [
@@ -109,57 +103,26 @@ class RyChatController extends BaseController
             RyChatFailed::create($data);
         }else{
             $objectName = $request->input('objectName' , '');
-
-            if ($objectName == 'RC:CmdMsg') {
-                $content = json_decode($all['content'], true);
-                if (!empty($content['name']) && $content['name'] == Constant::RY_OBJECT_NAME_USER_MAIN) {
-                    //if (Constant::QUEUE_PUSH_TYPE == 'redis') {
-                        // 好友访问主页
-                        $friendVisit = new UserVisit($all);
-                        $this->dispatchNow($friendVisit->onQueue(Constant::QUEUE_FRIEND_VISIT));
-                    //} else {
-                        // 好友访问主页
-                    //    UserVisit::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_VISIT);
-                    //}
-                }
-            }
-
-            if (in_array($objectName, array('RC:TxtMsg', 'RC:ImgMsg', 'RC:VcMsg'))) {
+            Log::info('objectName' , array($objectName));
+            if (in_array($objectName, array('RC:TxtMsg', 'RC:ImgMsg', 'RC:VcMsg' , 'RC:VCHangup' , 'RC:VCAccept' , 'RC:VCInvite' , 'RC:VCRinging'))) {
                 $msgUID   = $request->input('msgUID', '');
                 $lock_key = 'ry_room_chat_'.$msgUID;
                 if(Redis::set($lock_key, 1, "nx", "ex", 15))
                 {
                     if (Constant::QUEUE_PUSH_TYPE == 'redis') {
                         if (Constant::QUEUE_RY_CHAT_SWITCH) {
-                            $device = new RyChat($all);
-                            $this->dispatch($device->onQueue(Constant::QUEUE_RY_CHAT));
+                            $ryChat = new RyChat($all);
+                            $this->dispatch($ryChat->onQueue("helloo_{store_ry_msg}"));
                         }
-
-                        // 签到队列
-                        $friendSignIn = new FriendSignIn($all);
-                        $this->dispatch($friendSignIn->onQueue(Constant::QUEUE_FRIEND_SIGN_IN));
-
-                        // 升级队列
-                        $friendLevel = new FriendLevel($all);
-                        $this->dispatch($friendLevel->onQueue(Constant::QUEUE_FRIEND_LEVEL));
-
                     } else {
                         if (Constant::QUEUE_RY_CHAT_SWITCH) {
-                            $device = new RyChat($all);
-                            $this->dispatch($device->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
+                            $ryChat = new RyChat($all);
+                            $this->dispatch($ryChat->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
                         }
-                        // 签到队列
-                         FriendSignIn::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_SIGN_IN);
-
-                        // 升级队列
-                         FriendLevel::dispatch($all)->onConnection('sqs')->onQueue(Constant::QUEUE_FRIEND_LEVEL);
                     }
-
                 }
             }
         }
-        // Log::debug('message:: end '.$rand. '  time:'.microtime());
-
         return $response->setStatusCode(200);
     }
 
