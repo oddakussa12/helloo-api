@@ -63,6 +63,7 @@ class RyChat implements ShouldQueue
                     'RC:VCAccept',
                     'RC:VCInvite',
                     'RC:VCRinging',
+                    'Helloo:VideoMsg',
                 ]),
             ],
             'content' => [
@@ -136,16 +137,16 @@ class RyChat implements ShouldQueue
                     $data['chat_extend'] = $content['reason'];
                 }
 
-                if(isset($content['reason'])) {
-                    $data['chat_extend'] = $content['reason'];
-                }
-
                 if(isset($content['mediaType'])) {
                     $data['chat_extend'] = $content['mediaType'];
                 }
 
                 if(isset($content['callId'])) {
                     $messageContent['message_content'] = $content['callId'];
+                }
+
+                if(isset($content['videoUrl'])) {
+                    $messageContent['message_content'] = $content['videoUrl'];
                 }
 
                 try{
