@@ -52,7 +52,7 @@ class EscortTalk implements ShouldQueue
             'content'=>'video message',
             'user'=> array(
                 'id'=>$sender['user_id'],
-                'name'=>$sender['user_nick_name']."================",
+                'name'=>$sender['user_nick_name'],
                 'portrait'=>$sender['user_avatar_link'],
                 'extra'=>array(
                     'userLevel'=>$sender['user_level']

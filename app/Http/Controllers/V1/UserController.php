@@ -377,7 +377,7 @@ class UserController extends BaseController
         $school = $user->user_school;
         $grade = $user->user_grade;
         $users = collect();
-        if(!blank($school))
+        if(!blank($school)&&$school!='other')
         {
             $users = $this->user->allWithBuilder()->where('user_school' , $school);
             if(!blank($grade))
@@ -389,15 +389,18 @@ class UserController extends BaseController
                 'user_name',
                 'user_nick_name',
                 'user_avatar',
-            ))->limit(3)->get();
+            ))->limit(4)->get();
         }else{
             $users = $this->user->allWithBuilder()->inRandomOrder()->select(array(
                 'user_id',
                 'user_name',
                 'user_nick_name',
                 'user_avatar',
-            ))->limit(3)->get();
+            ))->limit(4)->get();
         }
+        $users = $users->reject(function ($u) use ($user){
+            return $u->user_id == $user->user_id;
+        })->splice(0 , 3);
         return UserCollection::collection($users);
     }
 
