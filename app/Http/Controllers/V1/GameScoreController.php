@@ -44,6 +44,7 @@ class GameScoreController extends BaseController
         }
         $phone = DB::table('users_phones')->where('user_id' , $userId)->first();
         $oldRank = $rank = $scoreBefore = 0;
+        $users = array();
         if(!blank($phone))
         {
             $country = $phone->user_phone_country;
