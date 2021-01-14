@@ -210,14 +210,14 @@ class EventController extends BaseController
             Validator::make($fields, $rules)->validate();
             DB::beginTransaction();
             try {
-                $count = DB::table('t_game_events')->where('id' , $event->id)->update($fields);
+                $count = DB::table('game_events')->where('id' , $event->id)->update($fields);
                 if($count<=0)
                 {
                     throw new \Exception('game event update fail');
                 }
                 $fields['createdAt'] = Carbon::now()->toDateTimeString();
                 $fields['game'] = $game;
-                $result = DB::table('t_game_events_logs')->insert($fields);
+                $result = DB::table('game_events_logs')->insert($fields);
                 if(!$result)
                 {
                     throw new \Exception('game event log store fail');
