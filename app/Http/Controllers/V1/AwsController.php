@@ -9,6 +9,7 @@ use Aws\S3\PostObjectV4;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 use Aws\CognitoIdentity\CognitoIdentityClient;
+use Ramsey\Uuid\Uuid;
 
 
 class AwsController extends BaseController
@@ -81,6 +82,50 @@ class AwsController extends BaseController
 
     public function form($type)
     {
+        $name = request()->input('file' , '');
+        $extension = pathinfo($name, PATHINFO_EXTENSION);
+        switch ($extension)
+        {
+            case "tif":
+            case "tiff":
+                $contentType = "image/tiff";
+                break;
+            case "fax":
+                break;
+            case "gif":
+                $contentType = "image/gif";
+                break;
+            case "ico":
+                $contentType = "image/x-icon";
+                break;
+            case "jpe":
+            case "jpeg":
+            case "jfif":
+            case "jpg":
+                $contentType = "image/jpeg";
+                break;
+            case "png":
+                $contentType = "image/png";
+                break;
+            case "wbmp":
+                $contentType = "image/vnd.wap.wbmp";
+                break;
+            //video
+            case "mp4":
+                $contentType = "video/mpeg4";
+                break;
+            case "avi":
+                $contentType = "video/avi";
+                break;
+            case "mpeg":
+                $contentType = "video/mpg";
+                break;
+            case "wmv":
+                $contentType = "video/x-ms-wmv";
+                break;
+            default:
+                $contentType = "";
+        }
         $aws = app('aws');
         $s3 = $aws->createS3();
         $path = md5(auth()->id()).'/'.date('Ymd').'/';
@@ -88,8 +133,6 @@ class AwsController extends BaseController
         {
             $bucket = 'helloo-video';
             $expires = '+5 minutes';
-            $contentType = "video/mp4";
-            $contentTypeWith = "video/";
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
@@ -98,12 +141,10 @@ class AwsController extends BaseController
                 $xAmzDomain = 'https://test.video.helloo.mantouhealth.com/';
                 $action = "https://helloo-video.s3.cn-north-1.amazonaws.com.cn/";
             }
-            $contentLengthRange = 1024*1024*10;
-        }else{
+            $contentLengthRange = 1024*1024*50;
+        }else if($type=='image'){
             $bucket = 'helloo-image';
             $expires = '+5 minutes';
-            $contentType = "image/jpeg";
-            $contentTypeWith = "image/";
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://video.image.mantouhealth.com/';
@@ -112,12 +153,25 @@ class AwsController extends BaseController
                 $xAmzDomain = 'https://test.image.helloo.mantouhealth.com/';
                 $action = "https://helloo-image.s3.cn-north-1.amazonaws.com.cn/";
             }
-            $contentLengthRange = 1024*1024*5;
+            $contentLengthRange = 1024*1024*10;
+        }else if($type=='avatar'){
+            $bucket = 'helloo-avatar';
+            $expires = '+5 minutes';
+            if(in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://avatar.avatar.mantouhealth.com/';
+                $action = "https://helloo-avatar.s3-ap-southeast-1.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.avatar.helloo.mantouhealth.com/';
+                $action = "https://helloo-avatar.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*10;
+        }else{
+            return $this->response->noContent();
         }
         $formInputs = [
             'acl' => 'private' ,
-            'key' => $path ,
-            'Content-Type' => $contentType ,
+            'key' => $path.Uuid::uuid1()->toString().'.'.$extension ,
             'x-amz-domain'=>$xAmzDomain ,
             'success_action_status'=>'201'
         ];
@@ -127,9 +181,10 @@ class AwsController extends BaseController
             ['bucket' => $bucket],
             ['content-length-range', 1, $contentLengthRange], // 8 KiB
             ['x-amz-domain'=>$xAmzDomain], // 8 KiB
-            ['starts-with', '$Content-Type', $contentTypeWith],
             ['starts-with', '$key', $path],
         ];
+        !blank($contentType)&&$formInputs['Content-Type'] = $contentType;
+        !blank($contentType)&&array_push($options , ['Content-Type'=>$contentType]);
         $postObject = new PostObjectV4(
             $s3,
             $bucket,
@@ -137,12 +192,11 @@ class AwsController extends BaseController
             $options,
             $expires
         );
-
-//        $formAttributes = $postObject->getFormAttributes();
         $formInputs = $postObject->getFormInputs();
         return $this->response->array(array(
             'form'=>$formInputs,
             'action'=>$action,
+            'domain'=>$xAmzDomain,
         ));
     }
 

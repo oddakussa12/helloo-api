@@ -2,20 +2,15 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Custom\Constant\Constant;
-use App\Jobs\Friend;
-use App\Jobs\FriendLevel;
-use App\Jobs\FriendSignIn;
 use App\Models\UserFriend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserFriendRepository;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use Jenssegers\Agent\Agent;
 
 class UserFriendController extends BaseController
 {
@@ -136,6 +131,10 @@ class UserFriendController extends BaseController
         // 融云推送 聊天
         if($flag)
         {
+            $sortKey = "helloo:account:friend:game:rank:sort:".$userId.'-coronation';//暂时一个游戏
+            $friendSortKey = "helloo:account:friend:game:rank:sort:".$friendId.'-coronation';//暂时一个游戏
+            Redis::zrem($sortKey , $friendId);
+            Redis::zrem($friendSortKey , $userId);
             $content = array(
                 'senderId'   => $userId,
                 'targetId'   => $friendId,
@@ -155,5 +154,12 @@ class UserFriendController extends BaseController
             Log::info('delete_result' , $result);
         }
         return $this->response->noContent();
+    }
+
+    public function gameRank($game)
+    {
+        $userId = auth()->id();
+        $users = $this->userFriend->getFriendRankByUserId($userId , $game);
+        return UserCollection::collection($users);
     }
 }

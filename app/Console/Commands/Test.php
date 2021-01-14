@@ -11,11 +11,13 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Ramsey\Uuid\Uuid;
+use App\Foundation\Auth\User\Update;
+use App\Repositories\Contracts\UserRepository;
 
 
 class Test extends Command
 {
-    use CachableUser;
+    use CachableUser,Update;
     /**
      * The name and signature of the console command.
      *
@@ -51,48 +53,15 @@ class Test extends Command
         $oddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
         $evenData = array();
         $oddData = array();
-        DB::table('users_phones')->where('user_id' , '<=' , 487)->orderByDesc('phone_id')->chunk(100 , function ($phones) use ($evenPhoneKey , $oddPhoneKey , $evenData , $oddData){
-            foreach ($phones as $phone)
-            {
-                DB::table('users')->where('user_id' , $phone->user_id)->update(array(
-                    'user_uuid'=>Uuid::uuid1()->toString()
-                ));
-//                $key = 'helloo:account:service:account-ry-token:'.$phone->user_id;
-//                Redis::del($key);
-//                DB::table('users')->insert(array(
-//                    'user_id'=>$phone->user_id,
-//                    'user_pwd'=>bcrypt(123456),
-//                    'user_nick_name'=>(new RandomStringGenerator())->generate(6),
-//                    'user_gender'=>mt_rand(0 ,1),
-//                    'user_avatar'=>"default_avatar_".mt_rand(1 , 18).'.png',
-//                    'user_birthday'=>Carbon::now()->subYears(mt_rand(5 , 20))->toDateString(),
-//                    'user_created_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
-//                    'user_updated_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
-//                    'user_activated_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
-//                    'user_answered_at'=>Carbon::now()->subDays(mt_rand(5 , 20))->toDateTimeString(),
-//                    'user_answer'=>1,
-//                    'user_activation'=>1,
-//                ));
+        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
+        User::chunk(100, function($users){
+            foreach($users as $user){
+                Redis::del('helloo:account:service:account:'.$user->user_id);
+                $key = 'helloo:account:service:account-ry-token:'.$user->userId;
+                Redis::del($key);
             }
-//            Redis::zadd($evenPhoneKey , $evenData);
-//            Redis::zadd($oddPhoneKey , $oddData);
-//            $evenData = $oddData = array();
         });
         die;
-        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
-        User::chunk(100, function($users) use ($ageSortSetKey){
-            foreach($users as $user){
-                if($user->user_activation==1)
-                {
-                    $age = age($user->user_birthday);
-                    Redis::zadd($ageSortSetKey , $age , $user->getKey());
-                }
-//                $cache = collect($user)->toArray();
-//                $key = "helloo:account:service:account:".$user->getKey();
-//                Redis::hmset($key , $cache);
-//                Redis::expire($key , 60*60*24*30);
-            }
-        });
 //        $now = Carbon::now();
 //        $oneMonthAgo = $now->subDays(3)->format('Y-m-d 00:00:00');
 //        $newKey = config('redis-key.post.post_index_new');

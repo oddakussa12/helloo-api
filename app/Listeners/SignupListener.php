@@ -2,29 +2,33 @@
 
 namespace App\Listeners;
 
+use App\Jobs\EscortTalk;
 use App\Events\SignupEvent;
-use App\Traits\CachableUser;
+use App\Jobs\SignUpAndEvent;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 
 
-class SignupListener
+class SignupListener implements ShouldQueue
 {
-    use CachableUser;
 
+    use Dispatchable, InteractsWithQueue , SerializesModels;
 
+    public $queue = 'helloo_{user_sign_up}';
     /**
      * Handle the event.
      *
      * @param SignupEvent $event
-     * @return mixed
+     * @return void
      */
     public function handle(SignupEvent $event)
     {
         //获取事件中保存的信息
         $user = $event->getUser();
-//        $extend = $event->getExtend();
-
         $agent = $event->getAgent();
-        $addresses = $event->getAddresses();
+        $geo = $event->getGeo();
         $ip = $event->getIp();
         //登录信息
         $signup_info = [
@@ -34,14 +38,14 @@ class SignupListener
 
         //包含的方法获取ip地理位置
 
-        $signup_info['signup_isocode'] = $addresses->iso_code;
-        $signup_info['signup_country'] = $addresses->country;
-        $signup_info['signup_state'] = $addresses->state_name;
-        $signup_info['signup_city'] = $addresses->city;
-        $signup_info['signup_lat'] = $addresses->lat;
-        $signup_info['signup_lon'] = $addresses->lon;
-        $signup_info['signup_timezone'] = $addresses->timezone;
-        $signup_info['signup_continent'] = $addresses->continent;
+        $signup_info['signup_isocode'] = $geo->iso_code;
+        $signup_info['signup_country'] = $geo->country;
+        $signup_info['signup_state'] = $geo->state_name;
+        $signup_info['signup_city'] = $geo->city;
+        $signup_info['signup_lat'] = $geo->lat;
+        $signup_info['signup_lon'] = $geo->lon;
+        $signup_info['signup_timezone'] = $geo->timezone;
+        $signup_info['signup_continent'] = $geo->continent;
 
 
         // jenssegers/agent 的方法来提取agent信息
@@ -68,8 +72,9 @@ class SignupListener
             // 桌面设备
             $signup_info['device_type'] = 'desktop';
         }
-
-        return $user->SignupInfo()->create($signup_info);
+        $user->SignupInfo()->create($signup_info);
+//        SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(60));
+//        EscortTalk::dispatch($user)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));
     }
 
 }

@@ -37,9 +37,22 @@ class UserController extends BaseController
     {
         $phone = $request->input('phone' , '');
         $phoneCountry = $request->input('phoneCountry' , '');
+        $username = strval($request->input('username' , ''));
         $keyword = strval($request->input('keyword' , ''));
         $userId = auth()->id();
-        if(!blank($phone)&&!blank($phoneCountry))
+        if(!blank($username))
+        {
+            $users = $this->user->allWithBuilder()->where('user_name',$username)->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->limit(1)->get();
+            $users = $users->filter(function($user) use ($userId){
+                return  $user->user_id!=$userId;
+            })->values();
+            $userIds = $users->pluck('user_id')->toArray();
+            $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
+            $users->each(function($user , $index) use ($friendIds){
+                $user->is_friend = in_array($user->user_id , $friendIds);
+            });
+            return UserCollection::collection($users);
+        }elseif(!blank($phone)&&!blank($phoneCountry))
         {
             $userPhone = DB::table('users_phones')->where('user_phone_country' , $phoneCountry)->where('user_phone' , $phone)->first();
             if(blank($userPhone)||$userPhone->user_id==auth()->id())
@@ -48,7 +61,7 @@ class UserController extends BaseController
             }
             $users = $this->user->allWithBuilder()->where('user_id' , $userPhone->user_id)->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->get();
             $userIds = $users->pluck('user_id')->toArray();
-            $friendIds = DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray();
+            $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
             $users->each(function($user , $index) use ($friendIds){
                 $user->is_friend = in_array($user->user_id , $friendIds);
             });
@@ -60,7 +73,7 @@ class UserController extends BaseController
                 return  $user->user_id!=$userId;
             })->values();
             $userIds = $users->pluck('user_id')->toArray();
-            $friendIds = DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray();
+            $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
             $users->each(function($user , $index) use ($friendIds){
                 $user->is_friend = in_array($user->user_id , $friendIds);
             });
@@ -84,14 +97,20 @@ class UserController extends BaseController
             return $this->response->noContent();
         }
         if ($this->isBlocked($id)) {
-            return $this->response->errorNotFound();
+            return $this->response->errorNotFound('Sorry, this account does not exist or is blocked!');
         }
-        $user = $this->user->findOrFail($id);
+        $user = $this->user->findByUserId($id);
+        if(blank($user))
+        {
+            return $this->response->errorNotFound('Sorry, this account does not exist or is blocked!');
+        }
         $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('liked_id' , $id)->first()):false;
+        $friend = auth()->check()?DB::table('users_friends')->where('user_id' , auth()->id())->where('friend_id' , $id)->first():null;
         $likedKey = 'helloo:account:service:account-liked-num';
-        $user->likedCount = intval(Redis::zscore($likedKey , $id));
-        $user->friendCount = 0;
-        $user->likeState = $likeState;
+        $user->put('likedCount' , intval(Redis::zscore($likedKey , $id)));
+        $user->put('friendCount' , 0);
+        $user->put('isFriend' , !blank($friend));
+        $user->put('likeState' , $likeState);
         return new UserCollection($user);
     }
 
@@ -291,7 +310,7 @@ class UserController extends BaseController
         {
             $friendIds = $userIds;
         }else{
-            $friendIds = DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray();
+            $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
         }
         $contacts = $contacts->map(function($contact , $key) use ($users , $friendIds){
             $user = $users->where('user_id' , $contact['user_id'])->first();
@@ -308,5 +327,78 @@ class UserController extends BaseController
         });
         return UserCollection::collection($contacts);
     }
+
+    public function gameTag(Request $request)
+    {
+        $tag = strval($request->input('tag' , ''));
+        $color = strval($request->input('color' , ''));
+        if(!blank($tag)&&!blank($color))
+        {
+            $userId = auth()->id();
+            $key = "helloo:account:service:tag:account:".$userId;
+            $tags = DB::table('users_game_tags')->where('user_id' , $userId)->first();
+            if(blank($tags))
+            {
+                $result = DB::table('users_game_tags')->insert(array(
+                    'user_id'=>$userId,
+                    'tag'=>$tag,
+                    'color'=>$color,
+                    'created_at'=>Carbon::now()->toDateTimeString(),
+                ));
+                if($result)
+                {
+                    Redis::del($key);
+                    Redis::set($key , $tag.'|'.$color);
+                    Redis::expire($key , 60*60*24);
+                }
+            }else{
+                $count = DB::table('users_game_tags')->where('user_id' , $userId)->update(
+                    array(
+                        'tag'=>$tag,
+                        'color'=>$color,
+                        'created_at'=>Carbon::now()->toDateTimeString()
+                    )
+                );
+                if($count>0)
+                {
+                    Redis::del($key);
+                    Redis::set($key , $tag.'|'.$color);
+                    Redis::expire($key , 60*60*24);
+                }
+            }
+        }
+        return $this->response->created();
+    }
+
+    public function recommendation()
+    {
+        $user = auth()->user();
+        $school = $user->user_school;
+        $grade = $user->user_grade;
+        $users = collect();
+        if(!blank($school))
+        {
+            $users = $this->user->allWithBuilder()->where('user_school' , $school);
+            if(!blank($grade))
+            {
+                $users = $users->where('user_grade' , $grade)->inRandomOrder();
+            }
+            $users = $users->select(array(
+                'user_id',
+                'user_name',
+                'user_nick_name',
+                'user_avatar',
+            ))->limit(3)->get();
+        }else{
+            $users = $this->user->allWithBuilder()->select(array(
+                'user_id',
+                'user_name',
+                'user_nick_name',
+                'user_avatar',
+            ))->limit(3)->get();
+        }
+        return UserCollection::collection($users);
+    }
+
 
 }

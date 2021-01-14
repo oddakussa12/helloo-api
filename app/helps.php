@@ -1467,4 +1467,28 @@ if (!function_exists('arraySort')) {
     }
 }
 
+if (!function_exists('opensslEncrypt')) {
+    /**
+     * @param $data
+     * @param $key
+     * @return void
+     */
+    function opensslEncrypt($data , $key)
+    {
+        return base64_encode(openssl_encrypt($data,"AES-128-CBC",$key,OPENSSL_RAW_DATA , '1234567890789456'));
+    }
+}
+
+if (!function_exists('opensslDecrypt')) {
+    /**
+     * @param $data
+     * @param $key
+     * @return void
+     */
+    function opensslDecrypt($data , $key)
+    {
+        return openssl_decrypt(base64_decode($data),"AES-128-CBC",$key,OPENSSL_RAW_DATA);
+    }
+}
+
 

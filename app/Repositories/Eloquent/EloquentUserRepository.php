@@ -11,10 +11,13 @@ namespace App\Repositories\Eloquent;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Jobs\RyOnline;
+use App\Jobs\UserUpdate;
 use App\Custom\RedisList;
 use App\Models\BlockUser;
 use App\Models\BlackUser;
 use App\Models\BlockPost;
+use Jenssegers\Agent\Agent;
+use Godruoyi\Snowflake\Snowflake;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Events\UserProfileLikeEvent;
@@ -23,7 +26,6 @@ use App\Events\UserProfileRevokeLikeEvent;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
 use Dingo\Api\Exception\DeleteResourceFailedException;
-use Jenssegers\Agent\Agent;
 
 class EloquentUserRepository  extends EloquentBaseRepository implements UserRepository
 {
@@ -42,6 +44,10 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         Redis::del($key);
         isset($data['user_gender'])&&Redis::zadd($genderSortSetKey , intval($data['user_gender']) , $model->getKey());
         isset($data['user_birthday'])&&Redis::zadd($ageSortSetKey , age($data['user_birthday']) , $model->getKey());
+        if(isset($data['user_avatar'])||isset($data['user_nick_name']))
+        {
+            UserUpdate::dispatch($user)->onQueue('helloo_{user_update}');
+        }
         return $user;
     }
 
@@ -67,7 +73,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $user = Redis::hgetall($key);
         if(blank($user))
         {
-            $user = $this->model->find($userId);
+            $user = collect($this->model->find($userId));
             if(!blank($user))
             {
                 $cache = collect($user)->toArray();
@@ -78,6 +84,46 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             $user = collect($user);
         }
         return $user;
+    }
+
+    /**
+     * @param $userIds
+     * @return array
+     */
+    public function findTagByUserIds($userIds)
+    {
+        return collect($userIds)->map(function($userId , $key){
+            $tag = $this->findTagByUserId($userId);
+            if($tag==='')
+            {
+                $color = '';
+            }else{
+                $pos = strripos($tag , "|");
+                $pos = $pos===false?strlen($tag):$pos;
+                $color = substr($tag , $pos+1);
+                $tag = substr($tag , 0 , $pos);
+            }
+            return collect(['user_id'=>$userId , 'tag'=>strval($tag) , 'color'=>strval($color)]);
+        });
+    }
+
+    public function findTagByUserId($userId)
+    {
+        $key = "helloo:account:service:tag:account:".$userId;
+        $tag = Redis::get($key);
+        if($tag===null)
+        {
+            $tagModel = DB::table('users_game_tags')->where('user_id' , $userId)->first();
+            if(!blank($tagModel))
+            {
+                $tag = $tagModel->tag."|".$tagModel->color;
+            }else{
+                $tag = '';
+            }
+            Redis::set($key , $tag);
+            Redis::expire($key , 60*60*24);
+        }
+        return $tag;
     }
 
     public function findOrFail($userId)
@@ -1492,6 +1538,46 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             }
         }
         return $data;
+    }
+
+    public function usernamePrompt($userId)
+    {
+
+        $key = "helloo:account:service:username:prompt:account:".$userId;
+        if(Redis::exists($key))
+        {
+            $result = intval(Redis::get($key));
+        }else{
+            $prompt = DB::table('username_prompt')->where('user_id' , $userId)->first();
+            if(!blank($prompt))
+            {
+                $result = 1;
+                Redis::set($key, $result, "nx", "ex", 60*60*24*15);
+            }else{
+                $result = 0;
+                Redis::set($key, $result, "nx", "ex", 60*60*24*15);
+            }
+        }
+        return $result;
+    }
+
+    public function updateUsernamePrompt($userId)
+    {
+        $prompt = DB::table('username_prompt')->where('user_id' , $userId)->first();
+        if(blank($prompt))
+        {
+            $result = DB::table('username_prompt')->insert(array(
+                'id'=>(new Snowflake())->id(),
+                'user_id'=>$userId,
+                'created_at'=>Carbon::now()->timestamp,
+            ));
+            if($result)
+            {
+                $key = "helloo:account:service:username:prompt:account:".$userId;
+                Redis::del($key);
+                Redis::set($key, 1, "nx", "ex", 60*60*24*15);
+            }
+        }
     }
 
 

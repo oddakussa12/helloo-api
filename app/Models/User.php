@@ -30,15 +30,20 @@ class User extends Authenticatable implements JWTSubject
         'user_uuid' ,
         'user_pwd',
         'user_nick_name',
+//        'user_name',
         'user_gender' ,
         'user_birthday' ,
         'user_avatar' ,
         'user_src' ,
-//        'user_country_id' ,
+
         'user_about' ,
+        'user_school' ,
+        'user_grade' ,
+
         'user_answer' ,
         'user_activation' ,
         'user_activated_at' ,
+        'user_enrollment_at' ,
     ];
 
     public $default_name_field = 'user_name';
@@ -58,8 +63,10 @@ class User extends Authenticatable implements JWTSubject
         'user_pwd',
         'user_src' ,
         'user_avatar',
-        'user_country_id' ,
+        'user_country' ,
         'user_created_at',
+        'user_name_change',
+        'user_name_changed_at',
         'user_updated_at',
         'user_activated_at',
         'user_answered_at'

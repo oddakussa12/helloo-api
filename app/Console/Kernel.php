@@ -18,6 +18,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\StoreVisitLog::class,
         \App\Console\Commands\StoreStatusLog::class,
         \App\Console\Commands\RemoveExpiredOnlineUser::class,
+        \App\Console\Commands\GenerateUid::class,
+        \App\Console\Commands\Schema::class,
     ];
 
     /**
@@ -38,6 +40,14 @@ class Kernel extends ConsoleKernel
             });
         $schedule->command('remove:expired_online_user')
             ->hourly()->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('store:visit_log')
+            ->hourly()->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('schema:start')
+            ->monthlyOn(15)->when(function(){
                 return config('common.cron_switch');
             });
         $schedule->command('geoip:update')

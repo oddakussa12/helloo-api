@@ -45,7 +45,6 @@ class AwsServiceProvider extends ServiceProvider
         $this->app->singleton('aws', function ($app) use ($defaultConfig){
             $config = $app->make('config')->get('aws');
             $config = array_merge($config , $defaultConfig);
-            Log::info('aws-config' , $config);
             return new Sdk($config);
         });
     }

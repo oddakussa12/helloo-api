@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\V1;
 
 
+use App\Jobs\SignUpAndEvent;
+use App\Jobs\EscortTalk;
 use Aws\CognitoIdentity\CognitoIdentityClient;
 use App\Custom\NEIm\NEMessage\MessageOptions;
 use App\Custom\NEIm\NEMessage\NeTxtMessage;
@@ -381,6 +383,12 @@ class TestController extends BaseController
 
 
 
+    }
+
+    public function office()
+    {
+        $sender = app(UserRepository::class)->findOrFail(244);
+        $this->dispatchNow((new EscortTalk($sender)));
     }
 
 

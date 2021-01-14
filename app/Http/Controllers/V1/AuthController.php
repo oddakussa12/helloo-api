@@ -91,13 +91,14 @@ class AuthController extends BaseController
     {
         $fields = array();
         $user = auth()->user();
-//        $country_code = strtolower(strval($request->input('country_code')));
         $password = strval($request->input('password' , ''));
         $user_birthday = strval($request->input('user_birthday' , ''));
         $user_about = strval($request->input('user_about' , ''));
         $user_avatar = strval($request->input('user_avatar' , ''));
         $user_gender = $request->input('user_gender');
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
+        $user_school = strval($request->input('user_school' , ''));
+        $user_grade = strval($request->input('user_grade' , ''));
         if(!empty($password)&&empty($user->getAuthPassword()))
         {
             $fields['user_pwd'] = $password;
@@ -106,28 +107,35 @@ class AuthController extends BaseController
         {
             $fields['user_birthday'] = $user_birthday;
         }
-//        if(!empty($country_code)&&$user->user_country_id==0)
-//        {
-//            $fields['user_country_id'] = $country_code;
-//        }
         if(!empty($user_avatar)&&$user->user_avatar=='default_avatar.jpg')
         {
             $fields['user_avatar'] = $user_avatar;
         }
 
-        if(in_array($user_gender , array(0 , 1 , '0' , '1'))&&$user->user_gender==-1)
+        if(in_array($user_gender , array(0 , 1 , '0' , '1')))
         {
             $fields['user_gender'] = intval($user_gender);
         }
 
-        if(!blank($user_nick_name)&&empty($user->user_nick_name))
+        if(!blank($user_nick_name))
         {
             $fields['user_nick_name'] = strval($user_nick_name);
+        }
+
+        if(!blank($user_school)&&empty($user->user_school))
+        {
+            $fields['user_school'] = strval($user_school);
+        }
+
+        if(!blank($user_grade)&&empty($user->user_grade))
+        {
+            $fields['user_grade'] = strval($user_grade);
         }
 
         $fields = array_filter($fields , function($value){
             return !blank($value);
         });
+
         if(!empty($fields))
         {
             if(!empty($user_about)&&empty($user->user_about))
@@ -135,10 +143,13 @@ class AuthController extends BaseController
                 $fields['user_about'] = $user_about;
             }
             Validator::make($fields, $this->updateRules())->validate();
-            if($user->user_birthday=="1900-01-01"||$user->user_avatar=='default_avatar.jpg'||$user->user_gender==-1||empty($user->user_nick_name)||empty($user->getAuthPassword()))
+            if($user->user_activation==0)
             {
                 isset($fields['user_pwd'])&&$fields['user_pwd'] = bcrypt($fields['user_pwd']);
-                $this->activate($user , $fields);
+                if(isset($fields['user_gender'])&&isset($fields['user_nick_name']))
+                {
+                    $this->activate($user , $fields);
+                }
             }
         }
         $user = $this->user->find($user->getKey());
@@ -159,14 +170,17 @@ class AuthController extends BaseController
         $user_avatar = strval($request->input('user_avatar' , ''));
         $user_gender = $request->input('user_gender');
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
+        $user_school = strval($request->input('user_school' , ''));
+        $user_grade = strval($request->input('user_grade' , ''));
+        $user_enrollment_at = strval($request->input('user_enrollment_at' , ''));
         if(!empty($user_birthday))
         {
             $fields['user_birthday'] = $user_birthday;
         }
-//        if(!empty($country_code))
-//        {
-//            $fields['user_country_id'] = $country_code;
-//        }
+        if(!empty($user_enrollment_at))
+        {
+            $fields['user_enrollment_at'] = $user_enrollment_at;
+        }
         if(!empty($user_avatar))
         {
             $fields['user_avatar'] = $user_avatar;
@@ -184,10 +198,18 @@ class AuthController extends BaseController
         {
             $fields['user_nick_name'] = strval($user_nick_name);
         }
+        if(!blank($user_school))
+        {
+            $fields['user_school'] = $user_school;
+        }
+        if(!blank($user_grade))
+        {
+            $fields['user_grade'] = $user_grade;
+        }
         $fields = array_filter($fields , function($value){
             return !blank($value);
         });
-        if(!empty($fields))
+        if(!empty($fields)&&$user->user_activation==1)
         {
             Validator::make($fields, $this->updateRules())->validate();
             $user = $this->user->update($user,$fields);
@@ -251,6 +273,11 @@ class AuthController extends BaseController
         $user->friendCount = 0;
         $genderKey = 'helloo:account:service:account-gender';
         $user->userGenderChanged = Redis::zscore($genderKey , $userId)===null;
+        $userNameKey = 'helloo:account:service:account-username-change';
+        $time = Redis::zscore($userNameKey , $userId);
+        $user->userNameCanChange = $time===null;
+        $user->userNamePrompted = boolval(app(UserRepository::class)->usernamePrompt($userId));
+        $user->makeVisible(array('user_name_changed_at'));
         return new UserCollection($user);
     }
 
@@ -283,22 +310,7 @@ class AuthController extends BaseController
                 new UserPhone()
             ],
             'password' => 'bail|required|string|min:6|max:16',
-//            'code' => [
-//                'bail',
-//                'string',
-//                'required',
-//                'size:4',
-//                function ($attribute, $value, $fail) use ($phone){
-//                    $key = 'helloo:account:service:account-sign-in-sms-code:'.$phone;
-//                    $code = Redis::get($key);
-//                    if($code===null||$code!=$value)
-//                    {
-//                        config('common.is_verification')&&$fail(trans('validation.custom.code.error'));
-//                    }else{
-//                        Redis::del($key);
-//                    }
-//                },
-//            ]
+
         ];
         Validator::make($validationField, $rule)->validate();
         if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
@@ -321,22 +333,29 @@ class AuthController extends BaseController
             $src = 'unknown';
         }
         $password = empty($password)?Uuid::uuid1()->toString():$password;
+        $username = $uuid = $this->generateUniqueName();
+        $userId = $this->generateUserId();
         $user_fields = array(
+            'user_id'=>$userId,
             'user_src'=>$src,
+            'user_name'=>$username,
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
-            'user_uuid'=>Uuid::uuid1(),
+            'user_uuid'=>$uuid,
             'user_pwd'=>bcrypt($password)
         );
         DB::beginTransaction();
         try{
-            $userId = DB::table('users')->insertGetId($user_fields);
+            DB::table('users')->insert($user_fields);
             DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
             DB::commit();
         }catch (\Exception $e)
         {
             DB::rollBack();
-            Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            Log::info('sign_up_fail' , array(
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
@@ -420,22 +439,29 @@ class AuthController extends BaseController
             $src = 'unknown';
         }
 //        $password = empty($password)?Uuid::uuid1()->toString():$password;
+        $username = $uuid = $this->generateUniqueName();
+        $userId = $this->generateUserId();
         $user_fields = array(
+            'user_id'=>$userId,
             'user_src'=>$src,
+            'user_name'=>$username,
+            'user_uuid'=>$uuid,
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
-            'user_uuid'=>Uuid::uuid1(),
-//            'user_pwd'=>encrypt($password)
+            'user_pwd'=>bcrypt($userId)
         );
         DB::beginTransaction();
         try{
-            $userId = DB::table('users')->insertGetId($user_fields);
+            DB::table('users')->insert($user_fields);
             DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
             DB::commit();
         }catch (\Exception $e)
         {
             DB::rollBack();
-            Log::error('sign_up_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            Log::info('sign_up_fail' , array(
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
@@ -554,6 +580,19 @@ class AuthController extends BaseController
     {
         $this->updatePhone($request);
         return $this->response->accepted();
+    }
+
+    public function updateName(Request $request)
+    {
+        $this->updateUserName($request);
+        return $this->response->accepted();
+    }
+
+    public function usernamePrompt()
+    {
+        $userId = auth()->id();
+        app(UserRepository::class)->updateUsernamePrompt($userId);
+        return $this->response->created();
     }
 
 

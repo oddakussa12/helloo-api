@@ -4,17 +4,20 @@ namespace App\Providers;
 
 use App\Models\Tag;
 use App\Models\User;
+use App\Models\Event;
 use App\Models\UserTag;
 use App\Models\UserFriend;
 use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\TagRepository;
+use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserTagRepository;
 use App\Repositories\Contracts\UserFriendRepository;
 use App\Repositories\Eloquent\EloquentTagRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
+use App\Repositories\Eloquent\EloquentEventRepository;
 use App\Repositories\Eloquent\EloquentUserTagRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRepository;
 use App\Repositories\Contracts\UserFriendRequestRepository;
@@ -79,6 +82,9 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->bind(UserFriendRequestRepository::class, function () {
             return new EloquentUserFriendRequestRepository(new UserFriendRequest());
+        });
+        $this->app->bind(EventRepository::class, function () {
+            return new EloquentEventRepository(new Event());
         });
     }
 

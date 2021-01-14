@@ -225,6 +225,13 @@ trait Update
                 'after:'.date('Y-m-d' , strtotime('-101years')),
                 'before:'.date('Y-m-d' , strtotime('-1years')),
             ],
+            'user_enrollment_at'=>[
+                'bail',
+                'filled',
+                'date',
+                'after:'.date('Y-m-d' , strtotime('-101years')),
+                'before:'.date('Y-m-d' , strtotime('-1years')),
+            ],
             'user_about'=>[
                 'bail',
                 'filled',
@@ -233,35 +240,23 @@ trait Update
             'user_avatar'=>[
                 'bail',
                 'filled',
-                'string',
-                Rule::in(array(
-                    'default_avatar_1.png',
-                    'default_avatar_2.png',
-                    'default_avatar_3.png',
-                    'default_avatar_4.png',
-                    'default_avatar_5.png',
-                    'default_avatar_6.png',
-                    'default_avatar_7.png',
-                    'default_avatar_8.png',
-                    'default_avatar_9.png',
-                    'default_avatar_10.png',
-                    'default_avatar_11.png',
-                    'default_avatar_12.png',
-                    'default_avatar_13.png',
-                    'default_avatar_14.png',
-                    'default_avatar_15.png',
-                    'default_avatar_16.png',
-                    'default_avatar_17.png',
-                    'default_avatar_18.png',
-                ))
+                'string'
             ],
             'user_pwd'=>[
                 'bail',
                 'filled',
                 'string',
                 'between:6,32'
-//                'min:6',
-//                'max:32'
+            ],
+            'user_school'=>[
+                'bail',
+                'filled',
+                'string',
+            ],
+            'user_grade'=>[
+                'bail',
+                'filled',
+                'string',
             ],
         );
     }
@@ -390,7 +385,10 @@ trait Update
             {
                 DB::rollBack();
                 Redis::zrem($key , $userId);
-                Log::error('account_activation_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+                Log::info('account_activation_failed' , array(
+                    'code'=>$e->getCode(),
+                    'message'=>$e->getMessage(),
+                ));
             }
         }else{
             $flag = true;
@@ -401,5 +399,111 @@ trait Update
     public function getCode()
     {
         return (new RandomStringGenerator('1234567890'))->generate();
+    }
+
+    public function updateUserName($request)
+    {
+        $key = 'helloo:account:service:account-username-change';
+        $username = trim(strval($request->input('user_name' , '')));
+        if(!blank($username))
+        {
+            $user = auth()->user();
+            $oldName = $user->user_name;
+            if($oldName==$username)
+            {
+                return;
+            }
+            $index = ($user->user_id)%2;
+            $usernameKey = 'helloo:account:service:account-username-'.$index;
+            $rules = array(
+                'user_name' => [
+                    'bail',
+                    'required',
+                    'string',
+                    'alpha_num',
+                    'between:6,24',
+                    function ($attribute, $value, $fail) use ($user , $key){
+                        $score = Redis::zscore($key , $user->user_id);
+//                        if($score!==null&&Carbon::createFromTimestamp($score)->diffInYears()<1)
+                        if($score!==null)
+                        {
+                            $fail('You can only change your username once within a year!');
+                        }
+                    },
+                    function ($attribute, $value, $fail) use ($usernameKey){
+                        if(Redis::sismember($usernameKey , strtolower($value)))
+                        {
+                            $fail('This unique ID has been registered!');
+                        }
+                        $exist = DB::table('users')->where('user_name' , $value)->first();
+                        if(!blank($exist))
+                        {
+                            $fail('This unique ID has been registered!');
+                        }
+                    }
+                ],
+            );
+            $validationField = array(
+                'user_name' => $username
+            );
+            Validator::make($validationField, $rules)->validate();
+            $key = 'helloo:account:service:account-username-change';
+            $now = Carbon::now();
+            DB::beginTransaction();
+            try {
+                $createdAt = $now->toDateTimeString();
+                $count = DB::table('users')->where('user_id' , $user->user_id)->increment('user_name_change' , 1 ,
+                    array(
+                        'user_name'=>$username,
+                        'user_name_changed_at'=>$createdAt,
+                    )
+                );
+                $result = DB::table('users_names_logs')->insert(array(
+                    'user_id'=>$user->user_id,
+                    'user_name'=>$oldName,
+                    'created_at'=>$createdAt,
+                ));
+                if($count>0&&$result)
+                {
+                    Redis::sadd($usernameKey , strtolower($username));
+                    Redis::zadd($key , $now->timestamp , $user->user_id);
+                    DB::commit();
+                }else{
+                    throw new \Exception('Database update failed');
+                }
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('username_update_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'user_id'=>$user->user_id,
+                    'user_name'=>$user->user_name,
+                    'username'=>$username
+                ));
+            }
+
+        }
+    }
+
+    public function generateUniqueName()
+    {
+        $key = 'helloo:account:service:account-user-name-unique-set';
+        $element = Redis::spop($key);
+        if($element==null)
+        {
+            $element = 'lb_'.strval(millisecond());
+        }
+        DB::table('unique_usernames')->where('username' , $element)->update(array('status'=>1));
+        return $element;
+    }
+    public function generateUserId()
+    {
+        $key = 'helloo:account:service:account-user-id-unique-set';
+        $element = Redis::spop($key);
+        if($element==null)
+        {
+            abort(403 , 'Server Error');
+        }
+        return $element;
     }
 }

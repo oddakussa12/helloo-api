@@ -14,9 +14,9 @@ class RyChat extends Model
 
     const CREATED_AT = 'chat_created_at';
 
-    const UPDATED_AT = 'chat_updated_at';
-
-    const DELETED_AT = 'chat_deleted_at';
+//    const UPDATED_AT = 'chat_updated_at';
+//
+//    const DELETED_AT = 'chat_deleted_at';
 
     protected $primaryKey = 'chat_id';
 
@@ -39,6 +39,11 @@ class RyChat extends Model
 
 
     public $paginateParamName = 'chat_page';
+
+    public function setUpdatedAt($value)
+    {
+        
+    }
 
 
 }

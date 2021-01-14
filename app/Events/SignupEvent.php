@@ -44,8 +44,7 @@ class SignupEvent
     {
         $this->user = $user;
         $this->agent = new Agent;
-        $this->ip = $user->user_ip_address;
-        $this->addresses = $addresses;
+        $this->ip = $addresses;
         $this->extend = $extend;
     }
 
@@ -64,9 +63,9 @@ class SignupEvent
         return $this->ip;
     }
 
-    public function getAddresses()
+    public function getGeo()
     {
-        return geoip($this->addresses);
+        return geoip($this->ip);
     }
 
     public function getExtend()

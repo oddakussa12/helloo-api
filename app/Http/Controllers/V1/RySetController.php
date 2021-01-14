@@ -40,7 +40,7 @@ class RySetController extends BaseController
                 'userId'=>$userId,
                 'message'=>$e->getMessage(),
             );
-            \Log::error(\json_encode($res));
+            Log::info('unblock_fail' , $res);
         }
         return $this->response->array($res);
     }
@@ -98,7 +98,7 @@ class RySetController extends BaseController
                 'minute'  => $minute,
                 'message' => $e->getMessage(),
             );
-            \Log::error(\json_encode($res));
+            Log::info('block_fail' , $res);
         }
         return $this->response->array($res);
 
@@ -133,7 +133,7 @@ class RySetController extends BaseController
                 'userId'=>$userId,
                 'message'=>$e->getMessage(),
             );
-            \Log::error(\json_encode($res));
+            Log::info('unblock_fail' , $res);
         }
         return $this->response->array($res);
     }
@@ -155,6 +155,16 @@ class RySetController extends BaseController
         $response = $this->response;
         $user = auth()->user();
         $userId = $user->user_id;
+        $activation = $user->user_activation;
+        if($activation!=1)
+        {
+            return $response->array(
+                array(
+                    'code'=>500,
+                    'userId'=>$userId,
+                    'message'=>'Sorry, please activate this account first!',
+                ));
+        }
         $name = empty($user->user_nick_name)?'guest':$user->user_nick_name;
         $avatar = $user->user_avatar_link;
         $key = 'helloo:account:service:account-ry-token:'.$userId;
@@ -182,7 +192,7 @@ class RySetController extends BaseController
             }
             throw_if($token['code']!=200 , new \Exception($token['code'].'===>'.$token['msg']));
             Redis::set($key , \json_encode($token));
-            Redis::expire($key , 60*60*24*15);
+            Redis::expire($key , 60*60*24);
         }catch (\Throwable $e)
         {
             $token = array(

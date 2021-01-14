@@ -8,4 +8,6 @@ interface UserFriendRepository extends BaseRepository
     public function paginateByUser($userId);
 
     public function getAllByUser($userId , $perPage = 15);
+    
+    public function getFriendRankByUserId($userId , $game);
 }

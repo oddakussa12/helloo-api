@@ -94,10 +94,15 @@ $api->group($V1Params , function ($api){
             $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
             $api->patch('user/auth' , 'AuthController@updateAuth')->name('myself.update.auth');
+            $api->patch('user/name' , 'AuthController@updateName')->name('myself.update.name');
             $api->group(['middleware'=>['redisThrottle:'.config('common.update_phone_throttle_num').','.config('common.update_phone_throttle_expired')]] , function ($api){
                 $api->post('user/new/phone' , 'AuthController@newPhoneCode')->name('myself.update.phone');
             });
             $api->put('user/{user}/like' , 'UserController@like')->name('user.like');
+
+            $api->put('user/username/prompt' , 'AuthController@usernamePrompt')->name('user.username.prompt');
+
+            $api->post('game/score' , 'GameScoreController@store')->name('game.score.store');
         });
         $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
 
@@ -130,8 +135,26 @@ $api->group($V1Params , function ($api){
         $api->get('aws/sts' , 'AwsController@sts')->name('aws.sts');
 
         $api->get('aws/{object}/preSignedUrl' , 'AwsController@preSignedUrl')->name('aws.preSignedUrl');
-        
+
         $api->get('aws/{type}/form' , 'AwsController@form')->name('aws.form');
+
+        $api->get('test/office' , 'TestController@office')->name('test.office');
+
+        $api->get('game/{game}/rank/day' , 'GameScoreController@day')->where('game', 'coronation|superZero|trumpAdventures')->name('game.score.day');
+
+        $api->get('game/{game}/rank/week' , 'GameScoreController@week')->where('game', 'coronation|superZero|trumpAdventures')->name('game.score.week');
+
+
+
+        $api->post('user/game/tag' , 'UserController@gameTag')->name('user.game.tag.store');
+
+        $api->get('user/friend/game/{game}/rank' , 'UserFriendController@gameRank')->where('game', 'coronation|superZero|trumpAdventures')->name('user.friend.game.rank');
+
+        $api->get('game/{game}/event' , 'EventController@event')->where('game', 'coronation|superZero|trumpAdventures')->name('game.event');
+
+        $api->get('set/school' , 'SetController@school')->name('set.school');
+
+        $api->get('user/recommendation' , 'UserController@recommendation')->name('user.recommendation');
 
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
@@ -158,6 +181,14 @@ $api->group($V1Params , function ($api){
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
 
     $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
+
+    $api->get('event/current' , 'EventController@current')->name('event.current');
+
+    $api->post('event' , 'EventController@store')->name('event.store');
+
+    $api->put('event/{event]' , 'EventController@update')->name('event.update');
+
+
 
     $api->get('app/index' , 'AppController@index')->name('app.index');
 

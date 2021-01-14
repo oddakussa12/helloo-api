@@ -175,6 +175,25 @@ class UserFriendRequestController extends BaseController
         }
         if($flag)
         {
+            $phone = DB::table('users_phones')->where('user_id' , $userId)->first();
+            $country = $phone->user_phone_country;
+            if(!in_array($country , array(1 , 670 , '1' , '670')))
+            {
+                $country = 'other';
+            }
+            $key = "helloo:account:game:country:score:coronation".'-'.$country;
+            $sortKey = "helloo:account:friend:game:rank:sort:".$userId.'-coronation';//暂时一个游戏
+            $friendSortKey = "helloo:account:friend:game:rank:sort:".$friendId.'-coronation';//暂时一个游戏
+            $maxScore = Redis::zscore($key , $userId);
+            $friendMaxScore = Redis::zscore($key , $friendId);
+            if($maxScore!==null)
+            {
+                Redis::exists($friendSortKey)&&Redis::zadd($friendSortKey , $maxScore , $userId);
+            }
+            if($friendMaxScore!==null)
+            {
+                Redis::exists($sortKey)&&Redis::zadd($sortKey , $friendMaxScore , $friendId);
+            }
             $content = array(
                 'senderId'   => $userId,
                 'targetId'   => $friendId,

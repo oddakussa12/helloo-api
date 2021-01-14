@@ -9,7 +9,9 @@
 namespace App\Repositories\Contracts;
 
 
-interface CategoryRepository extends BaseRepository
+interface EventRepository extends BaseRepository
 {
-
+    public function getActiveEvent();
+    
+    public function updateActiveEvent();
 }
