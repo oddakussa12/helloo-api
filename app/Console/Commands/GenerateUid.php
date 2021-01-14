@@ -72,9 +72,9 @@ class GenerateUid extends Command
         $data = array();
         if($idCount<10000)
         {
-            for($i=1;$i<=2000000;$i++)
+            for($i=1;$i<=200000;$i++)
             {
-                $uid = mt_rand(1111111111 , 2222222222);
+                $uid = mt_rand(1111111111 , 2122222222);
                 if(!Redis::sismember($foreverIdKey , $uid))
                 {
                     array_push($data , $uid);
