@@ -387,8 +387,17 @@ class TestController extends BaseController
 
     public function office()
     {
-        $sender = app(UserRepository::class)->findOrFail(244);
-        $this->dispatchNow((new EscortTalk($sender)));
+
+        $t = request()->input('t' , 'o');
+        $userId = intval(request()->input('user_id' , '219'));
+        if($t=='o')
+        {
+            $sender = app(UserRepository::class)->findOrFail($userId);
+            $this->dispatchNow((new EscortTalk($sender)));
+        }else{
+            $sender = app(UserRepository::class)->findOrFail($userId);
+            $this->dispatchNow((new SignUpAndEvent($sender)));
+        }
     }
 
 

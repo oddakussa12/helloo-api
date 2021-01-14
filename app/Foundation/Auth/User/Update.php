@@ -423,6 +423,20 @@ trait Update
                     'alpha_num',
                     'between:6,24',
                     function ($attribute, $value, $fail) use ($user , $key){
+                        if(preg_match("/^\d*$/",$value)||preg_match("/^[a-z]*$/i",$value))
+                        {
+                            $fail('The username must contain letters and numbers.');
+                        }
+                    },
+                    function ($attribute, $value, $fail) use ($user , $key){
+                        $score = Redis::zscore($key , $user->user_id);
+//                        if($score!==null&&Carbon::createFromTimestamp($score)->diffInYears()<1)
+                        if($score!==null)
+                        {
+                            $fail('You can only change your username once within a year!');
+                        }
+                    },
+                    function ($attribute, $value, $fail) use ($user , $key){
                         $score = Redis::zscore($key , $user->user_id);
 //                        if($score!==null&&Carbon::createFromTimestamp($score)->diffInYears()<1)
                         if($score!==null)

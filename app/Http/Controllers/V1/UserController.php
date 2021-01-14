@@ -42,7 +42,7 @@ class UserController extends BaseController
         $userId = auth()->id();
         if(!blank($username))
         {
-            $users = $this->user->allWithBuilder()->where('user_name',$username)->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->limit(1)->get();
+            $users = $this->user->allWithBuilder()->where('user_name',$username)->select('user_id', 'user_avatar' , 'user_nick_name', 'user_about' , 'user_gender', 'user_birthday')->limit(1)->get();
             $users = $users->filter(function($user) use ($userId){
                 return  $user->user_id!=$userId;
             })->values();
@@ -59,7 +59,7 @@ class UserController extends BaseController
             {
                 return $this->response->array(array('data'=>array()));
             }
-            $users = $this->user->allWithBuilder()->where('user_id' , $userPhone->user_id)->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->get();
+            $users = $this->user->allWithBuilder()->where('user_id' , $userPhone->user_id)->select('user_id', 'user_avatar' , 'user_nick_name', 'user_about', 'user_gender', 'user_birthday')->get();
             $userIds = $users->pluck('user_id')->toArray();
             $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
             $users->each(function($user , $index) use ($friendIds){
@@ -68,7 +68,7 @@ class UserController extends BaseController
             return UserCollection::collection($users);
         }elseif (!blank($keyword))
         {
-            $users = $this->user->allWithBuilder()->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_nick_name', 'user_gender', 'user_birthday')->limit(20)->get();
+            $users = $this->user->allWithBuilder()->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_nick_name', 'user_about', 'user_gender', 'user_birthday')->limit(20)->get();
             $users = $users->filter(function($user) use ($userId){
                 return  $user->user_id!=$userId;
             })->values();
@@ -390,7 +390,7 @@ class UserController extends BaseController
                 'user_avatar',
             ))->limit(3)->get();
         }else{
-            $users = $this->user->allWithBuilder()->select(array(
+            $users = $this->user->allWithBuilder()->inRandomOrder()->select(array(
                 'user_id',
                 'user_name',
                 'user_nick_name',

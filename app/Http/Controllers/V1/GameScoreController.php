@@ -154,6 +154,9 @@ class GameScoreController extends BaseController
             foreach ($users as $i=>$user)
             {
                 $users[$i]['score'] = $userIds[$user['user_id']];
+                $ranks = Redis::zrevrank($sortKey , $user['user_id']);
+                $ranks = $ranks===null?$ranks=0:$ranks+1;
+                $users[$i]['rank'] = $ranks;
             }
             intval($scoreBefore)<$score&&$this->dispatchNow(new FriendScore($userId , $score , $game));
         }
@@ -163,7 +166,7 @@ class GameScoreController extends BaseController
             'user'=>collect($users)->toArray(),
             'scoreBefore'=>intval($scoreBefore)
         );
-        Log::info('score_return' , $data);
+        Log::info('score_return' , $data+array('user_id'=>$userId));
         return $this->response->created(null , $data);
     }
 
