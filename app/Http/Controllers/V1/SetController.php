@@ -53,14 +53,23 @@ class SetController extends BaseController
         $schools = $schools->get();
         $grades = Grade::orderBy('sort')->get();
         $grades->each(function ($grade , $index) use ($country){
-            if($country=='gd')
+            if($grade->key=='other')
             {
-                $grade->name = str_replace('Grade' , 'Form' , $grade->name);
-            }elseif($country=='tl'){
-                $grade->name = str_replace('Grade' , 'Class' , $grade->name);
-            }elseif($country=='id'){
-                $grade->name = str_replace('Grade' , 'Kelas' , $grade->name);
+                if($country=='id')
+                {
+                    $grade->name = 'Lainnya';
+                }
+            }else{
+                if($country=='gd')
+                {
+                    $grade->name = str_replace('Grade' , 'Form' , $grade->name);
+                }elseif($country=='tl'){
+                    $grade->name = str_replace('Grade' , 'Class' , $grade->name);
+                }elseif($country=='id'){
+                    $grade->name = str_replace('Grade' , 'Kelas' , $grade->name);
+                }
             }
+
         });
         $schools->each(function($school , $index) use ($grades){
             $school->grade = $grades;

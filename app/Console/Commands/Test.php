@@ -55,11 +55,10 @@ class Test extends Command
         $oddData = array();
         $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
         User::chunk(100, function($users){
-            $data = array();
             foreach($users as $user){
-                array_push($data , 'helloo:account:service:account-ry-token:'.$user->userId , 'helloo:account:service:account:'.$user->user_id);
+                Redis::del('helloo:account:service:account-ry-token:'.$user->userId);
+                Redis::del('helloo:account:service:account:'.$user->user_id);
             }
-            Redis::del($data);
         });
         die;
 //        $now = Carbon::now();

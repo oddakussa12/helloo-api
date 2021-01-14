@@ -331,7 +331,8 @@ class UserController extends BaseController
     public function gameTag(Request $request)
     {
         $tag = strval($request->input('tag' , ''));
-        $color = strval($request->input('color' , ''));
+        $color = strval($request->input('color' , '0'));
+        Log::info('all' ,$request->all());
         if(!blank($tag)&&!blank($color))
         {
             $userId = auth()->id();
