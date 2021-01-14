@@ -54,9 +54,9 @@ class Test extends Command
         $evenData = array();
         $oddData = array();
         $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
-        User::chunk(100, function($users){
+        User::chunk(500, function($users){
             foreach($users as $user){
-                Redis::del('helloo:account:service:account-ry-token:'.$user->userId);
+                Redis::del('helloo:account:service:account-ry-token:'.$user->user_id);
                 Redis::del('helloo:account:service:account:'.$user->user_id);
             }
         });

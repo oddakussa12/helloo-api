@@ -387,7 +387,7 @@ class TestController extends BaseController
 
     public function office()
     {
-
+        Log::info('all' , request()->all());
         $t = request()->input('t' , 'o');
         $userId = intval(request()->input('user_id' , '219'));
         if($t=='o')
