@@ -192,6 +192,7 @@ return [
         App\Providers\NetEaseServiceProvider::class,
         App\Providers\ElasticSearchManagerServiceProvider::class,
         App\Providers\AwsServiceProvider::class,
+        App\Providers\PinpointServiceProvider::class
     ],
 
     /*
