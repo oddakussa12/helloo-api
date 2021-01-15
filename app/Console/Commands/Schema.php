@@ -43,7 +43,7 @@ class Schema extends Command
      */
     public function handle()
     {
-        $index = Carbon::now()->format("Ym");
+        $index = Carbon::now()->addMonths(1)->format("Ym");
         SchemaAs::dropIfExists('ry_chats_'.$index);
         SchemaAs::create('ry_chats_'.$index, function (Blueprint $table) {
             $table->increments('chat_id')->comment('主键');

@@ -77,22 +77,34 @@ class TestController extends BaseController
 
     public function broadcast()
     {
+        $sender = app(UserRepository::class)->findByUserId(61)->toArray();
         $content = array(
-            'senderId'   => 334,
-            "objectName" => "Helloo::BroadcastVideoUrl",
+            'senderId'   => $sender['user_id'],
+            "objectName" => "Helloo:VideoMsg",
             'content'    => array(
-                'content'=>'Whole network push_'.mt_rand(1111 , 9999),
-                'videoUrl'=>"https://f.video.weibocdn.com/R3Rjmslrlx07IsJmPztu01041200743K0E010.mp4?label=mp4_hd&template=480x640.24.0&trans_finger=7c347e6ee1691b93dc7e5726f4ef34b3&ori=0&ps=1EO8O2oFB1ePdo&Expires=1606974751&ssig=9csHBh3jaL&KID=unistore,video"
+                'content'=>'video message',
+                'user'=> array(
+                    'id'=>$sender['user_id'],
+                    'name'=>$sender['user_nick_name'],
+                    'portrait'=>$sender['user_avatar_link'],
+                    'extra'=>array(
+                        'userLevel'=>$sender['user_level']
+                    ),
+                ),
+                'videoPath'=>'',
+                'firstFramePath'=>'',
+                'firstFrameUrl'=>'https://qnidyooulimage.mmantou.cn/FisdVkCRfoLDT3bOCfi9XLX8XWpu.png?imageView2/5/w/192/h/192/interlace/1|imageslim',
+                'videoUrl'=>'https://test.video.helloo.mantouhealth.com/38af86134b65d0f10fe33d30dd76442e/20210107/t.mp4',
             ),
-            'pushContent'=>'A test push notification content',
-            'pushExt'=>array(
-                'title'=>'A test push notification title',
+            'pushContent'=>'video message',
+            'pushExt'=>\json_encode(array(
+                'title'=>'video message',
                 'forceShowPushContent'=>1
-            )
+            ))
         );
+        Log::info('$content' , $content);
         $result = app('rcloud')->getMessage()->System()->broadcast($content);
-        Log::error($content);
-        Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
+        Log::info('$result' , $result);
     }
 
     public function push(Request $request)
@@ -388,9 +400,9 @@ class TestController extends BaseController
     public function office()
     {
         Log::info('all' , request()->all());
-        $t = request()->input('t' , 'o');
+        $t = request()->input('t' , 'n');
         $userId = intval(request()->input('user_id' , '219'));
-        if($t=='o')
+        if($t=='n')
         {
             $sender = app(UserRepository::class)->findOrFail($userId);
             $this->dispatchNow((new EscortTalk($sender)));

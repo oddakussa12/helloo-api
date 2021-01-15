@@ -147,7 +147,7 @@ class AwsController extends BaseController
             $expires = '+5 minutes';
             if(in_array(domain() , config('common.online_domain')))
             {
-                $xAmzDomain = 'https://video.image.mantouhealth.com/';
+                $xAmzDomain = 'https://image.helloo.mantouhealth.com/';
                 $action = "https://helloo-image.s3-ap-southeast-1.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.image.helloo.mantouhealth.com/';
@@ -159,7 +159,7 @@ class AwsController extends BaseController
             $expires = '+5 minutes';
             if(in_array(domain() , config('common.online_domain')))
             {
-                $xAmzDomain = 'https://avatar.avatar.mantouhealth.com/';
+                $xAmzDomain = 'https://avatar.helloo.mantouhealth.com/';
                 $action = "https://helloo-avatar.s3-ap-southeast-1.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.avatar.helloo.mantouhealth.com/';

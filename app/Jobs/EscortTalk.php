@@ -38,16 +38,22 @@ class EscortTalk implements ShouldQueue
         {
             return;
         }
+        $data = array();
         $senderId = $escortPerson[array_rand($escortPerson)];
         $sender = app(UserRepository::class)->findByUserId($senderId);
         $targetId = $this->user->getKey();
         $cartedAt = Carbon::now()->toDateTimeString();
-        DB::table('users_friends')->insert(
-            array(
-                array('user_id'=>$senderId , 'friend_id'=>$targetId , 'created_at'=>$cartedAt),
-                array('user_id'=>$targetId , 'friend_id'=>$senderId , 'created_at'=>$cartedAt),
-            )
-        );
+        $user = DB::table('users_friends')->where('user_id' , $senderId )->where('friend_id' , $targetId)->first();
+        if(blank($user))
+        {
+            array_push($data , array('user_id'=>$senderId , 'friend_id'=>$targetId , 'created_at'=>$cartedAt));
+        }
+        $target = DB::table('users_friends')->where('user_id' , $targetId )->where('friend_id' , $senderId)->first();
+        if(blank($target))
+        {
+            array_push($data , array('user_id'=>$targetId , 'friend_id'=>$senderId , 'created_at'=>$cartedAt));
+        }
+        !blank($data)&&DB::table('users_friends')->insert($data);
         $content = array(
             'content'=>'video message',
             'user'=> array(
