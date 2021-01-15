@@ -399,6 +399,12 @@ class TestController extends BaseController
 
     public function office()
     {
+        $result = app('pinpoint')->phoneNumberValidate(array(
+            'NumberValidateRequest' => [ // REQUIRED
+                'PhoneNumber' => '8617600128988',
+            ],
+        ));
+        Log::info('$result' , $result->toArray());
         Log::info('all' , request()->all());
         $t = request()->input('t' , 'n');
         $userId = intval(request()->input('user_id' , '219'));
