@@ -30,6 +30,7 @@ class SignupListener implements ShouldQueue
         $agent = $event->getAgent();
         $geo = $event->getGeo();
         $ip = $event->getIp();
+        $extend = $event->getExtend();
         //登录信息
         $signup_info = [
             'signup_ip' => $ip,
@@ -74,7 +75,7 @@ class SignupListener implements ShouldQueue
         }
         $user->SignupInfo()->create($signup_info);
 //        SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(60));
-//        EscortTalk::dispatch($user)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));
+        EscortTalk::dispatch($user , $extend)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));
     }
 
 }

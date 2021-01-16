@@ -46,6 +46,10 @@ class Kernel extends ConsoleKernel
             ->hourly()->when(function(){
                 return config('common.cron_switch');
             });
+        $schedule->command('generate:uid')
+            ->hourlyAt(6)->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('schema:start')
             ->monthlyOn(15)->when(function(){
                 return config('common.cron_switch');

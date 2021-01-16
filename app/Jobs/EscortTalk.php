@@ -19,10 +19,12 @@ class EscortTalk implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $user;
+    private $extend;
 
-    public function __construct(User $user)
+    public function __construct(User $user , $extend)
     {
         $this->user = $user;
+        $this->extend = $extend;
     }
 
     /**
@@ -32,16 +34,62 @@ class EscortTalk implements ShouldQueue
      */
     public function handle()
     {
-        $key = "helloo:account:service:account:escort-talker";
-        $escortPerson = Redis::smembers($key);
-        if(blank($escortPerson))
+//        $key = "helloo:account:service:account:escort-talker";
+//        $escortPerson = Redis::smembers($key);
+//        if(blank($escortPerson))
+//        {
+//            return;
+//        }
+//        $senderId = $escortPerson[array_rand($escortPerson)];
+        $data = array();
+        $targetId = $this->user->getKey();
+//        $phone = DB::table('users_phones')->where('user_id' , $targetId)->first();
+        $extend = $this->extend;
+        $phoneCountry = $extend['user_phone_country'];
+        if($phoneCountry==1)
         {
+            $talkers = array(
+                array(
+                    'user_id'=>297,
+                    'imageUrl'=>'https://image.helloo.mantouhealth.com/d395771085aab05244a4fb8fd91bf4ee/20210116/1610803454416346.jpeg',
+                    'videoUrl'=>'https://video.helloo.mantouhealth.com/d395771085aab05244a4fb8fd91bf4ee/20210116/1610803454416346.mp4',
+                ),
+                array(
+                    'user_id'=>304,
+                    'imageUrl'=>'https://image.helloo.mantouhealth.com/37bc2f75bf1bcfe8450a1a41c200364c/20210116/1610803454514927.jpeg',
+                    'videoUrl'=>'https://video.helloo.mantouhealth.com/37bc2f75bf1bcfe8450a1a41c200364c/20210116/1610803454514927.mp4',
+                ),
+                array(
+                    'user_id'=>59059,
+                    'imageUrl'=>'https://image.helloo.mantouhealth.com/4fae0695454a986d8328aadba1534575/20210116/1610803455151260.jpeg',
+                    'videoUrl'=>'https://video.helloo.mantouhealth.com/4fae0695454a986d8328aadba1534575/20210116/1610803455151260.mp4',
+                ),
+            );
+        }elseif ($phoneCountry==670)
+        {
+            $talkers = array(
+                array(
+                    'user_id'=>268,
+                    'imageUrl'=>'https://image.helloo.mantouhealth.com/8f121ce07d74717e0b1f21d122e04521/20210116/1610805953489110.jpeg',
+                    'videoUrl'=>'https://video.helloo.mantouhealth.com/8f121ce07d74717e0b1f21d122e04521/20210116/1610805953489110.mp4',
+                ),
+                array(
+                    'user_id'=>275,
+                    'imageUrl'=>'https://image.helloo.mantouhealth.com/63923f49e5241343aa7acb6a06a751e7/20210116/1610805950965147.jpeg',
+                    'videoUrl'=>'https://video.helloo.mantouhealth.com/63923f49e5241343aa7acb6a06a751e7/20210116/1610805950965147.mp4',
+                ),
+                array(
+                    'user_id'=>33310,
+                    'imageUrl'=>'https://image.helloo.mantouhealth.com/cc46f33ee83eb94cea644695f8717c0e/20210116/1610805949290366.jpeg',
+                    'videoUrl'=>'https://video.helloo.mantouhealth.com/cc46f33ee83eb94cea644695f8717c0e/20210116/1610805949290366.mp4',
+                ),
+            );
+        }else{
             return;
         }
-        $data = array();
-        $senderId = $escortPerson[array_rand($escortPerson)];
+        $talker = $talkers[array_rand($talkers)];
+        $senderId = $talker['user_id'];
         $sender = app(UserRepository::class)->findByUserId($senderId);
-        $targetId = $this->user->getKey();
         $cartedAt = Carbon::now()->toDateTimeString();
         $user = DB::table('users_friends')->where('user_id' , $senderId )->where('friend_id' , $targetId)->first();
         if(blank($user))
@@ -64,8 +112,10 @@ class EscortTalk implements ShouldQueue
                     'userLevel'=>$sender['user_level']
                 ),
             ),
-            'videoUrl'=>'https://test.media.helloo.mantouhealth.com/test/3011b3cc07ca6ceac66c8b76a72eba72.mp4',
-            'firstFrameUrl'=>'https://test.media.helloo.mantouhealth.com/test/3011b3cc07ca6ceac66c8b76a72eba72.jpg',
+//            'videoUrl'=>'https://test.media.helloo.mantouhealth.com/test/3011b3cc07ca6ceac66c8b76a72eba72.mp4',
+//            'firstFrameUrl'=>'https://test.media.helloo.mantouhealth.com/test/3011b3cc07ca6ceac66c8b76a72eba72.jpg',
+            'videoUrl'=>$talker['videoUrl'],
+            'firstFrameUrl'=>$talker['imageUrl'],
             'videoPath'=>'',
             'firstFramePath'=>'',
         );
