@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
+use App\Repositories\Contracts\EventRepository;
 
 
 
