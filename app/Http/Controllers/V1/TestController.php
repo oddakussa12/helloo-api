@@ -124,8 +124,8 @@ class TestController extends BaseController
     private function sendEventMessage($content)
     {
         Log::info('$content' , $content);
-//        $result = app('rcloud')->getMessage()->System()->broadcast($content);
-//        Log::info('$result' , $result);
+        $result = app('rcloud')->getMessage()->System()->broadcast($content);
+        Log::info('$result' , $result);
     }
 
     public function push(Request $request)
