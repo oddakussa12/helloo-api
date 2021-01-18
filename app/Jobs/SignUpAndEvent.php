@@ -36,7 +36,7 @@ class SignUpAndEvent implements ShouldQueue
         Log::info('$activeEvents' , array($activeEvents));
         if(!blank($activeEvents))
         {
-            $sender = app(UserRepository::class)->findByUserId(61)->toArray();
+            $sender = app(UserRepository::class)->findByUserId(38134)->toArray();
             $content = array(
                 'senderId'   => $sender['user_id'],
                 'targetId'   => $this->user->user_id,

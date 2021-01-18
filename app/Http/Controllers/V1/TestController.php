@@ -77,34 +77,54 @@ class TestController extends BaseController
 
     public function broadcast()
     {
-        $sender = app(UserRepository::class)->findByUserId(61)->toArray();
-        $content = array(
-            'senderId'   => $sender['user_id'],
-            "objectName" => "Helloo:VideoMsg",
-            'content'    => array(
-                'content'=>'video message',
-                'user'=> array(
-                    'id'=>$sender['user_id'],
-                    'name'=>$sender['user_nick_name'],
-                    'portrait'=>$sender['user_avatar_link'],
-                    'extra'=>array(
-                        'userLevel'=>$sender['user_level']
+        $now = Carbon::now()->timestamp;
+        $activeEvents = app(EventRepository::class)->getActiveEvent();
+        if(!blank($activeEvents))
+        {
+            $sender = app(UserRepository::class)->findByUserId(38134)->toArray();
+            $content = array(
+                'senderId'   => $sender['user_id'],
+                "objectName" => "Helloo:VideoMsg",
+                'content'    => array(
+                    'content'=>'video message',
+                    'user'=> array(
+                        'id'=>$sender['user_id'],
+                        'name'=>$sender['user_nick_name'],
+                        'portrait'=>$sender['user_avatar_link'],
+                        'extra'=>array(
+                            'userLevel'=>$sender['user_level']
+                        ),
                     ),
+                    'videoPath'=>'',
+                    'firstFramePath'=>'',
+//                    'firstFrameUrl'=>'https://qnidyooulimage.mmantou.cn/FisdVkCRfoLDT3bOCfi9XLX8XWpu.png?imageView2/5/w/192/h/192/interlace/1|imageslim',
+//                    'videoUrl'=>'https://test.video.helloo.mantouhealth.com/38af86134b65d0f10fe33d30dd76442e/20210107/t.mp4',
                 ),
-                'videoPath'=>'',
-                'firstFramePath'=>'',
-                'firstFrameUrl'=>'https://qnidyooulimage.mmantou.cn/FisdVkCRfoLDT3bOCfi9XLX8XWpu.png?imageView2/5/w/192/h/192/interlace/1|imageslim',
-                'videoUrl'=>'https://test.video.helloo.mantouhealth.com/38af86134b65d0f10fe33d30dd76442e/20210107/t.mp4',
-            ),
-            'pushContent'=>'video message',
-            'pushExt'=>\json_encode(array(
-                'title'=>'video message',
-                'forceShowPushContent'=>1
-            ))
-        );
+                'pushContent'=>'video message',
+                'pushExt'=>\json_encode(array(
+                    'title'=>'video message',
+                    'forceShowPushContent'=>1
+                ))
+            );
+            foreach ($activeEvents as $activeEvent)
+            {
+                if($activeEvent['ended_at']<$now)
+                {
+                    continue;
+                }
+                $content['content']['firstFrameUrl'] = $activeEvent['image'];
+                $content['content']['videoUrl'] = $activeEvent['value'];
+                $this->sendEventMessage($content);
+            }
+        }
+
+    }
+
+    private function sendEventMessage($content)
+    {
         Log::info('$content' , $content);
-        $result = app('rcloud')->getMessage()->System()->broadcast($content);
-        Log::info('$result' , $result);
+//        $result = app('rcloud')->getMessage()->System()->broadcast($content);
+//        Log::info('$result' , $result);
     }
 
     public function push(Request $request)
