@@ -46,47 +46,53 @@ class EscortTalk implements ShouldQueue
 //        $phone = DB::table('users_phones')->where('user_id' , $targetId)->first();
         $extend = $this->extend;
         $phoneCountry = $extend['user_phone_country'];
-        if($phoneCountry==1)
+        if(in_array($phoneCountry , array(1 , 670 , '1' , '670' , 62 , '62')))
         {
-            $talkers = array(
-                array(
-                    'user_id'=>297,
-                    'imageUrl'=>'https://image.helloo.mantouhealth.com/d395771085aab05244a4fb8fd91bf4ee/20210116/1610803454416346.jpeg',
-                    'videoUrl'=>'https://video.helloo.mantouhealth.com/d395771085aab05244a4fb8fd91bf4ee/20210116/1610803454416346.mp4',
-                ),
-                array(
-                    'user_id'=>304,
-                    'imageUrl'=>'https://image.helloo.mantouhealth.com/37bc2f75bf1bcfe8450a1a41c200364c/20210116/1610803454514927.jpeg',
-                    'videoUrl'=>'https://video.helloo.mantouhealth.com/37bc2f75bf1bcfe8450a1a41c200364c/20210116/1610803454514927.mp4',
-                ),
-                array(
-                    'user_id'=>59059,
-                    'imageUrl'=>'https://image.helloo.mantouhealth.com/4fae0695454a986d8328aadba1534575/20210116/1610803455151260.jpeg',
-                    'videoUrl'=>'https://video.helloo.mantouhealth.com/4fae0695454a986d8328aadba1534575/20210116/1610803455151260.mp4',
-                ),
-            );
-        }elseif ($phoneCountry==670)
-        {
-            $talkers = array(
-                array(
-                    'user_id'=>268,
-                    'imageUrl'=>'https://image.helloo.mantouhealth.com/8f121ce07d74717e0b1f21d122e04521/20210116/1610805953489110.jpeg',
-                    'videoUrl'=>'https://video.helloo.mantouhealth.com/8f121ce07d74717e0b1f21d122e04521/20210116/1610805953489110.mp4',
-                ),
-                array(
-                    'user_id'=>275,
-                    'imageUrl'=>'https://image.helloo.mantouhealth.com/63923f49e5241343aa7acb6a06a751e7/20210116/1610805950965147.jpeg',
-                    'videoUrl'=>'https://video.helloo.mantouhealth.com/63923f49e5241343aa7acb6a06a751e7/20210116/1610805950965147.mp4',
-                ),
-                array(
-                    'user_id'=>33310,
-                    'imageUrl'=>'https://image.helloo.mantouhealth.com/cc46f33ee83eb94cea644695f8717c0e/20210116/1610805949290366.jpeg',
-                    'videoUrl'=>'https://video.helloo.mantouhealth.com/cc46f33ee83eb94cea644695f8717c0e/20210116/1610805949290366.mp4',
-                ),
-            );
+            $talkers = $this->getEscortTalkerByCountry($phoneCountry);
         }else{
             return;
         }
+//        if($phoneCountry==1)
+//        {
+//            $talkers = array(
+//                array(
+//                    'user_id'=>297,
+//                    'imageUrl'=>'https://image.helloo.mantouhealth.com/d395771085aab05244a4fb8fd91bf4ee/20210116/1610803454416346.jpeg',
+//                    'videoUrl'=>'https://video.helloo.mantouhealth.com/d395771085aab05244a4fb8fd91bf4ee/20210116/1610803454416346.mp4',
+//                ),
+//                array(
+//                    'user_id'=>304,
+//                    'imageUrl'=>'https://image.helloo.mantouhealth.com/37bc2f75bf1bcfe8450a1a41c200364c/20210116/1610803454514927.jpeg',
+//                    'videoUrl'=>'https://video.helloo.mantouhealth.com/37bc2f75bf1bcfe8450a1a41c200364c/20210116/1610803454514927.mp4',
+//                ),
+//                array(
+//                    'user_id'=>59059,
+//                    'imageUrl'=>'https://image.helloo.mantouhealth.com/4fae0695454a986d8328aadba1534575/20210116/1610803455151260.jpeg',
+//                    'videoUrl'=>'https://video.helloo.mantouhealth.com/4fae0695454a986d8328aadba1534575/20210116/1610803455151260.mp4',
+//                ),
+//            );
+//        }elseif ($phoneCountry==670)
+//        {
+//            $talkers = array(
+//                array(
+//                    'user_id'=>268,
+//                    'imageUrl'=>'https://image.helloo.mantouhealth.com/8f121ce07d74717e0b1f21d122e04521/20210116/1610805953489110.jpeg',
+//                    'videoUrl'=>'https://video.helloo.mantouhealth.com/8f121ce07d74717e0b1f21d122e04521/20210116/1610805953489110.mp4',
+//                ),
+//                array(
+//                    'user_id'=>275,
+//                    'imageUrl'=>'https://image.helloo.mantouhealth.com/63923f49e5241343aa7acb6a06a751e7/20210116/1610805950965147.jpeg',
+//                    'videoUrl'=>'https://video.helloo.mantouhealth.com/63923f49e5241343aa7acb6a06a751e7/20210116/1610805950965147.mp4',
+//                ),
+//                array(
+//                    'user_id'=>33310,
+//                    'imageUrl'=>'https://image.helloo.mantouhealth.com/cc46f33ee83eb94cea644695f8717c0e/20210116/1610805949290366.jpeg',
+//                    'videoUrl'=>'https://video.helloo.mantouhealth.com/cc46f33ee83eb94cea644695f8717c0e/20210116/1610805949290366.mp4',
+//                ),
+//            );
+//        }else{
+//            return;
+//        }
         $talker = $talkers[array_rand($talkers)];
         $senderId = $talker['user_id'];
         $sender = app(UserRepository::class)->findByUserId($senderId);
@@ -133,6 +139,21 @@ class EscortTalk implements ShouldQueue
         Log::info('escort_talk_content' , $content);
         $result = app('rcloud')->getMessage()->Person()->send($content);
         Log::info('escort_talk_result' , $result);
+    }
+
+    private function getEscortTalkerByCountry($country)
+    {
+        $key = "helloo:account:service:account:escort-talkers-country-".$country;
+        if(Redis::exists($key))
+        {
+            $talkData = \json_decode(Redis::get($key) , true);
+        }else{
+            $talkData = DB::table('escort_talker')->where('phone_country' , $country)->select('user_id' , DB::raw('cover as imageUrl') , DB::raw('video as imageUrl'))->get()->toArray();
+            Redis::set($key , \json_encode($talkData));
+            Redis::expire($key , 60*60*24);
+        }
+        return $talkData;
+
     }
 
 }
