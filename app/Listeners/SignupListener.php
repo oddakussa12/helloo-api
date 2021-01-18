@@ -74,7 +74,7 @@ class SignupListener implements ShouldQueue
             $signup_info['device_type'] = 'desktop';
         }
         $user->SignupInfo()->create($signup_info);
-//        SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(60));
+        SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(60));
         EscortTalk::dispatch($user , $extend)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));
     }
 

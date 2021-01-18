@@ -68,8 +68,6 @@ class SignUpAndEvent implements ShouldQueue
                 }
                 $content['content']['firstFrameUrl'] = $activeEvent['image'];
                 $content['content']['videoUrl'] = $activeEvent['value'];
-//                $content['content']['firstFrameUrl'] = 'https://qnidyooulimage.mmantou.cn/FisdVkCRfoLDT3bOCfi9XLX8XWpu.png?imageView2/5/w/192/h/192/interlace/1|imageslim';
-//                $content['content']['videoUrl'] = 'https://test.video.helloo.mantouhealth.com/38af86134b65d0f10fe33d30dd76442e/20210107/t.mp4';
                 $this->sendEventMessage($content);
             }
         }
