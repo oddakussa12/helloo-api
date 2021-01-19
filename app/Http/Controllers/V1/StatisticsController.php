@@ -79,4 +79,11 @@ class StatisticsController extends BaseController
         }
         return $this->response->created();
     }
+
+    public function log(Request $request)
+    {
+        $all = $request->all();
+        DB::table('logs')->insert(array('log'=>\json_encode($all , JSON_UNESCAPED_UNICODE) , 'created_at'=>Carbon::now()->toDateTimeString()));
+        return $this->response->created();
+    }
 }
