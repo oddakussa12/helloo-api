@@ -202,6 +202,7 @@ $api->group($V1Params , function ($api){
     $api->get('test/aws' , 'TestController@aws')->name('test.aws');
     $api->get('test/index' , 'TestController@index')->name('test.index');
     $api->get('test/send' , 'TestController@send')->name('test.send');
+    $api->post('test/log' , 'TestController@log')->name('test.log');
 //    $api->get('notification/bulkInsert' , 'NotificationController@bulkInsert')->name('notification.bulkInsert');
 
 });

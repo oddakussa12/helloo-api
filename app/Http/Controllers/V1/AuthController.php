@@ -99,9 +99,14 @@ class AuthController extends BaseController
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
         $user_school = strval($request->input('user_school' , ''));
         $user_grade = strval($request->input('user_grade' , ''));
+        $user_country = strval($request->input('user_country' , ''));
         if(!empty($password)&&empty($user->getAuthPassword()))
         {
             $fields['user_pwd'] = $password;
+        }
+        if(!empty($user_country))
+        {
+            $fields['user_country'] = $user_country;
         }
         if(!empty($user_birthday)&&$user->user_birthday=="1900-01-01")
         {
@@ -173,6 +178,11 @@ class AuthController extends BaseController
         $user_school = strval($request->input('user_school' , ''));
         $user_grade = strval($request->input('user_grade' , ''));
         $user_enrollment_at = strval($request->input('user_enrollment_at' , ''));
+        $user_country = strval($request->input('user_country' , ''));
+        if(!empty($user_country))
+        {
+            $fields['user_country'] = $user_country;
+        }
         if(!empty($user_birthday))
         {
             $fields['user_birthday'] = $user_birthday;

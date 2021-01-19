@@ -63,7 +63,6 @@ class User extends Authenticatable implements JWTSubject
         'user_pwd',
         'user_src' ,
         'user_avatar',
-        'user_country' ,
         'user_created_at',
         'user_name_change',
         'user_name_changed_at',
@@ -122,20 +121,15 @@ class User extends Authenticatable implements JWTSubject
         $this->attributes[$this->default_password_field] = bcrypt($value);
     }
 
-
-    public function getUserCountryAttribute()
-    {
-        return getUserCountryName($this->user_country_id);
-    }
+//
+//    public function getUserCountryAttribute()
+//    {
+//        return getUserCountryName($this->user_country_id);
+//    }
 
     public function setUserCountryIdAttribute($value)
     {
-        $index = array_search(strtoupper($value) , config('countries'));
-        if($index!==false)
-        {
-            $index = $index+1;
-            $this->attributes['user_country_id'] = $index;
-        }
+        $this->attributes['user_country'] = strtolower($value);
     }
 
 

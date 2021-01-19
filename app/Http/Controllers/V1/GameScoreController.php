@@ -309,21 +309,22 @@ class GameScoreController extends BaseController
         {
             $date = Carbon::now('America/Grenada')->previousWeekendDay()->toDateString();
             $start = Carbon::now('America/Grenada')->previousWeekendDay()->startOfWeek()->timestamp;
-            $end = Carbon::now('America/Grenada')->previousWeekday()->endOfDay()->timestamp;
+            $end = Carbon::now('America/Grenada')->previousWeekendDay()->endOfDay()->timestamp;
         }elseif($country==670){
             $date = Carbon::now('Asia/Dili')->previousWeekendDay()->toDateString();
             $start = Carbon::now('Asia/Dili')->previousWeekendDay()->startOfWeek()->timestamp;
-            $end = Carbon::now('Asia/Dili')->previousWeekday()->endOfDay()->timestamp;
+            $end = Carbon::now('Asia/Dili')->previousWeekendDay()->endOfDay()->timestamp;
         }else{
             $country = 'other';
             $date = Carbon::now()->previousWeekendDay()->toDateString();
             $start = Carbon::now()->previousWeekendDay()->startOfWeek()->timestamp;
-            $end = Carbon::now()->previousWeekday()->endOfDay()->timestamp;
+            $end = Carbon::now()->previousWeekendDay()->endOfDay()->timestamp;
 //            $date = Carbon::now()->endOfWeek()->toDateString();
 //            $start = Carbon::now()->startOfWeek()->timestamp;
 //            $end = Carbon::now()->endOfDay()->timestamp;
         }
-        Log::info('$start' , array($start));
+        Log::info('$date' , array($date));
+        Log::info('$end' , array($end));
         Log::info('$end' , array($end));
         $key = "helloo:account:game:score:week:rank:".$game.'-'.$country.'-'.$date;
         Log::info('key' , array($key));
