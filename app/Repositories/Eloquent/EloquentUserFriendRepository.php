@@ -42,9 +42,11 @@ class EloquentUserFriendRepository  extends EloquentBaseRepository implements Us
             }else{
                 $phone = DB::table('users_phones')->where('user_id' , $userId)->first();
                 $country = $phone->user_phone_country;
-                if(!in_array($country , array(1 , 670 , '1' , '670')))
+                if(!in_array($country , array(62 , 1 , 670 , '62' , '1' , '670')))
                 {
                     $country = 'other';
+                }else{
+                    $country = $country=='62'?'670':$country;
                 }
                 $key = "helloo:account:game:country:score:".$game.'-'.$country;
                 DB::table('users_friends')

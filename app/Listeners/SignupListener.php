@@ -73,6 +73,16 @@ class SignupListener implements ShouldQueue
             // 桌面设备
             $signup_info['device_type'] = 'desktop';
         }
+        isset($extend['featureName'])&&$signup_info['feature_name'] = strval($extend['featureName']);
+        isset($extend['countryCode'])&&$signup_info['country_code'] = strtolower(strval($extend['countryCode']));
+        isset($extend['latitude'])&&$signup_info['latitude'] = strval($extend['latitude']);
+        isset($extend['longitude'])&&$signup_info['longitude'] = strval($extend['longitude']);
+        isset($extend['locality'])&&$signup_info['locality'] = strval($extend['locality']);
+        isset($extend['adminArea'])&&$signup_info['admin_area'] = strval($extend['adminArea']);
+        isset($extend['subAdminArea'])&&$signup_info['sub_admin_area'] = strval($extend['subAdminArea']);
+        isset($extend['countryName'])&&$signup_info['country_name'] = strval($extend['countryName']);
+        isset($extend['addressLine'])&&$signup_info['address_line'] = strval($extend['addressLine']);
+        isset($extend['thoroughfare'])&&$signup_info['thoroughfare'] = strval($extend['thoroughfare']);
         $user->SignupInfo()->create($signup_info);
         SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(60));
         EscortTalk::dispatch($user , $extend)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));

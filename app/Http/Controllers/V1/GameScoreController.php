@@ -48,11 +48,12 @@ class GameScoreController extends BaseController
         if(!blank($phone))
         {
             $country = $phone->user_phone_country;
-            if(!in_array($country , array(1 , 670 , '1' , '670')))
+            if(!in_array($country , array(62 , '62' , 1 , 670 , '1' , '670')))
             {
                 $country = 'other';
             }
-            $key = "helloo:account:game:country:score:".$game.'-'.$country;
+            $rankCountry = $country=='62'?'670':$country;
+            $key = "helloo:account:game:country:score:".$game.'-'.$rankCountry;
             $now = Carbon::now()->timestamp;
             $nowFlake = new Snowflake();
             $scoreBefore = $max = Redis::zscore($key , $userId);
@@ -82,7 +83,7 @@ class GameScoreController extends BaseController
                             'user_id'=>$userId ,
                             'game'=>$game ,
                             'score'=>$score ,
-                            'country'=>$country,
+                            'country'=>$rankCountry,
                             'created_at'=>$now,
                             'updated_at'=>$now,
                         )
@@ -95,7 +96,7 @@ class GameScoreController extends BaseController
                 }else{
                     if($score>$max)
                     {
-                        $count = DB::table('users_games_scores')->where('user_id' , $userId)->where('game' , $game)->where('country' , $country)->update(
+                        $count = DB::table('users_games_scores')->where('user_id' , $userId)->where('game' , $game)->where('country' , $rankCountry)->update(
                             array('score'=>$score , 'updated_at'=>$now)
                         );
                         if($count<=0)
@@ -174,8 +175,9 @@ class GameScoreController extends BaseController
     public function friendRank($userId , $game , $score , $max , $country)
     {
         $userScores = array();
+        $rankCountry = $country=='62'?'670':$country;
         $sortKey = "helloo:account:friend:game:rank:sort:".$userId.'-'.$game;
-        $key = "helloo:account:game:country:score:".$game.'-'.$country;
+        $key = "helloo:account:game:country:score:".$game.'-'.$rankCountry;
         DB::table('users_friends')
             ->where('user_id' , $userId)
             ->orderByDesc('created_at')
@@ -212,7 +214,8 @@ class GameScoreController extends BaseController
         if($country==1)
         {
             $date = Carbon::now('America/Grenada')->toDateString();
-        }elseif($country==670){
+        }elseif($country==670||$country==62){
+            $country = 670;
             $date = Carbon::now('Asia/Dili')->toDateString();
         }else{
             $country = 'other';
@@ -236,7 +239,8 @@ class GameScoreController extends BaseController
         if($country==1)
         {
             $date = Carbon::now('America/Grenada')->endOfWeek()->toDateString();
-        }elseif($country==670){
+        }elseif($country==670||$country==62){
+            $country = 670;
             $date = Carbon::now('Asia/Dili')->endOfWeek()->toDateString();
         }else{
             $country = 'other';

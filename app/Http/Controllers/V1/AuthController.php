@@ -305,6 +305,7 @@ class AuthController extends BaseController
         {
             $user_phone = substr($user_phone , 2);
         }
+        $gps = strval($request->input('gps' , ''));
 //        $code = strval($request->input('code' , ''));
         $phone = $user_phone_country.$user_phone;
         $validationField = array(
@@ -380,6 +381,7 @@ class AuthController extends BaseController
         event(new SignupEvent($user , $addresses , array(
             'user_phone'=>$user_phone,
             'user_phone_country'=>$user_phone_country,
+            'gps'=>$gps,
         )));
         $token = auth()->login($user);
         return $this->respondWithToken($token , false);

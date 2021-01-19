@@ -29,5 +29,15 @@ class SignupInfo extends Model
         'signup_lon',
         'signup_timezone',
         'signup_continent',
+        'feature_name',
+        'country_code',
+        'latitude',
+        'longitude',
+        'locality',
+        'admin_area',
+        'sub_admin_area',
+        'country_name',
+        'address_line',
+        'thoroughfare',
     ];
 }

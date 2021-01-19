@@ -82,7 +82,9 @@ class TestController extends BaseController
         $activeEvents = app(EventRepository::class)->getActiveEvent();
         if(!blank($activeEvents))
         {
-            $sender = app(UserRepository::class)->findByUserId(38134)->toArray();
+            $key = "helloo:account:system:senderId";
+            $systemId = Redis::get($key);
+            $sender = app(UserRepository::class)->findByUserId($systemId)->toArray();
             $content = array(
                 'senderId'   => $sender['user_id'],
                 "objectName" => "Helloo:VideoMsg",
@@ -148,40 +150,9 @@ class TestController extends BaseController
                 'forceShowPushContent'=>1
             ))
         );
+        Log::info('$content' , $content);
         $result = app('rcloud')->getMessage()->System()->send($content);
-//        $content = array(
-//            'content'=>'test message',
-//            'userInfo'=>[
-//                'extra'=> [
-//                    'un' => !empty($user->user_nick_name) ? $user->user_nick_name : ($user->user_name ?? ''),
-//                    'ua' => userCover($user->user_avatar ?? ''),
-//                    'ui' => $user->user_id,
-//                    'ug' => $user->user_gender,
-//                    'devicePlatformName' => 'server',
-//                ]
-//            ]
-//        );
-//        $content = \json_encode($content , JSON_UNESCAPED_UNICODE);
-//        $result = app('rcloud')->getMessage()->Broadcast()->recall(array(
-//            'senderId'   => 'system',
-////            'targetId'   => $this->targetId,
-//            "objectName" => "RC:SightMsg",
-//            'content'    => \json_encode(array(
-//                'sightUrl'=>1,
-//                'content'=>1,
-//                'duration'=>1,
-//                'size'=>1,
-//                'name'=>1,
-//                'user'=>array(
-//                    'id'=>1
-//                ),
-//                'extra'=>'extra'
-//            ))
-//,
-//            'extra'=>array('user'=>1234567890),
-//        ));
-        Log::error($content);
-        Log::error(\json_encode($result , JSON_UNESCAPED_UNICODE));
+        Log::info('$result' , $result);
         return $this->response->created();
     }
 
@@ -420,19 +391,19 @@ class TestController extends BaseController
 
     public function office()
     {
-        $result = app('pinpoint')->phoneNumberValidate(array(
-            'NumberValidateRequest' => [ // REQUIRED
-                'PhoneNumber' => '8617600128988',
-            ],
-        ));
-        Log::info('$result' , $result->toArray());
-        Log::info('all' , request()->all());
+//        $result = app('pinpoint')->phoneNumberValidate(array(
+//            'NumberValidateRequest' => [ // REQUIRED
+//                'PhoneNumber' => '8617600128988',
+//            ],
+//        ));
+//        Log::info('$result' , $result->toArray());
+//        Log::info('all' , request()->all());
         $t = request()->input('t' , 'n');
         $userId = intval(request()->input('user_id' , '219'));
         if($t=='n')
         {
             $sender = app(UserRepository::class)->findOrFail($userId);
-            $this->dispatchNow((new EscortTalk($sender)));
+            $this->dispatchNow((new EscortTalk($sender , array('user_phone_country'=>62))));
         }else{
             $sender = app(UserRepository::class)->findOrFail($userId);
             $this->dispatchNow((new SignUpAndEvent($sender)));

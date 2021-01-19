@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -36,7 +37,13 @@ class SignUpAndEvent implements ShouldQueue
         Log::info('$activeEvents' , array($activeEvents));
         if(!blank($activeEvents))
         {
-            $sender = app(UserRepository::class)->findByUserId(38134)->toArray();
+            $key = "helloo:account:system:senderId";
+            $systemId = Redis::get($key);
+            if($systemId===null)
+            {
+                return;
+            }
+            $sender = app(UserRepository::class)->findByUserId(intval($systemId))->toArray();
             $content = array(
                 'senderId'   => $sender['user_id'],
                 'targetId'   => $this->user->user_id,
