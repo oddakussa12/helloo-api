@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Jobs\EscortTalk;
 use App\Events\SignupEvent;
 use App\Jobs\SignUpAndEvent;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -73,16 +74,17 @@ class SignupListener implements ShouldQueue
             // 桌面设备
             $signup_info['device_type'] = 'desktop';
         }
-        isset($extend['featureName'])&&$signup_info['feature_name'] = strval($extend['featureName']);
-        isset($extend['countryCode'])&&$signup_info['country_code'] = strtolower(strval($extend['countryCode']));
-        isset($extend['latitude'])&&$signup_info['latitude'] = strval($extend['latitude']);
-        isset($extend['longitude'])&&$signup_info['longitude'] = strval($extend['longitude']);
-        isset($extend['locality'])&&$signup_info['locality'] = strval($extend['locality']);
-        isset($extend['adminArea'])&&$signup_info['admin_area'] = strval($extend['adminArea']);
-        isset($extend['subAdminArea'])&&$signup_info['sub_admin_area'] = strval($extend['subAdminArea']);
-        isset($extend['countryName'])&&$signup_info['country_name'] = strval($extend['countryName']);
-        isset($extend['addressLine'])&&$signup_info['address_line'] = strval($extend['addressLine']);
-        isset($extend['thoroughfare'])&&$signup_info['thoroughfare'] = strval($extend['thoroughfare']);
+        $gps = \json_decode($extend['gps'] , true);
+        isset($gps['featureName'])&&$signup_info['feature_name'] = strval($gps['featureName']);
+        isset($gps['countryCode'])&&$signup_info['country_code'] = strtolower(strval($gps['countryCode']));
+        isset($gps['latitude'])&&$signup_info['latitude'] = strval($gps['latitude']);
+        isset($gps['longitude'])&&$signup_info['longitude'] = strval($gps['longitude']);
+        isset($gps['locality'])&&$signup_info['locality'] = strval($gps['locality']);
+        isset($gps['adminArea'])&&$signup_info['admin_area'] = strval($gps['adminArea']);
+        isset($gps['subAdminArea'])&&$signup_info['sub_admin_area'] = strval($gps['subAdminArea']);
+        isset($gps['countryName'])&&$signup_info['country_name'] = strval($gps['countryName']);
+        isset($gps['addressLine'])&&$signup_info['address_line'] = strval($gps['addressLine']);
+        isset($gps['thoroughfare'])&&$signup_info['thoroughfare'] = strval($gps['thoroughfare']);
         $user->SignupInfo()->create($signup_info);
         SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(60));
         EscortTalk::dispatch($user , $extend)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));

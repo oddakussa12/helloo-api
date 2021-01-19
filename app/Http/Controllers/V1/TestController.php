@@ -391,13 +391,7 @@ class TestController extends BaseController
 
     public function office()
     {
-//        $result = app('pinpoint')->phoneNumberValidate(array(
-//            'NumberValidateRequest' => [ // REQUIRED
-//                'PhoneNumber' => '8617600128988',
-//            ],
-//        ));
-//        Log::info('$result' , $result->toArray());
-//        Log::info('all' , request()->all());
+        dd(geoip("73.114.18.164"));
         $t = request()->input('t' , 'n');
         $userId = intval(request()->input('user_id' , '219'));
         if($t=='n')
