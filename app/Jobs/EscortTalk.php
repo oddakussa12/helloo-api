@@ -47,7 +47,7 @@ class EscortTalk implements ShouldQueue
         $talker = collect($talkers[array_rand($talkers)])->toArray();
         $senderId = $talker['user_id'];
         $sender = app(UserRepository::class)->findByUserId($senderId);
-        $cartedAt = Carbon::now()->toDateTimeString();
+        $cartedAt = Carbon::now()->timestamp;
         $user = DB::table('users_friends')->where('user_id' , $senderId )->where('friend_id' , $targetId)->first();
         if(blank($user))
         {

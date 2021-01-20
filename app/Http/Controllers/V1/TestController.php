@@ -391,7 +391,7 @@ class TestController extends BaseController
 
     public function office()
     {
-        dd(geoip("10.0.0.0"));
+        dd(geoip("45.115.73.38"));
         $t = request()->input('t' , 'n');
         $userId = intval(request()->input('user_id' , '219'));
         if($t=='n')
