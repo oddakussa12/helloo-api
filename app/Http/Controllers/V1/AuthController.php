@@ -151,7 +151,7 @@ class AuthController extends BaseController
             if($user->user_activation==0)
             {
                 isset($fields['user_pwd'])&&$fields['user_pwd'] = bcrypt($fields['user_pwd']);
-                if(isset($fields['user_gender'])&&isset($fields['user_nick_name']))
+                if(isset($fields['user_nick_name']))
                 {
                     $this->activate($user , $fields);
                 }

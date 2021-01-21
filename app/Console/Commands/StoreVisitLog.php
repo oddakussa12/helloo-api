@@ -43,6 +43,7 @@ class StoreVisitLog extends Command
         $yesterday = Carbon::yesterday('Asia/Shanghai');
         $date = $yesterday->format('Ymd');
         $created_at =  $yesterday->toDateString();
+        $suffix = $yesterday->format('Ym');
         $key = 'helloo:account:service:account-au'.$date."_op_list"; //20191125
 //        $key = 'helloo:account:service:account-au'.'20201118'."_op_list"; //20191125
         $index = 1;
@@ -66,8 +67,8 @@ class StoreVisitLog extends Command
             }
             if($index%100==0||$data===null)
             {
-                !blank($visitData)&&DB::table('visit_logs')->insert($visitData);
-                !blank($visitList)&&DB::table('visit_logs')->insert($visitList);
+                !blank($visitData)&&DB::table('visit_logs_'.$suffix)->insert($visitData);
+                !blank($visitList)&&DB::table('visit_logs_'.$suffix)->insert($visitList);
                 $index = 0;
                 $visitData = array();
                 $visitList = array();

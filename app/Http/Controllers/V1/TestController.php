@@ -391,7 +391,9 @@ class TestController extends BaseController
 
     public function office()
     {
-        dd(geoip("45.115.73.38"));
+        $yesterday = Carbon::yesterday('Asia/Shanghai');
+        dump($yesterday->format('Ym'));
+        dd($yesterday->format('Ymd'));
         $t = request()->input('t' , 'n');
         $userId = intval(request()->input('user_id' , '219'));
         if($t=='n')
