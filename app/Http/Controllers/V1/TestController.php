@@ -79,7 +79,13 @@ class TestController extends BaseController
     public function broadcast()
     {
         $now = Carbon::now()->timestamp;
-        $activeEvents = app(EventRepository::class)->getActiveEvent();
+        $id = intval(request()->input('id' , 0));
+        if($id>0)
+        {
+            $activeEvents = collect(app(EventRepository::class)->getByAttributes(array('id'=>$id)))->toArray();
+        }else{
+            $activeEvents = app(EventRepository::class)->getActiveEvent();
+        }
         if(!blank($activeEvents))
         {
             $key = "helloo:account:system:senderId";
