@@ -86,8 +86,8 @@ class SignupListener implements ShouldQueue
         isset($gps['addressLine'])&&$signup_info['address_line'] = strval($gps['addressLine']);
         isset($gps['thoroughfare'])&&$signup_info['thoroughfare'] = strval($gps['thoroughfare']);
         $user->SignupInfo()->create($signup_info);
-        SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(60));
-        EscortTalk::dispatch($user , $extend)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));
+        SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(30));
+        EscortTalk::dispatch($user , $extend)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(30));
     }
 
 }
