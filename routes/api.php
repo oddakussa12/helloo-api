@@ -188,6 +188,7 @@ $api->group($V1Params , function ($api){
 
     $api->put('event/{event]' , 'EventController@update')->name('event.update');
 
+    $api->post('statistics/log' , 'StatisticsController@log')->name('statistics.log');
 
 
     $api->get('app/index' , 'AppController@index')->name('app.index');
@@ -195,15 +196,14 @@ $api->group($V1Params , function ($api){
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');
-    $api->get('test/token' , 'TestController@token')->name('test.token');
+    $api->post('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/es' , 'TestController@es')->name('test.es');
     $api->get('test/esDoc' , 'TestController@esDoc')->name('test.esDoc');
 
     $api->get('test/aws' , 'TestController@aws')->name('test.aws');
     $api->get('test/index' , 'TestController@index')->name('test.index');
     $api->get('test/send' , 'TestController@send')->name('test.send');
-    $api->post('statistics/log' , 'StatisticsController@log')->name('statistics.log');
-//    $api->get('notification/bulkInsert' , 'NotificationController@bulkInsert')->name('notification.bulkInsert');
+    $api->get('test/fcm' , 'TestController@fcm')->name('test.fcm');
 
 });
 

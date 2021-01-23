@@ -29,6 +29,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use App\Repositories\Contracts\EventRepository;
+use App\Custom\FireBase\Message\OptionsBuilder;
+use App\Custom\FireBase\Message\PayloadDataBuilder;
+use App\Custom\FireBase\Message\PayloadNotificationBuilder;
+use FCM;
+
 
 
 
@@ -78,6 +83,7 @@ class TestController extends BaseController
 
     public function broadcast()
     {
+        dd(geoip('dd'));
         $now = Carbon::now()->timestamp;
         $id = intval(request()->input('id' , 0));
         if($id>0)
@@ -139,69 +145,42 @@ class TestController extends BaseController
     public function push(Request $request)
     {
         $userId = intval($request->input('userId' , 0));
-        $userId = $userId<=0?94:$userId;
-        $user = app(UserRepository::class)->findOrFail($userId);
-        $auth = app(UserRepository::class)->findOrFail(61);
+        $time = date('Y-m-d H:i:s');
         $content = array(
-            'senderId'   => 'System',
-            'targetId'   => $userId,
-            "objectName" => "Helloo:UserReported",
-            'content'    => \json_encode(array(
-                'content'=>'You have been reported',
-                'whistleblower'=> new UserCollection($auth)
-            )),
-            'pushContent'=>'You have been reported',
-            'pushExt'=>\json_encode(array(
-                'title'=>'You have been reported',
-                'forceShowPushContent'=>1
-            ))
+            'platform'=>array('Android'),
+            'audience'=>array(
+                'userid'=>array(
+                    $userId
+                ),
+                'is_to_all'=>false
+            ),
+            'notification'=>array(
+                'alert'=>'test alert'.$time,
+                'android'=>array(
+                    'alert'=>'over write alert'.$time,
+                    'extras'=>array('test'=>1),
+                    'badge'=>1
+                ),
+            )
         );
-        Log::info('$content' , $content);
-        $result = app('rcloud')->getMessage()->System()->send($content);
-        Log::info('$result' , $result);
+        Log::info('ry_push_content' , $content);
+        $result = app('rcloud')->getPush()->push($content);
+        Log::info('ry_push_result' , $result);
         return $this->response->created();
     }
 
 
     public function token()
     {
-        if(domain()!=config('app.url'))
-        {
-            $nowFlake = new Snowflake();
-            $uuid = $nowFlake->id();
-            $nickName = substr($uuid , 0 , 8);
-            $gender = mt_rand(0 , 1);
-            $i = mt_rand(1 , 18);
-            $avatar = "https://qnwebothersia.mmantou.cn/default_avatar_{$i}.png?imageView2/0/w/200/h/200/interlace/1|imageslim";
-            $birth = Carbon::now()->subYears(mt_rand(10 , 20))->subMonths(mt_rand(1 , 12))->subDays(mt_rand(1 , 10))->toDateString();
-            DB::table('temp_users')->insert(array(
-                'user_uuid'=>$uuid,
-                'user_gender'=>$gender,
-                'user_nick_name'=>$nickName,
-                'user_pwd'=>bcrypt(123456),
-                'user_activation'=>1,
-                'user_birthday'=>$birth,
-                'user_avatar'=>$avatar,
-                'user_created_at'=>Carbon::now()->toDateTimeString(),
-                'user_activated_at'=>Carbon::now()->toDateTimeString(),
-                'user_activated_at'=>Carbon::now()->toDateTimeString(),
-            ));
-
-
-
-            $account = app('netEase')->create_acc_id($uuid , $nickName , array(
-                'icon'=>$avatar,
-                'mobile'=>'+62-8'.mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9).mt_rand(1 , 9),
-                'gender'=>$gender,
-                'birth'=>$birth
-            ));
-//            $token = app('rcloud')->getUser()->register(array(
-//                'id'=> time(),
-//                'name'=> (new RandomStringGenerator())->generate(16),
-//                'portrait'=> "https://qnwebothersia.mmantou.cn/default_avatar.jpg?imageView2/0/w/50/h/50/interlace/1|imageslim"
-//            ));
-            return $this->response->array($account->get_data());
-        }
+        Log::info('token_all' , request()->all());
+        $userId = intval(request()->input('user_id'));
+        $token = strval(request()->input('token'));
+        DB::table('fcm_tokens')->insert(array(
+            'user_id'=>$userId,
+            'token'=>$token,
+            'created_at'=>Carbon::now()->toDateTimeString(),
+        ));
+        return $this->response->noContent();
     }
 
     public function send()
@@ -417,6 +396,34 @@ class TestController extends BaseController
         $all = $request->all();
         DB::table('logs')->insert(array('log'=>\json_encode($all , JSON_UNESCAPED_UNICODE) , 'created_at'=>Carbon::now()->toDateTimeString()));
         return $this->response->created();
+    }
+
+    public function fcm(Request $request)
+    {
+        $tokens  = (array)$request->input('tokens');
+        $tokens = array_filter($tokens , function($value){
+            return !blank($value);
+        });
+        if(!blank($tokens))
+        {
+            $optionBuilder = new OptionsBuilder();
+            $optionBuilder->setTimeToLive(60*20);
+
+            $notificationBuilder = new PayloadNotificationBuilder('my title');
+            $notificationBuilder->setBody('Hello world')
+                ->setSound('default');
+
+            $dataBuilder = new PayloadDataBuilder();
+            $dataBuilder->addData(['a_data' => 'my_data']);
+
+            $option = $optionBuilder->build();
+            $notification = $notificationBuilder->build();
+            $data = $dataBuilder->build();
+            $downstreamResponse = FCM::sendTo($tokens, $option, $notification, $data);
+            Log::info('fcm' , array($downstreamResponse->numberSuccess() , $downstreamResponse->numberFailure() , $downstreamResponse->numberModification()));
+        }
+        return $this->response->noContent();
+
     }
 
 

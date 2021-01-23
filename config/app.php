@@ -192,7 +192,8 @@ return [
         App\Providers\NetEaseServiceProvider::class,
         App\Providers\ElasticSearchManagerServiceProvider::class,
         App\Providers\AwsServiceProvider::class,
-        App\Providers\PinpointServiceProvider::class
+        App\Providers\PinpointServiceProvider::class,
+        App\Custom\FireBase\FCMServiceProvider::class,
     ],
 
     /*
@@ -244,7 +245,9 @@ return [
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
         'GeoIP' => Torann\GeoIP\GeoIPFacade::class,
         'Notifynder' => Fenos\Notifynder\Facades\Notifynder::class,
-        'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class
+        'RongCloud' => App\Custom\RongCloud\Facades\RongCloud::class,
+        'FCM' => App\Custom\FireBase\Facades\FCM::class,
+        'FCMGroup' => App\Custom\FireBase\Facades\FCMGroup::class, // Optional
 
     ],
 
