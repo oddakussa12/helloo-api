@@ -12,7 +12,7 @@ abstract class HTTPSender
     /**
      * The client used to send messages.
      *
-     * @var \GuzzleHttp\ClientInterface
+     * @var ClientInterface
      */
     protected $client;
 
@@ -26,7 +26,7 @@ abstract class HTTPSender
     /**
      * Initializes a new sender object.
      *
-     * @param \GuzzleHttp\ClientInterface $client
+     * @param ClientInterface $client
      * @param string                     $url
      */
     public function __construct(ClientInterface $client, $url)

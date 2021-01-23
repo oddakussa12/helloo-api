@@ -3,12 +3,14 @@
 namespace App\Custom\FireBase\Sender;
 
 use App\Custom\FireBase\Message\Topics;
+use Psr\Http\Message\ResponseInterface;
 use App\Custom\FireBase\Request\Request;
 use App\Custom\FireBase\Message\Options;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\ClientException;
 use App\Custom\FireBase\Message\PayloadData;
 use App\Custom\FireBase\Response\GroupResponse;
 use App\Custom\FireBase\Response\TopicResponse;
-use GuzzleHttp\Exception\ClientException;
 use App\Custom\FireBase\Response\DownstreamResponse;
 use App\Custom\FireBase\Message\PayloadNotification;
 
@@ -25,12 +27,13 @@ class FCMSender extends HTTPSender
      * - a unique device with is registration Token
      * - or to multiples devices with an array of registrationIds
      *
-     * @param string|array             $to
-     * @param Options|null             $options
+     * @param string|array $to
+     * @param Options|null $options
      * @param PayloadNotification|null $notification
-     * @param PayloadData|null         $data
+     * @param PayloadData|null $data
      *
      * @return DownstreamResponse|null
+     * @throws GuzzleException
      */
     public function sendTo($to, Options $options = null, PayloadNotification $notification = null, PayloadData $data = null)
     {
@@ -64,11 +67,12 @@ class FCMSender extends HTTPSender
      * Send a message to a group of devices identified with them notification key.
      *
      * @param                          $notificationKey
-     * @param Options|null             $options
+     * @param Options|null $options
      * @param PayloadNotification|null $notification
-     * @param PayloadData|null         $data
+     * @param PayloadData|null $data
      *
      * @return GroupResponse
+     * @throws GuzzleException
      */
     public function sendToGroup($notificationKey, Options $options = null, PayloadNotification $notification = null, PayloadData $data = null)
     {
@@ -82,12 +86,13 @@ class FCMSender extends HTTPSender
     /**
      * Send message devices registered at a or more topics.
      *
-     * @param Topics                   $topics
-     * @param Options|null             $options
+     * @param Topics $topics
+     * @param Options|null $options
      * @param PayloadNotification|null $notification
-     * @param PayloadData|null         $data
+     * @param PayloadData|null $data
      *
      * @return TopicResponse
+     * @throws GuzzleException
      */
     public function sendToTopic(Topics $topics, Options $options = null, PayloadNotification $notification = null, PayloadData $data = null)
     {
@@ -99,11 +104,12 @@ class FCMSender extends HTTPSender
     }
 
     /**
+     * @param Request $request
+     *
+     * @return null|ResponseInterface
+     * @throws GuzzleException
      * @internal
      *
-     * @param \App\Custom\FireBase\Request\Request $request
-     *
-     * @return null|\Psr\Http\Message\ResponseInterface
      */
     protected function post($request)
     {

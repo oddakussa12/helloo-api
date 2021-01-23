@@ -2,8 +2,9 @@
 
 namespace App\Custom\FireBase\Sender;
 
-use App\Custom\FireBase\Request\GroupRequest;
 use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Exception\GuzzleException;
+use App\Custom\FireBase\Request\GroupRequest;
 
 /**
  * Class FCMGroup.
@@ -21,6 +22,7 @@ class FCMGroup extends HTTPSender
      * @param array $registrationIds
      *
      * @return null|string notification_key
+     * @throws GuzzleException
      */
     public function createGroup($notificationKeyName, array $registrationIds)
     {
@@ -36,8 +38,9 @@ class FCMGroup extends HTTPSender
      *
      * @param       $notificationKeyName
      * @param       $notificationKey
-     * @param array $registrationIds     registrationIds to add
+     * @param array $registrationIds registrationIds to add
      * @return null|string notification_key
+     * @throws GuzzleException
      */
     public function addToGroup($notificationKeyName, $notificationKey, array $registrationIds)
     {
@@ -54,8 +57,9 @@ class FCMGroup extends HTTPSender
      *
      * @param       $notificationKeyName
      * @param       $notificationKey
-     * @param array $registeredIds       registrationIds to remove
+     * @param array $registeredIds registrationIds to remove
      * @return null|string notification_key
+     * @throws GuzzleException
      */
     public function removeFromGroup($notificationKeyName, $notificationKey, array $registeredIds)
     {
@@ -66,10 +70,10 @@ class FCMGroup extends HTTPSender
     }
 
     /**
-     * @internal
-     *
-     * @param \Psr\Http\Message\ResponseInterface $response
+     * @param ResponseInterface $response
      * @return null|string notification_key
+     *@internal
+     *
      */
     private function getNotificationToken(ResponseInterface $response)
     {
@@ -83,7 +87,7 @@ class FCMGroup extends HTTPSender
     }
 
     /**
-     * @param \Psr\Http\Message\ResponseInterface $response
+     * @param ResponseInterface $response
      *
      * @return bool
      */
