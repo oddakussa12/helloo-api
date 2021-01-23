@@ -138,8 +138,6 @@ $api->group($V1Params , function ($api){
 
         $api->get('aws/{type}/form' , 'AwsController@form')->name('aws.form');
 
-        $api->get('test/office' , 'TestController@office')->name('test.office');
-
         $api->get('game/{game}/rank/day' , 'GameScoreController@day')->where('game', 'coronation|superZero|trumpAdventures')->name('game.score.day');
 
         $api->get('game/{game}/rank/week' , 'GameScoreController@week')->where('game', 'coronation|superZero|trumpAdventures')->name('game.score.week');
@@ -204,6 +202,8 @@ $api->group($V1Params , function ($api){
     $api->get('test/index' , 'TestController@index')->name('test.index');
     $api->get('test/send' , 'TestController@send')->name('test.send');
     $api->get('test/fcm' , 'TestController@fcm')->name('test.fcm');
+    $api->get('test/office' , 'TestController@office')->name('test.office');
+
 
 });
 

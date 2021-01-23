@@ -84,7 +84,6 @@ class TestController extends BaseController
 
     public function broadcast()
     {
-        dd(geoip('dd'));
         $now = Carbon::now()->timestamp;
         $id = intval(request()->input('id' , 0));
         if($id>0)
@@ -377,9 +376,6 @@ class TestController extends BaseController
 
     public function office()
     {
-        $yesterday = Carbon::yesterday('Asia/Shanghai');
-        dump($yesterday->format('Ym'));
-        dd($yesterday->format('Ymd'));
         $t = request()->input('t' , 'n');
         $userId = intval(request()->input('user_id' , '219'));
         if($t=='n')
@@ -401,6 +397,16 @@ class TestController extends BaseController
 
     public function fcm(Request $request)
     {
+//        if(!in_array(domain() , config('common.online_domain')))
+//        {
+//            $userId  = intval($request->input('userId'));
+//            $token = DB::table('fcm_tokens')->where('user_id' , $userId)->first();
+//            if(!blank($token))
+//            {
+//                return $this->response->array(array('result'=>"https://api.helloo.mantouhealth.com/api/test/fcm?tokens[]=".$token->token));
+//            }
+//            die;
+//        }
         $tokens  = (array)$request->input('tokens');
         $tokens = array_filter($tokens , function($value){
             return !blank($value);
