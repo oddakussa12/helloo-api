@@ -41,7 +41,7 @@ class TestController extends BaseController
 {
     public function __construct()
     {
-        if(in_array(domain() , config('common.online_domain'))&&!app()->runningInConsole())
+        if(in_array(domain() , config('common.online_domain'))&&!app()->runningInConsole()&&!getRequestIpAddress()=="121.69.10.82")
         {
             dd('Please use the test environment to test');
         }
