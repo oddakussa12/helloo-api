@@ -50,7 +50,7 @@ class Test extends Command
      */
     public function handle()
     {
-        DB::table('signup_infos')->where('signup_id' , ">=" , 60007)->where('signup_isocode' , 'US')->orderByDesc('signup_id')->chunk(10 , function($users){
+        DB::table('signup_infos')->whereNotNull('signup_ip')->where('signup_isocode' , 'US')->orderByDesc('signup_id')->chunk(10 , function($users){
             foreach ($users as $user)
             {
 

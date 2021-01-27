@@ -194,6 +194,7 @@ return [
         App\Providers\AwsServiceProvider::class,
         App\Providers\PinpointServiceProvider::class,
         App\Custom\FireBase\FCMServiceProvider::class,
+        App\Custom\DingNotice\DingNoticeServiceProvider::class,
     ],
 
     /*

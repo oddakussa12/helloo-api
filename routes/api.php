@@ -196,13 +196,14 @@ $api->group($V1Params , function ($api){
     $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');
     $api->post('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/es' , 'TestController@es')->name('test.es');
-    $api->get('test/esDoc' , 'TestController@esDoc')->name('test.esDoc');
+    $api->get('test/test' , 'TestController@test')->name('test.test');
 
     $api->get('test/aws' , 'TestController@aws')->name('test.aws');
     $api->get('test/index' , 'TestController@index')->name('test.index');
     $api->get('test/send' , 'TestController@send')->name('test.send');
     $api->get('test/fcm' , 'TestController@fcm')->name('test.fcm');
     $api->get('test/office' , 'TestController@office')->name('test.office');
+    $api->get('test/ding' , 'TestController@ding')->name('test.ding');
 
 
 });
