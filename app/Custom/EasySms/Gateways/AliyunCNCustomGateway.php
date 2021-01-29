@@ -12,8 +12,8 @@
 namespace App\Custom\EasySms\Gateways;
 
 use Overtrue\EasySms\Support\Config;
-use Overtrue\EasySms\Traits\HasHttpRequest;
 use App\Messages\Contracts\MessageInterface;
+use App\Custom\EasySms\Traits\HasHttpRequest;
 use Overtrue\EasySms\Contracts\PhoneNumberInterface;
 use Overtrue\EasySms\Exceptions\GatewayErrorException;
 

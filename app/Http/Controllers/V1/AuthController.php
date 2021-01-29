@@ -8,6 +8,7 @@ use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
 use Jenssegers\Agent\Agent;
+use App\Jobs\SignUpOrInFail;
 use Illuminate\Http\Request;
 use App\Rules\UserPhoneUnique;
 use App\Resources\UserCollection;
@@ -63,6 +64,7 @@ class AuthController extends BaseController
             Validator::make($validationField, $rule)->validate();
         }catch (ValidationException $exception)
         {
+            $this->dispatchNow(new SignUpOrInFail($exception->errors()));
             throw new ValidationException($exception->validator);
         }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
@@ -75,6 +77,7 @@ class AuthController extends BaseController
                 return $this->respondWithToken($token , false);
             }
         }
+        $this->dispatchNow(new SignUpOrInFail(trans('auth.phone_failed')));
         return $this->response->errorUnauthorized(trans('auth.phone_failed'));
     }
 
@@ -323,7 +326,13 @@ class AuthController extends BaseController
             'password' => 'bail|required|string|min:6|max:16',
 
         ];
-        Validator::make($validationField, $rule)->validate();
+        try{
+            Validator::make($validationField, $rule)->validate();
+        }catch (ValidationException $exception)
+        {
+            $this->dispatchNow(new SignUpOrInFail($exception->errors()));
+            throw new ValidationException($exception->validator);
+        }
         if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
         {
             $user_phone = substr($user_phone , 2);
@@ -331,6 +340,7 @@ class AuthController extends BaseController
         $userPhone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($userPhone))
         {
+            $this->dispatchNow(new SignUpOrInFail(trans('validation.custom.phone.unique')));
             abort(422 , trans('validation.custom.phone.unique'));
         }
         $now = Carbon::now()->toDateTimeString();
@@ -367,6 +377,7 @@ class AuthController extends BaseController
                 'code'=>$e->getCode(),
                 'message'=>$e->getMessage(),
             ));
+            $this->dispatchNow(new SignUpOrInFail($e->getMessage()));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
@@ -387,6 +398,13 @@ class AuthController extends BaseController
         return $this->respondWithToken($token , false);
     }
 
+    /**
+     * 2021-01-29 14:30
+     * @param Request $request
+     * @return mixed
+     * @throws ValidationException
+     * @note deprecated
+     */
     public function handleSignIn(Request $request)
     {
 //        $password = strval($request->input('password' , ""));
@@ -428,7 +446,13 @@ class AuthController extends BaseController
                 },
             ]
         ];
-        Validator::make($validationField, $rule)->validate();
+        try{
+            Validator::make($validationField, $rule)->validate();
+        }catch (ValidationException $exception)
+        {
+            $this->dispatchNow(new SignUpOrInFail($exception->errors()));
+            throw new ValidationException($exception->validator);
+        }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($phone))
         {
@@ -474,6 +498,7 @@ class AuthController extends BaseController
                 'code'=>$e->getCode(),
                 'message'=>$e->getMessage(),
             ));
+            $this->dispatchNow(new SignUpOrInFail($e->getMessage()));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
@@ -486,6 +511,12 @@ class AuthController extends BaseController
         return $this->respondWithToken($token , false);
     }
 
+    /**
+     * 2021-01-29 14:32
+     * @param $account
+     * @param $type
+     * @return \Dingo\Api\Http\Response|void
+     */
     public function accountVerification($account , $type)
     {
         $response = $this->response;

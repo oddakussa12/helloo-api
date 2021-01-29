@@ -4,8 +4,10 @@ namespace App\Http\Controllers\V1;
 
 
 use App\Custom\DingNotice\DingTalk;
+use App\Jobs\EasySms;
 use App\Jobs\SignUpAndEvent;
 use App\Jobs\EscortTalk;
+use App\Messages\ForgetPasswordMessage;
 use Aws\CognitoIdentity\CognitoIdentityClient;
 use App\Custom\NEIm\NEMessage\MessageOptions;
 use App\Custom\NEIm\NEMessage\NeTxtMessage;
@@ -340,6 +342,14 @@ class TestController extends BaseController
     {
         $result = app(DingTalk::class)->with('default')->text('hi,lovbee!');
         Log::info('ding' , array($result));
+    }
+
+    public function sms()
+    {
+        $code = 123456;
+        $phone = new PhoneNumber(17600128988 , 86);
+        $message = new ForgetPasswordMessage($code);
+        $this->dispatchNow(new EasySms($phone , $message));
     }
 
 

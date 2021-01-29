@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        \Torann\GeoIP\Console\Update::class,
+        \App\Console\Commands\IpCacheUpdate::class,
         \App\Console\Commands\RemoveRandomUser::class,
         \App\Console\Commands\StoreVisitLog::class,
         \App\Console\Commands\StoreStatusLog::class,
@@ -54,7 +54,7 @@ class Kernel extends ConsoleKernel
             ->monthlyOn(15)->when(function(){
                 return config('common.cron_switch');
             });
-        $schedule->command('geoip:update')
+        $schedule->command('ip_cache:update')
             ->daily();
     }
 

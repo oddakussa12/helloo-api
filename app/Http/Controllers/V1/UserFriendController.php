@@ -96,7 +96,7 @@ class UserFriendController extends BaseController
     /**
      * @param $friendId
      * @return \Dingo\Api\Http\Response
-     * 删除用户及其相关
+     * @note 删除用户及其相关
      */
     public function destroy($friendId)
     {
@@ -122,7 +122,7 @@ class UserFriendController extends BaseController
         }catch (\Exception $e)
         {
             DB::rollBack();
-            Log::error('friend_delete_failed' , array(
+            Log::info('friend_delete_failed' , array(
                 'code'=>$e->getCode(),
                 'message'=>$e->getMessage(),
             ));
@@ -135,13 +135,14 @@ class UserFriendController extends BaseController
             $friendSortKey = "helloo:account:friend:game:rank:sort:".$friendId.'-coronation';//暂时一个游戏
             Redis::zrem($sortKey , $friendId);
             Redis::zrem($friendSortKey , $userId);
+            $user = collect(new UserCollection($user))->toArray();
             $content = array(
                 'senderId'   => $userId,
                 'targetId'   => $friendId,
                 "objectName" => "Helloo:FriendDelete",
                 'content'    => array(
                     'content'=>'friend delete',
-                    'user'=> collect(new UserCollection($user))->toArray()
+                    'user'=> $user
                 ),
                 'pushContent'=>'friend delete',
                 'pushExt'=>\json_encode(array(

@@ -88,7 +88,7 @@ class UserFriendRequestController extends BaseController
                 $requestModel->request_state=0;
                 $requestModel->save();
             }
-
+            $user = collect(new UserCollection($user))->toArray();
             $content = array(
                 'senderId'   => $userId,
                 'targetId'   => $friendId,
@@ -96,7 +96,7 @@ class UserFriendRequestController extends BaseController
                 'content'    => array(
                     'content'=>'friend request',
                     'request_id'=>$request_id,
-                    'user'=> collect(new UserCollection($user))->toArray()
+                    'user'=> $user
                 ),
                 'pushContent'=>'friend request',
                 'pushExt'=>\json_encode(array(
@@ -194,6 +194,7 @@ class UserFriendRequestController extends BaseController
             {
                 Redis::exists($sortKey)&&Redis::zadd($sortKey , $friendMaxScore , $friendId);
             }
+            $user = collect(new UserCollection($user))->toArray();
             $content = array(
                 'senderId'   => $userId,
                 'targetId'   => $friendId,
@@ -202,7 +203,7 @@ class UserFriendRequestController extends BaseController
                     'response'  => 1,
                     'content'=>'friend response',
                     'request_id'=>$requestId,
-                    'user'=> collect(new UserCollection($user))->toArray()
+                    'user'=> $user
                 ),
                 'pushContent'=>'friend response',
                 'pushExt'=>\json_encode(array(
@@ -246,6 +247,7 @@ class UserFriendRequestController extends BaseController
         }
         if($flag)
         {
+            $user = collect(new UserCollection($user))->toArray();
             $content = array(
                 'senderId'   => $userId,
                 'targetId'   => $friendId,
@@ -254,7 +256,7 @@ class UserFriendRequestController extends BaseController
                     'response'  => $state,
                     'content'=>'friend response',
                     'request_id'=>$requestId,
-                    'user'=> collect(new UserCollection($user))->toArray()
+                    'user'=> $user
                 ),
                 'pushContent'=>'friend response',
                 'pushExt'=>\json_encode(array(

@@ -50,28 +50,74 @@ class Test extends Command
      */
     public function handle()
     {
-        DB::table('signup_infos')->whereNotNull('signup_ip')->where('signup_isocode' , 'US')->orderByDesc('signup_id')->chunk(10 , function($users){
-            foreach ($users as $user)
+        $talks = DB::table('escort_talker')->select('user_id')->distinct()->get()->toArray();
+        foreach ($talks as $talk)
+        {
+            $talk = collect($talk)->toArray();
+            $sender = collect(DB::table('users')->where('user_id' , $talk['user_id'])->first())->toArray();
+            if(blank($sender))
             {
-
-                $geo = geoip($user->signup_ip);
-                Log::info('sign_up' , array(
-                    $user->signup_id,
-                    $user->signup_ip,
-                    $geo->iso_code
-                ));
-                $signup_info = array();
-                $signup_info['signup_isocode'] = $geo->iso_code;
-                $signup_info['signup_country'] = $geo->country;
-                $signup_info['signup_state'] = $geo->state_name;
-                $signup_info['signup_city'] = $geo->city;
-                $signup_info['signup_lat'] = $geo->lat;
-                $signup_info['signup_lon'] = $geo->lon;
-                $signup_info['signup_timezone'] = $geo->timezone;
-                $signup_info['signup_continent'] = $geo->continent;
-                DB::table('signup_infos')->where('signup_id' , $user->signup_id)->update($signup_info);
+                Log::info('empty_$sender' , array($talk['user_id']));
+                continue;
             }
-        });
+            $content = array(
+                'content'=>'video message',
+                'user'=> array(
+                    'id'=>$sender['user_id'],
+                    'name'=>$sender['user_nick_name'],
+                    'portrait'=>userCover($sender['user_avatar']),
+                    'extra'=>array(
+                        'userLevel'=>$sender['user_level']
+                    ),
+                ),
+                'videoUrl'=>"https://video.helloo.mantouhealth.com/other/20210128/4c01b357d9f04ba01b28051300b3b93d.mp4",
+                'firstFrameUrl'=>"https://image.helloo.mantouhealth.com/other/20210128/20210128110716.png",
+                'videoPath'=>'',
+                'firstFramePath'=>'',
+            );
+            $content = array(
+                'senderId'   => $talk['user_id'],
+//                'targetId'   => $targetId,
+                "objectName" => "Helloo:VideoMsg",
+                'content'    => \json_encode($content),
+                'pushContent'=>'video message',
+                'pushExt'=>\json_encode(array(
+                    'title'=>'video message',
+                    'forceShowPushContent'=>1
+                ))
+            );
+
+            DB::table('users_friends')->where('user_id' , $talk['user_id'])->orderByDesc('friend_id')->chunk(10 , function($friends) use ($content){
+                foreach ($friends as $friend)
+                {
+                    $content['targetId'] = $friend->friend_id;
+                    Log::info('$friend->friend_id' , array($friend->friend_id));
+                    $this->send($content);
+                }
+            });
+        }
+//        DB::table('signup_infos')->whereNotNull('signup_ip')->where('signup_isocode' , 'US')->orderByDesc('signup_id')->chunk(10 , function($users){
+//            foreach ($users as $user)
+//            {
+//
+//                $geo = geoip($user->signup_ip);
+//                Log::info('sign_up' , array(
+//                    $user->signup_id,
+//                    $user->signup_ip,
+//                    $geo->iso_code
+//                ));
+//                $signup_info = array();
+//                $signup_info['signup_isocode'] = $geo->iso_code;
+//                $signup_info['signup_country'] = $geo->country;
+//                $signup_info['signup_state'] = $geo->state_name;
+//                $signup_info['signup_city'] = $geo->city;
+//                $signup_info['signup_lat'] = $geo->lat;
+//                $signup_info['signup_lon'] = $geo->lon;
+//                $signup_info['signup_timezone'] = $geo->timezone;
+//                $signup_info['signup_continent'] = $geo->continent;
+//                DB::table('signup_infos')->where('signup_id' , $user->signup_id)->update($signup_info);
+//            }
+//        });
 //        $evenPhoneKey = "helloo:account:service:account-phone-{even}-number";
 //        $oddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
 //        $evenData = array();
@@ -105,6 +151,13 @@ class Test extends Command
 //                Redis::hmset($postKey , array('temp_like'=>fakeLike($after['like'] , $coefficient)));
 //            }
 //        }
+    }
+
+    public function send($content)
+    {
+//        Log::info('escort_talk_template_content' , $content);
+        $result = app('rcloud')->getMessage()->Person()->send($content);
+//        Log::info('escort_talk_template_result' , $result);
     }
 
 }

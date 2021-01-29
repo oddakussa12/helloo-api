@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use libphonenumber\PhoneNumberUtil;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Messages\Contracts\MessageInterface;
@@ -71,7 +72,7 @@ class EasySms implements ShouldQueue
                         'type'=>'send_sms_phone_valid_error',
                         'params'=>$phone,
                     );
-                    Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
+                    Log::info('send_sms_phone_valid_error' , $error);
                     return false;
                 }
             }catch (\Exception $e)
@@ -80,7 +81,7 @@ class EasySms implements ShouldQueue
                     'type'=>'send_sms_phone_illegal_error',
                     'params'=>$phone,
                 );
-                Log::error(\json_encode($error , JSON_UNESCAPED_UNICODE));
+                Log::info('send_sms_phone_illegal_error' , $error);
                 return false;
             }
         }
@@ -124,7 +125,7 @@ class EasySms implements ShouldQueue
             {
                 $messages[$gateway] = $exception->getMessage();
             }
-            Log::error(\json_encode($messages , JSON_UNESCAPED_UNICODE));
+            Log::info('send_sms_phone_fail' , $messages);
         }
         DB::table('short_messages')->where('id' , $id)->update(
             array('message'=>\json_encode($messages , JSON_UNESCAPED_UNICODE) , 'status'=>$result)
