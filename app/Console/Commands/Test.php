@@ -70,8 +70,8 @@ class Test extends Command
                         'userLevel'=>$sender['user_level']
                     ),
                 ),
-                'videoUrl'=>"https://video.helloo.mantouhealth.com/other/20210128/4c01b357d9f04ba01b28051300b3b93d.mp4",
-                'firstFrameUrl'=>"https://image.helloo.mantouhealth.com/other/20210128/20210128110716.png",
+                'videoUrl'=>"https://video.helloo.mantouhealth.com/other/20210129/20210129112004.mp4",
+                'firstFrameUrl'=>"https://image.helloo.mantouhealth.com/other/20210129/20210129112004.png",
                 'videoPath'=>'',
                 'firstFramePath'=>'',
             );
@@ -155,9 +155,9 @@ class Test extends Command
 
     public function send($content)
     {
-//        Log::info('escort_talk_template_content' , $content);
+        Log::info('escort_talk_content' , $content);
         $result = app('rcloud')->getMessage()->Person()->send($content);
-//        Log::info('escort_talk_template_result' , $result);
+        Log::info('escort_talk_result' , $result);
     }
 
 }

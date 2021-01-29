@@ -64,7 +64,8 @@ class AuthController extends BaseController
             Validator::make($validationField, $rule)->validate();
         }catch (ValidationException $exception)
         {
-            $this->dispatchNow(new SignUpOrInFail($exception->errors()));
+            $errorJob = new SignUpOrInFail($exception->errors());
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
             throw new ValidationException($exception->validator);
         }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
@@ -77,7 +78,8 @@ class AuthController extends BaseController
                 return $this->respondWithToken($token , false);
             }
         }
-        $this->dispatchNow(new SignUpOrInFail(trans('auth.phone_failed')));
+        $errorJob = new SignUpOrInFail(trans('auth.phone_failed'));
+        $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
         return $this->response->errorUnauthorized(trans('auth.phone_failed'));
     }
 
@@ -330,7 +332,8 @@ class AuthController extends BaseController
             Validator::make($validationField, $rule)->validate();
         }catch (ValidationException $exception)
         {
-            $this->dispatchNow(new SignUpOrInFail($exception->errors()));
+            $errorJob = new SignUpOrInFail($exception->errors());
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
             throw new ValidationException($exception->validator);
         }
         if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
@@ -340,7 +343,8 @@ class AuthController extends BaseController
         $userPhone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
         if(!empty($userPhone))
         {
-            $this->dispatchNow(new SignUpOrInFail(trans('validation.custom.phone.unique')));
+            $errorJob = new SignUpOrInFail(trans('validation.custom.phone.unique'));
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
             abort(422 , trans('validation.custom.phone.unique'));
         }
         $now = Carbon::now()->toDateTimeString();
@@ -377,7 +381,8 @@ class AuthController extends BaseController
                 'code'=>$e->getCode(),
                 'message'=>$e->getMessage(),
             ));
-            $this->dispatchNow(new SignUpOrInFail($e->getMessage()));
+            $errorJob = new SignUpOrInFail($e->getMessage());
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
@@ -450,7 +455,8 @@ class AuthController extends BaseController
             Validator::make($validationField, $rule)->validate();
         }catch (ValidationException $exception)
         {
-            $this->dispatchNow(new SignUpOrInFail($exception->errors()));
+            $errorJob = new SignUpOrInFail($exception->errors());
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
             throw new ValidationException($exception->validator);
         }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
@@ -498,7 +504,8 @@ class AuthController extends BaseController
                 'code'=>$e->getCode(),
                 'message'=>$e->getMessage(),
             ));
-            $this->dispatchNow(new SignUpOrInFail($e->getMessage()));
+            $errorJob = new SignUpOrInFail($e->getMessage());
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
             throw new StoreResourceFailedException('sign up failed');
         }
         $user = $this->user->find($userId);
