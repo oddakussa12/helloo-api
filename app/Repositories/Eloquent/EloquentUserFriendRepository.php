@@ -17,7 +17,7 @@ class EloquentUserFriendRepository  extends EloquentBaseRepository implements Us
 {
     public function paginateByUser($userId)
     {
-        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate(50 , ["*"] , $this->pageName);
+        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->groupBy('friend_id')->paginate(50 , ["*"] , $this->pageName);
     }
     public function getAllByUser($userId, $perPage = 15)
     {

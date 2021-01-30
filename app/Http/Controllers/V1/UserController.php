@@ -9,11 +9,12 @@ use Illuminate\Http\Request;
 use App\Resources\TagCollection;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use libphonenumber\PhoneNumberUtil;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserTagRepository;
-use Illuminate\Support\Facades\Redis;
 
 class UserController extends BaseController
 {
@@ -120,7 +121,8 @@ class UserController extends BaseController
         if(!blank($user->get('user_school')))
         {
             $school = DB::table('schools')->where('key' , $user->get('user_school'))->first();
-            $user->put('user_school' , $school->name);
+            $userSchool = !blank($school)?$school->name:'';
+            $user->put('user_school' , $userSchool);
         }
         return new UserCollection($user);
     }
@@ -284,6 +286,75 @@ class UserController extends BaseController
         }
         unset($random['userId']);
         return $this->response->array($random);
+    }
+
+    public function contactsV2(Request $request)
+    {
+        $userOddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
+        $userEvenPhoneKey = "helloo:account:service:account-phone-{even}-number";
+        $userId = auth()->id();
+        $keyPrefix = "helloo:account:service:account-{phone}-number:";
+        $contacts = (array)$request->all();
+        $phoneUtil = PhoneNumberUtil::getInstance();
+        $contacts = collect($contacts)->map(function($userPhone , $key) use ($phoneUtil){
+            $value = "+".trim($userPhone , "+");
+            try{
+                $numberProto = $phoneUtil->parse($value);
+                $result = $phoneUtil->isValidNumber($numberProto);
+                if($result===true)
+                {
+                    return array('phone_country'=>$numberProto->getCountryCode() , 'phone'=>$numberProto->getNationalNumber());
+                }else{
+                    return array('phone'=>$userPhone);
+                }
+            }catch (\Exception $e)
+            {
+                return array('phone'=>$userPhone);
+            }
+        })->filter(function($contact , $key){
+            return isset($contact['phone_country']);
+        })->values();
+//        $contacts = collect($contacts)->filter(function($userPhone , $key){
+//            return !blank($userPhone)&&isset($userPhone['phone_country'])&&isset($userPhone['phone'])&&is_numeric($userPhone['phone_country'])&&is_numeric($userPhone['phone']);
+//        })->values();
+        $contacts = $contacts->slice(0 , 200);
+        $contacts = $contacts->map(function($userPhone , $key) use ($keyPrefix , $userOddPhoneKey , $userEvenPhoneKey){
+            $phone = intval(ltrim($userPhone['phone'] , 0));
+            $key = strval(ltrim(ltrim($userPhone['phone_country'] , "+") ,0)).'-'.strval(ltrim($userPhone['phone'] , 0));
+
+            if($phone%2===0)
+            {
+                $userId = intval(Redis::zscore($userEvenPhoneKey , $key));
+            }else{
+                $userId = intval(Redis::zscore($userOddPhoneKey , $key));
+            }
+            $userPhone['user_id'] = $userId;
+            return $userPhone;
+        });
+        $userIds = $contacts->pluck('user_id')->filter(function ($value, $key) {
+            return intval($value) > 0;
+        })->all();
+        $users = $this->user->findByUserIds($userIds);
+        if(blank($userIds))
+        {
+            $friendIds = $userIds;
+        }else{
+            $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
+        }
+        $contacts = $contacts->map(function($contact , $key) use ($users , $friendIds){
+            $user = $users->where('user_id' , $contact['user_id'])->first();
+            if(!blank($user))
+            {
+                $user['status'] = $this->user->isOnline($contact['user_id']);
+                $user['is_friend'] = in_array($contact['user_id'] , $friendIds);
+            }
+            return array(
+                'phone_country'=>$contact['phone_country'],
+                'phone'=>$contact['phone'],
+                'user'=>$user,
+            );
+        });
+        return UserCollection::collection($contacts);
     }
 
     /**

@@ -50,6 +50,53 @@ class Test extends Command
      */
     public function handle()
     {
+//        $this->system();
+    }
+
+    public function system()
+    {
+        $key = "helloo:account:system:senderId";
+        $systemId = Redis::get($key);
+        if($systemId===null)
+        {
+            return;
+        }
+        $sender = app(UserRepository::class)->findByUserId(intval($systemId))->toArray();
+        $content = array(
+            'senderId'   => $sender['user_id'],
+            "objectName" => "Helloo:VideoMsg",
+            'content'    => array(
+                'content'=>'video message',
+                'user'=> array(
+                    'id'=>$sender['user_id'],
+                    'name'=>$sender['user_nick_name'],
+                    'portrait'=>$sender['user_avatar_link'],
+                    'extra'=>array(
+                        'userLevel'=>$sender['user_level']
+                    ),
+                ),
+                'videoPath'=>'',
+                'firstFramePath'=>'',
+                'firstFrameUrl'=>'https://image.helloo.mantouhealth.com/other/20210130/FinalVideo_1612005544.512429_x264.jpg',
+                'videoUrl'=>'https://video.helloo.mantouhealth.com/other/20210130/FinalVideo_1612005544.512429_x264.mp4',
+            ),
+            'pushContent'=>'video message',
+            'pushExt'=>\json_encode(array(
+                'title'=>'video message',
+                'forceShowPushContent'=>1
+            ))
+        );
+
+        DB::table('users_phones')->whereIn('user_phone_country' , array(62 , 670))->orderByDesc('phone_id')->chunk(100 , function($users) use ($content){
+            $userIds = collect($users)->pluck('user_id')->toArray();
+            dump($userIds);
+            $content['targetId'] = $userIds;
+            $this->sendSystem($content);
+        });
+    }
+
+    public function person()
+    {
         $talks = DB::table('escort_talker')->select('user_id')->distinct()->get()->toArray();
         foreach ($talks as $talk)
         {
@@ -92,71 +139,22 @@ class Test extends Command
                 {
                     $content['targetId'] = $friend->friend_id;
                     Log::info('$friend->friend_id' , array($friend->friend_id));
-                    $this->send($content);
+                    $this->sendPerson($content);
                 }
             });
         }
-//        DB::table('signup_infos')->whereNotNull('signup_ip')->where('signup_isocode' , 'US')->orderByDesc('signup_id')->chunk(10 , function($users){
-//            foreach ($users as $user)
-//            {
-//
-//                $geo = geoip($user->signup_ip);
-//                Log::info('sign_up' , array(
-//                    $user->signup_id,
-//                    $user->signup_ip,
-//                    $geo->iso_code
-//                ));
-//                $signup_info = array();
-//                $signup_info['signup_isocode'] = $geo->iso_code;
-//                $signup_info['signup_country'] = $geo->country;
-//                $signup_info['signup_state'] = $geo->state_name;
-//                $signup_info['signup_city'] = $geo->city;
-//                $signup_info['signup_lat'] = $geo->lat;
-//                $signup_info['signup_lon'] = $geo->lon;
-//                $signup_info['signup_timezone'] = $geo->timezone;
-//                $signup_info['signup_continent'] = $geo->continent;
-//                DB::table('signup_infos')->where('signup_id' , $user->signup_id)->update($signup_info);
-//            }
-//        });
-//        $evenPhoneKey = "helloo:account:service:account-phone-{even}-number";
-//        $oddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
-//        $evenData = array();
-//        $oddData = array();
-//        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
-//        User::chunk(500, function($users){
-//            foreach($users as $user){
-//                Redis::del('helloo:account:service:account-ry-token:'.$user->user_id);
-//                Redis::del('helloo:account:service:account:'.$user->user_id);
-//            }
-//        });
-        die;
-//        $now = Carbon::now();
-//        $oneMonthAgo = $now->subDays(3)->format('Y-m-d 00:00:00');
-//        $newKey = config('redis-key.post.post_index_new');
-//        $perPage = 10;
-//        $count = Redis::zcard($newKey);
-//        $redis = new RedisList();
-//        $lastPage = ceil($count/$perPage);
-//        for ($page=1;$page<=$lastPage;$page++) {
-//            $offset = ($page - 1) * $perPage;
-//            $posts = $redis->zRevRangeByScore($newKey, '+inf', strtotime($oneMonthAgo), true, array($offset, $perPage));
-//            if (empty($posts)) {
-//                break;
-//            }
-//            foreach ($posts as $postId=>$time)
-//            {
-//                $postKey = 'post.'.$postId.'.data';
-//                $after = $this->likeCount($postId);
-//                $coefficient = floatval(Redis::get('fake_like_coefficient'));
-//                Redis::hmset($postKey , array('temp_like'=>fakeLike($after['like'] , $coefficient)));
-//            }
-//        }
     }
 
-    public function send($content)
+    public function sendPerson($content)
     {
         Log::info('escort_talk_content' , $content);
         $result = app('rcloud')->getMessage()->Person()->send($content);
+        Log::info('escort_talk_result' , $result);
+    }
+    public function sendSystem($content)
+    {
+        Log::info('escort_talk_content' , $content);
+        $result = app('rcloud')->getMessage()->System()->send($content);
         Log::info('escort_talk_result' , $result);
     }
 

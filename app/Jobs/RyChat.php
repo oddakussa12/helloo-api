@@ -64,6 +64,7 @@ class RyChat implements ShouldQueue
                     'RC:VCInvite',
                     'RC:VCRinging',
                     'Helloo:VideoMsg',
+                    'Yooul:VideoLike'
                 ]),
             ],
             'content' => [
@@ -148,7 +149,23 @@ class RyChat implements ShouldQueue
                 if(isset($content['videoUrl'])) {
                     $messageContent['message_content'] = $content['videoUrl'];
                 }
-
+                if($messageContent['message_type']=='Yooul:VideoLike')
+                {
+                    $likeType = strval($content['LikeType']);
+                    if(strlen($likeType)>1)
+                    {
+                        $data['chat_extend'] = intval($content['mSystemOfficialID']);
+                    }else{
+                        $data['chat_extend'] = intval($content['LikeType']);
+                    }
+                    $messageContent['message_content'] = \json_encode(array(
+                        'LikeType'=>$content['LikeType'],
+                        'isRead'=>$content['isRead'],
+                        'videoID'=>$content['videoID'],
+                        'mSystemOfficialID'=>$content['mSystemOfficialID'],
+                        'videoImg'=>$content['videoImg'],
+                    ) , JSON_UNESCAPED_UNICODE);
+                }
                 try{
                     $messageContent['created_at'] = $this->now;
                     DB::table('ry_messages_'.$index)->insert($messageContent);

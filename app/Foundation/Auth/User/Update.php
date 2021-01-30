@@ -215,7 +215,7 @@ trait Update
                 'bail',
                 'filled',
                 'string',
-                'min:4',
+                'min:2',
                 'max:32'
             ],
             'user_birthday'=>[

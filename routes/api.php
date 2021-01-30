@@ -159,6 +159,8 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/contacts' , 'UserController@contacts')->name('user.contacts');
 
+    $api->post('user/contactsV2' , 'UserController@contactsV2')->name('user.contactsV2');
+
     $api->post('user/status' , 'UserController@status')->name('user.status');
 
     $api->resource('user' , 'UserController' , ['only' => ['show']]);
