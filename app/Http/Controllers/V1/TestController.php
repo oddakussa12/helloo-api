@@ -55,8 +55,20 @@ class TestController extends BaseController
     {
         $sms = app('easy-sms');
         $number = new PhoneNumber(4734190916 , 1);
+        $str = <<<DOC
+Promosaun Lovbee!
+ 
+Obrigada barak ba uza ona Lovbee. Ita bo'ot iha ona kolega 1 iha Lovbee, adisiona kolega 2 tan iha Lovbee no manan pulsa $1, sei transfere diretamente ba ita nia numero telemovel!
+Bele adisiona diretamente kolega sira ne’e iha Lovbee no hetan pulsa $1.
+- ID: NongYo06, 
+- ID: Linda07,
+- ID: Desy02,
+- ID: Thavya30, 
+- ID: morrales31.
+DOC;
+
         try{
-            $result = $sms->send($number, 'NEW Lovbee Promotion!' , array('aws'));
+            $result = $sms->send($number, $str , array('aws'));
             Log::info('$result' , array($result));
         }catch (NoGatewayAvailableException $e)
         {

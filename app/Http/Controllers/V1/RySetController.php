@@ -7,7 +7,9 @@ use App\Models\BlackUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use libphonenumber\PhoneNumberUtil;
 use Illuminate\Support\Facades\Redis;
+use libphonenumber\NumberParseException;
 
 class RySetController extends BaseController
 {
@@ -211,16 +213,75 @@ class RySetController extends BaseController
     public function push(Request $request)
     {
         Log::info('all' , $request->all());
+        $sender = strval($request->input('sender' , ''));
+        $target = strval($request->input('target' , ''));
+        $type = intval($request->input('type' , 0));
+        $image = strval($request->input('image' , ''));
+        $video = strval($request->input('video' , ''));
+        if(blank($sender))
+        {
+            return $this->response->created();
+        }
+        if($type==2&&blank($target))
+        {
+            return $this->response->created();
+        }
+        $sendPhone = "+".$sender;
+        $phoneUtil = PhoneNumberUtil::getInstance();
+        try{
+            $numberProto = $phoneUtil->parse($sendPhone);
+            $result = $phoneUtil->isValidNumber($numberProto);
+            if(!$result)
+            {
+                return $this->response->created();
+            }
+            $senderPhone = $numberProto->getNationalNumber();
+            $senderPhoneCountry = $numberProto->getCountryCode();
+        }catch (NumberParseException $e)
+        {
+            return $this->response->created();
+        }
+        if($type==2)
+        {
+            $targetPhone = "+".$target;
+            try{
+                $numberProto = $phoneUtil->parse($targetPhone);
+                $result = $phoneUtil->isValidNumber($numberProto);
+                if(!$result)
+                {
+                    return $this->response->created();
+                }
+                $targetErPhone = $numberProto->getNationalNumber();
+                $targetErPhoneCountry = $numberProto->getCountryCode();
+            }catch (NumberParseException $e)
+            {
+                return $this->response->created();
+            }
+            $targetUserPhone = DB::table('users_phones')->where('user_phone_country' , $targetErPhoneCountry)->where('user_phone' , $targetErPhone)->first();
+            if(blank($targetUserPhone))
+            {
+                return $this->response->created();
+            }
+            $target = $targetUserPhone->user_id;
+        }
+
+        $senderUserPhone = DB::table('users_phones')->where('user_phone_country' , $senderPhoneCountry)->where('user_phone' , $senderPhone)->first();
+        if(blank($senderUserPhone))
+        {
+            return $this->response->created();
+        }
+        $sender = $senderUserPhone->user_id;
         DB::table('push_logs')->insert(array(
-            'sender'=>$request->input('sender'),
-            'target'=>$request->input('target'),
-            'type'=>$request->input('type'),
-            'image'=>$request->input('image'),
-            'video'=>$request->input('video'),
+            'sender'=>$sender,
+            'target'=>$target,
+            'type'=>$type,
+            'image'=>$image,
+            'video'=>$video,
             'created_at'=>Carbon::now()->toDateTimeString(),
         ));
         Redis::set('helloo:message:service:switch' , 1);
         Redis::expire('helloo:message:service:switch' , 60*60*24);
         return $this->response->created();
+
     }
 }

@@ -79,6 +79,17 @@ class Message extends Command
                     }elseif ($push->type==2)
                     {
                         $this->system($push->sender , $push->video , $push->image , $push->target);
+                    }elseif ($push->type==3)
+                    {
+                        DB::table('users_friends')->where('user_id' , $push->sender)->orderByDesc('friend_id')->chunk(100 , function($users) use ($push){
+                            $userIds = collect($users)->pluck('friend_id')->toArray();
+                            $userIds = array_diff($userIds , array($push->sender));
+                            foreach ($userIds as $userId)
+                            {
+                                usleep(200);
+                                $this->system($push->sender , $push->video , $push->image , $userId);
+                            }
+                        });
                     }
                 }else{
                     if($push->type==0)
@@ -109,6 +120,17 @@ class Message extends Command
                     }elseif ($push->type==2)
                     {
                         $this->person($push->sender , $push->video , $push->image , $push->target);
+                    }elseif ($push->type==3)
+                    {
+                        DB::table('users_friends')->where('user_id' , $push->sender)->orderByDesc('friend_id')->chunk(100 , function($users) use ($push){
+                            $userIds = collect($users)->pluck('friend_id')->toArray();
+                            $userIds = array_diff($userIds , array($push->sender));
+                            foreach ($userIds as $userId)
+                            {
+                                usleep(200);
+                                $this->person($push->sender , $push->video , $push->image , $userId);
+                            }
+                        });
                     }
                 }
             }

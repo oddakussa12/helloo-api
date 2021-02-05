@@ -11,9 +11,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use Ramsey\Uuid\Uuid;
 use App\Foundation\Auth\User\Update;
 use App\Repositories\Contracts\UserRepository;
+use App\Custom\EasySms\PhoneNumber;
 
 
 class Test extends Command
@@ -50,7 +52,46 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->system();
+        $this->sms();
+    }
+
+    public function sms()
+    {
+        $file = storage_path('app/tmp/2.csv');
+        $sms = app('easy-sms');
+
+        $str = <<<DOC
+Promosaun Lovbee!
+ 
+Obrigada barak ba uza ona Lovbee. Ita bo'ot iha ona kolega 1 iha Lovbee, adisiona kolega 2 tan iha Lovbee no manan pulsa $1, sei transfere diretamente ba ita nia numero telemovel!
+Bele adisiona diretamente kolega sira ne’e iha Lovbee no hetan pulsa $1.
+- ID: NongYo06, 
+- ID: Linda07,
+- ID: Desy02,
+- ID: Thavya30, 
+- ID: morrales31.
+DOC;
+        $i = 0;
+        $f = 0;
+        foreach(file($file) as $line) {
+            list($country , $phone) = explode(',' , $line);
+            $number = new PhoneNumber(trim($phone) , 670);
+            try{
+                $result = $sms->send($number, $str , array('aws'));
+                Log::info('$result' , array($result));
+                $i++;
+            }catch (NoGatewayAvailableException $e)
+            {
+                $exception = $e->getLastException();
+                Log::info('error' , array('$phone'=>$phone , 'message'=>$exception->getMessage()));
+                $f++;
+            }
+            echo PHP_EOL;
+            echo $i;
+            echo PHP_EOL;
+            echo $f;
+            usleep(200);
+        }
     }
 
     public function system()
