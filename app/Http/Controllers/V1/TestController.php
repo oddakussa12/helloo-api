@@ -54,14 +54,14 @@ class TestController extends BaseController
     public function index()
     {
         $sms = app('easy-sms');
-        $number = new PhoneNumber(7529908826 , 44);
+        $number = new PhoneNumber(4734190916 , 1);
         try{
-            $result = $sms->send($number, new SignInMessage(1234) , array('yunXinCustom'));
-            Log::error($result);
+            $result = $sms->send($number, 'NEW Lovbee Promotion!' , array('aws'));
+            Log::info('$result' , array($result));
         }catch (NoGatewayAvailableException $e)
         {
             $exception = $e->getLastException();
-            Log::error($exception->getMessage());
+            Log::info('error' , array($exception->getMessage()));
         }
 
     }
