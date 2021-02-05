@@ -7,6 +7,7 @@ use App\Jobs\EasySms;
 use App\Rules\UserPhone;
 use App\Messages\SignInMessage;
 use Illuminate\Validation\Rule;
+use Godruoyi\Snowflake\Snowflake;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Custom\EasySms\PhoneNumber;
@@ -229,8 +230,8 @@ trait Update
                 'bail',
                 'filled',
                 'date',
-                'after:'.date('Y-m-d' , strtotime('-102years')),
-                'before:'.date('Y-m-d' , strtotime('-1years')),
+                'after:'.date('Y-m' , strtotime('-102years')),
+                'before:'.date('Y-m' , strtotime('+1months')),
             ],
             'user_about'=>[
                 'bail',
@@ -252,6 +253,12 @@ trait Update
                 'bail',
                 'filled',
                 'string',
+            ],
+            'school'=>[
+                'bail',
+                'filled',
+                'string',
+                'between:1,250'
             ],
             'user_grade'=>[
                 'bail',
@@ -355,6 +362,12 @@ trait Update
         return $code;
     }
 
+    /**
+     * 2021-02-02 9:45
+     * @param User $user
+     * @param $data
+     * @return bool|void
+     */
     public function activate(User $user ,$data)
     {
         $flag = false;
@@ -386,9 +399,32 @@ trait Update
                 DB::rollBack();
                 Redis::zrem($key , $userId);
                 Log::info('account_activation_failed' , array(
+                    'user_id'=>$userId,
                     'code'=>$e->getCode(),
                     'message'=>$e->getMessage(),
                 ));
+            }
+            if($flag==true&&(isset($data['user_sl'])||isset($data['user_school'])))
+            {
+                if(isset($data['user_sl']))
+                {
+                    $school = $data['user_sl'];
+                }else{
+                    $school = DB::table('schools')->where('key' , $data['user_school'])->first();
+                    if(blank($school))
+                    {
+                        return true;
+                    }
+                    $school = $school->name;
+                }
+                $now = Carbon::now()->toDateTimeString();
+                $logData = array(
+                    'id'=>(new Snowflake)->id(),
+                    'user_id'=>$userId,
+                    'school'=>$school,
+                    'created_at'=>$now,
+                );
+                DB::table('users_schools_logs')->insert($logData);
             }
         }else{
             $flag = true;
@@ -422,6 +458,18 @@ trait Update
                     'string',
                     'alpha_num',
                     'between:6,24',
+                    function ($attribute, $value, $fail) use ($user , $key){
+                        $len = strlen($value);
+                        $mbLen = mb_strlen($value);
+                        if($mbLen!==$len)
+                        {
+                            Log::info('special_characters' , array(
+                                'user_id'=>$user->user_id,
+                                'name'=>$value,
+                            ));
+                            $fail('The username must contain letters and numbers.');
+                        }
+                    },
                     function ($attribute, $value, $fail) use ($user , $key){
                         if(preg_match("/^\d*$/",$value)||preg_match("/^[a-z]*$/i",$value))
                         {

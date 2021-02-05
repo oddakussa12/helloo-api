@@ -24,7 +24,7 @@ class Test extends Command
      *
      * @var string
      */
-    protected $signature = 'auto:test';
+    protected $signature = 'auto:test {type} {user}';
 
     /**
      * The console command description.
@@ -50,7 +50,7 @@ class Test extends Command
      */
     public function handle()
     {
-//        $this->system();
+        $this->system();
     }
 
     public function system()
@@ -77,8 +77,8 @@ class Test extends Command
                 ),
                 'videoPath'=>'',
                 'firstFramePath'=>'',
-                'firstFrameUrl'=>'https://image.helloo.mantouhealth.com/other/20210130/FinalVideo_1612005544.512429_x264.jpg',
-                'videoUrl'=>'https://video.helloo.mantouhealth.com/other/20210130/FinalVideo_1612005544.512429_x264.mp4',
+                'firstFrameUrl'=>'https://image.helloo.mantouhealth.com/other/20210204/6534e259a03675491654d58ce1c94969.png',
+                'videoUrl'=>'https://video.helloo.mantouhealth.com/other/20210204/6534e259a03675491654d58ce1c94969.mp4',
             ),
             'pushContent'=>'video message',
             'pushExt'=>\json_encode(array(
@@ -86,12 +86,52 @@ class Test extends Command
                 'forceShowPushContent'=>1
             ))
         );
+        dump($content);
+        $this->sendSystem($content);
+//        DB::table('users_phones')->orderByDesc('phone_id')->chunk(1000 , function($users) use ($content){
+//            $userIds = collect($users)->pluck('user_id')->toArray();
+//            $content['targetId'] = $userIds;
+//            $this->sendSystem($content);
+//        });
+    }
 
-        DB::table('users_phones')->whereIn('user_phone_country' , array(62 , 670))->orderByDesc('phone_id')->chunk(100 , function($users) use ($content){
+    public function custom($talker)
+    {
+        $sender = collect(DB::table('users')->where('user_id' , $talker)->first())->toArray();
+        if(blank($sender))
+        {
+            return;
+        }
+        $content = array(
+            'content'=>'video message',
+            'user'=> array(
+                'id'=>$sender['user_id'],
+                'name'=>$sender['user_nick_name'],
+                'portrait'=>userCover($sender['user_avatar']),
+                'extra'=>array(
+                    'userLevel'=>$sender['user_level']
+                ),
+            ),
+            'videoUrl'=>"http://video.helloo.mantouhealth.com/other/20210204/d0c6acc77db5a4cc5aceb31252f894c1.mp4",
+            'firstFrameUrl'=>"https://image.helloo.mantouhealth.com/other/20210204/d0c6acc77db5a4cc5aceb31252f894c1.png",
+            'videoPath'=>'',
+            'firstFramePath'=>'',
+        );
+        $content = array(
+            'senderId'   => $talker,
+            "objectName" => "Helloo:VideoMsg",
+            'content'    => \json_encode($content),
+            'pushContent'=>'video message',
+            'pushExt'=>\json_encode(array(
+                'title'=>'video message',
+                'forceShowPushContent'=>1
+            ))
+        );
+        DB::table('signup_infos')->whereIn('signup_isocode' , array('au' , 'tl'))->orderByDesc('signup_id')->chunk(100 , function($users) use ($talker , $content){
             $userIds = collect($users)->pluck('user_id')->toArray();
-            dump($userIds);
+            $userIds = array_diff($userIds , array($talker));
             $content['targetId'] = $userIds;
-            $this->sendSystem($content);
+            $this->sendSystemPerson($content);
         });
     }
 
@@ -147,15 +187,24 @@ class Test extends Command
 
     public function sendPerson($content)
     {
-        Log::info('escort_talk_content' , $content);
+        Log::info('sendPerson_content' , $content);
         $result = app('rcloud')->getMessage()->Person()->send($content);
-        Log::info('escort_talk_result' , $result);
+        Log::info('sendPerson_result' , $result);
     }
+
     public function sendSystem($content)
     {
-        Log::info('escort_talk_content' , $content);
+        Log::info('sendSystem_content' , $content);
+        $result = app('rcloud')->getMessage()->System()->broadcast($content);
+        Log::info('sendSystem_result' , $result);
+    }
+
+    public function sendSystemPerson($content)
+    {
+        sleep(10);
+        Log::info('sendSystemPerson_content' , $content);
         $result = app('rcloud')->getMessage()->System()->send($content);
-        Log::info('escort_talk_result' , $result);
+        Log::info('sendSystemPerson_result' , $result);
     }
 
 }

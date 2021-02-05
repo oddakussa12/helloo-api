@@ -48,6 +48,32 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         {
             UserUpdate::dispatch($user)->onQueue('helloo_{user_update}');
         }
+        if(isset($data['user_sl'])||isset($data['user_school']))
+        {
+            if(isset($data['user_sl']))
+            {
+                $school = $data['user_sl'];
+            }else{
+                $school = DB::table('schools')->where('key' , $data['user_school'])->first();
+                if(blank($school))
+                {
+                    $school = '';
+                }else{
+                    $school = $school->name;
+                }
+            }
+            if(!blank($school))
+            {
+                $now = Carbon::now()->toDateTimeString();
+                $logData = array(
+                    'id'=>(new Snowflake)->id(),
+                    'user_id'=>$model->getKey(),
+                    'school'=>$school,
+                    'created_at'=>$now,
+                );
+                DB::table('users_schools_logs')->insert($logData);
+            }
+        }
         return $user;
     }
 
@@ -78,7 +104,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             {
                 $cache = collect($user)->toArray();
                 Redis::hmset($key , $cache);
-                Redis::expire($key , 60*60*24*30);
+                Redis::expire($key , 60*60*24);
             }
         }else{
             $user = collect($user);

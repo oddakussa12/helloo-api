@@ -69,14 +69,15 @@ class AuthController extends BaseController
             throw new ValidationException($exception->validator);
         }
         $phone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
-        if(!empty($phone))
+        if(empty($phone))
         {
-            $user = $this->user->find($phone->user_id);
-            if(!config('common.is_verification')||password_verify($password, $user->user_pwd))
-            {
-                $token = auth()->login($user);
-                return $this->respondWithToken($token , false);
-            }
+            return $this->response->errorUnauthorized(__("Phone number hasn't been registered yet."));
+        }
+        $user = $this->user->find($phone->user_id);
+        if(!config('common.is_verification')||password_verify($password, $user->user_pwd))
+        {
+            $token = auth()->login($user);
+            return $this->respondWithToken($token , false);
         }
         $errorJob = new SignUpOrInFail(trans('auth.phone_failed'));
         $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
@@ -102,6 +103,7 @@ class AuthController extends BaseController
         $user_avatar = strval($request->input('user_avatar' , ''));
         $user_gender = $request->input('user_gender');
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
+        $school = strval($request->input('school' , ''));
         $user_school = strval($request->input('user_school' , ''));
         $user_grade = strval($request->input('user_grade' , ''));
         $user_country = strval($request->input('user_country' , ''));
@@ -130,6 +132,11 @@ class AuthController extends BaseController
         if(!blank($user_nick_name))
         {
             $fields['user_nick_name'] = strval($user_nick_name);
+        }
+
+        if(!blank($school))
+        {
+            $fields['user_sl'] = strval($school);
         }
 
         if(!blank($user_school)&&empty($user->user_school))
@@ -181,9 +188,11 @@ class AuthController extends BaseController
         $user_gender = $request->input('user_gender');
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
         $user_school = strval($request->input('user_school' , ''));
+        $school = strval($request->input('school' , ''));
         $user_grade = strval($request->input('user_grade' , ''));
         $user_enrollment_at = strval($request->input('user_enrollment_at' , ''));
         $user_country = strval($request->input('user_country' , ''));
+        $user_bg = strval($request->input('user_bg' , ''));
         if(!empty($user_country))
         {
             $fields['user_country'] = $user_country;
@@ -217,9 +226,17 @@ class AuthController extends BaseController
         {
             $fields['user_school'] = $user_school;
         }
+        if(!blank($school))
+        {
+            $fields['user_sl'] = $school;
+        }
         if(!blank($user_grade))
         {
             $fields['user_grade'] = $user_grade;
+        }
+        if(!blank($user_bg))
+        {
+            $fields['user_bg'] = $user_bg;
         }
         $fields = array_filter($fields , function($value){
             return !blank($value);
@@ -227,7 +244,7 @@ class AuthController extends BaseController
         if(!empty($fields)&&$user->user_activation==1)
         {
             Validator::make($fields, $this->updateRules())->validate();
-            $user = $this->user->update($user,$fields);
+            $user = $this->user->update($user , $fields);
             if($user->user_gender!=$oldGender)
             {
                 Redis::zadd($genderKey , time() , $user->getKey());

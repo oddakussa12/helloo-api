@@ -34,10 +34,12 @@ class User extends Authenticatable implements JWTSubject
         'user_gender' ,
         'user_birthday' ,
         'user_avatar' ,
+        'user_bg' ,
         'user_src' ,
 
         'user_about' ,
         'user_school' ,
+        'user_sl' ,
         'user_grade' ,
 
         'user_answer' ,

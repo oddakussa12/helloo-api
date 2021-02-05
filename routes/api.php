@@ -136,8 +136,6 @@ $api->group($V1Params , function ($api){
 
         $api->get('aws/{object}/preSignedUrl' , 'AwsController@preSignedUrl')->name('aws.preSignedUrl');
 
-        $api->get('aws/{type}/form' , 'AwsController@form')->name('aws.form');
-
         $api->get('game/{game}/rank/day' , 'GameScoreController@day')->where('game', 'coronation|superZero|trumpAdventures')->name('game.score.day');
 
         $api->get('game/{game}/rank/week' , 'GameScoreController@week')->where('game', 'coronation|superZero|trumpAdventures')->name('game.score.week');
@@ -167,7 +165,7 @@ $api->group($V1Params , function ($api){
 
     $api->get('user' , 'UserController@index')->name('user.index');
 
-
+    $api->get('aws/{type}/form' , 'AwsController@form')->name('aws.form');
 
     $api->group(['middleware'=>['guestRefresh']] , function($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
@@ -192,6 +190,10 @@ $api->group($V1Params , function ($api){
 
 
     $api->get('app/index' , 'AppController@index')->name('app.index');
+
+    $api->get('school/index' , 'SchoolController@index')->name('school.index');
+
+    $api->post('ry/push' , 'RySetController@push')->name('ry.push');
 
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');

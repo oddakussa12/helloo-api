@@ -23,12 +23,10 @@ class EventController extends BaseController
     public function event($event)
     {
         $flag = false;
-        Log::info($event);
         $gameEvent = app(EventRepository::class)->findByAttributes(array('game'=>$event));
         if(!blank($gameEvent))
         {
             $now = Carbon::now()->timestamp;
-            Log::info($now);
             if($now<=$gameEvent->ended_at)
             {
                 $flag = true;

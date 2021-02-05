@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\V1;
 
+use Carbon\Carbon;
 use App\Models\BlackUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
@@ -204,5 +206,21 @@ class RySetController extends BaseController
         }
         return $response->array($token);
 
+    }
+
+    public function push(Request $request)
+    {
+        Log::info('all' , $request->all());
+        DB::table('push_logs')->insert(array(
+            'sender'=>$request->input('sender'),
+            'target'=>$request->input('target'),
+            'type'=>$request->input('type'),
+            'image'=>$request->input('image'),
+            'video'=>$request->input('video'),
+            'created_at'=>Carbon::now()->toDateTimeString(),
+        ));
+        Redis::set('helloo:message:service:switch' , 1);
+        Redis::expire('helloo:message:service:switch' , 60*60*24);
+        return $this->response->created();
     }
 }

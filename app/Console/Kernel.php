@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\RemoveExpiredOnlineUser::class,
         \App\Console\Commands\GenerateUid::class,
         \App\Console\Commands\Schema::class,
+        \App\Console\Commands\Message::class,
     ];
 
     /**
@@ -56,6 +57,8 @@ class Kernel extends ConsoleKernel
             });
         $schedule->command('ip_cache:update')
             ->daily();
+        $schedule->command('message:send')
+            ->everyMinute();
     }
 
     /**

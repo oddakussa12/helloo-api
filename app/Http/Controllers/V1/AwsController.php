@@ -112,7 +112,7 @@ class AwsController extends BaseController
                 break;
             //video
             case "mp4":
-                $contentType = "video/mpeg4";
+                $contentType = "video/mp4";
                 break;
             case "avi":
                 $contentType = "video/avi";
@@ -128,7 +128,8 @@ class AwsController extends BaseController
         }
         $aws = app('aws');
         $s3 = $aws->createS3();
-        $path = md5(auth()->id()).'/'.date('Ymd').'/';
+        $dir = empty(auth()->id())?'other':md5(auth()->id());
+        $path = $dir.'/'.date('Ymd').'/';
         if($type=='video')
         {
             $bucket = 'helloo-video';

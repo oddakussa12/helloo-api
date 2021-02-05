@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Resources\TagCollection;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use libphonenumber\PhoneNumberUtil;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -43,6 +44,23 @@ class UserController extends BaseController
         $userId = auth()->id();
         if(!blank($username))
         {
+            $rules = array(
+                'user_name' => [
+                    'bail',
+                    'required',
+                    'string',
+                    'alpha_num',
+                    'between:1,32'
+                    ]);
+            $validationField = array(
+                'user_name' => $username
+            );
+            $len = strlen($username);
+            $mbLen = mb_strlen($username);
+            if(Validator::make($validationField, $rules)->fails()||$mbLen!==$len)
+            {
+                return $this->response->array(array('data'=>array()));
+            }
             $users = $this->user->allWithBuilder()->where('user_name',$username)->select('user_id', 'user_avatar' , 'user_nick_name', 'user_about' , 'user_gender', 'user_school' , 'user_birthday')->limit(1)->get();
             $users = $users->filter(function($user) use ($userId){
                 return  $user->user_id!=$userId;
