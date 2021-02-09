@@ -90,6 +90,9 @@ class UserController extends BaseController
             $userSchools = $users->pluck('user_school')->toArray();
             $schools = DB::table('schools')->whereIn('key' , $userSchools)->get();
             $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
+            $users = $users->filter(function($user) use ($friendIds){
+                return  !in_array($user->user_id , $friendIds);
+            })->values();
             $users->each(function($user , $index) use ($friendIds , $schools){
                 $user->is_friend = in_array($user->user_id , $friendIds);
                 $user->user_school = $schools->where('key' , $user->user_school)->pluck('name')->first();
@@ -97,9 +100,9 @@ class UserController extends BaseController
             return UserCollection::collection($users);
         }elseif (!blank($keyword))
         {
-            $username = mb_substr($username , 0 , 30);
-            $len = strlen($username);
-            $mbLen = mb_strlen($username);
+            $keyword = mb_substr($keyword , 0 , 30);
+            $len = strlen($keyword);
+            $mbLen = mb_strlen($keyword);
             if($mbLen!==$len)
             {
                 $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about', 'user_gender' , 'user_sl' , 'user_birthday')->limit(20)->get();
@@ -114,9 +117,12 @@ class UserController extends BaseController
             })->values();
             $userIds = $users->pluck('user_id')->toArray();
             $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
-            $users->each(function($user , $index) use ($friendIds){
-                $user->is_friend = in_array($user->user_id , $friendIds);
-            });
+//            $users->each(function($user , $index) use ($friendIds){
+//                $user->is_friend = in_array($user->user_id , $friendIds);
+//            });
+            $users = $users->filter(function($user) use ($friendIds){
+                return  !in_array($user->user_id , $friendIds);
+            })->values();
             return UserCollection::collection($users);
         }else{
             return $this->response->array(array('data'=>array()));
