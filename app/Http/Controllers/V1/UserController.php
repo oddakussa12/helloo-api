@@ -61,7 +61,7 @@ class UserController extends BaseController
             {
                 return $this->response->array(array('data'=>array()));
             }
-            $users = $this->user->allWithBuilder()->where('user_name',$username)->select('user_id', 'user_avatar' , 'user_nick_name', 'user_about' , 'user_gender', 'user_school' , 'user_birthday')->limit(1)->get();
+            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_name',$username)->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about' , 'user_gender', 'user_school', 'user_sl' , 'user_birthday')->limit(1)->get();
             $users = $users->filter(function($user) use ($userId){
                 return  $user->user_id!=$userId;
             })->values();
@@ -81,7 +81,11 @@ class UserController extends BaseController
             {
                 return $this->response->array(array('data'=>array()));
             }
-            $users = $this->user->allWithBuilder()->where('user_id' , $userPhone->user_id)->select('user_id', 'user_avatar' , 'user_nick_name', 'user_about', 'user_gender', 'user_school' , 'user_birthday')->get();
+            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_id' , $userPhone->user_id)->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about', 'user_gender', 'user_school', 'user_sl'  , 'user_birthday')->get();
+            if(blank($users))
+            {
+                return $this->response->array(array('data'=>array()));
+            }
             $userIds = $users->pluck('user_id')->toArray();
             $userSchools = $users->pluck('user_school')->toArray();
             $schools = DB::table('schools')->whereIn('key' , $userSchools)->get();
@@ -93,7 +97,9 @@ class UserController extends BaseController
             return UserCollection::collection($users);
         }elseif (!blank($keyword))
         {
-            $users = $this->user->allWithBuilder()->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_nick_name', 'user_about', 'user_gender', 'user_birthday')->limit(20)->get();
+            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where(function ($query) use ($keyword) {
+                $query->where('user_nick_name', 'like', "%{$keyword}%")->orWhere('user_name', 'like', "%{$keyword}%");
+            })->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->orderByRaw("REPLACE(user_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about', 'user_gender' , 'user_sl' , 'user_birthday')->limit(20)->get();
             $users = $users->filter(function($user) use ($userId){
                 return  $user->user_id!=$userId;
             })->values();
@@ -386,9 +392,11 @@ class UserController extends BaseController
         $userId = auth()->id();
         $keyPrefix = "helloo:account:service:account-{phone}-number:";
         $contacts = (array)$request->all();
+        Log::info('$contacts' , $contacts);
         $contacts = collect($contacts)->filter(function($userPhone , $key){
             return !blank($userPhone)&&isset($userPhone['phone_country'])&&isset($userPhone['phone'])&&is_numeric($userPhone['phone_country'])&&is_numeric($userPhone['phone']);
         })->values();
+
         $contacts = $contacts->slice(0 , 200);
         $contacts = $contacts->map(function($userPhone , $key) use ($keyPrefix , $userOddPhoneKey , $userEvenPhoneKey){
             $phone = intval(ltrim($userPhone['phone'] , 0));

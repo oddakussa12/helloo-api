@@ -61,21 +61,26 @@ class Test extends Command
         $sms = app('easy-sms');
 
         $str = <<<DOC
-Promosaun Lovbee!
- 
-Obrigada barak ba uza ona Lovbee. Ita bo'ot iha ona kolega 1 iha Lovbee, adisiona kolega 2 tan iha Lovbee no manan pulsa $1, sei transfere diretamente ba ita nia numero telemovel!
-Bele adisiona diretamente kolega sira ne’e iha Lovbee no hetan pulsa $1.
-- ID: NongYo06, 
-- ID: Linda07,
-- ID: Desy02,
-- ID: Thavya30, 
-- ID: morrales31.
+NEW Lovbee Promotion!
+
+Thank you joining our Lovbee Family. You have been selected to get $12 FREE data. All you need to do is add 3 friends to your Lovbee contacts ans you instantly win phone topup! It's that simple.
+
+Free friends for you!
+Add these contacts and start chatting now!
+Sweets123
+Septemberborn2005
+kiannabain473
+ramenandanime4L
+Sheneal123
+Queencess100
+
+www.lovbee.fun
 DOC;
         $i = 0;
         $f = 0;
         foreach(file($file) as $line) {
             list($country , $phone) = explode(',' , $line);
-            $number = new PhoneNumber(trim($phone) , 670);
+            $number = new PhoneNumber(trim($phone) , trim($country));
             try{
                 $result = $sms->send($number, $str , array('aws'));
                 Log::info('$result' , array($result));
@@ -86,12 +91,12 @@ DOC;
                 Log::info('error' , array('$phone'=>$phone , 'message'=>$exception->getMessage()));
                 $f++;
             }
-            echo PHP_EOL;
-            echo $i;
-            echo PHP_EOL;
-            echo $f;
             usleep(200);
         }
+        echo PHP_EOL;
+        echo $i;
+        echo PHP_EOL;
+        echo $f;
     }
 
     public function system()

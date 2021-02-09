@@ -134,14 +134,23 @@ class AuthController extends BaseController
             $fields['user_nick_name'] = strval($user_nick_name);
         }
 
-        if(!blank($school))
-        {
-            $fields['user_sl'] = strval($school);
-        }
-
         if(!blank($user_school)&&empty($user->user_school))
         {
             $fields['user_school'] = strval($user_school);
+        }
+
+        if(!blank($school))
+        {
+            $fields['user_sl'] = strval($school);
+        }else{
+            if(isset($fields['user_school']))
+            {
+                $school = DB::table('schools')->where('key' , $fields['user_school'])->first();
+                if(!blank($school))
+                {
+                    $fields['user_sl'] = strval($school->name);
+                }
+            }
         }
 
         if(!blank($user_grade)&&empty($user->user_grade))
@@ -229,6 +238,15 @@ class AuthController extends BaseController
         if(!blank($school))
         {
             $fields['user_sl'] = $school;
+        }else{
+            if(isset($fields['user_school']))
+            {
+                $school = DB::table('schools')->where('key' , $fields['user_school'])->first();
+                if(!blank($school))
+                {
+                    $fields['user_sl'] = strval($school->name);
+                }
+            }
         }
         if(!blank($user_grade))
         {
