@@ -497,12 +497,12 @@ class UserController extends BaseController
     public function recommendation()
     {
         $user = auth()->user();
-        $school = $user->user_school;
+        $school = $user->user_sl;
         $grade = $user->user_grade;
         $users = collect();
         if(!blank($school)&&$school!='other')
         {
-            $users = $this->user->allWithBuilder()->where('user_school' , $school);
+            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_sl' , $school);
             if(!blank($grade))
             {
                 $users = $users->where('user_grade' , $grade)->inRandomOrder();
@@ -514,7 +514,7 @@ class UserController extends BaseController
                 'user_avatar',
             ))->limit(4)->get();
         }else{
-            $users = $this->user->allWithBuilder()->inRandomOrder()->select(array(
+            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
                 'user_id',
                 'user_name',
                 'user_nick_name',
