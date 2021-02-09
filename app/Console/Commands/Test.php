@@ -52,8 +52,31 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->sms();
+        $this->fixSchool();
     }
+
+    public function fixSchool()
+    {
+        $schools = DB::table('schools')->pluck('name' , 'key')->toArray();
+        DB::table('users')->where('user_activation' , 1)->orderByDesc('user_created_at')->chunk(100 , function($users) use ($schools){
+            foreach ($users as $user)
+            {
+                if(blank($user->user_sl)&&!blank($user->user_school))
+                {
+                    $school = $user->user_school;
+                    if(isset($schools[$school]))
+                    {
+                        DB::table('users')->where('user_id' , $user->user_id)->update(array(
+                            'user_sl'=>$schools[$school],
+                        ));
+                    }
+
+                }
+            }
+        });
+    }
+
+
 
     public function sms()
     {

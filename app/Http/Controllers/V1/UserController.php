@@ -97,9 +97,18 @@ class UserController extends BaseController
             return UserCollection::collection($users);
         }elseif (!blank($keyword))
         {
-            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where(function ($query) use ($keyword) {
-                $query->where('user_nick_name', 'like', "%{$keyword}%")->orWhere('user_name', 'like', "%{$keyword}%");
-            })->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->orderByRaw("REPLACE(user_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about', 'user_gender' , 'user_sl' , 'user_birthday')->limit(20)->get();
+            $username = mb_substr($username , 0 , 30);
+            $len = strlen($username);
+            $mbLen = mb_strlen($username);
+            if($mbLen!==$len)
+            {
+                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about', 'user_gender' , 'user_sl' , 'user_birthday')->limit(20)->get();
+            }else{
+                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where(function ($query) use ($keyword) {
+                    $query->where('user_nick_name', 'like', "%{$keyword}%")->orWhere('user_name', 'like', "%{$keyword}%");
+                })->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->orderByRaw("REPLACE(user_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about', 'user_gender' , 'user_sl' , 'user_birthday')->limit(20)->get();
+            }
+
             $users = $users->filter(function($user) use ($userId){
                 return  $user->user_id!=$userId;
             })->values();
