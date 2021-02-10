@@ -500,7 +500,7 @@ class UserController extends BaseController
         $school = $user->user_sl;
         $grade = $user->user_grade;
         $users = collect();
-        if(!blank($school)&&$school!='other')
+        if(!blank($school)&&$school!='Others')
         {
             $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_sl' , $school);
             if(!blank($grade))
