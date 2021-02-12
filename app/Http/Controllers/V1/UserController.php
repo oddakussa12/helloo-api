@@ -49,7 +49,7 @@ class UserController extends BaseController
                     'bail',
                     'required',
                     'string',
-                    'alpha_num',
+//                    'alpha_num',
                     'between:1,32'
                     ]);
             $validationField = array(
