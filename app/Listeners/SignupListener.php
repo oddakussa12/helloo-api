@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Jobs\EscortTalk;
 use App\Events\SignupEvent;
 use App\Jobs\SignUpAndEvent;
+use App\Jobs\UserSynchronization;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -88,6 +89,7 @@ class SignupListener implements ShouldQueue
         $user->SignupInfo()->create($signup_info);
         SignUpAndEvent::dispatch($user)->onQueue('helloo_{sign_up_and_event}')->delay(now()->addSeconds(10));
         EscortTalk::dispatch($user , $extend)->onQueue('helloo_{escort_talk}')->delay(now()->addSeconds(120));
+        UserSynchronization::dispatch($user , $extend , $geo)->onQueue('helloo_{user_synchronization}');
     }
 
 }
