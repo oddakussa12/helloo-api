@@ -7,6 +7,7 @@ use App\Jobs\EasySms;
 use App\Rules\UserPhone;
 use App\Messages\SignInMessage;
 use Illuminate\Validation\Rule;
+use App\Jobs\UserSynchronization;
 use Godruoyi\Snowflake\Snowflake;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -425,6 +426,7 @@ trait Update
                     'created_at'=>$now,
                 );
                 DB::table('users_schools_logs')->insert($logData);
+                UserSynchronization::dispatch($user)->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
             }
         }else{
             $flag = true;
