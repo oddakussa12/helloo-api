@@ -426,10 +426,13 @@ trait Update
                     'created_at'=>$now,
                 );
                 DB::table('users_schools_logs')->insert($logData);
-                UserSynchronization::dispatch($user)->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
             }
         }else{
             $flag = true;
+        }
+        if($flag==true)
+        {
+            UserSynchronization::dispatch($user)->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
         }
         return $flag;
     }
