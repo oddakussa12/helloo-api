@@ -21,6 +21,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\GenerateUid::class,
         \App\Console\Commands\Schema::class,
         \App\Console\Commands\Message::class,
+        \App\Console\Commands\Dau::class,
     ];
 
     /**
@@ -55,6 +56,14 @@ class Kernel extends ConsoleKernel
             ->daily();
         $schedule->command('message:send')
             ->everyMinute();
+        $schedule->command('generate:dau tl')
+            ->dailyAt(16)->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:dau gd')
+            ->dailyAt(5)->when(function(){
+                return config('common.cron_switch');
+            });
     }
 
     /**
