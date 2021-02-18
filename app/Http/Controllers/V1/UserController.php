@@ -407,7 +407,6 @@ class UserController extends BaseController
         $userId = auth()->id();
         $keyPrefix = "helloo:account:service:account-{phone}-number:";
         $contacts = (array)$request->all();
-        Log::info('$contacts' , $contacts);
         $contacts = collect($contacts)->filter(function($userPhone , $key){
             return !blank($userPhone)&&isset($userPhone['phone_country'])&&isset($userPhone['phone'])&&is_numeric($userPhone['phone_country'])&&is_numeric($userPhone['phone']);
         })->values();

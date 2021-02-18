@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\V1;
 
 use Carbon\Carbon;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Repositories\Contracts\UserRepository;
@@ -84,6 +86,29 @@ class StatisticsController extends BaseController
     {
         $all = $request->all();
         DB::table('logs')->insert(array('log'=>\json_encode($all , JSON_UNESCAPED_UNICODE) , 'created_at'=>Carbon::now()->toDateTimeString()));
+        return $this->response->created();
+    }
+
+    public function videoRecord(Request $request)
+    {
+        $data = $request->input('data' , '');
+        $jti = JWTAuth::getClaim('jti');
+        $plaintext = opensslDecrypt($data , $jti);
+        $data = \json_decode(strval($plaintext) , true);
+        if(is_array($data)&&isset($data['from_id'])&&isset($data['user_id'])&&isset($data['msg_id']))
+        {
+            $agent = new Agent();
+            $version = $agent->getHttpHeader('HellooVersion');
+            DB::table('play_logs')->insert(array(
+                'from_id'=>$data['from_id'] ,
+                'to_id'=>$data['to_id'] ,
+                'user_id'=>$data['user_id'] ,
+                'msg_id'=>$data['msg_id'] ,
+                'ip'=>getRequestIpAddress(),
+                'version'=>empty($version)?0:$version,
+                'created_at'=>Carbon::now()->toDateTimeString()
+            ));
+        }
         return $this->response->created();
     }
 }

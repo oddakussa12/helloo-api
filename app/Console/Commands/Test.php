@@ -52,7 +52,128 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->fixSchool();
+        $this->sync();
+    }
+
+    public function sync()
+    {
+        DB::table('users')->where('user_created_at' , '<=' , '2021-02-16 08:31:29')->orderBy('user_created_at')->chunk(200 , function($users){
+            $data = $users->pluck('user_activation' , 'user_id')->toArray();
+            $time = $users->pluck('user_created_at' , 'user_id')->toArray();
+            $userIds = array_keys($data);
+            $userPhones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get();
+            $table = array();
+            foreach ($userPhones as $userPhone)
+            {
+
+                $country = '';
+                $type = 0;
+                if(blank($country)&&($userPhone->user_phone_country==1||$userPhone->user_phone_country==62))
+                {
+                    if(substr($userPhone->user_phone , 0 , 3)==473)
+                    {
+                        $type = 1;
+                        $country = 'gd';
+                    }
+                }
+
+                if(blank($country)&&(substr($userPhone->user_phone , 0 , 4)==1473||$userPhone->user_phone_country==473))
+                {
+                    $type = 1;
+                    $country = 'gd';
+                }
+
+                if(blank($country)&&(substr($userPhone->user_phone , 0 , 1)==7&&strlen($userPhone->user_phone)==8))
+                {
+                    $type = 1;
+                    $country = 'tl';
+                }
+
+                if(blank($country)&&$userPhone->user_phone_country==230)
+                {
+                    $type = 1;
+                    $country = 'mu';
+                }
+
+                if(blank($country))
+                {
+                    $type = 0;
+                    $country = $userPhone->user_phone_country;
+                }
+//                $createdAt = optional($time[$userPhone->user_id])->toDateTimeString();
+                array_push($table , array(
+                    'user_id'=>$userPhone->user_id,
+                    'type'=>$type,
+                    'country'=>$country,
+                    'activation'=>$data[$userPhone->user_id],
+                    'created_at'=>$time[$userPhone->user_id],
+                ));
+            }
+            DB::table('users_countries')->insert($table);
+        });
+    }
+
+    public function dau()
+    {
+//       $result = DB::select("SELECT
+//	DISTINCT v_timor_users.user_id as id
+//FROM
+//	t_visit_logs_202102
+//INNER JOIN v_timor_users ON t_visit_logs_202102.user_id = v_timor_users.user_id
+//GROUP BY
+//	DATE(
+//		DATE_ADD(
+//			FROM_UNIXTIME(
+//				t_visit_logs_202102.visited_at
+//			),
+//			INTERVAL + 9 HOUR
+//		)
+//	);");
+        $date = array(
+            "2021-02-01",
+            "2021-02-02",
+            "2021-02-03",
+            "2021-02-04",
+            "2021-02-05",
+            "2021-02-06",
+            "2021-02-07",
+            "2021-02-08",
+            "2021-02-09",
+            "2021-02-10",
+            "2021-02-11",
+            "2021-02-12",
+            "2021-02-13",
+            "2021-02-14",
+            "2021-02-15",
+        );
+        foreach ($date as $d)
+        {
+            $result = DB::select('select DISTINCT v_timor_users.user_id as id from t_visit_logs_202102 INNER JOIN v_timor_users ON t_visit_logs_202102.user_id = v_timor_users.user_id where date(date_add(from_unixtime(t_visit_logs_202102.visited_at),INTERVAL + 9 HOUR))='."'$d'");
+            $count = count($result);
+            $data = array();
+            foreach ($result as $r)
+            {
+                array_push($data , $r->id);
+            }
+            $userIds = trim(implode(',' , $data) , ',');
+            $sql = "select chat_from_id,count(*) as c from t_ry_chats_202102 where chat_from_id in ($userIds) and chat_msg_type='Helloo:VideoMsg' and date(date_add(from_unixtime(floor(chat_time/1000)),INTERVAL + 9 HOUR))="."'$d' group by chat_from_id order by c desc";
+            $c = DB::select($sql);
+            $three = collect($c)->filter(function ($value, $key) {
+                return $value->c >= 3;
+            })->count();
+            $two = collect($c)->filter(function ($value, $key) {
+                return $value->c == 2;
+            })->count();
+            $one = collect($c)->filter(function ($value, $key) {
+                return $value->c == 1;
+            })->count();
+            $zero = $count-$three-$two-$one;
+            file_put_contents('count.csv' , $d.','.$count.','.(round($zero/$count,4)*100).'%,'.(round($one/$count,4)*100).'%,'.(round($two/$count,4)*100).'%,'.(round($three/$count,4)*100).'%'.PHP_EOL , FILE_APPEND);
+        }
+//        Carbon::createFromFormat('Y-m-d' , $date)->addDays(1)->toDateString();
+//        dump($result);
+
+//        DB::table('visit_logs_202102')->orderByDesc('id');
     }
 
     public function fixSchool()

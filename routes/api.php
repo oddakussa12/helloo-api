@@ -126,6 +126,8 @@ $api->group($V1Params , function ($api){
 
         $api->post('statistics/type/{type}/matchSucceed' , 'StatisticsController@matchSucceed')->where('type', 'im|voice|video')->name('statistics.matchSucceed');
 
+        $api->post('statistics/video/record' , 'StatisticsController@videoRecord')->name('video.record');
+
         $api->get('notification/system' , 'NotificationController@system')->name('user.notification.system');
 
         $api->get('notification/system/last' , 'NotificationController@last')->name('user.notification.last');
@@ -187,7 +189,6 @@ $api->group($V1Params , function ($api){
     $api->put('event/{event]' , 'EventController@update')->name('event.update');
 
     $api->post('statistics/log' , 'StatisticsController@log')->name('statistics.log');
-
 
     $api->get('app/index' , 'AppController@index')->name('app.index');
 
