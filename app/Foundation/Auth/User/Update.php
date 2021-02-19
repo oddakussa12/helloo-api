@@ -432,7 +432,7 @@ trait Update
         }
         if($flag==true)
         {
-            UserSynchronization::dispatch($user)->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
+            UserSynchronization::dispatch($user , 'activation')->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
         }
         return $flag;
     }
