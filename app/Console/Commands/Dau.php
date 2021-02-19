@@ -53,9 +53,15 @@ class Dau extends Command
         if($country=='tl')
         {
             $tz = "Asia/Dili";
+            $hour = "9";
         }elseif ($country=='gd')
         {
+            $hour = "-4";
             $tz = "America/Grenada";
+        }elseif ($country=='mu')
+        {
+            $hour = "4";
+            $tz = "Indian/Mauritius";
         }else{
             return;
         }
@@ -92,7 +98,7 @@ class Dau extends Command
                     ->where('users_countries.country', $country_code)
                     ->where('users_countries.activation', 1);
             })->where($daysTable.'.visited_at' , '>=' , $s)
-                ->where($daysTable.'.visited_at' , '<=' , $e)->select($daysTable.'.user_id')->distinct()->orderByDesc($daysTable.'.user_id')->chunk(100 , function($userIds)use($daysChatTable,$dauTable , $country_code,$date , &$count , &$three , &$two , &$one){
+                ->where($daysTable.'.visited_at' , '<=' , $e)->select($daysTable.'.user_id')->distinct()->orderByDesc($daysTable.'.user_id')->chunk(100 , function($userIds)use($daysChatTable,$dauTable , $country_code,$date , &$count , &$three , &$two , &$one , $hour){
                     $userIds = $userIds->pluck('user_id')->values()->toArray();
                     $data = array();
                     foreach ($userIds as $userId)
@@ -108,7 +114,7 @@ class Dau extends Command
 
                     $count = $count+count($userIds);
                     $userIds = trim(implode(',' , $userIds) , ',');
-                    $sql = "select chat_from_id,count(*) as c from $daysChatTable where chat_from_id in ($userIds) and chat_msg_type='Helloo:VideoMsg' and date(date_add(from_unixtime(floor(chat_time/1000)),INTERVAL + 9 HOUR))="."'$date' group by chat_from_id order by c desc";
+                    $sql = "select chat_from_id,count(*) as c from $daysChatTable where chat_from_id in ($userIds) and chat_msg_type='Helloo:VideoMsg' and date(date_add(from_unixtime(floor(chat_time/1000)),INTERVAL {$hour} HOUR))="."'$date' group by chat_from_id order by c desc";
                     $c = DB::select($sql);
                     $three3 = collect($c)->filter(function ($value, $key) {
                         return $value->c >= 3;
@@ -179,13 +185,13 @@ class Dau extends Command
             $count = $three = $two = $one = $zero = 0;
             $daysChatPTable = 't_ry_chats_'.$pm;
             $daysChatNTable = 't_ry_chats_'.$nm;
-            DB::table($dauTable)->where('country' , $country_code)->where('date' , $date)->orderByDesc('id')->chunk(100 , function($userIds) use ($daysChatPTable , $daysChatNTable , $date , &$count , &$three , &$two , &$one){
+            DB::table($dauTable)->where('country' , $country_code)->where('date' , $date)->orderByDesc('id')->chunk(100 , function($userIds) use ($daysChatPTable , $daysChatNTable , $date , &$count , &$three , &$two , &$one , $hour){
                 $data = $userIds->pluck('user_id')->values()->toArray();
                 $count = $count+count($data);
                 $userIds = trim(implode(',' , $data) , ',');
 
 
-                $sql = "select chat_from_id,count(*) as c from $daysChatPTable where chat_from_id in ($userIds) and chat_msg_type='Helloo:VideoMsg' and date(date_add(from_unixtime(floor(chat_time/1000)),INTERVAL + 9 HOUR))="."'$date' group by chat_from_id order by c desc";
+                $sql = "select chat_from_id,count(*) as c from $daysChatPTable where chat_from_id in ($userIds) and chat_msg_type='Helloo:VideoMsg' and date(date_add(from_unixtime(floor(chat_time/1000)),INTERVAL {$hour} HOUR))="."'$date' group by chat_from_id order by c desc";
                 $c = DB::select($sql);
                 $three3 = collect($c)->filter(function ($value, $key) {
                     return $value->c >= 3;
@@ -201,7 +207,7 @@ class Dau extends Command
                 $one = $one+$one1;
 
 
-                $sql = "select chat_from_id,count(*) as c from $daysChatNTable where chat_from_id in ($userIds) and chat_msg_type='Helloo:VideoMsg' and date(date_add(from_unixtime(floor(chat_time/1000)),INTERVAL + 9 HOUR))="."'$date' group by chat_from_id order by c desc";
+                $sql = "select chat_from_id,count(*) as c from $daysChatNTable where chat_from_id in ($userIds) and chat_msg_type='Helloo:VideoMsg' and date(date_add(from_unixtime(floor(chat_time/1000)),INTERVAL {$hour} HOUR))="."'$date' group by chat_from_id order by c desc";
                 $c = DB::select($sql);
                 $three3 = collect($c)->filter(function ($value, $key) {
                     return $value->c >= 3;
