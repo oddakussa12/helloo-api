@@ -64,6 +64,10 @@ class Kernel extends ConsoleKernel
             ->dailyAt(5)->when(function(){
                 return config('common.cron_switch');
             });
+        $schedule->command('generate:dau mu')
+            ->dailyAt(21)->when(function(){
+                return config('common.cron_switch');
+            });
     }
 
     /**
