@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 
 use Illuminate\Console\Command;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 
 
@@ -42,6 +44,13 @@ class IpCacheUpdate extends Command
     {
         $this->call('geoip:update');
         $this->call('cache:clear');
+        $process = new Process(['supervisorctl' , 'restart' , 'helloo_user_sign_up:*']);
+        $process->run();
+        // 命令行执行结果
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+        dump($process->getOutput());
     }
 
 

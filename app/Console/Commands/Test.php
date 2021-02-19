@@ -16,6 +16,7 @@ use Ramsey\Uuid\Uuid;
 use App\Foundation\Auth\User\Update;
 use App\Repositories\Contracts\UserRepository;
 use App\Custom\EasySms\PhoneNumber;
+use Illuminate\Support\Facades\Hash;
 
 
 class Test extends Command
@@ -52,12 +53,19 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->sync();
+        dump(geoip('180.244.233.39')->toArray());
+        die;
+        DB::table('users')->orderByDesc('user_id')->chunk(500 , function ($users){
+            foreach ($users as $user)
+            {
+                DB::table('users_countries')->where('user_id' , $user->user_id)->update(array('activation'=>$user->user_activation));
+            }
+        });
     }
 
     public function sync()
     {
-        DB::table('users')->where('user_created_at' , '<=' , '2021-02-16 08:31:29')->orderBy('user_created_at')->chunk(200 , function($users){
+        DB::table('users')->where('user_created_at' , '<=' , '2021-02-16 08:44:13')->orderBy('user_created_at')->chunk(200 , function($users){
             $data = $users->pluck('user_activation' , 'user_id')->toArray();
             $time = $users->pluck('user_created_at' , 'user_id')->toArray();
             $userIds = array_keys($data);
