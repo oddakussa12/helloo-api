@@ -162,6 +162,8 @@ class Dau extends Command
                     ->where('users_countries.activation', 1);
             })->where($daysTable.'.visited_at' , '<=' , $e)->select($daysTable.'.user_id')->distinct()->orderByDesc($daysTable.'.user_id')->chunk(100 , function($userIds)use($dauTable,$country_code , $date , &$count , &$three , &$two , &$one){
                 $userIds = $userIds->pluck('user_id')->values()->toArray();
+                $exists = DB::table($dauTable)->where('country' , $country_code)->where('date' , $date)->whereIn('user_id' , $userIds)->pluck('user_id')->toArray();
+                $userIds = array_diff($userIds , $exists);
                 $data = array();
                 foreach ($userIds as $userId)
                 {
