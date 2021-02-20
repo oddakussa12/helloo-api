@@ -72,6 +72,18 @@ class Schema extends Command
             });
         }
 
+        if(!SchemaAs::hasTable('ry_video_messages_'.$index))
+        {
+            SchemaAs::create('ry_video_messages_'.$index, function (Blueprint $table) {
+                $table->increments('id')->comment('主键');
+                $table->string('message_id' , 64)->charset('utf8')->comment('融云消息ID');
+                $table->string('video_url' , 128)->charset('utf8')->comment('视频地址');
+                $table->tinyInteger('is_record')->default(0)->comment('是否为录制');
+                $table->string('voice_name' , 32)->charset('utf8')->comment('变声类型');
+                $table->dateTime('created_at')->comment('日期');
+            });
+        }
+
         if(!SchemaAs::hasTable('visit_logs_'.$index))
         {
             SchemaAs::create('visit_logs_'.$index, function (Blueprint $table) {
