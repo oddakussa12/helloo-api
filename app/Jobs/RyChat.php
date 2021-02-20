@@ -92,11 +92,12 @@ class RyChat implements ShouldQueue
             ],
         ];
         $validator = \Validator::make($raw, $rule);
+        $now = Carbon::now()->toDateTimeString();
         if ($validator->fails()) {
             $data = array(
                 'raw'    => \json_encode($raw , JSON_UNESCAPED_UNICODE),
                 'errors' => \json_encode($validator->errors() , JSON_UNESCAPED_UNICODE),
-                'created_at' => Carbon::now()->toDateTimeString()
+                'created_at' => $now
             );
             DB::table('ry_chats_failed')->insert($data);
         } else {
@@ -151,20 +152,27 @@ class RyChat implements ShouldQueue
                 }
                 if($messageContent['message_type']=='Yooul:VideoLike')
                 {
-                    $likeType = strval($content['LikeType']);
-                    if(strlen($likeType)>1)
+                    $data['chat_extend'] = intval($content['LikeType']);
+                    $messageContent['message_content'] = $content['videoID'];
+                }
+                if($messageContent['message_type']=='Helloo:VideoMsg')
+                {
+                    $video = array(
+                        'message_id'=>$raw['msgUID'],
+                        'video_url'=>isset($content['videoUrl'])?$content['videoUrl']:'',
+                        'is_record'=>isset($content['user']['extra']['isRecord'])?$content['user']['extra']['isRecord']:0,
+                        'voice_name'=>isset($content['user']['extra']['changeVoiceName'])?$content['user']['extra']['changeVoiceName']:'',
+                        'created_at'=>$this->now,
+                    );
+                    try{
+                        DB::table('ry_video_messages_'.$index)->insert($video);
+                    }catch (\Exception $e)
                     {
-                        $data['chat_extend'] = intval($content['mSystemOfficialID']);
-                    }else{
-                        $data['chat_extend'] = intval($content['LikeType']);
+                        Log::info('insert_ry_video_message_fail' , array(
+                            'code'=>$e->getCode(),
+                            'message'=>$e->getMessage(),
+                        ));
                     }
-                    $messageContent['message_content'] = \json_encode(array(
-                        'LikeType'=>$content['LikeType'],
-                        'isRead'=>$content['isRead'],
-                        'videoID'=>$content['videoID'],
-                        'mSystemOfficialID'=>$content['mSystemOfficialID'],
-                        'videoImg'=>$content['videoImg'],
-                    ) , JSON_UNESCAPED_UNICODE);
                 }
                 try{
                     $messageContent['created_at'] = $this->now;
