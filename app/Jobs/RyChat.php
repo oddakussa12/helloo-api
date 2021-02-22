@@ -167,7 +167,7 @@ class RyChat implements ShouldQueue
                     $video = array(
                         'message_id'=>$raw['msgUID'],
                         'video_url'=>isset($content['videoUrl'])?$content['videoUrl']:'',
-                        'is_record'=>isset($extra['isRecord'])?$extra['isRecord']:0,
+                        'is_record'=>isset($extra['isRecord'])?intval($extra['isRecord']):0,
                         'voice_name'=>isset($extra['changeVoiceName'])?$extra['changeVoiceName']:'',
                         'created_at'=>$this->now,
                     );
