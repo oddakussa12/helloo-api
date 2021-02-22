@@ -157,11 +157,17 @@ class RyChat implements ShouldQueue
                 }
                 if($messageContent['message_type']=='Helloo:VideoMsg')
                 {
+                    if(isset($content['user']['extra']))
+                    {
+                        $extra = \json_decode($content['user']['extra'] , true);
+                    }else{
+                        $extra = array();
+                    }
                     $video = array(
                         'message_id'=>$raw['msgUID'],
                         'video_url'=>isset($content['videoUrl'])?$content['videoUrl']:'',
-                        'is_record'=>isset($content['user']['extra']['isRecord'])?$content['user']['extra']['isRecord']:0,
-                        'voice_name'=>isset($content['user']['extra']['changeVoiceName'])?$content['user']['extra']['changeVoiceName']:'',
+                        'is_record'=>isset($extra['isRecord'])?$extra['isRecord']:0,
+                        'voice_name'=>isset($extra['changeVoiceName'])?$extra['changeVoiceName']:'',
                         'created_at'=>$this->now,
                     );
                     try{
