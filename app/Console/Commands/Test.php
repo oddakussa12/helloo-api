@@ -53,6 +53,9 @@ class Test extends Command
      */
     public function handle()
     {
+        echo Carbon::now()->toDateTimeString();
+        echo PHP_EOL;
+        return;
         dump(geoip('180.244.233.39')->toArray());
         die;
         DB::table('users')->orderByDesc('user_id')->chunk(500 , function ($users){

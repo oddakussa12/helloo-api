@@ -22,6 +22,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Schema::class,
         \App\Console\Commands\Message::class,
         \App\Console\Commands\Dau::class,
+        \App\Console\Commands\Test::class,
     ];
 
     /**
@@ -66,6 +67,10 @@ class Kernel extends ConsoleKernel
             });
         $schedule->command('generate:dau mu')
             ->dailyAt(21)->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('auto:test 1 1')
+            ->dailyAt("1:50")->when(function(){
                 return config('common.cron_switch');
             });
     }
