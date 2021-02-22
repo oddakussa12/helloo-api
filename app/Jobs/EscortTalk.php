@@ -42,6 +42,21 @@ class EscortTalk implements ShouldQueue
         {
             $talkers = $this->getEscortTalkerByCountry($phoneCountry);
         }else{
+            if($phoneCountry==230)
+            {
+                $cartedAt = Carbon::now()->timestamp;
+                $user = DB::table('users_friends')->where('user_id' , 1264078700)->where('friend_id' , $targetId)->first();
+                if(blank($user))
+                {
+                    array_push($data , array('user_id'=>1264078700 , 'friend_id'=>$targetId , 'created_at'=>$cartedAt));
+                }
+                $target = DB::table('users_friends')->where('user_id' , $targetId )->where('friend_id' , 1264078700)->first();
+                if(blank($target))
+                {
+                    array_push($data , array('user_id'=>$targetId , 'friend_id'=>1264078700 , 'created_at'=>$cartedAt));
+                }
+                !blank($data)&&DB::table('users_friends')->insert($data);
+            }
             return;
         }
         $talker = collect($talkers[array_rand($talkers)])->toArray();

@@ -68,18 +68,18 @@ class Dau extends Command
         if($date===null)
         {
             $dauTable = 'dau_'.Carbon::yesterday($tz)->format('Ym');
-            $now = Carbon::yesterday($tz);
+            $yesterday = Carbon::yesterday($tz);
             $startTime = Carbon::yesterday($tz)->startOfDay();
             $endTime = Carbon::yesterday($tz)->endOfDay();
         }else{
             $dauTable = 'dau_'.Carbon::createFromFormat('Y-m-d' , $date , $tz)->format('Ym');
-            $now = Carbon::createFromFormat('Y-m-d' , $date , $tz);
+            $yesterday = Carbon::createFromFormat('Y-m-d' , $date , $tz);
             $startTime = Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay();
             $endTime = Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay();
         }
         $s = $startTime->timestamp;
         $e = $endTime->timestamp;
-        $date = $startTime->toDateString();
+        $date = $yesterday->toDateString();
         $pm = Carbon::createFromTimestamp($s , 'Asia/Shanghai')->format('Ym');
         $nm = Carbon::createFromTimestamp($e , 'Asia/Shanghai')->format('Ym');
         $count = $three = $two = $one = $zero = 0;
