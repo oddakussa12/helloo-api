@@ -169,7 +169,7 @@ class RyChat implements ShouldQueue
                         'video_url'=>isset($content['videoUrl'])?$content['videoUrl']:'',
                         'is_record'=>isset($extra['isRecord'])?intval($extra['isRecord']):0,
                         'voice_name'=>isset($extra['changeVoiceName'])?$extra['changeVoiceName']:'',
-                        'bundle_name'=>isset($content['bundleName'])?$content['bundleName']:'',
+                        'bundle_name'=>isset($content['bundleName'])&&$content['bundleName']!='none'?$content['bundleName']:'',
                         'created_at'=>$this->now,
                     );
                     try{
