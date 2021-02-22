@@ -160,6 +160,7 @@ class RyChat implements ShouldQueue
                     if(isset($content['user']['extra']))
                     {
                         $extra = \json_decode($content['user']['extra'] , true);
+                        Log::info('$extra' , $extra);
                     }else{
                         $extra = array();
                     }
