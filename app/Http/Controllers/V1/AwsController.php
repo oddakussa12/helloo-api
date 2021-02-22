@@ -84,6 +84,7 @@ class AwsController extends BaseController
     {
         $name = request()->input('file' , '');
         $extension = pathinfo($name, PATHINFO_EXTENSION);
+        $filename = pathinfo($name, PATHINFO_FILENAME);
         switch ($extension)
         {
             case "tif":
@@ -170,9 +171,10 @@ class AwsController extends BaseController
         }else{
             return $this->response->noContent();
         }
+        $filename = mb_strlen($filename)==32?$filename:Uuid::uuid1()->toString();
         $formInputs = [
             'acl' => 'private' ,
-            'key' => $path.Uuid::uuid1()->toString().'.'.$extension ,
+            'key' => $path.$filename.'.'.$extension ,
             'x-amz-domain'=>$xAmzDomain ,
             'success_action_status'=>'201'
         ];
