@@ -76,14 +76,16 @@ class Retention extends Command
             $startTime = Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay();
             $endTime = Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay();
         }
-        dump($date);
-        dump($yesterday);
+        $s = $startTime->timestamp;
+        $e = $endTime->timestamp;
+        dump($startTime);
+        dump($endTime);
+        $startTime = Carbon::createFromTimestamp($s , new \DateTime('UTC'))->toDateTimeString();
+        $endTime = Carbon::createFromTimestamp($e , new \DateTime('UTC'))->toDateTimeString();
+
         dump($startTime);
         dump($endTime);
         die;
-
-        $s = $startTime->timestamp;
-        $e = $endTime->timestamp;
         $date = $yesterday->toDateString();
         $pm = Carbon::createFromTimestamp($s , 'Asia/Shanghai')->format('Ym');
         $nm = Carbon::createFromTimestamp($e , 'Asia/Shanghai')->format('Ym');
