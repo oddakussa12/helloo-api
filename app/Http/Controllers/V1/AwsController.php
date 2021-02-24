@@ -83,7 +83,7 @@ class AwsController extends BaseController
     public function form($type)
     {
         $name = request()->input('file' , '');
-        $extension = pathinfo($name, PATHINFO_EXTENSION);
+        $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $filename = pathinfo($name, PATHINFO_FILENAME);
         switch ($extension)
         {
