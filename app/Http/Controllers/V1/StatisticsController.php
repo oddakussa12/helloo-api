@@ -116,7 +116,7 @@ class StatisticsController extends BaseController
     {
         $exception = strval($request->input('exception' , ''));
         $size = intval($request->input('size' , 0));
-        $way = intval($request->input('way' , ''));
+        $way = strval($request->input('way' , ''));
         $device = strval($request->input('device' , ''));
         DB::table('failed_uploads')->insert(array(
             'user_id'=>auth()->id(),
