@@ -111,4 +111,22 @@ class StatisticsController extends BaseController
         }
         return $this->response->created();
     }
+
+    public function uploadFail(Request $request)
+    {
+        $exception = strval($request->input('exception' , ''));
+        $size = intval($request->input('size' , 0));
+        $way = intval($request->input('way' , ''));
+        $device = strval($request->input('device' , ''));
+        DB::table('failed_uploads')->insert(array(
+            'user_id'=>auth()->id(),
+            '$size'=>$size,
+            'way'=>$way,
+            'exception'=>$exception,
+            'ip'=>getRequestIpAddress(),
+            'device'=>$device,
+            'failed_at'=>Carbon::now()->toDateTimeString(),
+        ));
+        return $this->response->created();
+    }
 }

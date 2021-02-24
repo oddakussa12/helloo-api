@@ -126,7 +126,7 @@ $api->group($V1Params , function ($api){
 
         $api->post('statistics/type/{type}/matchSucceed' , 'StatisticsController@matchSucceed')->where('type', 'im|voice|video')->name('statistics.matchSucceed');
 
-        $api->post('statistics/video/record' , 'StatisticsController@videoRecord')->name('video.record');
+        $api->post('statistics/upload/fail' , 'StatisticsController@videoUploadFail')->name('video.upload.fail');
 
         $api->get('notification/system' , 'NotificationController@system')->name('user.notification.system');
 
