@@ -6,12 +6,9 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Foundation\Auth\User\Update;
-
 
 class Dau extends Command
 {
-    use Update;
     /**
      * The name and signature of the console command.
      *
@@ -89,6 +86,18 @@ class Dau extends Command
         {
             return;
         }
+        Log::info('$country_'.$country , array(
+            '$dauTable'=>$dauTable,
+            '$yesterday'=>$yesterday,
+            '$startTime'=>$startTime,
+            '$endTime'=>$endTime,
+            '$pm'=>$pm,
+            '$nm'=>$nm,
+            '$country_code'=>$country_code,
+            '$date'=>$date,
+            '$s'=>$s,
+            '$e'=>$e,
+        ));
         if($pm==$nm)
         {
             $daysTable = 'visit_logs_'.$pm;

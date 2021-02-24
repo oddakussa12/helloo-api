@@ -36,6 +36,9 @@ use App\Custom\FireBase\Message\OptionsBuilder;
 use App\Custom\FireBase\Message\PayloadDataBuilder;
 use App\Custom\FireBase\Message\PayloadNotificationBuilder;
 use FCM;
+use Vonage\Client\Credentials\Basic;
+use Vonage\Client;
+use Vonage\SMS\Message\SMS;
 
 
 
@@ -358,10 +361,48 @@ DOC;
 
     public function sms()
     {
-        $code = 123456;
-        $phone = new PhoneNumber(17600128988 , 86);
-        $message = new ForgetPasswordMessage($code);
-        $this->dispatchNow(new EasySms($phone , $message));
+        $phones = array(
+            "67076341710",
+            "67076835568",
+            "67077106240",
+            "67077372718",
+            "67076258054",
+            "67076189946",
+            "67076445296",
+            "67076168808",
+            "67075852672",
+            "67075405420",
+            "67077068093",
+            "67074220605",
+            "67074100679",
+            "67078714524",
+            "67074291914",
+            "67077189872",
+            "67078038533",
+            "67074301833",
+            "67074357547",
+            "67077367319"
+        );
+        $basic  = new Basic('8ba4e7d9', 'Ztvknr9iHAGCgbFC');
+        $client = new Client($basic);
+        $fail = array();
+        foreach ($phones as $phone)
+        {
+            $message = $client->message()->send([
+                'to' => $phone,
+                'from' => 'Vonage APIs',
+                'text' => sprintf('Your Lovbee APP security code is %s. Yours is logging in Lovbee!. Please keep your account information in a safe place.', mt_rand(1111 , 9999))
+            ]);
+            Log::info('$message' , array($message));
+            if($message->getResponse()->getStatusCode()!=200)
+            {
+                array_push($fail , $phone);
+            }
+            usleep(500);
+        }
+        dump('=======================================================');
+        dump($fail);
+
     }
 
 
