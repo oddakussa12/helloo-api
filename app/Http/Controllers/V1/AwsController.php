@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 
+use Illuminate\Support\Facades\Log;
 use JWTAuth;
 use Aws\Sts\StsClient;
 use Aws\S3\PostObjectV4;
@@ -85,6 +86,8 @@ class AwsController extends BaseController
         $name = request()->input('file' , '');
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $filename = pathinfo($name, PATHINFO_FILENAME);
+//        $ip = getRequestIpAddress();
+//        $code = strtolower(geoip(getRequestIpAddress())->iso_code);
         switch ($extension)
         {
             case "tif":
@@ -138,7 +141,8 @@ class AwsController extends BaseController
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
-                $action = "https://helloo-video.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-video.s3-accelerate.amazonaws.com/";
+                $action = "https://helloo-video.s3.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.video.helloo.mantouhealth.com/';
                 $action = "https://helloo-video.s3.cn-north-1.amazonaws.com.cn/";
@@ -150,7 +154,8 @@ class AwsController extends BaseController
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://image.helloo.mantouhealth.com/';
-                $action = "https://helloo-image.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-image.s3-accelerate.amazonaws.com/";
+                $action = "https://helloo-image.s3.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.image.helloo.mantouhealth.com/';
                 $action = "https://helloo-image.s3.cn-north-1.amazonaws.com.cn/";
@@ -162,7 +167,8 @@ class AwsController extends BaseController
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://avatar.helloo.mantouhealth.com/';
-                $action = "https://helloo-avatar.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-avatar.s3-accelerate.amazonaws.com/";
+                $action = "https://helloo-avatar.s3.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.avatar.helloo.mantouhealth.com/';
                 $action = "https://helloo-avatar.s3.cn-north-1.amazonaws.com.cn/";
@@ -172,9 +178,10 @@ class AwsController extends BaseController
             return $this->response->noContent();
         }
         $filename = mb_strlen($filename)==32?$filename:Uuid::uuid1()->toString();
+        $key = blank($extension)?$path.$filename:$path.$filename.'.'.$extension;
         $formInputs = [
             'acl' => 'private' ,
-            'key' => $path.$filename.'.'.$extension ,
+            'key' => $key ,
             'x-amz-domain'=>$xAmzDomain ,
             'success_action_status'=>'201'
         ];
