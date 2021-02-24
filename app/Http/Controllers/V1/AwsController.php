@@ -138,7 +138,7 @@ class AwsController extends BaseController
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
-                $action = "https://helloo-video.s3.amazonaws.com/";
+                $action = "https://helloo-video.s3-accelerate.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.video.helloo.mantouhealth.com/';
                 $action = "https://helloo-video.s3.cn-north-1.amazonaws.com.cn/";
@@ -150,7 +150,7 @@ class AwsController extends BaseController
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://image.helloo.mantouhealth.com/';
-                $action = "https://helloo-image.s3.amazonaws.com/";
+                $action = "https://helloo-image.s3-accelerate.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.image.helloo.mantouhealth.com/';
                 $action = "https://helloo-image.s3.cn-north-1.amazonaws.com.cn/";
@@ -162,7 +162,7 @@ class AwsController extends BaseController
             if(in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://avatar.helloo.mantouhealth.com/';
-                $action = "https://helloo-avatar.s3.amazonaws.com/";
+                $action = "https://helloo-avatar.s3-accelerate.amazonaws.com/";
             }else{
                 $xAmzDomain = 'https://test.avatar.helloo.mantouhealth.com/';
                 $action = "https://helloo-avatar.s3.cn-north-1.amazonaws.com.cn/";
