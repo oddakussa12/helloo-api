@@ -120,7 +120,7 @@ class StatisticsController extends BaseController
         $device = strval($request->input('device' , ''));
         DB::table('failed_uploads')->insert(array(
             'user_id'=>auth()->id(),
-            '$size'=>$size,
+            'size'=>$size,
             'way'=>$way,
             'exception'=>$exception,
             'ip'=>getRequestIpAddress(),
