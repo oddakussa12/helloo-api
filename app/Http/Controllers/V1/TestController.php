@@ -18,6 +18,7 @@ use Godruoyi\Snowflake\Snowflake;
 use App\Models\User;
 use App\Custom\NEIm\NetEaseIm;
 use Carbon\Carbon;
+use libphonenumber\PhoneNumberUtil;
 use Ramsey\Uuid\Uuid;
 use Vonage\Voice\NCCO\NCCO;
 use Illuminate\Queue\RedisQueue;
@@ -361,27 +362,13 @@ DOC;
 
     public function sms()
     {
+//        $phone = new PhoneNumber('76189946' , '670');
+//        $message = new ForgetPasswordMessage(mt_rand(1111 , 9999));
+//        $this->dispatchNow(new EasySms($phone , $message));
+//        die;
         $phones = array(
-            "67076341710",
-            "67076835568",
-            "67077106240",
-            "67077372718",
-            "67076258054",
-            "67076189946",
-            "67076445296",
-            "67076168808",
-            "67075852672",
-            "67075405420",
-            "67077068093",
-            "67074220605",
-            "67074100679",
-            "67078714524",
-            "67074291914",
-            "67077189872",
-            "67078038533",
-            "67074301833",
-            "67074357547",
-            "67077367319"
+            '67076818302',
+            '67075795825'
         );
         $basic  = new Basic('8ba4e7d9', 'Ztvknr9iHAGCgbFC');
         $client = new Client($basic);

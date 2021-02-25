@@ -12,6 +12,7 @@
 namespace App\Custom\EasySms\Gateways;
 
 
+use Illuminate\Support\Facades\Log;
 use Overtrue\EasySms\Support\Config;
 use Overtrue\EasySms\Traits\HasHttpRequest;
 use App\Messages\Contracts\MessageInterface;
@@ -69,6 +70,8 @@ class YuntongxunCustomGateway extends Gateway
                 'Authorization' => base64_encode($config->get('accountSid').':'.$datetime),
             ],
         ];
+        Log::info('$body' ,$body);
+        Log::info('$to->getNumber()' ,array($to->getNumber()));
         $result = $this->request('post', $endpoint, $body);
         if (self::SUCCESS_CODE != $result['statusCode']) {
             throw new GatewayErrorException($result['statusCode'], $result['statusCode'], $result);
@@ -94,15 +97,7 @@ class YuntongxunCustomGateway extends Gateway
         $accountType = $this->config->get('is_sub_account') ? 'SubAccounts' : 'Accounts';
 
         $sig = strtoupper(md5($config->get('accountSid').$config->get('accountToken').$datetime));
-        \Log::error('start');
-        \Log::error($serverIp);
-        \Log::error(self::SERVER_PORT);
-        \Log::error(self::SDK_VERSION);
-        \Log::error($accountType);
-        \Log::error($config->get('accountSid'));
-        \Log::error($type);
-        \Log::error($resource);
-        \Log::error($sig);
+
         return sprintf(self::ENDPOINT_TEMPLATE, $serverIp, self::SERVER_PORT, self::SDK_VERSION, $accountType, $config->get('accountSid'), $type, $resource, $sig);
     }
 }

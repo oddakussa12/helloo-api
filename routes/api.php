@@ -112,10 +112,6 @@ $api->group($V1Params , function ($api){
 
         $api->post('user/{user}/unblock', 'UserController@unblock')->name('user.unblock');
 
-        $api->resource('position' , 'PositionController', ['only' => ['store']]); //用户地址位置
-
-        $api->post('device/update', 'DeviceController@update')->name('device.update');
-
         $api->put('app/mode/{mode}' , 'AppController@mode')->where('model', 'out|in')->name('app.mode');
         
         $api->post('statistics/duration' , 'StatisticsController@duration')->name('statistics.duration');
@@ -174,7 +170,6 @@ $api->group($V1Params , function ($api){
     });
     $api->post('statistics/download' , 'StatisticsController@download')->name('statistics.download');
 
-    $api->resource('device', 'DeviceController', ['only' => ['store']]);
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountVerification')->where('type', 'phone|nick_name')->name('user.account.verification');
 
