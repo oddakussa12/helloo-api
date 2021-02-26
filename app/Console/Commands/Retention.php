@@ -130,7 +130,7 @@ class Retention extends Command
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $thirty)->update($thirtyData);
         Log::info('thirty' , array(
-            $thirtyData,$result
+            $thirtyData,$result,$thirty
         ));
 
 
@@ -162,7 +162,7 @@ class Retention extends Command
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $fourteen)->update($fourteenData);
         Log::info('fourteen' , array(
-            $fourteenData,$result
+            $fourteenData,$result,$fourteen
         ));
 
         //7
@@ -193,7 +193,7 @@ class Retention extends Command
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $seven)->update($sevenData);
         Log::info('seven' , array(
-            $fourteenData,$result
+            $fourteenData,$result,$seven
         ));
 
 
@@ -225,7 +225,7 @@ class Retention extends Command
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $three)->update($sevenData);
         Log::info('three' , array(
-            $threeData,$result
+            $threeData,$result,$three
         ));
 
 
@@ -257,7 +257,7 @@ class Retention extends Command
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $two)->update($twoData);
         Log::info('two' , array(
-            $twoData,$result
+            $twoData,$result,$two
         ));
 
 
@@ -302,7 +302,7 @@ class Retention extends Command
             $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $one)->update($data);
         }
         Log::info('one' , array(
-            $data,$result
+            $data,$result,$one
         ));
 
 
