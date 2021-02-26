@@ -193,7 +193,7 @@ class Retention extends Command
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $seven)->update($sevenData);
         Log::info('seven' , array(
-            $fourteenData,$result,$seven
+            $sevenData,$result,$seven
         ));
 
 
@@ -253,7 +253,7 @@ class Retention extends Command
         $two = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(2)->toDateString();
         $twoData = array(
             'new'=>$twoDateSignUpCount,
-            '3'=>$twoDateKeepCount
+            '2'=>$twoDateKeepCount
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $two)->update($twoData);
         Log::info('two' , array(
