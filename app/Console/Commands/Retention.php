@@ -124,9 +124,13 @@ class Retention extends Command
                 $thirtyDateKeepCount = $thirtyDateKeepCount+$keepT;
             });
         $thirty = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(30)->toDateString();
-        DB::table('data_retentions')->where('country' , $country)->where('date' , $thirty)->update(array(
+        $thirtyData = array(
             'new'=>$thirtyDateSignUpCount,
             '30'=>$thirtyDateKeepCount
+        );
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $thirty)->update($thirtyData);
+        Log::info('thirty' , array(
+            $thirtyData,$result
         ));
 
 
@@ -152,11 +156,14 @@ class Retention extends Command
                 $fourteenDateKeepCount = $fourteenDateKeepCount+$keepT;
             });
         $fourteen = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(14)->toDateString();
-        DB::table('data_retentions')->where('country' , $country)->where('date' , $fourteen)->update(array(
+        $fourteenData = array(
             'new'=>$fourteenDateSignUpCount,
             '14'=>$fourteenDateKeepCount
+        );
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $fourteen)->update($fourteenData);
+        Log::info('fourteen' , array(
+            $fourteenData,$result
         ));
-
 
         //7
         DB::table('users_countries')
@@ -180,9 +187,13 @@ class Retention extends Command
                 $sevenDateKeepCount = $sevenDateKeepCount+$keepT;
             });
         $seven = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(7)->toDateString();
-        DB::table('data_retentions')->where('country' , $country)->where('date' , $seven)->update(array(
+        $sevenData = array(
             'new'=>$sevenDateSignUpCount,
             '7'=>$sevenDateKeepCount
+        );
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $seven)->update($sevenData);
+        Log::info('seven' , array(
+            $fourteenData,$result
         ));
 
 
@@ -208,9 +219,13 @@ class Retention extends Command
                 $threeDateKeepCount = $threeDateKeepCount+$keepT;
             });
         $three = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(3)->toDateString();
-        DB::table('data_retentions')->where('country' , $country)->where('date' , $three)->update(array(
+        $threeData = array(
             'new'=>$threeDateSignUpCount,
             '3'=>$threeDateKeepCount
+        );
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $three)->update($sevenData);
+        Log::info('three' , array(
+            $threeData,$result
         ));
 
 
@@ -236,9 +251,13 @@ class Retention extends Command
                 $twoDateKeepCount = $twoDateKeepCount+$keepT;
             });
         $two = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(2)->toDateString();
-        DB::table('data_retentions')->where('country' , $country)->where('date' , $two)->update(array(
+        $twoData = array(
             'new'=>$twoDateSignUpCount,
             '3'=>$twoDateKeepCount
+        );
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $two)->update($twoData);
+        Log::info('two' , array(
+            $twoData,$result
         ));
 
 
@@ -267,19 +286,24 @@ class Retention extends Command
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $one)->first();
         if(blank($result))
         {
-            DB::table('data_retentions')->where('country' , $country)->insert(array(
+            $data = array(
                 'date'=>$date,
                 'country'=>$country,
                 'new'=>$oneDateSignUpCount,
                 '1'=>$oneDateKeepCount,
                 'created_at'=>Carbon::now()->toDateTimeString()
-            ));
+            );
+            $result = DB::table('data_retentions')->where('country' , $country)->insert($data);
         }else{
-            DB::table('data_retentions')->where('country' , $country)->where('date' , $one)->update(array(
+            $data = array(
                 'new'=>$oneDateSignUpCount,
                 '1'=>$oneDateKeepCount
-            ));
+            );
+            $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $one)->update($data);
         }
+        Log::info('one' , array(
+            $data,$result
+        ));
 
 
     }
