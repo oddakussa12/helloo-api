@@ -41,6 +41,7 @@ class Dau extends Command
     public function handle()
     {
         $country = $this->argument('country');
+        Log::info('$country' , array($country));
         $date = $this->argument('date');
         $this->dau($country , $date);
     }
