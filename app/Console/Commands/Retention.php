@@ -293,7 +293,7 @@ class Retention extends Command
                 '1'=>$oneDateKeepCount,
                 'created_at'=>Carbon::now()->toDateTimeString()
             );
-            $result = DB::table('data_retentions')->where('country' , $country)->insert($data);
+            $result = DB::table('data_retentions')->insert($data);
         }else{
             $data = array(
                 'new'=>$oneDateSignUpCount,
@@ -304,6 +304,28 @@ class Retention extends Command
         Log::info('one' , array(
             $data,$result,$one
         ));
+
+        $n = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->toDateString();
+        $dateStart = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->startOfDay()->timestamp;
+        $dateEnd = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->endOfDay()->timestamp;
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $n)->first();
+        if(blank($result))
+        {
+            $dateSignUpCount = DB::table('users_countries')
+                ->where('activation' , 1)
+                ->where('country' , $country)
+                ->where('created_at' , '>=' , Carbon::createFromTimestamp($dateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+                ->where('created_at' , '<=' , Carbon::createFromTimestamp($dateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+                ->orderByDesc('user_id')->count();
+
+            $data = array(
+                'date'=>$n,
+                'country'=>$country,
+                'new'=>$dateSignUpCount,
+                'created_at'=>Carbon::now()->toDateTimeString()
+            );
+            DB::table('data_retentions')->insert($data);
+        }
 
 
     }
