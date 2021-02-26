@@ -16,13 +16,6 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\SignupEvent' => [
             'App\Listeners\SignupListener',
         ],
-        'App\Events\Liked' => [
-            'App\Listeners\LikeListener',
-        ],
-        'App\Events\DisLiked' => [
-            'App\Listeners\DisLikeListener',
-        ],
-
     ];
 
     /**

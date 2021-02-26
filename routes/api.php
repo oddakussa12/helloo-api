@@ -60,6 +60,10 @@ $api->group($V1Params , function ($api){
 
         /*****道具 开始*****/
         $api->resource('props', 'PropsController',['only' => ['index']]);
+        $api->get('props/bgm', 'PropsController@bgm')->name('props.bgm');
+        $api->get('props/recommendation', 'PropsController@recommendation')->name('props.recommendation');
+        $api->get('props/category', 'PropsController@category')->name('props.category');
+        $api->get('props/{category}/home', 'PropsController@home')->name('props.home');
         /*****道具 结束*****/
 
         /*****报告 开始*****/

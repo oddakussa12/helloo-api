@@ -64,10 +64,10 @@ class Dau extends Command
         }
         if($date===null)
         {
-            $dauTable = 'dau_'.Carbon::yesterday($tz)->format('Ym');
-            $yesterday = Carbon::yesterday($tz);
-            $startTime = Carbon::yesterday($tz)->startOfDay();
-            $endTime = Carbon::yesterday($tz)->endOfDay();
+            $dauTable = 'dau_'.Carbon::now($tz)->subDays(2)->format('Ym');
+            $yesterday = Carbon::now($tz)->subDays(2);
+            $startTime = Carbon::now($tz)->subDays(2)->startOfDay();
+            $endTime = Carbon::now($tz)->subDays(2)->endOfDay();
         }else{
             $dauTable = 'dau_'.Carbon::createFromFormat('Y-m-d' , $date , $tz)->format('Ym');
             $yesterday = Carbon::createFromFormat('Y-m-d' , $date , $tz);

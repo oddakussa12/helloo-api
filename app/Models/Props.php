@@ -25,8 +25,11 @@ class Props extends Model
     protected $hidden = [
         'id',
 //        'created_at',
+        'category',
         'default',
+        'recommendation',
         'updated_at',
+        'deleted_at',
     ];
 
 }

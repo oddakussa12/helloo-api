@@ -33,7 +33,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('store:visit_log')
-            ->dailyAt('20:00')->when(function(){
+            ->dailyAt('17:00')->when(function(){
                 return config('common.cron_switch');
             });
         $schedule->command('store:status_log')
@@ -57,7 +57,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('message:send')
             ->everyMinute();
         $schedule->command('generate:dau tl')
-            ->dailyAt(16)->when(function(){
+            ->dailyAt(18)->when(function(){
                 return config('common.cron_switch');
             });
         $schedule->command('generate:dau gd')

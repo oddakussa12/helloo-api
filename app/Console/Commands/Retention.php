@@ -49,6 +49,7 @@ class Retention extends Command
 
     public function retention($country , $date=null)
     {
+        $today = Carbon::now('Asia/Shanghai')->format('Y-m-d');//2021-02-23
         if($country=='tl')
         {
             $tz = "Asia/Dili";
@@ -64,87 +65,223 @@ class Retention extends Command
         }else{
             return;
         }
-        $now = $startTime = Carbon::yesterday($tz)->subDays(30);
-        $one = Carbon::yesterday($tz)->subDays(29);
-        $two = Carbon::yesterday($tz)->subDays(28);
-        $three = Carbon::yesterday($tz)->subDays(27);
-        $seven = Carbon::yesterday($tz)->subDays(21);
-        $fourteen = Carbon::yesterday($tz)->subDays(16);
-        $thirty = $endTime = Carbon::yesterday($tz);
-        $start = '2021-01-01';
-        $end = '2021-02-21';
-        $country_code = $country;
-        while($start<=$end)
-        {
-
-            $count = 0;
-            $startTime = Carbon::createFromTimestamp(Carbon::createFromFormat('Y-m-d' , $start , $tz)->startOfDay()->timestamp , new \DateTimeZone('UTC'))->toDateTimeString();
-            $endTime = Carbon::createFromTimestamp(Carbon::createFromFormat('Y-m-d' , $start , $tz)->endOfDay()->timestamp , new \DateTimeZone('UTC'))->toDateTimeString();
-            DB::table('users_countries')
-                ->where('activation' , 1)
-                ->where('country' , $country_code)
-                ->where('created_at' , '>=' , $startTime)
-                ->where('created_at' , '<=' , $endTime)
-                ->orderByDesc('user_id')->chunk(200 , function ($users) use(&$count) {
-                    $count = $count+count($users);
-                    
-
-                });
+        $thirtyDateStart = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(30)->startOfDay()->timestamp;
+        $thirtyDateEnd = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(30)->endOfDay()->timestamp;
 
 
-            $start = Carbon::createFromFormat('Y-m-d' , $start)->addDays(1)->toDateString();
-        }
+        $fourteenDateStart = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(14)->startOfDay()->timestamp;
+        $fourteenDateEnd = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(14)->endOfDay()->timestamp;
 
 
+        $sevenDateStart = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(7)->startOfDay()->timestamp;
+        $sevenDateEnd = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(7)->endOfDay()->timestamp;
 
-        echo Carbon::yesterday($tz)->toDateTimeString();
-        echo PHP_EOL;
-        $thirtyDaysAgo = Carbon::yesterday($tz)->subDays(30);
-        echo $thirtyDaysAgo->toDateTimeString();
-        die;
-        if($date===null)
-        {
-            $dauTable = 'dau_'.Carbon::now($tz)->subDays(2)->format('Ym');
-            $yesterday = Carbon::now($tz)->subDays(2);
-            $startTime = Carbon::now($tz)->subDays(2)->startOfDay();
-            $endTime = Carbon::now($tz)->subDays(2)->endOfDay();
-        }else{
-            $dauTable = 'dau_'.Carbon::createFromFormat('Y-m-d' , $date , $tz)->format('Ym');
-            $yesterday = Carbon::createFromFormat('Y-m-d' , $date , $tz);
-            $startTime = Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay();
-            $endTime = Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay();
-        }
-        $s = $startTime->timestamp;
-        $e = $endTime->timestamp;
 
-        dump($startTime);
-        dump($endTime);
-        $startTime = Carbon::createFromTimestamp($s , new \DateTime('UTC'))->toDateTimeString();
-        $endTime = Carbon::createFromTimestamp($e , new \DateTime('UTC'))->toDateTimeString();
+        $threeDateStart = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(3)->startOfDay()->timestamp;
+        $threeDateEnd = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(3)->endOfDay()->timestamp;
 
-        dump($startTime);
-        dump($endTime);
-        die;
-        $date = $yesterday->toDateString();
-        $pm = Carbon::createFromTimestamp($s , 'Asia/Shanghai')->format('Ym');
-        $nm = Carbon::createFromTimestamp($e , 'Asia/Shanghai')->format('Ym');
-        $count = $three = $two = $one = $zero = 0;
-        $country_code = $country;
-        $dua = DB::table($dauTable)->where('date' , $date)->where('country' , $country_code)->first();
-        if(!blank($dua))
-        {
-            return;
-        }
+
+        $twoDateStart = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(2)->startOfDay()->timestamp;
+        $twoDateEnd = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(2)->endOfDay()->timestamp;
+
+
+        $oneDateStart = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(1)->startOfDay()->timestamp;
+        $oneDateEnd = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(1)->endOfDay()->timestamp;
+
+
+        $nowStart = $endTime = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->startOfDay()->timestamp;
+
+        $nowEnd = $endTime = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->endOfDay()->timestamp;
+
+
+        $pm = Carbon::createFromTimestamp($nowStart , 'Asia/Shanghai')->format('Ym');
+        $nm = Carbon::createFromTimestamp($nowEnd , 'Asia/Shanghai')->format('Ym');
+
+
+        $thirtyDateSignUpCount = $fourteenDateSignUpCount = $sevenDateSignUpCount = $threeDateSignUpCount = $twoDateSignUpCount = $oneDateSignUpCount = 0;
+
+        $thirtyDateKeepCount = $fourteenDateKeepCount = $sevenDateKeepCount = $threeDateKeepCount = $twoDateKeepCount = $oneDateKeepCount = 0;
+
+        //30
         DB::table('users_countries')
             ->where('activation' , 1)
-            ->where('country' , $country_code)
-            ->where('created_at' , '>=' , $startTime)
-            ->where('created_at' , '<=' , $endTime)
-            ->orderByDesc('user_id')->chunk(200 , function ($users) {
-
-
-
+            ->where('country' , $country)
+            ->where('created_at' , '>=' , Carbon::createFromTimestamp($thirtyDateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->where('created_at' , '<=' , Carbon::createFromTimestamp($thirtyDateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->orderByDesc('user_id')->chunk(100 , function($users) use ($nowStart , $nowEnd , $pm , $nm , &$thirtyDateSignUpCount , &$thirtyDateKeepCount){
+                $thirtyDateSignUpCount = $thirtyDateSignUpCount+count($users);
+                $userIds = $users->pluck('user_id')->all();
+                if($pm==$nm)
+                {
+                    $visitTable = 'visit_logs_'.$pm;
+                    $keepT = DB::table($visitTable)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)
+                        ->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                }else{
+                    $keepPT = DB::table('visit_logs_'.$pm)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepNT = DB::table('visit_logs_'.$nm)->whereIn('user_id' , $userIds)->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepT = $keepPT+$keepNT;
+                }
+                $thirtyDateKeepCount = $thirtyDateKeepCount+$keepT;
             });
+        $thirty = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(30)->toDateString();
+        DB::table('data_retentions')->where('country' , $country)->where('date' , $thirty)->update(array(
+            'new'=>$thirtyDateSignUpCount,
+            '30'=>$thirtyDateKeepCount
+        ));
+
+
+        //14
+        DB::table('users_countries')
+            ->where('activation' , 1)
+            ->where('country' , $country)
+            ->where('created_at' , '>=' , Carbon::createFromTimestamp($fourteenDateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->where('created_at' , '<=' , Carbon::createFromTimestamp($fourteenDateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->orderByDesc('user_id')->chunk(100 , function($users) use ($nowStart , $nowEnd , $pm , $nm , &$fourteenDateSignUpCount , &$fourteenDateKeepCount){
+                $fourteenDateSignUpCount = $fourteenDateSignUpCount+count($users);
+                $userIds = $users->pluck('user_id')->all();
+                if($pm==$nm)
+                {
+                    $visitTable = 'visit_logs_'.$pm;
+                    $keepT = DB::table($visitTable)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)
+                        ->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                }else{
+                    $keepPT = DB::table('visit_logs_'.$pm)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepNT = DB::table('visit_logs_'.$nm)->whereIn('user_id' , $userIds)->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepT = $keepPT+$keepNT;
+                }
+                $fourteenDateKeepCount = $fourteenDateKeepCount+$keepT;
+            });
+        $fourteen = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(14)->toDateString();
+        DB::table('data_retentions')->where('country' , $country)->where('date' , $fourteen)->update(array(
+            'new'=>$fourteenDateSignUpCount,
+            '14'=>$fourteenDateKeepCount
+        ));
+
+
+        //7
+        DB::table('users_countries')
+            ->where('activation' , 1)
+            ->where('country' , $country)
+            ->where('created_at' , '>=' , Carbon::createFromTimestamp($sevenDateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->where('created_at' , '<=' , Carbon::createFromTimestamp($sevenDateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->orderByDesc('user_id')->chunk(100 , function($users) use ($nowStart , $nowEnd , $pm , $nm , &$sevenDateSignUpCount , &$sevenDateKeepCount){
+                $sevenDateSignUpCount = $sevenDateSignUpCount+count($users);
+                $userIds = $users->pluck('user_id')->all();
+                if($pm==$nm)
+                {
+                    $visitTable = 'visit_logs_'.$pm;
+                    $keepT = DB::table($visitTable)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)
+                        ->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                }else{
+                    $keepPT = DB::table('visit_logs_'.$pm)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepNT = DB::table('visit_logs_'.$nm)->whereIn('user_id' , $userIds)->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepT = $keepPT+$keepNT;
+                }
+                $sevenDateKeepCount = $sevenDateKeepCount+$keepT;
+            });
+        $seven = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(7)->toDateString();
+        DB::table('data_retentions')->where('country' , $country)->where('date' , $seven)->update(array(
+            'new'=>$sevenDateSignUpCount,
+            '7'=>$sevenDateKeepCount
+        ));
+
+
+        //3
+        DB::table('users_countries')
+            ->where('activation' , 1)
+            ->where('country' , $country)
+            ->where('created_at' , '>=' , Carbon::createFromTimestamp($threeDateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->where('created_at' , '<=' , Carbon::createFromTimestamp($threeDateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->orderByDesc('user_id')->chunk(100 , function($users) use ($nowStart , $nowEnd , $pm , $nm , &$threeDateSignUpCount , &$threeDateKeepCount){
+                $threeDateSignUpCount = $threeDateSignUpCount+count($users);
+                $userIds = $users->pluck('user_id')->all();
+                if($pm==$nm)
+                {
+                    $visitTable = 'visit_logs_'.$pm;
+                    $keepT = DB::table($visitTable)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)
+                        ->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                }else{
+                    $keepPT = DB::table('visit_logs_'.$pm)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepNT = DB::table('visit_logs_'.$nm)->whereIn('user_id' , $userIds)->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepT = $keepPT+$keepNT;
+                }
+                $threeDateKeepCount = $threeDateKeepCount+$keepT;
+            });
+        $three = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(3)->toDateString();
+        DB::table('data_retentions')->where('country' , $country)->where('date' , $three)->update(array(
+            'new'=>$threeDateSignUpCount,
+            '3'=>$threeDateKeepCount
+        ));
+
+
+        //2
+        DB::table('users_countries')
+            ->where('activation' , 1)
+            ->where('country' , $country)
+            ->where('created_at' , '>=' , Carbon::createFromTimestamp($twoDateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->where('created_at' , '<=' , Carbon::createFromTimestamp($twoDateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->orderByDesc('user_id')->chunk(100 , function($users) use ($nowStart , $nowEnd , $pm , $nm , &$twoDateSignUpCount , &$twoDateKeepCount){
+                $twoDateSignUpCount = $twoDateSignUpCount+count($users);
+                $userIds = $users->pluck('user_id')->all();
+                if($pm==$nm)
+                {
+                    $visitTable = 'visit_logs_'.$pm;
+                    $keepT = DB::table($visitTable)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)
+                        ->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                }else{
+                    $keepPT = DB::table('visit_logs_'.$pm)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepNT = DB::table('visit_logs_'.$nm)->whereIn('user_id' , $userIds)->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepT = $keepPT+$keepNT;
+                }
+                $twoDateKeepCount = $twoDateKeepCount+$keepT;
+            });
+        $two = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(2)->toDateString();
+        DB::table('data_retentions')->where('country' , $country)->where('date' , $two)->update(array(
+            'new'=>$twoDateSignUpCount,
+            '3'=>$twoDateKeepCount
+        ));
+
+
+        //1
+        DB::table('users_countries')
+            ->where('activation' , 1)
+            ->where('country' , $country)
+            ->where('created_at' , '>=' , Carbon::createFromTimestamp($oneDateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->where('created_at' , '<=' , Carbon::createFromTimestamp($oneDateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+            ->orderByDesc('user_id')->chunk(100 , function($users) use ($nowStart , $nowEnd , $pm , $nm , &$oneDateSignUpCount , &$oneDateKeepCount){
+                $oneDateSignUpCount = $oneDateSignUpCount+count($users);
+                $userIds = $users->pluck('user_id')->all();
+                if($pm==$nm)
+                {
+                    $visitTable = 'visit_logs_'.$pm;
+                    $keepT = DB::table($visitTable)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)
+                        ->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                }else{
+                    $keepPT = DB::table('visit_logs_'.$pm)->whereIn('user_id' , $userIds)->where('visited_at' , '>=' , $nowStart)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepNT = DB::table('visit_logs_'.$nm)->whereIn('user_id' , $userIds)->where('visited_at' , '<=' , $nowEnd)->count(DB::raw('DISTINCT(user_id)'));
+                    $keepT = $keepPT+$keepNT;
+                }
+                $oneDateKeepCount = $oneDateKeepCount+$keepT;
+            });
+        $one = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->subDays(1)->toDateString();
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $one)->first();
+        if(blank($result))
+        {
+            DB::table('data_retentions')->where('country' , $country)->insert(array(
+                'date'=>$date,
+                'country'=>$country,
+                'new'=>$oneDateSignUpCount,
+                '1'=>$oneDateKeepCount,
+                'created_at'=>Carbon::now()->toDateTimeString()
+            ));
+        }else{
+            DB::table('data_retentions')->where('country' , $country)->where('date' , $one)->update(array(
+                'new'=>$oneDateSignUpCount,
+                '1'=>$oneDateKeepCount
+            ));
+        }
+
+
     }
 
 }
