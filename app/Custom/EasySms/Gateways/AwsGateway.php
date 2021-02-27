@@ -46,18 +46,13 @@ class AwsGateway extends Gateway
         ]);
         $message = $message->getContent();
         $phone = $to->getPrefixedIDDCode().$to->getNumber();
-        \Log::error($awsKey);
-        \Log::error($awsSecret);
-        \Log::error($message);
-        \Log::error($phone);
         try {
-            $result = $smsClient->publish([
+            return $smsClient->publish([
                 'Message' => $message,
                 'PhoneNumber' => $phone
 //                'AWS.SNS.SMS.SenderID' =>'Lovbee'
             ]);
-            \Log::error($result);
-            return $result;
+
         } catch (AwsException $e) {
             throw new GatewayErrorException($e->getMessage(), $e->getCode());
         }
