@@ -287,7 +287,7 @@ class Retention extends Command
         if(blank($result))
         {
             $data = array(
-                'date'=>$date,
+                'date'=>$one,
                 'country'=>$country,
                 'new'=>$oneDateSignUpCount,
                 '1'=>$oneDateKeepCount,
