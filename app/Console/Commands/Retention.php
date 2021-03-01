@@ -227,7 +227,6 @@ class Retention extends Command
             ->orderByDesc('user_id')->chunk(100 , function($users) use ($nowStart , $nowEnd , $pm , $nm , &$threeDateSignUpCount , &$threeDateKeepCount){
                 $threeDateSignUpCount = $threeDateSignUpCount+count($users);
                 $userIds = $users->pluck('user_id')->all();
-                Log::info('3_$userIds' , $userIds);
                 if($pm==$nm)
                 {
                     $visitTable = 'visit_logs_'.$pm;
