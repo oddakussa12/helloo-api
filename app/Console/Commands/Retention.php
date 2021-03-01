@@ -49,7 +49,7 @@ class Retention extends Command
 
     public function retention($country , $date=null)
     {
-        $today = Carbon::now('Asia/Shanghai')->format('Y-m-d');//2021-02-23
+        $today = $date==null?Carbon::now('Asia/Shanghai')->format('Y-m-d'):$date;//2021-02-23
         if($country=='tl')
         {
             $tz = "Asia/Dili";
