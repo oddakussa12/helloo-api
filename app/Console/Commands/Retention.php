@@ -138,7 +138,7 @@ class Retention extends Command
             '30'=>$thirtyDateKeepCount
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $thirty)->update($thirtyData);
-        Log::info('thirty' , array(
+        Log::info('thirty_result' , array(
             $thirtyData,$result,$thirty
         ));
 
@@ -174,7 +174,7 @@ class Retention extends Command
             '14'=>$fourteenDateKeepCount
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $fourteen)->update($fourteenData);
-        Log::info('fourteen' , array(
+        Log::info('fourteen_result' , array(
             $fourteenData,$result,$fourteen
         ));
 
@@ -209,7 +209,7 @@ class Retention extends Command
             '7'=>$sevenDateKeepCount
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $seven)->update($sevenData);
-        Log::info('seven' , array(
+        Log::info('seven_result' , array(
             $sevenData,$result,$seven
         ));
 
@@ -246,7 +246,7 @@ class Retention extends Command
             '3'=>$threeDateKeepCount
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $three)->update($sevenData);
-        Log::info('three' , array(
+        Log::info('three_result' , array(
             $threeData,$result,$three
         ));
 
@@ -282,7 +282,7 @@ class Retention extends Command
             '2'=>$twoDateKeepCount
         );
         $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $two)->update($twoData);
-        Log::info('two' , array(
+        Log::info('two_result' , array(
             $twoData,$result,$two
         ));
 
@@ -331,7 +331,7 @@ class Retention extends Command
             );
             $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $one)->update($data);
         }
-        Log::info('one' , array(
+        Log::info('one_result' , array(
             $data,$result,$one
         ));
 
