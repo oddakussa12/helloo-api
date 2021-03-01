@@ -245,9 +245,9 @@ class Retention extends Command
             'new'=>$threeDateSignUpCount,
             '3'=>$threeDateKeepCount
         );
-        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $three)->update($sevenData);
+        $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $three)->update($sevenData)->to;
         Log::info('three_result' , array(
-            $threeData,$result,$three
+            $threeData,$result,$three,$country
         ));
 
 
