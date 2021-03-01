@@ -90,19 +90,28 @@ class Retention extends Command
 
 
         $nowStart = $endTime = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->startOfDay()->timestamp;
-
         $nowEnd = $endTime = Carbon::createFromFormat('Y-m-d' , $today , $tz)->subDays(2)->endOfDay()->timestamp;
-
 
         $pm = Carbon::createFromTimestamp($nowStart , 'Asia/Shanghai')->format('Ym');
         $nm = Carbon::createFromTimestamp($nowEnd , 'Asia/Shanghai')->format('Ym');
 
+        Log::info('today_period' , array(
+                '$nowStart'=>$nowStart,
+                '$nowEnd'=>$nowEnd,
+                '$pm'=>$pm,
+                '$nm'=>$nm,
+            )
+        );
 
         $thirtyDateSignUpCount = $fourteenDateSignUpCount = $sevenDateSignUpCount = $threeDateSignUpCount = $twoDateSignUpCount = $oneDateSignUpCount = 0;
 
         $thirtyDateKeepCount = $fourteenDateKeepCount = $sevenDateKeepCount = $threeDateKeepCount = $twoDateKeepCount = $oneDateKeepCount = 0;
 
         //30
+        Log::info('30day' , array(
+            Carbon::createFromTimestamp($thirtyDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
+            Carbon::createFromTimestamp($thirtyDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
+        ));
         DB::table('users_countries')
             ->where('activation' , 1)
             ->where('country' , $country)
@@ -135,6 +144,10 @@ class Retention extends Command
 
 
         //14
+        Log::info('14day' , array(
+            Carbon::createFromTimestamp($fourteenDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
+            Carbon::createFromTimestamp($fourteenDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
+        ));
         DB::table('users_countries')
             ->where('activation' , 1)
             ->where('country' , $country)
@@ -166,6 +179,10 @@ class Retention extends Command
         ));
 
         //7
+        Log::info('7day' , array(
+            Carbon::createFromTimestamp($sevenDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
+            Carbon::createFromTimestamp($sevenDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
+        ));
         DB::table('users_countries')
             ->where('activation' , 1)
             ->where('country' , $country)
@@ -199,10 +216,6 @@ class Retention extends Command
 
         //3
         Log::info('3day' , array(
-            '$nowStart'=>$nowStart,
-            '$nowEnd'=>$nowEnd,
-            '$pm'=>$pm,
-            '$nm'=>$nm,
             Carbon::createFromTimestamp($threeDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
             Carbon::createFromTimestamp($threeDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
         ));
@@ -239,6 +252,10 @@ class Retention extends Command
 
 
         //2
+        Log::info('2day' , array(
+            Carbon::createFromTimestamp($twoDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
+            Carbon::createFromTimestamp($twoDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
+        ));
         DB::table('users_countries')
             ->where('activation' , 1)
             ->where('country' , $country)
@@ -271,6 +288,10 @@ class Retention extends Command
 
 
         //1
+        Log::info('1day' , array(
+            Carbon::createFromTimestamp($oneDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
+            Carbon::createFromTimestamp($oneDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
+        ));
         DB::table('users_countries')
             ->where('activation' , 1)
             ->where('country' , $country)
