@@ -198,6 +198,10 @@ class Retention extends Command
 
 
         //3
+        Log::info('$dateStart' , array(
+            Carbon::createFromTimestamp($threeDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
+            Carbon::createFromTimestamp($threeDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
+        ));
         DB::table('users_countries')
             ->where('activation' , 1)
             ->where('country' , $country)
