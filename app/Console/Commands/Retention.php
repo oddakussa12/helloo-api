@@ -198,7 +198,11 @@ class Retention extends Command
 
 
         //3
-        Log::info('$dateStart' , array(
+        Log::info('3day' , array(
+            '$nowStart'=>$nowStart,
+            '$nowEnd'=>$nowEnd,
+            '$pm'=>$pm,
+            '$nm'=>$nm,
             Carbon::createFromTimestamp($threeDateStart , new \DateTimeZone('UTC'))->toDateTimeString(),
             Carbon::createFromTimestamp($threeDateEnd , new \DateTimeZone('UTC'))->toDateTimeString()
         ));
