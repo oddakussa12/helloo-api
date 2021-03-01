@@ -353,8 +353,12 @@ class Retention extends Command
                 'new'=>$dateSignUpCount,
                 'created_at'=>Carbon::now()->toDateTimeString()
             );
-            DB::table('data_retentions')->insert($data);
+            $result = DB::table('data_retentions')->insert($data);
+            Log::info('now_result' , array(
+                $data,$result,$n
+            ));
         }
+
 
 
     }
