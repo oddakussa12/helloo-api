@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\V1;
 
 
-use Illuminate\Support\Facades\Log;
 use JWTAuth;
 use Aws\Sts\StsClient;
 use Aws\S3\PostObjectV4;
 use Illuminate\Http\Request;
+use Godruoyi\Snowflake\Snowflake;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Aws\CognitoIdentity\CognitoIdentityClient;
-use Ramsey\Uuid\Uuid;
 
 
 class AwsController extends BaseController
@@ -177,7 +177,7 @@ class AwsController extends BaseController
         }else{
             return $this->response->noContent();
         }
-        $filename = mb_strlen($filename)==32?$filename:Uuid::uuid1()->toString();
+        $filename = mb_strlen($filename)==32?$filename:(new Snowflake)->id();
         $key = blank($extension)?$path.$filename:$path.$filename.'.'.$extension;
         $formInputs = [
             'acl' => 'private' ,
