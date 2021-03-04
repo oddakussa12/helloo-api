@@ -84,7 +84,12 @@ class StatisticsController extends BaseController
 
     public function log(Request $request)
     {
-        $all = $request->all('log');
+        if($request->has('log'))
+        {
+            $all = $request->input('log');
+        }else{
+            $all = \json_encode($request->all());
+        }
         $userId = auth()->id();
         DB::table('logs')->insert(array('log'=>$all , 'user_id'=>$userId , 'ip'=>getRequestIpAddress(), 'created_at'=>Carbon::now()->toDateTimeString()));
         return $this->response->created();
