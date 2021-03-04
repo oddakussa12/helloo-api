@@ -42,6 +42,9 @@ $api->group($V1Params , function ($api){
 //    $api->get('user/signOut' , 'AuthController@signOut')->name('sign.out');
 
     $api->post('user/ry/online' , 'UserController@updateRyUserOnlineState')->name('user.ry.online.status.set');
+    $api->group(['middleware'=>['refresh']] , function($api){
+        $api->post('statistics/upload/fail' , 'StatisticsController@uploadFail')->name('upload.fail');
+    });
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
             $api->get('user/im/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
@@ -125,8 +128,6 @@ $api->group($V1Params , function ($api){
         $api->post('statistics/type/{type}/matchFailed' , 'StatisticsController@matchFailed')->where('type', 'im|voice|video')->name('statistics.matchFailed');
 
         $api->post('statistics/type/{type}/matchSucceed' , 'StatisticsController@matchSucceed')->where('type', 'im|voice|video')->name('statistics.matchSucceed');
-
-        $api->post('statistics/upload/fail' , 'StatisticsController@uploadFail')->name('upload.fail');
 
         $api->get('notification/system' , 'NotificationController@system')->name('user.notification.system');
 
