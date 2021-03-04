@@ -90,7 +90,7 @@ class StatisticsController extends BaseController
         }else{
             $all = \json_encode($request->all());
         }
-        $userId = auth()->id();
+        $userId = intval(auth()->id());
         DB::table('logs')->insert(array('log'=>$all , 'user_id'=>$userId , 'ip'=>getRequestIpAddress(), 'created_at'=>Carbon::now()->toDateTimeString()));
         return $this->response->created();
     }
