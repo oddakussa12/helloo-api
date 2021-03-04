@@ -35,6 +35,12 @@ class AuthController extends BaseController
 
     public function signIn(Request $request)
     {
+        $agent = new Agent();
+        $version = $agent->getHttpHeader('HellooVersion');
+        if(version_compare($version , '1.0.9' , '<='))
+        {
+            abort(401 , __('Please update to the latest version from Play Store.'));
+        }
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
@@ -338,6 +344,12 @@ class AuthController extends BaseController
 
     public function phoneSignUp(Request $request)
     {
+        $agent = new Agent();
+        $version = $agent->getHttpHeader('HellooVersion');
+        if(version_compare($version , '1.0.9' , '<='))
+        {
+            abort(401 , __('Please update to the latest version from Play Store.'));
+        }
         $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
@@ -447,6 +459,12 @@ class AuthController extends BaseController
      */
     public function handleSignIn(Request $request)
     {
+        $agent = new Agent();
+        $version = $agent->getHttpHeader('HellooVersion');
+        if(version_compare($version , '1.0.9' , '<='))
+        {
+            abort(401 , __('Please update to the latest version from Play Store.'));
+        }
 //        $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
