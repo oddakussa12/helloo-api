@@ -84,6 +84,7 @@ class AwsController extends BaseController
     public function form($type)
     {
         $name = request()->input('file' , '');
+        $country = request()->input('country' , 'overseas');
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $filename = pathinfo($name, PATHINFO_FILENAME);
 //        $ip = getRequestIpAddress();
@@ -138,7 +139,7 @@ class AwsController extends BaseController
         {
             $bucket = 'helloo-video';
             $expires = '+5 minutes';
-            if(in_array(domain() , config('common.online_domain')))
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
                 $action = "https://helloo-video.s3-accelerate.amazonaws.com/";
@@ -151,7 +152,7 @@ class AwsController extends BaseController
         }else if($type=='image'){
             $bucket = 'helloo-image';
             $expires = '+5 minutes';
-            if(in_array(domain() , config('common.online_domain')))
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://image.helloo.mantouhealth.com/';
                 $action = "https://helloo-image.s3-accelerate.amazonaws.com/";
@@ -164,7 +165,7 @@ class AwsController extends BaseController
         }else if($type=='avatar'){
             $bucket = 'helloo-avatar';
             $expires = '+5 minutes';
-            if(in_array(domain() , config('common.online_domain')))
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
             {
                 $xAmzDomain = 'https://avatar.helloo.mantouhealth.com/';
                 $action = "https://helloo-avatar.s3-accelerate.amazonaws.com/";

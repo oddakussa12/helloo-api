@@ -185,7 +185,7 @@ $api->group($V1Params , function ($api){
 
     $api->post('event' , 'EventController@store')->name('event.store');
 
-    $api->put('event/{event]' , 'EventController@update')->name('event.update');
+    $api->put('event/{event}' , 'EventController@update')->name('event.update');
 
     $api->post('statistics/log' , 'StatisticsController@log')->name('statistics.log');
 
