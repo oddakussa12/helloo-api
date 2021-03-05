@@ -21,9 +21,9 @@ class PropsController extends BaseController
         $props = new Props();
         if(version_compare($version , '1.1.2' , '<'))
         {
-            $props = $props->where('default' , 0)->where('is_delete' , 0)->paginate(50 , ['*'] , $props->paginateParamName);
+            $props = $props->where('default' , 0)->where('is_delete' , 0)->orderByDesc('id')->paginate(50 , ['*'] , $props->paginateParamName);
         }else{
-            $props = $props->where('is_delete' , 0)->paginate(50 , ['*'] , $props->paginateParamName);
+            $props = $props->where('is_delete' , 0)->orderByDesc('id')->paginate(50 , ['*'] , $props->paginateParamName);
         }
         return PropsCollection::collection($props);
     }
