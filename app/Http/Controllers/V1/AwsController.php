@@ -96,8 +96,8 @@ class AwsController extends BaseController
                     ],
                 ]
             );
-            $form = $this->cnForm($type);
-            Log::info('$form' , $form);
+            $this->cnForm($type);
+
             return $this->response->array(json_decode( $response->getBody(), true));
         }
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -349,11 +349,13 @@ class AwsController extends BaseController
             $expires
         );
         $formInputs = $postObject->getFormInputs();
-        return $this->response->array(array(
+        $form = array(
             'form'=>$formInputs,
             'action'=>$action,
             'domain'=>$xAmzDomain,
-        ));
+        );
+        Log::info('$form' , $form);
+        return $this->response->array($form);
     }
 
 }
