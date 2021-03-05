@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 
 use JWTAuth;
+use GuzzleHttp\Client;
 use Aws\Sts\StsClient;
 use Aws\S3\PostObjectV4;
 use Illuminate\Http\Request;
@@ -85,6 +86,17 @@ class AwsController extends BaseController
     {
         $name = request()->input('file' , '');
         $country = request()->input('country' , 'overseas');
+        if($country=='cn')
+        {
+            $http = new Client;
+            $response = $http->get("http://test.api.helloo.mantouhealth.com/api/aws/{$type}/form", [
+                    'query' => [
+                            'file' => $name
+                    ],
+                ]
+            );
+            return $this->response->array(json_decode( $response->getBody(), true));
+        }
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $filename = pathinfo($name, PATHINFO_FILENAME);
 //        $ip = getRequestIpAddress();
