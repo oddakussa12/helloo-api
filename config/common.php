@@ -6,6 +6,7 @@ return [
     'online_domain'=>[
         'dev.api.helloo.mantouhealth.com',
         'api.helloo.mantouhealth.com',
+        'cn.api.helloo.mantouhealth.com',
     ],
 	'qnUploadDomain'=>[
         'video_domain' => 'https://qnidyooulvideo.mmantou.cn/',
