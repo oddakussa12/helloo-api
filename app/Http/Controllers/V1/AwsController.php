@@ -86,7 +86,7 @@ class AwsController extends BaseController
     {
         $name = request()->input('file' , '');
         $country = request()->input('country' , 'overseas');
-        if($country=='cn')
+        if($country=='cn'&&in_array(domain() , config('common.online_domain')))
         {
             $http = new Client;
             $response = $http->get("http://test.api.helloo.mantouhealth.com/api/aws/{$type}/form", [
