@@ -89,6 +89,7 @@ class AwsController extends BaseController
         $country = request()->input('country' , 'overseas');
         if($country=='cn'&&in_array(domain() , config('common.online_domain')))
         {
+            return $this->response->array($this->cnForm($type));
             $http = new Client;
             $response = $http->get("http://test.api.helloo.mantouhealth.com/api/aws/{$type}/form", [
                     'query' => [
@@ -97,7 +98,6 @@ class AwsController extends BaseController
                 ]
             );
             $this->cnForm($type);
-
             return $this->response->array(json_decode( $response->getBody(), true));
         }
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -349,13 +349,11 @@ class AwsController extends BaseController
             $expires
         );
         $formInputs = $postObject->getFormInputs();
-        $form = array(
+        return array(
             'form'=>$formInputs,
             'action'=>$action,
             'domain'=>$xAmzDomain,
         );
-        Log::info('$form' , $form);
-        return $this->response->array($form);
     }
 
 }
