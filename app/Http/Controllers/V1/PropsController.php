@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\V1;
 
-use Carbon\Carbon;
 use App\Models\Bgm;
 use App\Models\Props;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Resources\PropsCollection;
 use App\Resources\AnonymousCollection;
-use Illuminate\Support\Facades\DB;
-use Dingo\Api\Exception\StoreResourceFailedException;
-use Jenssegers\Agent\Agent;
+
 
 class PropsController extends BaseController
 {
@@ -31,7 +30,7 @@ class PropsController extends BaseController
 
     public function bgm()
     {
-        return AnonymousCollection::collection(Bgm::where('is_delete' , 0)->where('is_delete' , 0)->paginate(50 , ['*']));
+        return AnonymousCollection::collection(Bgm::where('is_delete' , 0)->where('status' , 1)->paginate(50 , ['*']));
     }
 
     public function recommendation()
@@ -41,18 +40,26 @@ class PropsController extends BaseController
         return PropsCollection::collection($props);
     }
 
-    public function hot()
+    private function hot()
     {
-
+        $props = new Props();
+        $props = $props->where('default' , 0)->where('is_delete' , 0)->where('host' , 1)->orderBydesc('created_at')->paginate(50 , ['*']);
+        return PropsCollection::collection($props);
     }
 
-    public function new()
+    private function new()
     {
-
+        $props = new Props();
+        $props = $props->where('default' , 0)->where('is_delete' , 0)->orderBydesc('created_at')->paginate(50 , ['*']);
+        return PropsCollection::collection($props);
     }
 
     public function home($category)
     {
+        if($category=='hot'||$category=='new')
+        {
+            return $this->$category();
+        }
         $props = new Props();
         $props = $props->where('default' , 0)->where('is_delete' , 0)->where('category' , $category)->paginate(50 , ['*'] , $props->paginateParamName);
         return PropsCollection::collection($props);
@@ -60,30 +67,24 @@ class PropsController extends BaseController
 
     public function category()
     {
-        return $this->response->array(
-            array('data'=>array(
-                array(
-                    'name'=>'test',
-                    'tag'=>'test',
-                ),
-                array(
-                    'name'=>'test 1',
-                    'tag'=>'test1',
-                ),
-                array(
-                    'name'=>'test 2',
-                    'tag'=>'test2',
-                ),
-                array(
-                    'name'=>'test 3',
-                    'tag'=>'test3',
-                ),
-                array(
-                    'name'=>'test 4',
-                    'tag'=>'test4',
-                ),
-            ))
-        );
+        $local = locale();
+        $categories = DB::table('props_categories')->get();
+        $categories = $categories->map(function ($category, $key) use ($local){
+            $language = \json_decode($category->language , true);
+            if(isset($language[$local]))
+            {
+                $tag = $language[$local];
+            }elseif(isset($language['en'])){
+                $tag = $language['en'];
+            }else{
+                $tag = $category->name;
+            }
+            return array(
+                'name'=>$category->name,
+                'tag'=>$tag,
+            );
+        })->toArray();
+        return $this->response->array($categories);
     }
 
 }
