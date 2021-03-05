@@ -35,7 +35,18 @@ return [
             'key' => env('AWS_PINPOINT_KEY', ''),
             'secret' => env('AWS_PINPOINT_SECRET', '')
         ]
+    ],
+    'S3CN' => [
+        'region' => env('AWS_CN_S3_REGION', 'cn-north-1'),
+        'version' => 'latest',
+        'ua_append' => [
+            'L5MOD/' . AwsServiceProvider::VERSION,
+        ],
+        'credentials' => [
+            'key' => env('AWS_CN_S3_KEY', ''),
+            'secret' => env('AWS_CN_S3_SECRET', '')
     ]
+]
 
 
 ];

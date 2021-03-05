@@ -276,14 +276,7 @@ class AwsController extends BaseController
             default:
                 $contentType = "";
         }
-        $config = config('aws');
-        $config = array_merge($config , array(
-            'region'=>env('AWS_CN_S3_REGION', ''),
-            'credentials' => [
-                'key' => env('AWS_CN_S3_KEY', ''),
-                'secret' => env('AWS_CN_S3_SECRET', '')
-            ]
-        ));
+        $config = config('aws.S3CN');
         $s3 = new S3Client($config);
         $dir = empty(auth()->id())?'other':md5(auth()->id());
         $path = $dir.'/'.date('Ymd').'/';
