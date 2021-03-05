@@ -79,4 +79,5 @@ return [
     'prohibited_default_uuid'=>env('PROHIBITED_DEFAULT_UUID' , ''),
     'is_verification' =>env('IS_VERIFICATION' , true),
     'global_sms' =>env('GLOBAL_SMS' , 'yunXinCustom'),
+    'block_version' =>env('BLOCK_VERSION' , '1.0.9'),
 ];

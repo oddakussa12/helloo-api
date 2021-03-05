@@ -33,7 +33,7 @@ class OperationLog extends BaseMiddleware
 //            {
 ////                Log::info('deviceId' , array('deviceId'=>$deviceId , 'userId'=>auth()->id()));
 //            }
-            if(version_compare($version , '1.0.9' , '<='))
+            if(version_compare($version , config('common.block_version') , '<='))
             {
                 abort(401 , __('Please update to the latest version from Play Store.'));
             }
