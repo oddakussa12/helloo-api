@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 
 use JWTAuth;
+use Aws\S3\S3Client;
 use GuzzleHttp\Client;
 use Aws\Sts\StsClient;
 use Aws\S3\PostObjectV4;
@@ -95,6 +96,8 @@ class AwsController extends BaseController
                     ],
                 ]
             );
+            $form = $this->cnForm($type);
+            Log::info('$form' , $form);
             return $this->response->array(json_decode( $response->getBody(), true));
         }
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -145,6 +148,143 @@ class AwsController extends BaseController
         }
         $aws = app('aws');
         $s3 = $aws->createS3();
+        $dir = empty(auth()->id())?'other':md5(auth()->id());
+        $path = $dir.'/'.date('Ymd').'/';
+        if($type=='video')
+        {
+            $bucket = 'helloo-video';
+            $expires = '+5 minutes';
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://video.helloo.mantouhealth.com/';
+                $action = "https://helloo-video.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-video.s3.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.video.helloo.mantouhealth.com/';
+                $action = "https://helloo-video.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*50;
+        }else if($type=='image'){
+            $bucket = 'helloo-image';
+            $expires = '+5 minutes';
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://image.helloo.mantouhealth.com/';
+                $action = "https://helloo-image.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-image.s3.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.image.helloo.mantouhealth.com/';
+                $action = "https://helloo-image.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*10;
+        }else if($type=='avatar'){
+            $bucket = 'helloo-avatar';
+            $expires = '+5 minutes';
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://avatar.helloo.mantouhealth.com/';
+                $action = "https://helloo-avatar.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-avatar.s3.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.avatar.helloo.mantouhealth.com/';
+                $action = "https://helloo-avatar.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*10;
+        }else{
+            return $this->response->noContent();
+        }
+        $filename = mb_strlen($filename)==32?$filename:(new Snowflake)->id();
+        $key = blank($extension)?$path.$filename:$path.$filename.'.'.$extension;
+        $formInputs = [
+            'acl' => 'private' ,
+            'key' => $key ,
+            'x-amz-domain'=>$xAmzDomain ,
+            'success_action_status'=>'201'
+        ];
+        $options = [
+            ['acl' => 'private'],
+            ['success_action_status'=>"201"],
+            ['bucket' => $bucket],
+            ['content-length-range', 1, $contentLengthRange], // 8 KiB
+            ['x-amz-domain'=>$xAmzDomain], // 8 KiB
+            ['starts-with', '$key', $path],
+        ];
+        !blank($contentType)&&$formInputs['Content-Type'] = $contentType;
+        !blank($contentType)&&array_push($options , ['Content-Type'=>$contentType]);
+        $postObject = new PostObjectV4(
+            $s3,
+            $bucket,
+            $formInputs,
+            $options,
+            $expires
+        );
+        $formInputs = $postObject->getFormInputs();
+        return $this->response->array(array(
+            'form'=>$formInputs,
+            'action'=>$action,
+            'domain'=>$xAmzDomain,
+        ));
+    }
+
+    private function cnForm($type)
+    {
+        $name = request()->input('file' , '');
+        $country = request()->input('country' , 'overseas');
+        $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $filename = pathinfo($name, PATHINFO_FILENAME);
+//        $ip = getRequestIpAddress();
+//        $code = strtolower(geoip(getRequestIpAddress())->iso_code);
+        switch ($extension)
+        {
+            case "tif":
+            case "tiff":
+                $contentType = "image/tiff";
+                break;
+            case "fax":
+                break;
+            case "gif":
+                $contentType = "image/gif";
+                break;
+            case "ico":
+                $contentType = "image/x-icon";
+                break;
+            case "jpe":
+            case "jpeg":
+            case "jfif":
+            case "jpg":
+                $contentType = "image/jpeg";
+                break;
+            case "png":
+                $contentType = "image/png";
+                break;
+            case "wbmp":
+                $contentType = "image/vnd.wap.wbmp";
+                break;
+            //video
+            case "mp4":
+                $contentType = "video/mp4";
+                break;
+            case "avi":
+                $contentType = "video/avi";
+                break;
+            case "mpeg":
+                $contentType = "video/mpg";
+                break;
+            case "wmv":
+                $contentType = "video/x-ms-wmv";
+                break;
+            default:
+                $contentType = "";
+        }
+        $config = config('aws');
+        $config = array_merge($config , array(
+            'region'=>env('AWS_CN_S3_REGION', ''),
+            'credentials' => [
+                'key' => env('AWS_CN_S3_KEY', ''),
+                'secret' => env('AWS_CN_S3_SECRET', '')
+            ]
+        ));
+        $s3 = new S3Client($config);
         $dir = empty(auth()->id())?'other':md5(auth()->id());
         $path = $dir.'/'.date('Ymd').'/';
         if($type=='video')
