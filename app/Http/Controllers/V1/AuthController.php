@@ -37,7 +37,7 @@ class AuthController extends BaseController
     {
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
-        if(version_compare($version , '1.0.9' , '<='))
+        if(version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
@@ -346,7 +346,7 @@ class AuthController extends BaseController
     {
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
-        if(version_compare($version , '1.0.9' , '<='))
+        if(version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
@@ -461,7 +461,7 @@ class AuthController extends BaseController
     {
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
-        if(version_compare($version , '1.0.9' , '<='))
+        if(version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
