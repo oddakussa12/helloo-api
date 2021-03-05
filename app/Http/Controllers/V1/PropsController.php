@@ -43,7 +43,7 @@ class PropsController extends BaseController
     private function hot()
     {
         $props = new Props();
-        $props = $props->where('default' , 0)->where('is_delete' , 0)->where('host' , 1)->orderBydesc('created_at')->paginate(50 , ['*']);
+        $props = $props->where('default' , 0)->where('is_delete' , 0)->where('hot' , 1)->orderBydesc('created_at')->paginate(50 , ['*']);
         return PropsCollection::collection($props);
     }
 
