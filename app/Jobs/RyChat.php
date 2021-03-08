@@ -153,7 +153,13 @@ class RyChat implements ShouldQueue
                 if($messageContent['message_type']=='Yooul:VideoLike')
                 {
                     $data['chat_extend'] = intval($content['LikeType']);
-                    $messageContent['message_content'] = $content['videoID'];
+                    if(isset($content['videoID']))
+                    {
+                        $messageContent['message_content'] = $content['videoID'];
+                    }else{
+                        $messageContent['message_content'] = '';
+                        Log::info('BLANK_VIDEO_ID' , $raw);
+                    }
                 }
                 if($messageContent['message_type']=='Helloo:VideoMsg')
                 {
