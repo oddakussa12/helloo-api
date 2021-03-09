@@ -130,7 +130,7 @@ class AuthController extends BaseController
             $fields['user_avatar'] = $user_avatar;
         }
 
-        if(in_array($user_gender , array(0 , 1 , '0' , '1')))
+        if($user_gender!==null&&in_array($user_gender , array(0 , 1 , '0' , '1')))
         {
             $fields['user_gender'] = intval($user_gender);
         }
