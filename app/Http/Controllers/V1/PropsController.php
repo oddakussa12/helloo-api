@@ -4,15 +4,18 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\Bgm;
 use App\Models\Props;
+use Illuminate\Pagination\Paginator;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Resources\PropsCollection;
 use App\Resources\AnonymousCollection;
+use Illuminate\Database\Concerns\BuildsQueries;
 
 
 class PropsController extends BaseController
 {
+    use BuildsQueries;
 
     public function index(Request $request)
     {
@@ -50,7 +53,11 @@ class PropsController extends BaseController
     private function new()
     {
         $props = new Props();
-        $props = $props->where('default' , 0)->where('is_delete' , 0)->orderBydesc('created_at')->paginate(50 , ['*']);
+        $props = $props->where('default' , 0)->where('is_delete' , 0)->orderBydesc('created_at')->limit(10)->get();
+        $props = $props = $this->paginator($props, collect($props)->count(), 10 , 1, [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => 'page',
+        ]);
         return PropsCollection::collection($props);
     }
 
