@@ -91,7 +91,7 @@ class PropsController extends BaseController
                 'tag'=>$tag,
             );
         })->toArray();
-        return $this->response->array($categories);
+        return $this->response->array(array('data'=>$categories));
     }
 
 }
