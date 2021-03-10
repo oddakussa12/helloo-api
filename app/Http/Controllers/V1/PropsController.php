@@ -68,7 +68,7 @@ class PropsController extends BaseController
     public function category()
     {
         $local = locale();
-        $categories = DB::table('props_categories')->get();
+        $categories = DB::table('props_categories')->where('is_delete' , 0)->orderByDesc('sort')->orderByDesc('created_at')->get();
         $categories = $categories->map(function ($category, $key) use ($local){
             $language = \json_decode($category->language , true);
             if(isset($language[$local]))
