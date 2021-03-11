@@ -87,8 +87,8 @@ class PropsController extends BaseController
                 $tag = $category->name;
             }
             return array(
-                'name'=>$category->name,
-                'tag'=>$tag,
+                'tag'=>$category->name,
+                'name'=>$tag,
             );
         })->toArray();
         return $this->response->array(array('data'=>$categories));
