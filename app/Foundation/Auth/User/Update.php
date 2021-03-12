@@ -230,9 +230,7 @@ trait Update
             'user_enrollment_at'=>[
                 'bail',
                 'filled',
-                'date',
-                'after:'.date('Y-m' , strtotime('-102years')),
-                'before:'.date('Y-m' , strtotime('+1months')),
+                'string'
             ],
             'user_about'=>[
                 'bail',

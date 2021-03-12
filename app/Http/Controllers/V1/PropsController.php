@@ -39,22 +39,22 @@ class PropsController extends BaseController
     public function recommendation()
     {
         $props = new Props();
-        $props = $props->where('default' , 0)->where('is_delete' , 0)->where('recommendation' , 1)->orderByDesc('sort')->orderBydesc('created_at')->limit(15)->get();
+        $props = $props->where('is_delete' , 0)->where('recommendation' , 1)->orderByDesc('sort')->orderBydesc('created_at')->limit(10)->get();
         return PropsCollection::collection($props);
     }
 
     private function hot()
     {
         $props = new Props();
-        $props = $props->where('default' , 0)->where('is_delete' , 0)->where('hot' , 1)->orderBydesc('created_at')->paginate(50 , ['*']);
+        $props = $props->where('is_delete' , 0)->where('hot' , 1)->orderBydesc('created_at')->paginate(50 , ['*']);
         return PropsCollection::collection($props);
     }
 
     private function new()
     {
         $props = new Props();
-        $props = $props->where('default' , 0)->where('is_delete' , 0)->orderBydesc('created_at')->limit(10)->get();
-        $props = $props = $this->paginator($props, collect($props)->count(), 10 , 1, [
+        $props = $props->where('is_delete' , 0)->orderBydesc('created_at')->limit(14)->get();
+        $props = $props = $this->paginator($props, collect($props)->count(), 14 , 1, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);
@@ -68,7 +68,7 @@ class PropsController extends BaseController
             return $this->$category();
         }
         $props = new Props();
-        $props = $props->where('default' , 0)->where('is_delete' , 0)->where('category' , $category)->paginate(50 , ['*'] , $props->paginateParamName);
+        $props = $props->where('is_delete' , 0)->where('category' , $category)->paginate(50 , ['*'] , $props->paginateParamName);
         return PropsCollection::collection($props);
     }
 
