@@ -512,6 +512,15 @@ class UserController extends BaseController
                 'user_nick_name',
                 'user_avatar',
             ))->limit(4)->get();
+            if(blank($users))
+            {
+                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
+                    'user_id',
+                    'user_name',
+                    'user_nick_name',
+                    'user_avatar',
+                ))->limit(4)->get();
+            }
         }else{
             $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
                 'user_id',

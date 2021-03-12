@@ -1498,8 +1498,8 @@ if (! function_exists('escape_like')) {
      */
     function escape_like($string)
     {
-        $search = array('%', '_');
-        $replace   = array('', '\_');
+        $search = array('%', '_' , '\'');
+        $replace   = array('', '\_' , '');
         return str_replace($search, $replace, $string);
     }
 }
