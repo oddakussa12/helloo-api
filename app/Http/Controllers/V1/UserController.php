@@ -103,6 +103,7 @@ class UserController extends BaseController
             $keyword = mb_substr($keyword , 0 , 30);
             $len = strlen($keyword);
             $mbLen = mb_strlen($keyword);
+            $keyword = escape_like($keyword);
             if($mbLen!==$len)
             {
                 $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_nick_name', 'like', "%{$keyword}%")->orderByRaw("REPLACE(user_nick_name,'{$keyword}','')")->select('user_id', 'user_avatar' , 'user_name' , 'user_nick_name', 'user_about', 'user_gender' , 'user_sl' , 'user_birthday')->limit(20)->get();
