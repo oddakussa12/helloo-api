@@ -16,7 +16,7 @@ class SchoolController extends BaseController
         $key = strval($request->input('key' , ''));
         if(!blank($key)&&strlen($key)==mb_strlen($key))
         {
-            $userSchools = DB::table('users_schools_logs')->where('school' , 'like' , '%'.$key.'%')->orderByRaw("REPLACE(school,'{$key}','')")->select('school')->distinct()->limit(5)->pluck('school')->toArray();
+            $userSchools = DB::table('users_schools_logs')->where('school' , 'like' , '%'.$key.'%')->select('school')->distinct()->limit(5)->pluck('school')->toArray();
         }
         return $this->response->array(array('data'=>$userSchools));
     }
