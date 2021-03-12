@@ -424,6 +424,7 @@ trait Update
                     'created_at'=>$now,
                 );
                 DB::table('users_schools_logs')->insert($logData);
+                School::dispatch($school)->onQueue('helloo_{user_school}');
             }
         }else{
             $flag = true;

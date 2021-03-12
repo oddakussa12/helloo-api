@@ -67,11 +67,11 @@ class UserController extends BaseController
             })->values();
             $userIds = $users->pluck('user_id')->toArray();
             $userSchools = $users->pluck('user_school')->toArray();
-            $schools = DB::table('schools')->whereIn('key' , $userSchools)->get();
+//            $schools = DB::table('schools')->whereIn('key' , $userSchools)->get();
             $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
-            $users->each(function($user , $index) use ($friendIds , $schools){
+            $users->each(function($user , $index) use ($friendIds){
                 $user->is_friend = in_array($user->user_id , $friendIds);
-                $user->user_school = $schools->where('key' , $user->user_school)->pluck('name')->first();
+//                $user->user_school = $schools->where('key' , $user->user_school)->pluck('name')->first();
             });
             return UserCollection::collection($users);
         }elseif(!blank($phone)&&!blank($phoneCountry))
@@ -88,14 +88,14 @@ class UserController extends BaseController
             }
             $userIds = $users->pluck('user_id')->toArray();
             $userSchools = $users->pluck('user_school')->toArray();
-            $schools = DB::table('schools')->whereIn('key' , $userSchools)->get();
+//            $schools = DB::table('schools')->whereIn('key' , $userSchools)->get();
             $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $userId)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
             $users = $users->filter(function($user) use ($friendIds){
                 return  !in_array($user->user_id , $friendIds);
             })->values();
-            $users->each(function($user , $index) use ($friendIds , $schools){
+            $users->each(function($user , $index) use ($friendIds){
                 $user->is_friend = in_array($user->user_id , $friendIds);
-                $user->user_school = $schools->where('key' , $user->user_school)->pluck('name')->first();
+//                $user->user_school = $schools->where('key' , $user->user_school)->pluck('name')->first();
             });
             return UserCollection::collection($users);
         }elseif (!blank($keyword))
@@ -157,12 +157,12 @@ class UserController extends BaseController
         $user->put('friendCount' , 0);
         $user->put('isFriend' , !blank($friend));
         $user->put('likeState' , $likeState);
-        if(!blank($user->get('user_school')))
-        {
-            $school = DB::table('schools')->where('key' , $user->get('user_school'))->first();
-            $userSchool = !blank($school)?$school->name:'';
-            $user->put('user_school' , $userSchool);
-        }
+//        if(!blank($user->get('user_school')))
+//        {
+//            $school = DB::table('schools')->where('key' , $user->get('user_school'))->first();
+//            $userSchool = !blank($school)?$school->name:'';
+//            $user->put('user_school' , $userSchool);
+//        }
         return new UserCollection($user);
     }
 
@@ -504,7 +504,7 @@ class UserController extends BaseController
             $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_sl' , $school);
             if(!blank($grade))
             {
-                $users = $users->where('user_grade' , $grade)->inRandomOrder();
+//                $users = $users->where('user_grade' , $grade)->inRandomOrder();
             }
             $users = $users->select(array(
                 'user_id',

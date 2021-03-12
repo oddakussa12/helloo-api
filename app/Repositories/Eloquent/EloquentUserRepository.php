@@ -9,6 +9,7 @@ namespace App\Repositories\Eloquent;
 
 
 use Carbon\Carbon;
+use App\Jobs\School;
 use App\Models\User;
 use App\Jobs\RyOnline;
 use App\Jobs\UserUpdate;
@@ -72,6 +73,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                     'created_at'=>$now,
                 );
                 DB::table('users_schools_logs')->insert($logData);
+                School::dispatch($school)->onQueue('helloo_{user_school}');
             }
         }
         return $user;

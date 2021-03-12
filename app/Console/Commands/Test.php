@@ -53,17 +53,24 @@ class Test extends Command
      */
     public function handle()
     {
-        Log::info('test_time' , array(Carbon::now()->toDateTimeString()));
-        echo PHP_EOL;
-        return;
-        dump(geoip('180.244.233.39')->toArray());
-        die;
-        DB::table('users')->orderByDesc('user_id')->chunk(500 , function ($users){
-            foreach ($users as $user)
+        $this->fillSchool();
+    }
+
+    public function fillSchool()
+    {
+        $file = storage_path('app/tmp/school.csv');
+        foreach(file($file) as $line) {
+            list($c , $s) = explode(',' , $line);
+            $school = DB::table('schools')->where('name' , $s)->first();
+            if(blank($school))
             {
-                DB::table('users_countries')->where('user_id' , $user->user_id)->update(array('activation'=>$user->user_activation));
+                DB::table('schools')->insert(array(
+                    'name'=>$s,
+                    'country'=>$c,
+                    'created_at'=>Carbon::now()->toDateTimeString()
+                ));
             }
-        });
+        }
     }
 
     public function sync()
@@ -207,8 +214,6 @@ class Test extends Command
             }
         });
     }
-
-
 
     public function sms()
     {

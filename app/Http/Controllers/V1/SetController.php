@@ -50,7 +50,7 @@ class SetController extends BaseController
         }else{
             $schools = $schools->where('country' , 'other');
         }
-        $schools = $schools->get();
+        $schools = $schools->limit(100)->get();
         $grades = Grade::orderBy('sort')->get();
         $grades->each(function ($grade , $index) use ($country){
             if($grade->key=='other')
