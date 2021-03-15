@@ -70,6 +70,18 @@ class UserSynchronization implements ShouldQueue
                 $country = 'mu';
             }
 
+            if(blank($country)&&$userPhone->user_phone_country==62)
+            {
+                $type = 1;
+                $country = 'id';
+            }
+
+            if(blank($country)&&$userPhone->user_phone_country==251)
+            {
+                $type = 1;
+                $country = 'et';
+            }
+
             if(blank($country))
             {
                 $type = 0;
