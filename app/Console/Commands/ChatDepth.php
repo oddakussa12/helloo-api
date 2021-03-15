@@ -42,7 +42,9 @@ class ChatDepth extends Command
      */
     public function handle()
     {
-        $this->runCommand($this->argument('country') ,$this->argument('date') , $this->argument('num'));
+        $num = intval($this->argument('num'));
+        $num = $num<=0?3:$num;
+        $this->runCommand($this->argument('country') ,$this->argument('date') , $num);
     }
 
     public function runCommand($country , $date=null , $num=3)
