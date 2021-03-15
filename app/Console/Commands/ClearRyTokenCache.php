@@ -12,7 +12,7 @@ class ClearRyTokenCache extends Command
      *
      * @var string
      */
-    protected $signature = 'clear:ry_token_cache';
+    protected $signature = 'clear:ry_token_cache {$i?}';
 
     /**
      * The console command description.
@@ -38,10 +38,14 @@ class ClearRyTokenCache extends Command
      */
     public function handle()
     {
-        for($i=1;$i<=1000;$i++)
+        $index = intval($this->argument('i' , 0));
+        if($index>=1)
         {
-            $key = 'helloo:account:service:account-ry-token:'.$i;
-            Redis::del($key);
+            for($i=1;$i<=$index;$i++)
+            {
+                $key = 'helloo:account:service:account-ry-token:'.$i;
+                Redis::del($key);
+            }
         }
     }
 
