@@ -62,6 +62,12 @@ class Retention extends Command
         {
             $hour = "4";
             $tz = "Indian/Mauritius";
+        }elseif ($country=='id')
+        {
+            $tz = "Asia/Jakarta";
+        }elseif ($country=='et')
+        {
+            $tz = "Africa/Addis_Ababa";
         }else{
             return;
         }

@@ -58,6 +58,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('message:send')
             ->everyMinute();
 
+        //dau
         $schedule->command('generate:dau tl')
             ->dailyAt(18)->when(function(){
                 return config('common.cron_switch');
@@ -70,7 +71,24 @@ class Kernel extends ConsoleKernel
             ->dailyAt(21)->when(function(){
                 return config('common.cron_switch');
             });
+        $schedule->command('generate:dau id')
+            ->dailyAt(16)->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:dau et')
+            ->dailyAt(12)->when(function(){
+                return config('common.cron_switch');
+            });
 
+        //retention
+        $schedule->command('generate:retention et')
+            ->dailyAt("12:10")->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:retention id')
+            ->dailyAt("16:10")->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('generate:retention tl')
             ->dailyAt("18:10")->when(function(){
                 return config('common.cron_switch');

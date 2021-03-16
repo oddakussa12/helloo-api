@@ -60,6 +60,14 @@ class Dau extends Command
         {
             $hour = "4";
             $tz = "Indian/Mauritius";
+        }elseif ($country=='id')
+        {
+            $hour = "7";
+            $tz = "Asia/Jakarta";
+        }elseif ($country=='et')
+        {
+            $hour = "3";
+            $tz = "Africa/Addis_Ababa";
         }else{
             return;
         }
