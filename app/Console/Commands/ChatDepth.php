@@ -172,7 +172,7 @@ class ChatDepth extends Command
                 'user_id'=>$c,
                 'video'=>intval(in_array($c , $videoCompleted)),
                 'num'=>$num,
-                'type'=>'school',
+                'type'=>'country',
                 'country'=>$country,
                 'time'=>$time,
                 'created_at'=>Carbon::now()->toDateTimeString()
@@ -218,7 +218,7 @@ class ChatDepth extends Command
                     }
                     array_push($counted , $tag);
                     $abCount = $baCount = 0;
-                    if(in_array($chat->chat_from_id , $userIds)&&in_array($chat->chat_to_id , $userIds))
+                    if(in_array($chat->chat_from_id , $userIds)||in_array($chat->chat_to_id , $userIds))
                     {
                         $ab = strval($chat->chat_from_id).'-'.strval($chat->chat_to_id);
                         $ba = strval($chat->chat_to_id).'-'.strval($chat->chat_from_id);
@@ -258,7 +258,14 @@ class ChatDepth extends Command
                             {
                                 array_push($videoCompleted , $chat->chat_from_id , $chat->chat_to_id);
                             }
-                            array_push($completed , $chat->chat_from_id , $chat->chat_to_id);
+                            if(in_array($chat->chat_from_id , $userIds))
+                            {
+                                array_push($completed , $chat->chat_from_id);
+                            }
+                            if(in_array($chat->chat_to_id , $userIds))
+                            {
+                                array_push($completed , $chat->chat_to_id);
+                            }
                         }
 //                        dump('$chat->chat_from_id and $chat->chat_to_id '. $chat->chat_from_id .'-'. $chat->chat_to_id .' $baCount'.$baCount.' $abCount'.$abCount);
                     }
