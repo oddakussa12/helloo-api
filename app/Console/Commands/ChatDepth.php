@@ -178,6 +178,7 @@ class ChatDepth extends Command
                 'created_at'=>Carbon::now()->toDateTimeString()
             ));
         }
+        dump('$time:'.$time.' $data:'.count($data));
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
