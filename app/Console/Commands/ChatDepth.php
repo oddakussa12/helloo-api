@@ -43,11 +43,11 @@ class ChatDepth extends Command
     public function handle()
     {
         $num = intval($this->argument('num'));
-        $num = $num<=0?3:$num;
+        $num = $num<=0?5:$num;
         $this->runCommand($this->argument('country') ,$this->argument('date') , $num);
     }
 
-    public function runCommand($country , $date=null , $num=3)
+    public function runCommand($country , $date=null , $num=5)
     {
         $country = strtolower($country);
         if($country=='tl')
@@ -82,7 +82,7 @@ class ChatDepth extends Command
         }
 
         $table = 'ry_chats_'.$index;
-        $counted = $completed = array();
+        $counted = $completed = $videoCompleted = array();
         $turn = 0;
         DB::table($table)
             ->where('chat_time' , '>=' , $start)
@@ -90,7 +90,7 @@ class ChatDepth extends Command
             ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
             ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
             ->groupBy('ft')->orderByDesc('chat_from_id')
-            ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num){
+            ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted){
                 $fromIds = $chats->pluck('chat_from_id')->all();
                 $toIds = $chats->pluck('chat_to_id')->all();
                 $userIds = array_unique(array_merge($fromIds , $toIds));
@@ -114,6 +114,7 @@ class ChatDepth extends Command
                         $ab = strval($chat->chat_from_id).'-'.strval($chat->chat_to_id);
                         $ba = strval($chat->chat_to_id).'-'.strval($chat->chat_from_id);
                         $preTurn = '';
+                        $video = false;
                         DB::table($table)
                             ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
                             ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
@@ -121,9 +122,13 @@ class ChatDepth extends Command
                             ->where('chat_time' , '>=' , $start)
                             ->where('chat_time' , '<=' , $end)
                             ->orderBy('chat_time')
-                            ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba){
+                            ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
                                 foreach ($chatData as $c)
                                 {
+                                    if($c->chat_msg_type=='Helloo:VideoMsg')
+                                    {
+                                        $video = true;
+                                    }
                                     $flag = strval($c->chat_from_id).'-'.strval($c->chat_to_id);
                                     if(!blank($preTurn)&&$preTurn!=$flag)
                                     {
@@ -140,6 +145,10 @@ class ChatDepth extends Command
                         if($baCount>=$num||$abCount>=$num)
                         {
                             $turn++;
+                            if($video)
+                            {
+                                array_push($videoCompleted , $chat->chat_from_id , $chat->chat_to_id);
+                            }
                             array_push($completed , $chat->chat_from_id , $chat->chat_to_id);
                         }
 //                        dump('$chat->chat_from_id and $chat->chat_to_id '. $chat->chat_from_id .'-'. $chat->chat_to_id .' $baCount'.$baCount.' $abCount'.$abCount);
@@ -147,12 +156,15 @@ class ChatDepth extends Command
                 }
             });
         $completed = array_unique($completed);
+        $videoCompleted = array_unique($videoCompleted);
         asort($completed);
+        asort($videoCompleted);
         $data = array();
         foreach ($completed as $c)
         {
             array_push($data , array(
                 'user_id'=>$c,
+                'video'=>intval(in_array($c , $videoCompleted)),
                 'num'=>$num,
                 'time'=>$time,
                 'created_at'=>Carbon::now()->toDateTimeString()

@@ -53,14 +53,11 @@ class Retention extends Command
         if($country=='tl')
         {
             $tz = "Asia/Dili";
-            $hour = "9";
         }elseif ($country=='gd')
         {
-            $hour = "-4";
             $tz = "America/Grenada";
         }elseif ($country=='mu')
         {
-            $hour = "4";
             $tz = "Indian/Mauritius";
         }elseif ($country=='id')
         {
