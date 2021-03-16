@@ -79,8 +79,8 @@ class Test extends Command
         {
             foreach ($dates as $date)
             {
-                $command = "chat:depth school \"".$school."\" ".$date;
-                $this->call($command);
+                $command = "chat:depth";
+                $this->call($command , array('type'=>'school' , 'school'=>$school , 'date'=>$date));
             }
         }
     }
