@@ -1,44 +1,17 @@
 <?php
 
 return array(
-    'id'=>array(
-        array(
-            'key'=>'test_school1',
-            'name'=>'test school1',
-            'grade'=>array(
-                array(
-                    'key'=>'first_grade',
-                    'name'=>'First grade'
-                ),
-                array(
-                    'key'=>'two_grade',
-                    'name'=>'Two grade',
-                    'class'=>array(
-                        array(
-                            'key'=>'class_one',
-                            'name'=>'class one',
-                        ),
-                        array(
-                            'key'=>'class_two',
-                            'name'=>'class two',
-                        )
-                    )
-                )
-            )
-        ),
-        array(
-            'key'=>'test_school2',
-            'name'=>'test school2',
-            'grade'=>array(
-                array(
-                    'key'=>'one_grade',
-                    'name'=>'First grade'
-                ),
-                array(
-                    'key'=>'two_grade',
-                    'name'=>'Two grade',
-                )
-            )
-        )
-    )
+    "Sekolah Menengah Atas Negri 10",
+    "Addis Ababa University",
+    "Colégio São Pedro",
+    "ESTV - GTI/STM Becora",
+    "Ensino Secundário 5 de Maio",
+    "Ensino Secundário 28 de Novembro",
+    "Nobel da Paz ",
+    "Ensino Secundário 12 de Novembro",
+    "Escola Técnica Informática ETI ",
+    "Escola An-Nur",
+    "Ensino Secundário Nicolao Lobato",
+    "São José Operário",
+    "Universidade Nacionál de Timor Lorosa'e"
 );

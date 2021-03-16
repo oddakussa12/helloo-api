@@ -168,17 +168,32 @@ class ChatDepth extends Command
         $data = array();
         foreach ($completed as $c)
         {
-            array_push($data , array(
-                'user_id'=>$c,
-                'video'=>intval(in_array($c , $videoCompleted)),
-                'num'=>$num,
-                'type'=>'country',
-                'country'=>$country,
-                'time'=>$time,
-                'created_at'=>Carbon::now()->toDateTimeString()
-            ));
+            $item = DB::table('chat_layers')->where('user_id' , $c)->where('type' , 'country')->where('country' , $country)->where('time' , $time)->first();
+            if(blank($item))
+            {
+                array_push($data , array(
+                    'user_id'=>$c,
+                    'video'=>intval(in_array($c , $videoCompleted)),
+                    'num'=>$num,
+                    'type'=>'country',
+                    'country'=>$country,
+                    'time'=>$time,
+                    'created_at'=>Carbon::now()->toDateTimeString()
+                ));
+            }else{
+                DB::table('chat_layers')
+                    ->where('user_id' , $c)
+                    ->where('type' , 'country')
+                    ->where('country' , $country)
+                    ->where('time' , $time)
+                    ->where('time' , $time)->update(array(
+                        'video'=>intval(in_array($c , $videoCompleted)),
+                        'num'=>$num
+                    ));
+            }
+
         }
-        dump('$time:'.$time.' $data:'.count($data));
+        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed));
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
@@ -286,17 +301,30 @@ class ChatDepth extends Command
         $data = array();
         foreach ($completed as $c)
         {
-            array_push($data , array(
-                'user_id'=>$c,
-                'video'=>intval(in_array($c , $videoCompleted)),
-                'num'=>$num,
-                'type'=>'school',
-                'school'=>$school,
-                'time'=>$time,
-                'created_at'=>Carbon::now()->toDateTimeString()
-            ));
+            $item = DB::table('chat_layers')->where('user_id' , $c)->where('type' , 'school')->where('school' , $school)->where('time' , $time)->first();
+            if(blank($item))
+            {
+                array_push($data , array(
+                    'user_id'=>$c,
+                    'video'=>intval(in_array($c , $videoCompleted)),
+                    'num'=>$num,
+                    'type'=>'school',
+                    'school'=>$school,
+                    'time'=>$time,
+                    'created_at'=>Carbon::now()->toDateTimeString()
+                ));
+            }else{
+                DB::table('chat_layers')
+                    ->where('user_id' , $c)
+                    ->where('type' , 'school')
+                    ->where('school' , $school)
+                    ->where('time' , $time)->update(array(
+                        'video'=>intval(in_array($c , $videoCompleted)),
+                        'num'=>$num
+                ));
+            }
         }
-        dump('$time:'.$time.' $data:'.count($data));
+        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed));
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
