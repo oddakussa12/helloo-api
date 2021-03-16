@@ -80,7 +80,7 @@ class Test extends Command
             foreach ($dates as $date)
             {
                 $command = "chat:depth";
-                $this->call($command , array('type'=>'school' , 'school'=>$school , 'date'=>$date));
+                $this->call($command , array('type'=>'school' , 'value'=>$school , 'date'=>$date));
             }
         }
     }
