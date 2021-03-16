@@ -185,10 +185,18 @@ class ChatDepth extends Command
     public function runCommandSchool($school , $date=null , $num=5)
     {
         $tz = 'Asia/Shanghai';
-        $start = (Carbon::now($tz)->startOfDay()->timestamp)*1000;
-        $end = (Carbon::now($tz)->endOfDay()->timestamp)*1000+999;
-        $index = Carbon::now($tz)->format("Ym");
-        $time = Carbon::now($tz)->toDateString();
+        if(blank($date))
+        {
+            $start = (Carbon::now($tz)->startOfDay()->timestamp)*1000;
+            $end = (Carbon::now($tz)->endOfDay()->timestamp)*1000+999;
+            $index = Carbon::now($tz)->format("Ym");
+            $time = Carbon::now($tz)->toDateString();
+        }else{
+            $start = (Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay()->timestamp)*1000;
+            $end = (Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay()->timestamp)*1000+999;
+            $index = Carbon::createFromFormat('Y-m-d' , $date , $tz)->format("Ym");
+            $time = Carbon::createFromFormat('Y-m-d' , $date , $tz)->toDateString();
+        }
 
         $table = 'ry_chats_'.$index;
         $counted = $completed = $videoCompleted = array();
@@ -203,10 +211,7 @@ class ChatDepth extends Command
                 $fromIds = $chats->pluck('chat_from_id')->all();
                 $toIds = $chats->pluck('chat_to_id')->all();
                 $userIds = array_unique(array_merge($fromIds , $toIds));
-                dump($school);
-                dump($userIds);
                 $userIds = DB::table('users')->whereIn('user_id' , $userIds)->where('user_sl' , $school)->pluck('user_id')->toArray();
-                dump($userIds);
                 foreach ($chats as $chat)
                 {
                     if($chat->chat_from_id>$chat->chat_to_id)
