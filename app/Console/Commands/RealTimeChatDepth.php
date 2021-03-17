@@ -18,7 +18,7 @@ class RealTimeChatDepth extends Command
      *
      * @var string
      */
-    protected $signature = 'real:time_chat_depth {type?}';
+    protected $signature = 'real:time_chat_depth {type?} {date?}';
 
     /**
      * The console command description.
@@ -45,7 +45,8 @@ class RealTimeChatDepth extends Command
     public function handle()
     {
         $dates = array();
-        $startDate = Carbon::yesterday('Asia/Shanghai')->toDateString();
+        $date = $this->argument('date');
+        $startDate = $date==null?Carbon::yesterday('Asia/Shanghai')->toDateString():$date;
         $endTime = Carbon::now('Asia/Shanghai')->toDateString();
         $type = $this->argument('type');
         if($type=='today')
