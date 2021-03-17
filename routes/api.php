@@ -196,6 +196,8 @@ $api->group($V1Params , function ($api){
 
     $api->post('ry/push' , 'RySetController@push')->name('ry.push');
 
+    $api->get('question/index' , 'QuestionController@index')->name('question.index');
+
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');

@@ -10,15 +10,14 @@ class Feedback extends Model
 
     protected $table = "feedback";
 
-    const CREATED_AT = 'feedback_created_at';
+    const CREATED_AT = 'created_at';
 
-    const DELETED_AT = 'feedback_deleted_at';
+    const UPDATED_AT = 'updated_at';
 
-    protected $primaryKey = 'feedback_id';
+    protected $primaryKey = 'id';
 
-    protected $fillable = ['feedback_id' , 'feedback_name' , 'feedback_email','feedback_content','feedback_created_at','feedback_deleted_at'];
+    protected $fillable = ['user_id' , 'content','image'];
 
-    public $paginateParamName = 'feedback_page';
 
     public function setUpdatedAt($value)
     {

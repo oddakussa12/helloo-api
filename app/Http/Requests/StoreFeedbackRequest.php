@@ -24,9 +24,7 @@ class StoreFeedbackRequest extends FormRequest
     public function rules()
     {
         return [
-            'feedback_name' => 'bail|nullable|string|max:100',
-            'feedback_email' => 'bail|nullable|string|email|max:100',
-            'feedback_content' => 'bail|required|string|between:1,2000',
+            'content' => 'bail|required|string|max:5000',
         ];
     }
 }
