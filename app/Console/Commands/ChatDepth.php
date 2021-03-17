@@ -90,13 +90,14 @@ class ChatDepth extends Command
         $table = 'ry_chats_'.$index;
         $counted = $completed = $videoCompleted = array();
         $turn = 0;
+        $chatData = array();
         DB::table($table)
             ->where('chat_time' , '>=' , $start)
             ->where('chat_time' , '<=' , $end)
             ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
             ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
             ->groupBy('ft')->orderByDesc('chat_from_id')
-            ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted){
+            ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
                 $fromIds = $chats->pluck('chat_from_id')->all();
                 $toIds = $chats->pluck('chat_to_id')->all();
                 $userIds = array_unique(array_merge($fromIds , $toIds));
@@ -155,6 +156,18 @@ class ChatDepth extends Command
                             {
                                 array_push($videoCompleted , $chat->chat_from_id , $chat->chat_to_id);
                             }
+                            if(isset($chatData[$chat->chat_from_id]))
+                            {
+                                array_push($chatData[$chat->chat_from_id] , $chat->chat_to_id);
+                            }else{
+                                $chatData[$chat->chat_from_id] = array($chat->chat_to_id);
+                            }
+                            if(isset($chatData[$chat->chat_to_id]))
+                            {
+                                array_push($chatData[$chat->chat_to_id] , $chat->chat_from_id);
+                            }else{
+                                $chatData[$chat->chat_to_id] = array($chat->chat_from_id);
+                            }
                             array_push($completed , $chat->chat_from_id , $chat->chat_to_id);
                         }
 //                        dump('$chat->chat_from_id and $chat->chat_to_id '. $chat->chat_from_id .'-'. $chat->chat_to_id .' $baCount'.$baCount.' $abCount'.$abCount);
@@ -166,8 +179,10 @@ class ChatDepth extends Command
         asort($completed);
         asort($videoCompleted);
         $data = array();
+        $amount = 0;
         foreach ($completed as $c)
         {
+            $amount = array_unique($chatData[$c]);
             $item = DB::table('chat_layers')->where('user_id' , $c)->where('type' , 'country')->where('country' , $country)->where('time' , $time)->first();
             if(blank($item))
             {
@@ -177,6 +192,7 @@ class ChatDepth extends Command
                     'num'=>$num,
                     'type'=>'country',
                     'country'=>$country,
+                    'amount'=>count($amount),
                     'time'=>$time,
                     'created_at'=>Carbon::now()->toDateTimeString()
                 ));
@@ -188,12 +204,13 @@ class ChatDepth extends Command
                     ->where('time' , $time)
                     ->where('time' , $time)->update(array(
                         'video'=>intval(in_array($c , $videoCompleted)),
+                        'amount'=>count($amount),
                         'num'=>$num
                     ));
             }
 
         }
-        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed));
+        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $amount:'.count($amount).' $country:'.$country);
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
@@ -216,13 +233,14 @@ class ChatDepth extends Command
         $table = 'ry_chats_'.$index;
         $counted = $completed = $videoCompleted = array();
         $turn = 0;
+        $chatData = array();
         DB::table($table)
             ->where('chat_time' , '>=' , $start)
             ->where('chat_time' , '<=' , $end)
             ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
             ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
             ->groupBy('ft')->orderByDesc('chat_from_id')
-            ->chunk(100 , function($chats) use ($table , $school , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted){
+            ->chunk(100 , function($chats) use ($table , $school , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
                 $fromIds = $chats->pluck('chat_from_id')->all();
                 $toIds = $chats->pluck('chat_to_id')->all();
                 $userIds = array_unique(array_merge($fromIds , $toIds));
@@ -289,6 +307,20 @@ class ChatDepth extends Command
                             {
                                 array_push($completed , $chat->chat_to_id);
                             }
+
+                            if(isset($chatData[$chat->chat_from_id]))
+                            {
+                                array_push($chatData[$chat->chat_from_id] , $chat->chat_to_id);
+                            }else{
+                                $chatData[$chat->chat_from_id] = array($chat->chat_to_id);
+                            }
+                            if(isset($chatData[$chat->chat_to_id]))
+                            {
+                                array_push($chatData[$chat->chat_to_id] , $chat->chat_from_id);
+                            }else{
+                                $chatData[$chat->chat_to_id] = array($chat->chat_from_id);
+                            }
+
                         }
 //                        dump('$chat->chat_from_id and $chat->chat_to_id '. $chat->chat_from_id .'-'. $chat->chat_to_id .' $baCount'.$baCount.' $abCount'.$abCount);
                     }
@@ -299,8 +331,10 @@ class ChatDepth extends Command
         asort($completed);
         asort($videoCompleted);
         $data = array();
+        $amount = 0;
         foreach ($completed as $c)
         {
+            $amount = array_unique($chatData[$c]);
             $item = DB::table('chat_layers')->where('user_id' , $c)->where('type' , 'school')->where('school' , $school)->where('time' , $time)->first();
             if(blank($item))
             {
@@ -310,6 +344,7 @@ class ChatDepth extends Command
                     'num'=>$num,
                     'type'=>'school',
                     'school'=>$school,
+                    'amount'=>count($amount),
                     'time'=>$time,
                     'created_at'=>Carbon::now()->toDateTimeString()
                 ));
@@ -320,11 +355,12 @@ class ChatDepth extends Command
                     ->where('school' , $school)
                     ->where('time' , $time)->update(array(
                         'video'=>intval(in_array($c , $videoCompleted)),
+                        'amount'=>count($amount),
                         'num'=>$num
                 ));
             }
         }
-        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed));
+        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $amount:'.count($amount).' $school:'.$school);
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
