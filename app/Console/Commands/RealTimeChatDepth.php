@@ -66,6 +66,8 @@ class RealTimeChatDepth extends Command
             foreach ($dates as $date)
             {
                 $command = "chat:depth";
+                dump($command);
+                dump(array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date));
                 $this->call($command , array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date));
             }
         }
@@ -75,6 +77,8 @@ class RealTimeChatDepth extends Command
             foreach ($dates as $date)
             {
                 $command = "chat:depth";
+                dump($command);
+                dump(array('type'=>'school' , 'value'=>$school , 'date'=>$date));
                 $this->call($command , array('type'=>'school' , 'value'=>$school , 'date'=>$date));
             }
         }
