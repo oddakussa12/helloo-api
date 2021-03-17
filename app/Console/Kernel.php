@@ -81,14 +81,6 @@ class Kernel extends ConsoleKernel
             });
 
         //retention
-        $schedule->command('generate:retention et')
-            ->dailyAt("12:10")->when(function(){
-                return config('common.cron_switch');
-            });
-        $schedule->command('generate:retention id')
-            ->dailyAt("16:10")->when(function(){
-                return config('common.cron_switch');
-            });
         $schedule->command('generate:retention tl')
             ->dailyAt("18:10")->when(function(){
                 return config('common.cron_switch');
@@ -101,12 +93,20 @@ class Kernel extends ConsoleKernel
             ->dailyAt("18:30")->when(function(){
                 return config('common.cron_switch');
             });
+        $schedule->command('generate:retention id')
+            ->dailyAt("18:40")->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:retention et')
+            ->dailyAt("18:50")->when(function(){
+                return config('common.cron_switch');
+            });
 
         //chatDepth
-//        $schedule->command('real:time_chat_depth' , array('type'=>'yesterday'))
-//            ->cron('0 0 0/3 * *')->when(function(){
-//                return config('common.cron_switch');
-//            });
+        $schedule->command('real:time_chat_depth' , array('type'=>'yesterday'))
+            ->hourly('0 */3 * * *')->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('real:time_chat_depth' , array('type'=>'today'))
             ->everyThirtyMinutes()->when(function(){
                 return config('common.cron_switch');
