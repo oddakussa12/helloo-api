@@ -22,7 +22,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Schema::class,
         \App\Console\Commands\Message::class,
         \App\Console\Commands\Dau::class,
-        \App\Console\Commands\Retention::class
+        \App\Console\Commands\Retention::class,
+        \App\Console\Commands\RealTimeChatDepth::class
     ];
 
     /**
