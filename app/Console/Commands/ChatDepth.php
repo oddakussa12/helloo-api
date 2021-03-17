@@ -179,11 +179,13 @@ class ChatDepth extends Command
         asort($completed);
         asort($videoCompleted);
         $data = array();
-        $amount = 0;
         foreach ($completed as $c)
         {
             $amount = array_unique($chatData[$c]);
-            dd($amount);
+            dump('country');
+            dump('$c:'.$c);
+            dump($amount);
+            dump('-------------');
             $item = DB::table('chat_layers')->where('user_id' , $c)->where('type' , 'country')->where('country' , $country)->where('time' , $time)->first();
             if(blank($item))
             {
@@ -211,7 +213,7 @@ class ChatDepth extends Command
             }
 
         }
-        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $amount:'.count($amount).' $country:'.$country);
+        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $country:'.$country);
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
@@ -332,10 +334,13 @@ class ChatDepth extends Command
         asort($completed);
         asort($videoCompleted);
         $data = array();
-        $amount = 0;
         foreach ($completed as $c)
         {
             $amount = array_unique($chatData[$c]);
+            dump('school');
+            dump('$c:'.$c);
+            dump($amount);
+            dump('-------------');
             $item = DB::table('chat_layers')->where('user_id' , $c)->where('type' , 'school')->where('school' , $school)->where('time' , $time)->first();
             if(blank($item))
             {
@@ -361,7 +366,7 @@ class ChatDepth extends Command
                 ));
             }
         }
-        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $amount:'.count($amount).' $school:'.$school);
+        dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $school:'.$school);
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
