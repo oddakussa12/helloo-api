@@ -183,6 +183,7 @@ class ChatDepth extends Command
         foreach ($completed as $c)
         {
             $amount = array_unique($chatData[$c]);
+            dd($amount);
             $item = DB::table('chat_layers')->where('user_id' , $c)->where('type' , 'country')->where('country' , $country)->where('time' , $time)->first();
             if(blank($item))
             {
