@@ -43,7 +43,7 @@ class AppController extends BaseController
             return $this->response->noContent();
         }
         $platform['isUpgrade'] = version_compare($version , $platform['version'] , '<');
-        $platform['upgradeType'] = version_compare($version , $platform['last'] , '<');
+        $platform['mustUpgrade'] = version_compare($version , $platform['last'] , '<');
         return $this->response->array(array('data'=>$platform));
     }
 
