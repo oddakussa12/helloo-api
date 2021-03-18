@@ -192,6 +192,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('app/index' , 'AppController@index')->name('app.index');
 
+    $api->get('app/home' , 'AppController@home')->name('app.home');
+
     $api->get('school/index' , 'SchoolController@index')->name('school.index');
 
     $api->post('ry/push' , 'RySetController@push')->name('ry.push');

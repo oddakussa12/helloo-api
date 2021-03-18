@@ -43,6 +43,7 @@ class AppController extends BaseController
             return $this->response->noContent();
         }
         $platform['isUpgrade'] = version_compare($version , $platform['version'] , '<');
+        $platform['upgradeType'] = version_compare($version , $platform['last'] , '<');
         return $this->response->array($platform);
     }
 
@@ -51,7 +52,7 @@ class AppController extends BaseController
         $lastVersion = 'helloo:app:service:last-version';
         if(Redis::exists($lastVersion))
         {
-            return \json_decode(Redis::get($lastVersion) , true);
+//            return \json_decode(Redis::get($lastVersion) , true);
         }
         $ios = 'ios';
         $android = 'android';
