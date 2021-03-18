@@ -15,6 +15,15 @@ class QuestionController extends BaseController
         return AnonymousCollection::collection(Question::where('status' ,1)->paginate(10));
     }
 
+    public function hot(Request $request)
+    {
+        $questions = Question::where('status' ,1)->select('id' , 'title')->paginate(10);
+        $questions->each(function($question , $index){
+            $question->url = 'https://baidu.com';
+        });
+        return AnonymousCollection::collection($questions);
+    }
+
 
 
 

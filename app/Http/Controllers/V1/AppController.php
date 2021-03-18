@@ -29,6 +29,23 @@ class AppController extends BaseController
         return $this->response->array($platform);
     }
 
+    public function home(Request $request)
+    {
+        $agent = new Agent();
+        $version = strval($request->input('version' , $agent->getHttpHeader('HellooVersion')));
+        $params = $request->only('platform' , 'version' , 'time_stamp');
+        $platform = strtolower(strval($params['platform']??''));
+        $platform = in_array($platform , array('ios' , 'android'))?$platform:'android';
+        $app = $this->getFirstApp();
+        $platform = $app[$platform];
+        if(empty($platform))
+        {
+            return $this->response->noContent();
+        }
+        $platform['isUpgrade'] = version_compare($version , $platform['version'] , '<');
+        return $this->response->array($platform);
+    }
+
     public function getFirstApp()
     {
         $lastVersion = 'helloo:app:service:last-version';
