@@ -10,7 +10,7 @@ class App extends Model
 
     protected $table = "app_versions";
     
-    protected $fillable = ['platform' , 'type' , 'version' , 'apk_url' , 'upgrade_point' , 'status'];
+    protected $fillable = ['platform' , 'version' , 'last' , 'upgrade_point' , 'status'];
 
     const CREATED_AT = 'created_at';
 
@@ -30,7 +30,7 @@ class App extends Model
     protected $hidden = [
         'id',
         'status',
-        'type',
+        'created_at',
     ];
 
 }
