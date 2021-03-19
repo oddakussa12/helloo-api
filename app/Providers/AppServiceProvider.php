@@ -88,7 +88,7 @@ class AppServiceProvider extends ServiceProvider
             return new EloquentEventRepository(new Event());
         });
         $this->app->singleton('snowflake', function () {
-            return (new Snowflake())->setSequenceResolver(new RedisSequenceResolver());
+            return (new Snowflake())->setSequenceResolver((new RedisSequenceResolver())->setCachePrefix('helloo:snowflake:{sequence}:'));
         });
     }
 

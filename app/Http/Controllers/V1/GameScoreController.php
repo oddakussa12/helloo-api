@@ -55,7 +55,7 @@ class GameScoreController extends BaseController
             $rankCountry = $country=='62'?'670':$country;
             $key = "helloo:account:game:country:score:".$game.'-'.$rankCountry;
             $now = Carbon::now()->timestamp;
-            $nowFlake = new Snowflake();
+            $nowFlake = app('snowflake');
             $scoreBefore = $max = Redis::zscore($key , $userId);
             $oldRank = Redis::zrevrank($key , $userId);
             $oldRank = $oldRank===null?0:$oldRank+1;//全国排行

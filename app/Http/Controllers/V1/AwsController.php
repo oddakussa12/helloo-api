@@ -193,7 +193,7 @@ class AwsController extends BaseController
         }else{
             return $this->response->noContent();
         }
-        $filename = mb_strlen($filename)==32?$filename:(new Snowflake)->id();
+        $filename = mb_strlen($filename)==32?$filename:app('snowflake')->id();
         $key = blank($extension)?$path.$filename:$path.$filename.'.'.$extension;
         $formInputs = [
             'acl' => 'private' ,
@@ -323,7 +323,7 @@ class AwsController extends BaseController
         }else{
             return $this->response->noContent();
         }
-        $filename = mb_strlen($filename)==32?$filename:(new Snowflake)->id();
+        $filename = mb_strlen($filename)==32?$filename:app('snowflake')->id();
         $key = blank($extension)?$path.$filename:$path.$filename.'.'.$extension;
         $formInputs = [
             'acl' => 'private' ,

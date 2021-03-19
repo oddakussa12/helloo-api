@@ -77,7 +77,7 @@ class UserFriendRequestController extends BaseController
             if(blank($requestModel))
             {
                 $requests = new UserFriendRequest();
-                $request_id = (new Snowflake)->id();
+                $request_id = app('snowflake')->id();
                 $requests->request_id = $request_id;
                 $requests->request_from_to = $userId.'-'.$friendId;
                 $requests->request_from_id = $userId;

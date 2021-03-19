@@ -30,7 +30,8 @@ class RedisSequenceResolver implements SequenceResolver
     public function sequence(int $currentTime)
     {
         $lua = "return redis.call('exists',KEYS[1])<1 and redis.call('psetex',KEYS[1],ARGV[2],ARGV[1])";
-        if (Redis::eval($lua, [($key = $this->prefix.$currentTime), 1, 1000], 1)) {
+        $key = $this->prefix.$currentTime;
+        if (Redis::eval($lua, 1 , $key , 1 , 1000)) {
             return 0;
         }
         return Redis::incrby($key, 1);

@@ -419,7 +419,7 @@ trait Update
                 }
                 $now = Carbon::now()->toDateTimeString();
                 $logData = array(
-                    'id'=>(new Snowflake)->id(),
+                    'id'=>app('snowflake')->id(),
                     'user_id'=>$userId,
                     'school'=>$school,
                     'created_at'=>$now,

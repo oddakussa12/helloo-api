@@ -67,7 +67,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             {
                 $now = Carbon::now()->toDateTimeString();
                 $logData = array(
-                    'id'=>(new Snowflake)->id(),
+                    'id'=>app('snowflake')->id(),
                     'user_id'=>$model->getKey(),
                     'school'=>$school,
                     'created_at'=>$now,
@@ -1595,7 +1595,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         if(blank($prompt))
         {
             $result = DB::table('username_prompt')->insert(array(
-                'id'=>(new Snowflake())->id(),
+                'id'=>app('snowflake')->id(),
                 'user_id'=>$userId,
                 'created_at'=>Carbon::now()->timestamp,
             ));

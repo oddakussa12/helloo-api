@@ -60,7 +60,7 @@ class SignUpOrInFail implements ShouldQueue
         $message = is_string($this->message)?$this->message:\json_encode($this->message , JSON_UNESCAPED_UNICODE);
         DB::table('auth_failed_logs')->insert(
             array(
-                'id'=>(new Snowflake)->id(),
+                'id'=>app('snowflake')->id(),
                 'route'=>$this->route,
                 'version'=>$this->version,
                 'param'=>\json_encode($this->param , JSON_UNESCAPED_UNICODE),
