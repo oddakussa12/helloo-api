@@ -2,6 +2,7 @@
 namespace App\Foundation\Auth\User;
 
 use Carbon\Carbon;
+use App\Jobs\School;
 use App\Models\User;
 use App\Jobs\EasySms;
 use App\Rules\UserPhone;
