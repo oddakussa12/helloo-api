@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Event;
 use App\Models\UserTag;
 use App\Models\UserFriend;
+use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +22,7 @@ use App\Repositories\Eloquent\EloquentEventRepository;
 use App\Repositories\Eloquent\EloquentUserTagRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRepository;
 use App\Repositories\Contracts\UserFriendRequestRepository;
+use App\Custom\Uuid\Snowflake\Resolver\RedisSequenceResolver;
 use App\Repositories\Eloquent\EloquentUserFriendRequestRepository;
 
 
@@ -68,7 +70,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepository::class, function () {
             return new EloquentUserRepository(new User());
         });
-
         $this->app->bind(TagRepository::class, function () {
             return new EloquentTagRepository(new Tag());
         });
@@ -85,6 +86,9 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->bind(EventRepository::class, function () {
             return new EloquentEventRepository(new Event());
+        });
+        $this->app->singleton('snowflake', function () {
+            return (new Snowflake())->setSequenceResolver(new RedisSequenceResolver());
         });
     }
 
