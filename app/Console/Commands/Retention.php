@@ -360,6 +360,20 @@ class Retention extends Command
             Log::info('now_result' , array(
                 $data,$result,$n
             ));
+        }else{
+            $dateSignUpCount = DB::table('users_countries')
+                ->where('activation' , 1)
+                ->where('country' , $country)
+                ->where('created_at' , '>=' , Carbon::createFromTimestamp($dateStart , new \DateTimeZone('UTC'))->toDateTimeString())
+                ->where('created_at' , '<=' , Carbon::createFromTimestamp($dateEnd , new \DateTimeZone('UTC'))->toDateTimeString())
+                ->orderByDesc('user_id')->count();
+            $data = array(
+                'new'=>$dateSignUpCount,
+            );
+            $result = DB::table('data_retentions')->where('country' , $country)->where('date' , $n)->update($data);
+            Log::info('now_update_result' , array(
+                $data,$result,$n
+            ));
         }
 
 
