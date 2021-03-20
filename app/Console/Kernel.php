@@ -104,11 +104,11 @@ class Kernel extends ConsoleKernel
             });
 
         //chatDepth
-        $schedule->command('real:time_chat_depth' , array('type'=>'yesterday'))
+        $schedule->command('real:time_chat_depth' , array('yesterday'))
             ->hourly('0 */2 * * *')->when(function(){
                 return config('common.cron_switch');
             });
-        $schedule->command('real:time_chat_depth' , array('type'=>'today'))
+        $schedule->command('real:time_chat_depth' , array('today'))
             ->everyFifteenMinutes()->when(function(){
                 return config('common.cron_switch');
             });
