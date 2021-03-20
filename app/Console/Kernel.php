@@ -112,6 +112,10 @@ class Kernel extends ConsoleKernel
             ->everyThirtyMinutes()->when(function(){
                 return config('common.cron_switch');
             });
+        $schedule->command('real:time_chat_depth' , array('type'=>'today'))
+            ->everyFiveMinutes()->when(function(){
+                return config('common.cron_switch');
+            });
         $schedule->command('real:time_chat_depth')
             ->dailyAt('12:00')->when(function(){
                 return config('common.cron_switch');

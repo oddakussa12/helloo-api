@@ -51,6 +51,7 @@ class ChatDepth extends Command
         }else{
             $this->runCommandCountry($this->argument('value') ,$this->argument('date') , $num);
         }
+        dump('end');
     }
 
     public function runCommandCountry($country , $date=null , $num=5)
@@ -213,12 +214,21 @@ class ChatDepth extends Command
             }
 
         }
+        Log::info('country_end' , array(
+            '$time'=>$time,
+            '$data'=>count($data),
+            '$completed'=>count($completed),
+            '$country'=>$country,
+        ));
         dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $country:'.$country);
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
 
     public function runCommandSchool($school , $date=null , $num=5)
     {
+        dump($school);
+        dump($date);
+        dump($num);
         $tz = 'Asia/Shanghai';
         if(blank($date))
         {
@@ -366,6 +376,12 @@ class ChatDepth extends Command
                 ));
             }
         }
+        Log::info('school_end' , array(
+            '$time'=>$time,
+            '$data'=>count($data),
+            '$completed'=>count($completed),
+            '$school'=>$school,
+        ));
         dump('$time:'.$time.' $data:'.count($data).' $completed:'.count($completed).' $school:'.$school);
         !blank($data)&&DB::table('chat_layers')->insert($data);
     }
