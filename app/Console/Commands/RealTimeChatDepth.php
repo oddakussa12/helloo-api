@@ -49,6 +49,7 @@ class RealTimeChatDepth extends Command
         $startDate = $date==null?Carbon::yesterday('Asia/Shanghai')->toDateString():$date;
         $endTime = Carbon::now('Asia/Shanghai')->toDateString();
         $type = $this->argument('type');
+        Log::info('argument' , array('date'=>$date , 'type'=>$type));
         if($type=='today')
         {
             $dates = array($endTime);
@@ -67,9 +68,12 @@ class RealTimeChatDepth extends Command
             foreach ($dates as $date)
             {
                 $command = "chat:depth";
+                $param = array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date);
                 dump($command);
-                dump(array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date));
-                $this->call($command , array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date));
+                dump($param);
+                og::info('$command' , array($command));
+                Log::info('$command' , $param);
+                $this->call($command , $param);
             }
         }
         $schools = config('school');
@@ -78,9 +82,12 @@ class RealTimeChatDepth extends Command
             foreach ($dates as $date)
             {
                 $command = "chat:depth";
+                $param = array('type'=>'school' , 'value'=>$school , 'date'=>$date);
                 dump($command);
-                dump(array('type'=>'school' , 'value'=>$school , 'date'=>$date));
-                $this->call($command , array('type'=>'school' , 'value'=>$school , 'date'=>$date));
+                dump($param);
+                Log::info('$command' , array($command));
+                Log::info('$command' , $param);
+                $this->call($command , $param);
             }
         }
     }
