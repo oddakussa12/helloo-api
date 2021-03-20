@@ -71,7 +71,7 @@ class RealTimeChatDepth extends Command
                 $param = array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date);
                 dump($command);
                 dump($param);
-                og::info('$command' , array($command));
+                Log::info('$command' , array($command));
                 Log::info('$command' , $param);
                 $this->call($command , $param);
             }
