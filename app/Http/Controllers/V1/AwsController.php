@@ -142,9 +142,18 @@ class AwsController extends BaseController
                 break;
             case "wmv":
                 $contentType = "video/x-ms-wmv";
+            case "mp3":
+                $contentType = "audio/mpeg";
+                break;
+            case "wav":
+                $contentType = "audio/wav";
+                break;
+            case "amr":
+                $contentType = "audio/amr";
                 break;
             default:
                 $contentType = "";
+                break;
         }
         $aws = app('aws');
         $s3 = $aws->createS3();
@@ -188,6 +197,32 @@ class AwsController extends BaseController
             }else{
                 $xAmzDomain = 'https://test.avatar.helloo.mantouhealth.com/';
                 $action = "https://helloo-avatar.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*10;
+        }else if($type=='audio'){
+            $bucket = 'helloo-audio';
+            $expires = '+5 minutes';
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://audio.helloo.mantouhealth.com/';
+                $action = "https://helloo-audio.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-audio.s3.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.audio.helloo.mantouhealth.com/';
+                $action = "https://helloo-audio.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*10;
+        }else if($type=='photo'){
+            $bucket = 'helloo-photo';
+            $expires = '+5 minutes';
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://photo.helloo.mantouhealth.com/';
+                $action = "https://helloo-photo.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-photo.s3.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.photo.helloo.mantouhealth.com/';
+                $action = "https://helloo-photo.s3.cn-north-1.amazonaws.com.cn/";
             }
             $contentLengthRange = 1024*1024*10;
         }else{
@@ -273,8 +308,18 @@ class AwsController extends BaseController
             case "wmv":
                 $contentType = "video/x-ms-wmv";
                 break;
+            case "mp3":
+                $contentType = "audio/mpeg";
+                break;
+            case "wav":
+                $contentType = "audio/wav";
+                break;
+            case "amr":
+                $contentType = "audio/amr";
+                break;
             default:
                 $contentType = "";
+                break;
         }
         $config = config('aws.S3CN');
         $s3 = new S3Client($config);
@@ -318,6 +363,32 @@ class AwsController extends BaseController
             }else{
                 $xAmzDomain = 'https://test.avatar.helloo.mantouhealth.com/';
                 $action = "https://helloo-avatar.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*10;
+        }else if($type=='audio'){
+            $bucket = 'helloo-audio';
+            $expires = '+5 minutes';
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://audio.helloo.mantouhealth.com/';
+                $action = "https://helloo-audio.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-audio.s3.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.audio.helloo.mantouhealth.com/';
+                $action = "https://helloo-audio.s3.cn-north-1.amazonaws.com.cn/";
+            }
+            $contentLengthRange = 1024*1024*10;
+        }else if($type=='photo'){
+            $bucket = 'helloo-photo';
+            $expires = '+5 minutes';
+            if($country=='overseas'&&in_array(domain() , config('common.online_domain')))
+            {
+                $xAmzDomain = 'https://photo.helloo.mantouhealth.com/';
+                $action = "https://helloo-photo.s3-accelerate.amazonaws.com/";
+//                $action = "https://helloo-photo.s3.amazonaws.com/";
+            }else{
+                $xAmzDomain = 'https://test.photo.helloo.mantouhealth.com/';
+                $action = "https://helloo-photo.s3.cn-north-1.amazonaws.com.cn/";
             }
             $contentLengthRange = 1024*1024*10;
         }else{

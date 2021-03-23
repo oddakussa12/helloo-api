@@ -171,6 +171,7 @@ $api->group($V1Params , function ($api){
     $api->get('aws/{type}/form' , 'AwsController@form')->name('aws.form');
 
     $api->group(['middleware'=>['guestRefresh']] , function($api){
+        $api->post('feedback/network' , 'FeedbackController@network')->name('feedback.network'); //汇报网络状态
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
     });
     $api->post('statistics/download' , 'StatisticsController@download')->name('statistics.download');
