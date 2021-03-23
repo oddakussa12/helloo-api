@@ -35,7 +35,27 @@ class FeedbackController extends BaseController
      */
     public function network(NetworkFeedbackRequest $request)
     {
-        $params = $request->only(['app_code','app_name','app_version','system_type','system_version','carriname','iso_country_code','mobile_country_code','mobile_network_code','domain','networking','network_type','local_ip','local_gateway','local_dns','remote_domain','dns_result','tcp_connect_test','ping']);
+        $params = $request->only([
+            'app_code',
+            'app_name',
+            'app_version',
+            'system_type',
+            'system_version',
+            'carriname',
+            'iso_country_code',
+            'mobile_country_code',
+            'mobile_network_code',
+            'domain',
+            'networking',
+            'network_type',
+            'local_ip',
+            'local_gateway',
+            'local_dns',
+            'remote_domain',
+            'dns_result',
+            'tcp_connect_test',
+            'ping'
+        ]);
 
         if (auth()->check()) {
             $user = auth()->user();
@@ -44,8 +64,7 @@ class FeedbackController extends BaseController
         $agent = new Agent();
         $params['device_id']   = $agent->getHttpHeader('DeviceId');
         $params['app_version'] = $agent->getHttpHeader('HellooVersion');
-
-        Log::info('传入参数', $params);
+        $params['created_at']  = date("Y-m-d H:i:s");
 
         DB::table('network_logs')->insert($params);
         return $this->response->accepted();
