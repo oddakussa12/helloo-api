@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Http\Requests\Request;
+use App\Http\Requests\NetworkFeedbackRequest;
 use App\Models\Feedback;
 use App\Http\Requests\StoreFeedbackRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Jenssegers\Agent\Agent;
 
 class FeedbackController extends BaseController
 {
@@ -25,13 +28,27 @@ class FeedbackController extends BaseController
         return $this->response->created();
     }
 
-    public function network(Request $request)
+    /**
+     * @param NetworkFeedbackRequest $request
+     * @return \Dingo\Api\Http\Response
+     * 用户提交网络状态
+     */
+    public function network(NetworkFeedbackRequest $request)
     {
-        $params = $request->all();
-       // dump($params);
-        Log::info('传入参数', json_encode($params, true));
-        return $this->response->accepted();
+        $params = $request->only(['app_code','app_name','app_version','system_type','system_version','carriname','iso_country_code','mobile_country_code','mobile_network_code','domain','networking','network_type','local_ip','local_gateway','local_dns','remote_domain','dns_result','tcp_connect_test','ping']);
 
+        if (auth()->check()) {
+            $user = auth()->user();
+            $params['user_id'] = $user->user_id;
+        }
+        $agent = new Agent();
+        $params['device_id']   = $agent->getHttpHeader('DeviceId');
+        $params['app_version'] = $agent->getHttpHeader('HellooVersion');
+
+        Log::info('传入参数', $params);
+
+        DB::table('network_logs')->insert($params);
+        return $this->response->accepted();
     }
 
 }
