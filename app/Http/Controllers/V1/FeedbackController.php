@@ -65,7 +65,7 @@ class FeedbackController extends BaseController
             if ($key=='domain') {
                 $param = trim($param,'诊断域名');
             }
-            $param = trim($param);
+            $param = trim(trim($param), ',');
         }
         $agent = new Agent();
         $params['device_id']   = $agent->getHttpHeader('DeviceId');
