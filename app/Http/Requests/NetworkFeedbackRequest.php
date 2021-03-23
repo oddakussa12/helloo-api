@@ -26,9 +26,6 @@ class NetworkFeedbackRequest extends FormRequest
         return [
             'networking'  => 'bail|required|string',
             'network_type'=> 'bail|required|string',
-            'local_dns'   => 'bail|required|string',
-            'dns_result'  => 'bail|required|string',
-            'dns_result'  => 'bail|required|string',
         ];
     }
 }
