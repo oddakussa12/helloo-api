@@ -105,7 +105,7 @@ return [
         ],
         'phone' => [
             'wrong_format' => 'Please use a valid phone number',
-            'unique'=>'This phone number has been registered.'
+            'unique'=>"This phone number has been registered\nPlease try login in instead"
         ],
         'name' => [
             'regex' => 'Please use letters and numbers, eg. abcdef123',

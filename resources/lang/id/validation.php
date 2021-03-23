@@ -132,7 +132,7 @@ return [
         ],
         'phone' => [
             'wrong_format' => 'Silakan gunakan nomor telepon yang valid',
-            'unique' => 'Nomor telepon ini sudah terdaftar.',
+            'unique' => "Nomor ini sudah dipakai untuk mendaftar\nSilakan coba untuk masuk",
         ],
         'name' => [
             'regex' => 'Silakan gunakan huruf dan angka, mis. abcdef123',
