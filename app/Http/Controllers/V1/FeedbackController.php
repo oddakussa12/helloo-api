@@ -61,6 +61,12 @@ class FeedbackController extends BaseController
             $user = auth()->user();
             $params['user_id'] = $user->user_id;
         }
+        foreach ($params as $key=>&$param) {
+            if ($key=='domain') {
+                $param = trim($param,'诊断域名');
+            }
+            $param = trim(trim($param), ',');
+        }
         $agent = new Agent();
         $params['device_id']   = $agent->getHttpHeader('DeviceId');
         $params['app_version'] = $agent->getHttpHeader('HellooVersion');
