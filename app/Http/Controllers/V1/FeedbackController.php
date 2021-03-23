@@ -28,7 +28,7 @@ class FeedbackController extends BaseController
     public function network(Request $request)
     {
         $params = $request->all();
-        dump($params);
+       // dump($params);
         Log::info('传入参数', json_encode($params, true));
         return $this->response->accepted();
 
