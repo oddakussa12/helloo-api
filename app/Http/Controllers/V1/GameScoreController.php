@@ -48,11 +48,11 @@ class GameScoreController extends BaseController
         if(!blank($phone))
         {
             $country = $phone->user_phone_country;
-            if(!in_array($country , array(62 , '62' , 1 , 670 , '1' , '670')))
+            if(!in_array($country , array(62 , '62' , 670 , '670' , '251' , 251)))
             {
                 $country = 'other';
             }
-            $rankCountry = $country=='62'?'670':$country;
+            $rankCountry = $country;
             $key = "helloo:account:game:country:score:".$game.'-'.$rankCountry;
             $now = Carbon::now()->timestamp;
             $nowFlake = app('snowflake');
@@ -175,7 +175,7 @@ class GameScoreController extends BaseController
     public function friendRank($userId , $game , $score , $max , $country)
     {
         $userScores = array();
-        $rankCountry = $country=='62'?'670':$country;
+        $rankCountry = $country;
         $sortKey = "helloo:account:friend:game:rank:sort:".$userId.'-'.$game;
         $key = "helloo:account:game:country:score:".$game.'-'.$rankCountry;
         DB::table('users_friends')
@@ -211,12 +211,12 @@ class GameScoreController extends BaseController
 
     public function setDayRank($game , $userId , $country , $score)
     {
-        if($country==1)
-        {
-            $date = Carbon::now('America/Grenada')->toDateString();
-        }elseif($country==670||$country==62){
-            $country = 670;
+        if($country==670){
             $date = Carbon::now('Asia/Dili')->toDateString();
+        }elseif($country==62){
+            $date = Carbon::now('Asia/Jakarta')->toDateString();
+        }elseif($country==251){
+            $date = Carbon::now('Africa/Addis_Ababa')->toDateString();
         }else{
             $country = 'other';
             $date = Carbon::now()->toDateString();
@@ -236,12 +236,12 @@ class GameScoreController extends BaseController
 
     public function setWeekRank($game , $userId , $country , $score)
     {
-        if($country==1)
-        {
-            $date = Carbon::now('America/Grenada')->endOfWeek()->toDateString();
-        }elseif($country==670||$country==62){
-            $country = 670;
+        if($country==670){
             $date = Carbon::now('Asia/Dili')->endOfWeek()->toDateString();
+        }elseif($country==62){
+            $date = Carbon::now('Asia/Jakarta')->endOfWeek()->toDateString();
+        }elseif($country==251){
+            $date = Carbon::now('Africa/Addis_Ababa')->endOfWeek()->toDateString();
         }else{
             $country = 'other';
             $date = Carbon::now()->endOfWeek()->toDateString();
@@ -263,15 +263,18 @@ class GameScoreController extends BaseController
     {
         $phone = DB::table('users_phones')->where('user_id' , auth()->id())->first();
         $country = $phone->user_phone_country;
-        if($country==1)
-        {
-            $date = Carbon::yesterday('America/Grenada')->toDateString();
-            $start = Carbon::yesterday('America/Grenada')->startOfDay()->timestamp;
-            $end = Carbon::yesterday('America/Grenada')->endOfDay()->timestamp;
-        }elseif($country==670){
+        if($country==670){
             $date = Carbon::yesterday('Asia/Dili')->toDateString();
             $start = Carbon::yesterday('Asia/Dili')->startOfDay()->timestamp;
             $end = Carbon::yesterday('Asia/Dili')->endOfDay()->timestamp;
+        }elseif($country==62){
+            $date = Carbon::yesterday('Asia/Jakarta')->toDateString();
+            $start = Carbon::yesterday('Asia/Jakarta')->startOfDay()->timestamp;
+            $end = Carbon::yesterday('Asia/Jakarta')->endOfDay()->timestamp;
+        }elseif($country==251){
+            $date = Carbon::yesterday('Africa/Addis_Ababa')->toDateString();
+            $start = Carbon::yesterday('Africa/Addis_Ababa')->startOfDay()->timestamp;
+            $end = Carbon::yesterday('Africa/Addis_Ababa')->endOfDay()->timestamp;
         }else{
             $country = 'other';
             $date = Carbon::yesterday()->toDateString();
@@ -309,23 +312,23 @@ class GameScoreController extends BaseController
     {
         $phone = DB::table('users_phones')->where('user_id' , auth()->id())->first();
         $country = $phone->user_phone_country;
-        if($country==1)
-        {
-            $date = Carbon::now('America/Grenada')->previousWeekendDay()->toDateString();
-            $start = Carbon::now('America/Grenada')->previousWeekendDay()->startOfWeek()->timestamp;
-            $end = Carbon::now('America/Grenada')->previousWeekendDay()->endOfDay()->timestamp;
-        }elseif($country==670){
+        if($country==670){
             $date = Carbon::now('Asia/Dili')->previousWeekendDay()->toDateString();
             $start = Carbon::now('Asia/Dili')->previousWeekendDay()->startOfWeek()->timestamp;
             $end = Carbon::now('Asia/Dili')->previousWeekendDay()->endOfDay()->timestamp;
+        }elseif($country==62){
+            $date = Carbon::yesterday('Asia/Jakarta')->toDateString();
+            $start = Carbon::yesterday('Asia/Jakarta')->startOfDay()->timestamp;
+            $end = Carbon::yesterday('Asia/Jakarta')->endOfDay()->timestamp;
+        }elseif($country==251){
+            $date = Carbon::yesterday('Africa/Addis_Ababa')->toDateString();
+            $start = Carbon::yesterday('Africa/Addis_Ababa')->startOfDay()->timestamp;
+            $end = Carbon::yesterday('Africa/Addis_Ababa')->endOfDay()->timestamp;
         }else{
             $country = 'other';
             $date = Carbon::now()->previousWeekendDay()->toDateString();
             $start = Carbon::now()->previousWeekendDay()->startOfWeek()->timestamp;
             $end = Carbon::now()->previousWeekendDay()->endOfDay()->timestamp;
-//            $date = Carbon::now()->endOfWeek()->toDateString();
-//            $start = Carbon::now()->startOfWeek()->timestamp;
-//            $end = Carbon::now()->endOfDay()->timestamp;
         }
         Log::info('$date' , array($date));
         Log::info('$end' , array($end));
