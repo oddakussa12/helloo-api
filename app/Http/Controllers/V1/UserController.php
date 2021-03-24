@@ -503,16 +503,16 @@ class UserController extends BaseController
         if(!blank($school)&&$school!='Others')
         {
             $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_sl' , $school);
-            if(!blank($grade))
-            {
-//                $users = $users->where('user_grade' , $grade)->inRandomOrder();
-            }
-            $users = $users->select(array(
+//            if(!blank($grade))
+//            {
+////                $users = $users->where('user_grade' , $grade)->inRandomOrder();
+//            }
+            $users = $users->inRandomOrder()->select(array(
                 'user_id',
                 'user_name',
                 'user_nick_name',
                 'user_avatar',
-            ))->limit(4)->get();
+            ))->limit(8)->get();
             if(blank($users))
             {
                 $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
@@ -520,7 +520,7 @@ class UserController extends BaseController
                     'user_name',
                     'user_nick_name',
                     'user_avatar',
-                ))->limit(4)->get();
+                ))->limit(6)->get();
             }
         }else{
             $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
@@ -528,10 +528,13 @@ class UserController extends BaseController
                 'user_name',
                 'user_nick_name',
                 'user_avatar',
-            ))->limit(4)->get();
+            ))->limit(6)->get();
         }
-        $users = $users->reject(function ($u) use ($user){
-            return $u->user_id == $user->user_id;
+        $userIds = $users->pluck('user_id')->toArray();
+        $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $user->user_id)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
+        array_push($friendIds , $user->user_id);
+        $users = $users->reject(function ($u) use ($friendIds){
+            return in_array($u->user_id , $friendIds);
         })->splice(0 , 3);
         return UserCollection::collection($users);
     }

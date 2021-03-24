@@ -36,7 +36,7 @@ class AppController extends BaseController
         $params = $request->only('platform' , 'version' , 'time_stamp');
         $platform = strtolower(strval($params['platform']??''));
         $platform = in_array($platform , array('ios' , 'android'))?$platform:'android';
-        $app = $this->getFirstApp();
+        $app = $this->getApp();
         $platform = $app[$platform];
         if(empty($platform))
         {
@@ -47,12 +47,12 @@ class AppController extends BaseController
         return $this->response->array(array('data'=>$platform));
     }
 
-    public function getFirstApp()
+    public function getApp()
     {
-        $lastVersion = 'helloo:app:service:last-version';
+        $lastVersion = 'helloo:app:service:new-version';
         if(Redis::exists($lastVersion))
         {
-//            return \json_decode(Redis::get($lastVersion) , true);
+            return \json_decode(Redis::get($lastVersion) , true);
         }
         $ios = 'ios';
         $android = 'android';
@@ -61,6 +61,25 @@ class AppController extends BaseController
         $android_app = collect($app->where('platform' , $android)->orderBy('id' , 'DESC')->first())->toArray();
         $data = array('ios'=>$ios_app , 'android'=>$android_app);
         Redis::set($lastVersion , json_encode($data));
+        Redis::expire($lastVersion , 600);
+        return $data;
+    }
+
+    public function getFirstApp()
+    {
+        $lastVersion = 'helloo:app:service:last-version';
+        if(Redis::exists($lastVersion))
+        {
+            return \json_decode(Redis::get($lastVersion) , true);
+        }
+        $ios = 'ios';
+        $android = 'android';
+        $app = new App();
+        $ios_app = collect($app->where('platform' , $ios)->orderBy('id' , 'DESC')->first())->toArray();
+        $android_app = collect($app->where('platform' , $android)->orderBy('id' , 'DESC')->first())->toArray();
+        $data = array('ios'=>$ios_app , 'android'=>$android_app);
+        Redis::set($lastVersion , json_encode($data));
+        Redis::expire($lastVersion , 600);
         return $data;
     }
 

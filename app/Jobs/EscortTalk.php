@@ -38,7 +38,7 @@ class EscortTalk implements ShouldQueue
         $targetId = $this->user->getKey();
         $extend = $this->extend;
         $phoneCountry = $extend['user_phone_country'];
-        if(in_array($phoneCountry , array(1 , 670 , '1' , '670' , 62 , '62')))
+        if(in_array($phoneCountry , array(670, '670' , 62 , '62')))
         {
             $talkers = $this->getEscortTalkerByCountry($phoneCountry);
         }else{

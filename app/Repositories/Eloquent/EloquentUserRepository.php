@@ -335,13 +335,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return Redis::sMembers($this->hiddenUsersMemKey($id));
     }
 
-    public function hiddenPosts($id = 0)
-    {
-        if ($id === 0) {
-            $id = \Auth::id();
-        }
-        return Redis::sMembers($this->hiddenPostsMemKey($id));
-    }
 
     protected function randRyOnlineUser()
     {
@@ -764,47 +757,13 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     }
 
 
-    /**
-     * @param $id
-     * @return string
-     * 屏蔽帖子 redis key
-     */
-    public function hiddenPostsMemKey($id)
-    {
-        return 'user.' . $id . '.hidden.posts';
-    }
-
-    /**
-     * @param $id
-     * @param $post_uuid
-     * @return mixed
-     * 添加屏蔽帖子至redis
-     */
-    public function updateHiddenPosts($id, $post_uuid)
-    {
-        $userHiddenPostsKey = $this->hiddenPostsMemKey($id);
-        if (!Redis::sismember($userHiddenPostsKey, $post_uuid)) {
-            Redis::sadd($userHiddenPostsKey, $post_uuid);
-            BlockPost::create(
-                array(
-                    'user_id' => $id,
-                    'blocked_post_uuid' => $post_uuid,
-                )
-            );
-        }
-    }
-
-
     public function isDeletedUser($name)
     {
-        $deletedUsers = $this->getDeletedUsers();
-        throw_if($deletedUsers->has($name), new DeleteResourceFailedException('Your account has been deleted!'));
-        throw_if($deletedUsers->flip()->has($name), new DeleteResourceFailedException('Your account has been deleted!'));
+
     }
 
     public function isBlackUser($user_id)
     {
-        return BlackUser::where('user_id', $user_id)->where('is_delete', 0)->first();
     }
 
     public function getDeletedUsers()
@@ -812,12 +771,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     }
 
-    public function generateFollower()
-    {
-        $faker = [
-        ];
-        return $this->model->inRandomOrder()->whereIn('user_id', $faker)->take(10)->get();
-    }
 
     public function findByLikeName($name)
     {
@@ -832,7 +785,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     public function like($userId)
     {
         $likedKey = 'helloo:account:service:account-liked-num';
-//        $likeKey = 'helloo:account:service:account-like-num';
         $authId = auth()->id();
         $like = DB::table('likes')->where('user_id' , $authId)->where('liked_id' , $userId)->first();
         if(empty($like))
@@ -879,38 +831,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         $key = 'helloo:account:service:account-random-im-set';
         return Redis::scard($key);
-    }
-
-    public function filter()
-    {
-        $country_code = config('countries');
-        $users = DB::table('ry_online_users');
-        $user_gender = intval(request()->input('user_gender', 2));
-        $country = strval(request()->input('country', 0));
-        $country_op = intval(request()->input('country_op', 2));
-        $user_country = array_search(strtoupper($country), $country_code);
-        $userAge = strval(request()->input('user_age', "0,0"));
-        $user_country_id = $user_country === false ? 0 : $user_country + 1;
-        if ($country_op == 1) {
-            !empty($user_country_id) && $users = $users->where('user_country_id', $user_country_id);
-        } elseif ($country_op == 0) {
-            !empty($user_country_id) && $users = $users->where('user_country_id', '!=', $user_country_id);
-        }
-        if (in_array($user_gender, array(0, 1))) {
-            $users = $users->where('user_gender', $user_gender);
-        }
-
-        if ($userAge != '0,0') {
-            $userAge = $userAge . ",";
-            list ($userStartAge, $userEndAge) = explode(',', $userAge);
-            $userStartAge = intval($userStartAge);
-            $userEndAge = intval($userEndAge);
-            if ($userStartAge > 0 && $userStartAge < $userEndAge && $userEndAge <= 100) {
-                $users = $users->whereBetween('user_age', array($userStartAge, $userEndAge));
-            }
-        }
-        $userIds = $users->inRandomOrder()->take(10)->get()->pluck('user_id')->toArray();
-        return $this->findByMany($userIds);
     }
 
     public function planet()

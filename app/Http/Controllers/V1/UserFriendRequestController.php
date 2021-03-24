@@ -177,7 +177,7 @@ class UserFriendRequestController extends BaseController
         {
             $phone = DB::table('users_phones')->where('user_id' , $userId)->first();
             $country = $phone->user_phone_country;
-            if(!in_array($country , array(1 , 670 , '1' , '670')))
+            if(!in_array($country , array(670 , '670' , '62' , 62 , '251' , 251)))
             {
                 $country = 'other';
             }
