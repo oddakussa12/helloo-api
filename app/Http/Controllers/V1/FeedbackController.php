@@ -22,7 +22,7 @@ class FeedbackController extends BaseController
     public function store(StoreFeedbackRequest $request)
     {
         $content = strval($request->input('content' , ''));
-        $image = $request->input('image' , '');
+        $image = strval($request->input('image' , ''));
         $feedback = new Feedback();
         $feedback->create(array('content'=>$content , 'image'=>$image , 'user_id'=>intval(auth()->id())));
         return $this->response->created();
