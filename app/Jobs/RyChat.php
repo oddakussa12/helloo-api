@@ -64,7 +64,8 @@ class RyChat implements ShouldQueue
                     'RC:VCInvite',
                     'RC:VCRinging',
                     'Helloo:VideoMsg',
-                    'Yooul:VideoLike'
+                    'Yooul:VideoLike',
+                    'Helloo:VoiceMsg'
                 ]),
             ],
             'content' => [
@@ -182,6 +183,25 @@ class RyChat implements ShouldQueue
                     }catch (\Exception $e)
                     {
                         Log::info('insert_ry_video_message_fail' , array(
+                            'code'=>$e->getCode(),
+                            'message'=>$e->getMessage(),
+                        ));
+                    }
+                }
+                if($messageContent['message_type']=='Helloo:VoiceMsg')
+                {
+                    $messageContent['message_content'] = $content['uri'];
+                    $audio = array(
+                        'message_id'=>$raw['msgUID'],
+                        'audio_url'=>isset($content['uri'])?$content['uri']:'',
+                        'duration'=>isset($content['duration'])?$content['duration']:0,
+                        'created_at'=>$this->now,
+                    );
+                    try{
+                        DB::table('ry_audio_messages_'.$index)->insert($audio);
+                    }catch (\Exception $e)
+                    {
+                        Log::info('insert_ry_audio_message_fail' , array(
                             'code'=>$e->getCode(),
                             'message'=>$e->getMessage(),
                         ));
