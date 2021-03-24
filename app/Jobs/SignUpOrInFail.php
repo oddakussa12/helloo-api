@@ -40,9 +40,9 @@ class SignUpOrInFail implements ShouldQueue
      */
     private $version;
 
-    public function __construct($message)
+    public function __construct($message , $param=array())
     {
-        $this->param = request()->all();
+        $this->param = blank($param)?request()->all():$param;
         $this->message = $message;
         $this->ip = getRequestIpAddress();
         $this->createdAt = Carbon::now()->toDateTimeString();
