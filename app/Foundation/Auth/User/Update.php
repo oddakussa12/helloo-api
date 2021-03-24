@@ -500,12 +500,12 @@ trait Update
                     function ($attribute, $value, $fail) use ($usernameKey){
                         if(Redis::sismember($usernameKey , strtolower($value)))
                         {
-                            $fail('This unique ID has been registered!');
+                            $fail(__('Nickname taken already.'));
                         }
                         $exist = DB::table('users')->where('user_name' , $value)->first();
                         if(!blank($exist))
                         {
-                            $fail('This unique ID has been registered!');
+                            $fail(__('Nickname taken already.'));
                         }
                     }
                 ],
