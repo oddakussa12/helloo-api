@@ -70,6 +70,7 @@ class FeedbackController extends BaseController
         $agent = new Agent();
         $params['device_id']   = $agent->getHttpHeader('DeviceId');
         $params['app_version'] = $agent->getHttpHeader('HellooVersion');
+        $params['ping']        = !empty($params['ping']) ? $params['ping'] : '';
         $params['created_at']  = date("Y-m-d H:i:s");
 
         DB::table('network_logs')->insert($params);
