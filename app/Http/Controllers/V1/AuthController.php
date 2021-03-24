@@ -603,7 +603,14 @@ class AuthController extends BaseController
                     ],
                 ];
             }
-            Validator::make(array($type=>$account), $rule)->validate();
+            try{
+                Validator::make(array($type=>$account), $rule)->validate();
+            }catch (ValidationException $exception)
+            {
+                $errorJob = new SignUpOrInFail($exception->errors());
+                $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
+                throw new ValidationException($exception->validator);
+            }
             if($type=='user_phone')
             {
                 $existRule = [
@@ -615,6 +622,8 @@ class AuthController extends BaseController
                 $response = $response->accepted(null , array(
                     'Signed-in'=>intval($validator)
                 ))->withHeader('Signed-in' , intval($validator));
+                $errorJob = new SignUpOrInFail(strval($validator));
+                $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
             }else{
                 $response = $response->accepted();
             }
