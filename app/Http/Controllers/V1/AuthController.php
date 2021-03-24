@@ -622,8 +622,11 @@ class AuthController extends BaseController
                 $response = $response->accepted(null , array(
                     'Signed-in'=>intval($validator)
                 ))->withHeader('Signed-in' , intval($validator));
-                $errorJob = new SignUpOrInFail(strval($validator) , array('account'=>$account));
-                $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
+                if(intval($validator)==1)
+                {
+                    $errorJob = new SignUpOrInFail(strval($validator) , array('account'=>$account));
+                    $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
+                }
             }else{
                 $response = $response->accepted();
             }
