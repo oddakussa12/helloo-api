@@ -65,12 +65,13 @@ class FeedbackController extends BaseController
             if ($key=='domain') {
                 $param = trim($param,'诊断域名');
             }
-            $param = trim(trim($param), ',');
+            $param = trim(trim(trim($param), ','),'...');
         }
         $agent = new Agent();
         $params['device_id']   = $agent->getHttpHeader('DeviceId');
         $params['app_version'] = $agent->getHttpHeader('HellooVersion');
         $params['ping']        = !empty($params['ping']) ? $params['ping'] : '';
+        $params['time']        = date("Y-m-d");
         $params['created_at']  = date("Y-m-d H:i:s");
 
         DB::table('network_logs')->insert($params);
