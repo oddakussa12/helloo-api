@@ -61,7 +61,7 @@ class AppController extends BaseController
         $android_app = collect($app->where('platform' , $android)->orderBy('id' , 'DESC')->first())->toArray();
         $data = array('ios'=>$ios_app , 'android'=>$android_app);
         Redis::set($lastVersion , json_encode($data));
-        Redis::expire($lastVersion , 600);
+        Redis::expire($lastVersion , 2592000);
         return $data;
     }
 
@@ -79,7 +79,7 @@ class AppController extends BaseController
         $android_app = collect($app->where('platform' , $android)->orderBy('id' , 'DESC')->first())->toArray();
         $data = array('ios'=>$ios_app , 'android'=>$android_app);
         Redis::set($lastVersion , json_encode($data));
-        Redis::expire($lastVersion , 600);
+        Redis::expire($lastVersion , 2592000);
         return $data;
     }
 
