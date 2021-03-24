@@ -191,6 +191,8 @@ $api->group($V1Params , function ($api){
 
     $api->post('statistics/log' , 'StatisticsController@log')->name('statistics.log');
 
+    $api->post('statistics/record/log' , 'StatisticsController@recordLog')->name('statistics.record.log');
+
     $api->get('app/index' , 'AppController@index')->name('app.index');
 
     $api->get('app/home' , 'AppController@home')->name('app.home');

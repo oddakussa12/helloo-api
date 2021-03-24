@@ -135,4 +135,25 @@ class StatisticsController extends BaseController
         ));
         return $this->response->created();
     }
+
+    public function recordLog(Request $request)
+    {
+        $bundleName = strval($request->input('bundle_name' , ''));
+        $time = intval($request->input('time' , 0));
+        if($time>0)
+        {
+            $agent = new Agent();
+            $version = $agent->getHttpHeader('HellooVersion');
+            $index = Carbon::now('UTC')->format("Ym");
+            DB::table('record_logs_'.$index)->insert(array(
+                'user_id'=>auth()->id() ,
+                'bundle_name'=>$bundleName ,
+                'time'=>$time ,
+                'ip'=>getRequestIpAddress(),
+                'version'=>empty($version)?0:$version,
+                'created_at'=>Carbon::now()->toDateTimeString()
+            ));
+        }
+        return $this->response->created();
+    }
 }
