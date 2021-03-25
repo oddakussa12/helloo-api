@@ -18,7 +18,7 @@ class QuestionController extends BaseController
     public function hot(Request $request)
     {
         $locale = locale();
-        $questions = Question::where('status' ,1)->select('id' , 'title', 'url')->paginate(10);
+        $questions = Question::where('status' ,1)->select('id' , 'title', 'url')->paginate(15);
         $questions->each(function($question)use($locale){
             $title = json_decode($question->title, true);
             $url   = json_decode($question->url, true);
