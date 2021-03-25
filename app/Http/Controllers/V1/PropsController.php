@@ -39,7 +39,9 @@ class PropsController extends BaseController
     public function recommendation()
     {
         $props = new Props();
-        $props = $props->where('is_delete' , 0)->where('recommendation' , 1)->orderByDesc('sort')->orderBydesc('created_at')->limit(10)->get();
+        $frontProps = $props->where('is_delete' , 0)->where('recommendation' , 1)->where('camera' , 'front')->orderByDesc('sort')->orderBydesc('created_at')->limit(15)->get();
+        $backProps = $props->where('is_delete' , 0)->where('recommendation' , 1)->where('camera' , 'back')->orderByDesc('sort')->orderBydesc('created_at')->limit(15)->get();
+        $props = $frontProps->merge($backProps)->values();
         return PropsCollection::collection($props);
     }
 
