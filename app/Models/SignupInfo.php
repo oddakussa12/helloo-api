@@ -29,6 +29,7 @@ class SignupInfo extends Model
         'signup_lon',
         'signup_timezone',
         'signup_continent',
+        'signup_version',
         'feature_name',
         'country_code',
         'latitude',

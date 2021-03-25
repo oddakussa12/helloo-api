@@ -395,7 +395,6 @@ class AuthController extends BaseController
             abort(422 , trans('validation.custom.phone.unique'));
         }
         $now = Carbon::now()->toDateTimeString();
-        $agent = new Agent();
         if($agent->match('HellooAndroid'))
         {
             $src = 'android';
