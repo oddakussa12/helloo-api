@@ -68,6 +68,7 @@ class FeedbackController extends BaseController
         $params['device_id']   = $agent->getHttpHeader('DeviceId');
         $params['app_version'] = $agent->getHttpHeader('HellooVersion');
         $params['ping']        = !empty($params['ping']) ? $params['ping'] : '';
+        $params['real_ip']     = getRequestIpAddress();
         $params['time']        = date("Y-m-d");
         $params['created_at']  = date("Y-m-d H:i:s");
 
