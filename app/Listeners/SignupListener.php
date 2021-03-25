@@ -53,6 +53,7 @@ class SignupListener implements ShouldQueue
 
         // jenssegers/agent 的方法来提取agent信息
         $signup_info['signup_version'] = strval($agent->getHttpHeader('HellooVersion')); //版本
+        $signup_info['signup_device_id'] = strval($agent->getHttpHeader('deviceId')); //设备ID
         $signup_info['signup_device'] = $agent->device(); //设备名称
         $browser = $agent->browser();
         $signup_info['signup_browser'] = $browser; //浏览器
