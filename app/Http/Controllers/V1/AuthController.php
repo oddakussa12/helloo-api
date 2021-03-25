@@ -7,6 +7,7 @@ use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
+use App\Events\SignInEvent;
 use Jenssegers\Agent\Agent;
 use App\Jobs\SignUpOrInFail;
 use Illuminate\Http\Request;
@@ -83,6 +84,8 @@ class AuthController extends BaseController
         if(!config('common.is_verification')||password_verify($password, $user->user_pwd))
         {
             $token = auth()->login($user);
+            $addresses = getRequestIpAddress();
+            event(new SignInEvent($user , $addresses));
             return $this->respondWithToken($token , false);
         }
         $errorJob = new SignUpOrInFail(trans('auth.phone_failed'));
@@ -230,8 +233,9 @@ class AuthController extends BaseController
         }
         if($user_gender!==null&&in_array($user_gender , array(0 , 1 , '0' , '1')))
         {
-            $score = Redis::zscore($genderKey , $user->getKey());
-            $score===null&&$fields['user_gender'] = intval($user_gender);
+//            $score = Redis::zscore($genderKey , $user->getKey());
+//            $score===null&&$fields['user_gender'] = intval($user_gender);
+            $fields['user_gender'] = intval($user_gender);
         }
         if(!blank($user_nick_name))
         {
@@ -395,7 +399,6 @@ class AuthController extends BaseController
             abort(422 , trans('validation.custom.phone.unique'));
         }
         $now = Carbon::now()->toDateTimeString();
-        $agent = new Agent();
         if($agent->match('HellooAndroid'))
         {
             $src = 'android';
