@@ -41,26 +41,26 @@ class SignupListener implements ShouldQueue
 
         //包含的方法获取ip地理位置
 
-        $signup_info['signup_isocode'] = $geo->iso_code;
-        $signup_info['signup_country'] = $geo->country;
-        $signup_info['signup_state'] = $geo->state_name;
-        $signup_info['signup_city'] = $geo->city;
-        $signup_info['signup_lat'] = $geo->lat;
-        $signup_info['signup_lon'] = $geo->lon;
-        $signup_info['signup_timezone'] = $geo->timezone;
-        $signup_info['signup_continent'] = $geo->continent;
+        $signup_info['signup_isocode'] = strval($geo->iso_code);
+        $signup_info['signup_country'] = strval($geo->country);
+        $signup_info['signup_state'] = strval($geo->state_name);
+        $signup_info['signup_city'] = strval($geo->city);
+        $signup_info['signup_lat'] = strval($geo->lat);
+        $signup_info['signup_lon'] = strval($geo->lon);
+        $signup_info['signup_timezone'] = strval($geo->timezone);
+        $signup_info['signup_continent'] = strval($geo->continent);
 
 
         // jenssegers/agent 的方法来提取agent信息
         $signup_info['signup_version'] = strval($agent->getHttpHeader('HellooVersion')); //版本
         $signup_info['signup_device_id'] = strval($agent->getHttpHeader('deviceId')); //设备ID
-        $signup_info['signup_device'] = $agent->device(); //设备名称
+        $signup_info['signup_device'] = strval($agent->device()); //设备名称
         $browser = $agent->browser();
-        $signup_info['signup_browser'] = $browser; //浏览器
-        $signup_info['signup_browser_version'] = $agent->version($browser); //浏览器
+        $signup_info['signup_browser'] = strval($browser); //浏览器
+        $signup_info['signup_browser_version'] = strval($agent->version($browser)); //浏览器
         $platform = $agent->platform();
-        $signup_info['signup_platform'] = $platform; //操作系统
-        $signup_info['signup_platform_version'] = $agent->version($platform); //操作系统
+        $signup_info['signup_platform'] = strval($platform); //操作系统
+        $signup_info['signup_platform_version'] = strval($agent->version($platform)); //操作系统
         $signup_info['signup_lang'] = implode(',', $agent->languages()); //语言
         //设备类型
         if ($agent->isTablet()) {
