@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Jenssegers\Agent\Agent;
 
 class SignInEvent
@@ -59,5 +60,10 @@ class SignInEvent
     public function getGeo()
     {
         return geoip($this->ip);
+    }
+
+    public function getTime()
+    {
+        return Carbon::now()->toDateTimeString();
     }
 }

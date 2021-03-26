@@ -31,6 +31,7 @@ class SignInListener implements ShouldQueue
         $agent = $event->getAgent();
         $geo = $event->getGeo();
         $ip = $event->getIp();
+        $time = $event->getTime();
         //登录信息
         $sign_in_info = [
             'ip' => $ip,
@@ -57,7 +58,7 @@ class SignInListener implements ShouldQueue
         $sign_in_info['platform'] = strval($platform); //操作系统
         $sign_in_info['platform_version'] = strval($agent->version($platform)); //操作系统
         $sign_in_info['lang'] = implode(',', $agent->languages()); //语言
-        $sign_in_info['created_at'] = Carbon::now()->toDateTimeString();
+        $sign_in_info['created_at'] = $time;
         DB::table('signin_infos')->insert($sign_in_info);
 
     }
