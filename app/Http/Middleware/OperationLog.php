@@ -28,11 +28,7 @@ class OperationLog extends BaseMiddleware
             $time = strval($chinaNow->timestamp);
             $now = $chinaNow->format('Ymd');
             $version = $agent->getHttpHeader('HellooVersion');
-//            $deviceId = $agent->getHttpHeader('deviceId');
-//            if(!empty($deviceId))
-//            {
-////                Log::info('deviceId' , array('deviceId'=>$deviceId , 'userId'=>auth()->id()));
-//            }
+            $deviceId = $agent->getHttpHeader('deviceId');
             if(version_compare($version , config('common.block_version') , '<='))
             {
                 abort(401 , __('Please update to the latest version from Play Store.'));
@@ -53,6 +49,7 @@ class OperationLog extends BaseMiddleware
                 'user_id'=>$user_id,
                 'referer'=>$src,
                 'version'=>empty($version)?0:$version,
+                'device_id'=>empty($deviceId)?'':$deviceId,
                 'route'=>$route,
                 'ip'=>getRequestIpAddress()
             );
