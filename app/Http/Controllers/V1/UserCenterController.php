@@ -30,14 +30,9 @@ class UserCenterController extends BaseController
      * @return array
      * 获取照片、视频列表
      */
-    public function getMedia($friendId='')
+    public function media($friendId='')
     {
-        if (empty($friendId) && empty($this->userId)) {
-            return $this->response->errorForbidden('未登录或参数异常');
-        }
         $video = $photo = $friend = false;
-
-
         if (!empty($friendId) && $friendId!=$this->userId) {
             //个人隐私设置
             $mKey    = 'helloo:account:service:account-privacy:'.$friendId;
