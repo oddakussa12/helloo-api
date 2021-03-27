@@ -5,10 +5,14 @@ namespace App\Http\Controllers\V1;
 use App\Models\LikePhoto;
 use App\Models\LikeVideo;
 use App\Models\Photo;
+use App\Models\UserFriend;
 use App\Models\Video;
+use App\Repositories\Contracts\UserRepository;
+use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 class UserCenterController extends BaseController
 {
@@ -23,23 +27,64 @@ class UserCenterController extends BaseController
     }
 
     /**
+     * @param string $friendId
      * @return array
      * 获取照片、视频列表
      */
-    public function getMedia()
+    public function getMedia($friendId='')
     {
-        $result['video'] = $this->getVideos();
-        $result['photo'] = $this->getPhotos();
-        return $result;
+        $video = $photo = $friend = false;
+
+        if (!empty($friendId) && $friendId!=$this->userId) {
+            $setting = $this->privacy($friendId);
+            $friends = UserFriend::where('user_id' , $this->userId)->where('friend_id', $friendId)->first();
+
+            if ($setting['friend']==1 || ($setting['friend']==2 && !empty($friends))) {
+                $video = true;
+            }
+            if ($setting['video']==1 || ($setting['video']==2 && !empty($friends))) {
+                $video = true;
+            }
+            if ($setting['photo']==1 || ($setting['photo']==2 && !empty($friends))) {
+                $photo = true;
+            }
+        } else {
+            $video  = $photo = $friend = true;
+            $friend = $this->userId;
+        }
+
+        $friend && $result['friend'] = $this->getFriends($friendId);
+        $video  && $result['video']  = $this->getVideos($friendId);
+        $photo  && $result['photo']  = $this->getPhotos($friendId);
+
+        return $result ?? [];
     }
 
     /**
+     * @param $userId
+     * @return mixed
+     * 获取前十个好友
+     */
+    public function getFriends($userId)
+    {
+        $userFriends = UserFriend::where('user_id' , $userId)->orderBy('created_at', 'DESC')->groupBy('friend_id')->limit(10)->get();
+        $friendIds   = $userFriends->pluck('friend_id')->all();
+        $friends     = app(UserRepository::class)->findByMany($friendIds);
+        $userFriends->each(function($userFriend) use ($friends){
+            $userFriend->friend = new UserCollection($friends->where('user_id', $userFriend->friend_id)->first());
+        });
+
+        return $userFriends;
+    }
+
+    /**
+     * @param $userId
      * @return mixed
      * 获取Vlog Videos
      */
-    public function getVideos()
+    public function getVideos($userId)
     {
-        $videos = Video::select('video_id', 'image', 'like', 'video_url')->where('user_id', $this->userId)->orderByDesc('created_at')->limit(10)->get();
+        $videos = Video::select('video_id', 'image', 'like', 'video_url')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $videoIds = $videos->pluck('video_id')->toArray();
         // 查询点赞表
         $likes = LikeVideo::where('user_id', $this->userId)->whereIn('liked_id', $videoIds);
@@ -55,12 +100,14 @@ class UserCenterController extends BaseController
     }
 
     /**
+     * @param $userId
      * @return mixed
      * 获取照片墙
      */
-    public function getPhotos()
+    public function getPhotos($userId)
     {
-        $photos = Photo::select('photo_id', 'photo', 'like')->where('user_id', $this->userId)->orderByDesc('created_at')->limit(10)->get();
+
+        $photos = Photo::select('photo_id', 'photo', 'like')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $photoIds = $photos->pluck('photo_id')->toArray();
         // 查询点赞表
         $likes = LikePhoto::where('user_id', $this->userId)->whereIn('liked_id', $photoIds);
@@ -153,25 +200,6 @@ class UserCenterController extends BaseController
 
     }
 
-
-    /**
-     * 获取隐私配置
-     */
-    public function privacy()
-    {
-        $result = DB::table('users_setting')->where('user_id', $this->userId)->first();
-        if (empty($result)) {
-            $result['user_id']    = $this->userId;
-            $result['friend']     = 1;
-            $result['video']      = 1;
-            $result['photo']      = 1;
-            $result['created_at'] = date('Y-m-d H:i:s');
-            DB::table('users_setting')->insert($result);
-        }
-
-        return collect($result)->only('friend', 'video', 'photo');
-    }
-
     /**
      * @param Request $request
      * @return \Dingo\Api\Http\Response
@@ -186,7 +214,13 @@ class UserCenterController extends BaseController
         ]);
         $params = $request->only('friend', 'video', 'photo');
         $params['updated_at'] = date('Y-m-d H:i:s');
-        DB::table('users_setting')->where('user_id', $this->userId)->update($params);
+
+        $result = DB::table('users_setting')->where('user_id', $this->userId)->update($params);
+        if (!empty($result)) {
+            $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
+            Redis::set($mKey, json_encode($params));
+            Redis::expire($mKey , 86400*30);
+        }
         return $this->response->accepted();
     }
 

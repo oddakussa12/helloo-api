@@ -336,6 +336,12 @@ class AuthController extends BaseController
         $userNameKey = 'helloo:account:service:account-username-change';
         $time = Redis::zscore($userNameKey , $userId);
         $user->userNameCanChange = $time===null;
+
+        //个人隐私设置
+        $mKey = 'helloo:account:service:account-privacy:'.$userId;
+        $privacy = Redis::get($mKey);
+        $user->privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>1, 'video'=>1,'photo'=>1];
+
         $user->userNamePrompted = boolval(app(UserRepository::class)->usernamePrompt($userId));
         $user->makeVisible(array('user_name_changed_at'));
         return new UserCollection($user);
