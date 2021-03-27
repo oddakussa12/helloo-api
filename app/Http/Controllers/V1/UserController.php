@@ -158,6 +158,12 @@ class UserController extends BaseController
         $user->put('friendCount' , 0);
         $user->put('isFriend' , !blank($friend));
         $user->put('likeState' , $likeState);
+
+        //个人隐私设置
+        $mKey = 'helloo:account:service:account-privacy:'.$id;
+        $privacy = Redis::get($mKey);
+        $user->privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>1, 'video'=>1,'photo'=>1];
+
 //        if(!blank($user->get('user_school')))
 //        {
 //            $school = DB::table('schools')->where('key' , $user->get('user_school'))->first();
