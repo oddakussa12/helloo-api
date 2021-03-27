@@ -156,11 +156,11 @@ $api->group($V1Params , function ($api){
         $api->get('user/recommendation' , 'UserController@recommendation')->name('user.recommendation');
 
         /*****个人中心 开始*****/
-        /*$api->get('user/center/media/{user?}' , 'UserCenterController@getMedia')->name('center.media'); // 获取video/photo
-        $api->post('user/center/media' , 'UserCenterController@storeMedia')->name('center.storeMedia'); // 提交video/photo
-        $api->delete('user/center/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('center.destroyMedia'); // 删除video/photo
-        $api->get('user/center/privacy' , 'UserCenterController@privacy')->name('center.privacy'); // 获取隐私配置
-        $api->patch('user/center/privacy' , 'UserCenterController@updatePrivacy')->name('center.updatePrivacy'); // 修改隐私配置*/
+        $api->get('user/center/media/{user?}' , 'UserCenterController@media')->name('user.center.media'); // 获取video/photo
+        $api->post('user/center/media' , 'UserCenterController@storeMedia')->name('user.center.storeMedia'); // 提交video/photo
+        $api->delete('user/center/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('user.center.destroyMedia'); // 删除video/photo
+        $api->get('user/center/privacy' , 'UserCenterController@privacy')->name('user.center.privacy'); // 获取隐私配置
+        $api->patch('user/center/privacy' , 'UserCenterController@updatePrivacy')->name('user.center.updatePrivacy'); // 修改隐私配置
 
         /*****个人中心 结束*****/
 
@@ -230,16 +230,6 @@ $api->group($V1Params , function ($api){
     $api->get('test/office' , 'TestController@office')->name('test.office');
     $api->get('test/ding' , 'TestController@ding')->name('test.ding');
     $api->get('test/sms' , 'TestController@sms')->name('test.sms');
-
-
-    /*****个人中心 开始*****/
-    $api->get('center/media/{user?}' , 'UserCenterController@getMedia')->name('center.media'); // 获取video/photo
-    $api->post('center/media' , 'UserCenterController@storeMedia')->name('center.storeMedia'); // 提交video/photo
-    $api->delete('ucenter/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('center.destroyMedia'); // 删除video/photo
-    $api->get('center/privacy' , 'UserCenterController@privacy')->name('center.privacy'); // 获取隐私配置
-    $api->patch('center/privacy' , 'UserCenterController@updatePrivacy')->name('center.updatePrivacy'); // 修改隐私配置
-
-    /*****个人中心 结束*****/
 });
 
 
