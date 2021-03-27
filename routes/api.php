@@ -155,6 +155,15 @@ $api->group($V1Params , function ($api){
 
         $api->get('user/recommendation' , 'UserController@recommendation')->name('user.recommendation');
 
+        /*****个人中心 开始*****/
+        $api->get('user/center/media/{user?}' , 'UserCenterController@getMedia')->name('center.media'); // 获取video/photo
+        $api->post('user/center/media' , 'UserCenterController@storeMedia')->name('center.storeMedia'); // 提交video/photo
+        $api->delete('center/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('center.destroyMedia'); // 删除video/photo
+        $api->get('center/privacy' , 'UserCenterController@privacy')->name('center.privacy'); // 获取隐私配置
+        $api->patch('center/privacy' , 'UserCenterController@updatePrivacy')->name('center.updatePrivacy'); // 修改隐私配置
+
+        /*****个人中心 结束*****/
+
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
@@ -222,20 +231,6 @@ $api->group($V1Params , function ($api){
     $api->get('test/ding' , 'TestController@ding')->name('test.ding');
     $api->get('test/sms' , 'TestController@sms')->name('test.sms');
 
-
-    /*****个人中心 开始*****/
-    $api->get('center/media/{user?}' , 'UserCenterController@getMedia')->name('center.media'); // 获取video/photo
-    $api->post('center/media' , 'UserCenterController@storeMedia')->name('center.storeMedia'); // 提交video/photo
-    //$api->delete('center/video' , 'UserCenterController@destroyVideo')->name('center.destroyVideo'); // 获取video/photo
-//    $api->delete('center/photo}' , 'UserCenterController@destroyPhoto')->name('center.destroyPhoto'); // 获取video/photo
-    $api->delete('center/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('center.destroyMedia'); // 删除video/photo
-
-    $api->get('center/privacy' , 'UserCenterController@privacy')->name('center.privacy'); // 获取隐私配置
-    $api->patch('center/privacy' , 'UserCenterController@updatePrivacy')->name('center.updatePrivacy'); // 修改隐私配置
-
-
-
-    /*****个人中心 结束*****/
 
 });
 

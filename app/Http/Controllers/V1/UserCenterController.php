@@ -23,7 +23,6 @@ class UserCenterController extends BaseController
     {
         $this->user   = auth()->user();
         $this->userId = auth()->id();
-//        $this->userId = 1;
     }
 
     /**
@@ -163,17 +162,6 @@ class UserCenterController extends BaseController
         $model->create($data);
         return $this->response->accepted();
     }
-
-//    public function destroyVideo($id)
-//    {
-//        $this->destroyMedia('video', $id);
-//        return $this->response->accepted();
-//    }
-//    public function destroyPhoto($id)
-//    {
-//        $this->destroyMedia('photo', $id);
-//        return $this->response->accepted();
-//    }
 
     /**
      * @param $type
