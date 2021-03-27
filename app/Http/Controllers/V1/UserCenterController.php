@@ -22,8 +22,8 @@ class UserCenterController extends BaseController
     public function __construct()
     {
         $this->user   = auth()->user();
-       // $this->userId = auth()->id();
-        $this->userId = 1;
+        $this->userId = auth()->id();
+//        $this->userId = 1;
     }
 
     /**
@@ -33,14 +33,21 @@ class UserCenterController extends BaseController
      */
     public function getMedia($friendId='')
     {
+        if (empty($friendId) && empty($this->userId)) {
+            return $this->response->errorForbidden('未登录或参数异常');
+        }
         $video = $photo = $friend = false;
 
+
         if (!empty($friendId) && $friendId!=$this->userId) {
-            $setting = $this->privacy($friendId);
+            //个人隐私设置
+            $mKey    = 'helloo:account:service:account-privacy:'.$friendId;
+            $privacy = Redis::get($mKey);
+            $setting = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>1, 'video'=>1,'photo'=>1];
             $friends = UserFriend::where('user_id' , $this->userId)->where('friend_id', $friendId)->first();
 
             if ($setting['friend']==1 || ($setting['friend']==2 && !empty($friends))) {
-                $video = true;
+                $friend = true;
             }
             if ($setting['video']==1 || ($setting['video']==2 && !empty($friends))) {
                 $video = true;

@@ -164,7 +164,7 @@ class UserController extends BaseController
         $user->put('isFriend' , !blank($friend));
         $user->put('likeState' , $likeState);
         $user->put('privacy', $privacy);
-        
+
 //        if(!blank($user->get('user_school')))
 //        {
 //            $school = DB::table('schools')->where('key' , $user->get('user_school'))->first();
