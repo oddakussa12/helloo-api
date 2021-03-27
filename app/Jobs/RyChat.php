@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -220,8 +221,54 @@ class RyChat implements ShouldQueue
             }
             $data['chat_created_at'] = $this->now;
             DB::table('ry_chats_'.$index)->insert($data);
+            if(isset($raw['content'])&&$data['chat_msg_type']=='Yooul:VideoLike')
+            {
+                $content = \json_decode($raw['content'] , true);
+                if(isset($content['videoID']))
+                {
+                    $likeId = $content['videoID'];
+                }else{
+                    $likeId = '';
+                }
+                $this->handleVideoLike($data['chat_msg_uid'] , $data['chat_from_id'] , $data['chat_to_id'] , $likeId);
+            }
         }
 
+    }
+
+    public function handleVideoLike($messageId , $from , $to , $likeId)
+    {
+        if(blank($likeId))
+        {
+            return;
+        }
+        $lock_key = "helloo:message:service:unique-".strval($from).'-'.strval($to).'-'.$likeId;
+        if(!Redis::exists($lock_key))
+        {
+            $like = DB::table('ry_like_messages')->where('from_id' , $from)->where('to_id' , $to)->where('liked_id' , $likeId)->first();
+            if(blank($like))
+            {
+
+                DB::table('ry_like_messages')->insert(array(
+                    'messageId'=>$messageId,
+                    'from_id'=>$from,
+                    'to_id'=>$to,
+                    'liked_id'=>$likeId,
+                    'created_at'=>$this->now,
+                    'updated_at'=>$this->now,
+                ));
+            }else {
+                DB::table('ry_like_messages')->where('from_id', $from)->where('to_id', $to)->where('liked_id', $likeId)->update(array(
+                    'updated_at' => $this->now
+                ));
+            }
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+        }else{
+            DB::table('ry_like_messages')->where('from_id' , $from)->where('to_id' , $to)->where('liked_id' , $likeId)->update(array(
+                'updated_at'=>$this->now
+            ));
+        }
     }
 
 }
