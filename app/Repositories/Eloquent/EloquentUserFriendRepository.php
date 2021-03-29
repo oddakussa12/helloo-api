@@ -21,7 +21,7 @@ class EloquentUserFriendRepository  extends EloquentBaseRepository implements Us
     }
     public function getAllByUser($userId, $perPage = 15)
     {
-//        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->paginate($this->perPage , ['*'] , $this->pageName);
+        return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->groupBy('friend_id')->paginate($this->perPage , ['*'] , $this->pageName);
     }
 
     public function getFriendRankByUserId($userId , $game , $country='other')

@@ -77,6 +77,7 @@ $api->group($V1Params , function ($api){
         $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');//我的好友
 //        $api->post('my/friend' , 'UserFriendController@update')->name('my.friend.update');//好友备注
         $api->delete('my/friend/{friend}' , 'UserFriendController@destroy')->name('my.friend.destroy');//删除我的好友
+        $api->get('friend/{friend}' , 'UserFriendController@index')->name('friend.list');//获取用户朋友列表
         /*****好友 结束*****/
 
         /*****好友请求 开始*****/
@@ -161,6 +162,7 @@ $api->group($V1Params , function ($api){
         $api->delete('user/center/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('user.center.destroyMedia'); // 删除video/photo
         $api->get('user/center/privacy' , 'UserCenterController@privacy')->name('user.center.privacy'); // 获取隐私配置
         $api->patch('user/center/privacy' , 'UserCenterController@updatePrivacy')->name('user.center.updatePrivacy'); // 修改隐私配置
+        $api->post('user/center/like' , 'UserCenterController@likes')->name('user.center.likes'); // 点赞video/photo
 
         /*****个人中心 结束*****/
 

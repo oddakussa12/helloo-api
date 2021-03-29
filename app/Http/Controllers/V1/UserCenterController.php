@@ -7,15 +7,20 @@ use App\Models\LikeVideo;
 use App\Models\Photo;
 use App\Models\UserFriend;
 use App\Models\Video;
+use App\Repositories\Contracts\UserFriendRepository;
+use App\Traits\CacheableScore;
+use Illuminate\Validation\Rule;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 
 class UserCenterController extends BaseController
 {
+    use CacheableScore;
     private $user;
     private $userId;
 
@@ -33,20 +38,21 @@ class UserCenterController extends BaseController
     public function media($friendId='')
     {
         $video = $photo = $friend = false;
+
         if (!empty($friendId) && $friendId!=$this->userId) {
             //个人隐私设置
             $mKey    = 'helloo:account:service:account-privacy:'.$friendId;
             $privacy = Redis::get($mKey);
-            $setting = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>1, 'video'=>1,'photo'=>1];
+            $setting = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
             $friends = UserFriend::where('user_id' , $this->userId)->where('friend_id', $friendId)->first();
 
-            if ($setting['friend']==1 || ($setting['friend']==2 && !empty($friends))) {
+            if ($setting['friend']=='1' || ($setting['friend']=='2' && !empty($friends))) {
                 $friend = true;
             }
-            if ($setting['video']==1 || ($setting['video']==2 && !empty($friends))) {
+            if ($setting['video']=='1' || ($setting['video']=='2' && !empty($friends))) {
                 $video = true;
             }
-            if ($setting['photo']==1 || ($setting['photo']==2 && !empty($friends))) {
+            if ($setting['photo']=='1' || ($setting['photo']=='2' && !empty($friends))) {
                 $photo = true;
             }
         } else {
@@ -68,7 +74,7 @@ class UserCenterController extends BaseController
      */
     public function getFriends($userId)
     {
-        $userFriends = UserFriend::where('user_id' , $userId)->orderBy('created_at', 'DESC')->groupBy('friend_id')->limit(10)->get();
+        $userFriends = app(UserFriendRepository::class)->getAllByUser($userId, 10);
         $friendIds   = $userFriends->pluck('friend_id')->all();
         $friends     = app(UserRepository::class)->findByMany($friendIds);
         $userFriends->each(function($userFriend) use ($friends){
@@ -107,7 +113,6 @@ class UserCenterController extends BaseController
      */
     public function getPhotos($userId)
     {
-
         $photos = Photo::select('photo_id', 'photo', 'like')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $photoIds = $photos->pluck('photo_id')->toArray();
         // 查询点赞表
@@ -154,7 +159,14 @@ class UserCenterController extends BaseController
             $data['video_url'] = $params['video_url'];
         }
 
-        $model->create($data);
+        $create = $model->create($data);
+        if (!empty($create->getKey())) {
+            $score['sourceType'] = $params['type'];
+            $score['type'] = 'addMedia';
+            $score['user_id'] = $this->userId;
+            $score['id'] = $create->getKey();
+            $this->addScore($score);
+        }
         return $this->response->accepted();
     }
 
@@ -197,21 +209,87 @@ class UserCenterController extends BaseController
      */
     public function updatePrivacy(Request $request)
     {
-        $this->validate($request, [
-            'friend' => 'required|string',
-            'video' => 'required|string',
-            'photo' => 'required|string',
-        ]);
+        $s = [1,2,3];
+        $rules = [
+            'friend' => [
+                'required',
+                Rule::in($s)
+            ],
+            'video' => [
+                'required',
+                Rule::in($s)
+            ],
+            'photo' => [
+                'required',
+                Rule::in($s)
+            ]
+        ];
+
         $params = $request->only('friend', 'video', 'photo');
+        Validator::make($params, $rules)->validate();
+
         $params['updated_at'] = date('Y-m-d H:i:s');
 
-        $result = DB::table('users_setting')->where('user_id', $this->userId)->update($params);
+        // 临时用
+        $select = DB::table('users_settings')->where('user_id', $this->userId)->first();
+        if (empty($select)) {
+            $in = [
+                'user_id' => $this->userId,
+                'friend'  => 1,
+                'video'   => 1,
+                'photo'   => 1,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+           $insert = DB::table('users_settings')->insert($in);
+        }
+
+        $result = DB::table('users_settings')->where('user_id', $this->userId)->update($params);
         if (!empty($result)) {
             $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
             Redis::set($mKey, json_encode($params));
             Redis::expire($mKey , 86400*30);
+            return $this->response->accepted();
+        } else {
+            return $this->response->errorNotFound();
         }
-        return $this->response->accepted();
+    }
+
+    /**
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     * 点赞Video/Photo
+     */
+    public function likes(Request $request)
+    {
+        $type  = $request->input('type', '');
+        $id    = $request->input('id', 0);
+        if (empty($type) || empty($id)) {
+            return $this->response->errorNotFound();
+        }
+
+        $model = $type == 'video' ? new Video() : new Photo();
+        $row   = $model->find($id);
+        if (empty($row)) {
+            return $this->response->errorNotFound();
+        }
+
+        $like  = $type == 'video' ? new LikeVideo() : new LikePhoto();
+        $check = $like->where(['user_id'=>$this->userId, 'liked_id'=>$id])->first();
+        if (empty($check)) {
+            $data['user_id'] = $this->userId;
+            $data['liked_id'] = $id;
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $result = $like->insert($data);
+            if ($result) {
+                $score['sourceType'] = $type;
+                $score['type'] = 'like';
+                $score['user_id'] = $this->userId;
+                $score['friend_id'] = $row['user_id'];
+                $score['id'] = $id;
+                $this->addScore($score);
+            }
+        }
+       return $this->response->accepted();
     }
 
 
