@@ -201,30 +201,26 @@ class UserCenterController extends BaseController
      */
     public function updatePrivacy(Request $request)
     {
+        $s = [1,2,3];
         $rules = [
             'friend' => [
                 'required',
-                Rule::in([1 , 2 , 3])
+                Rule::in($s)
             ],
             'video' => [
                 'required',
-                Rule::in([1 , 2 , 3])
+                Rule::in($s)
             ],
             'photo' => [
                 'required',
-                Rule::in([1 , 2 , 3])
+                Rule::in($s)
             ]
         ];
-        $params = array(
-            'friend' => $request->input('friend'),
-            'video' => $request->input('video'),
-            'photo' => $request->input('photo')
-        );
-        Validator::make($params, $rules)->validate();
 
         $params = $request->only('friend', 'video', 'photo');
-        $params['updated_at'] = date('Y-m-d H:i:s');
+        Validator::make($params, $rules)->validate();
 
+        $params['updated_at'] = date('Y-m-d H:i:s');
         $result = DB::table('users_settings')->where('user_id', $this->userId)->update($params);
         if (!empty($result)) {
             $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
