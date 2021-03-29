@@ -13,6 +13,7 @@ use Godruoyi\Snowflake\Snowflake;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Custom\EasySms\PhoneNumber;
+use App\Jobs\OneTimeUserScoreUpdate;
 use App\Messages\UpdatePhoneMessage;
 use Illuminate\Support\Facades\Redis;
 use App\Messages\ForgetPasswordMessage;
@@ -426,6 +427,12 @@ trait Update
                 );
                 DB::table('users_schools_logs')->insert($logData);
                 School::dispatch($school)->onQueue('helloo_{user_school}');
+                if(strval($school)!='other')
+                {
+                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchool')->onQueue('helloo_{one_time_user_score_update}');
+                }else{
+                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchoolOther')->onQueue('helloo_{one_time_user_score_update}');
+                }
             }
         }else{
             $flag = true;
@@ -433,6 +440,10 @@ trait Update
         if($flag==true)
         {
             UserSynchronization::dispatch($user , 'activation')->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
+            if(isset($data['user_avatar'])&&$data['user_avatar']!='default_avatar.jpg')
+            {
+                OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
+            }
         }
         return $flag;
     }
@@ -538,6 +549,7 @@ trait Update
                 }else{
                     throw new \Exception('Database update failed');
                 }
+                substr($user->user_name , 0 , 3)=='lb_'&&OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{more_time_user_score_update}');
             }catch (\Exception $e)
             {
                 DB::rollBack();

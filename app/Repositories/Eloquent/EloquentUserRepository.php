@@ -21,6 +21,7 @@ use Jenssegers\Agent\Agent;
 use Godruoyi\Snowflake\Snowflake;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\OneTimeUserScoreUpdate;
 use App\Events\UserProfileLikeEvent;
 use Illuminate\Support\Facades\Redis;
 use App\Events\UserProfileRevokeLikeEvent;
@@ -74,7 +75,25 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 );
                 DB::table('users_schools_logs')->insert($logData);
                 School::dispatch($school)->onQueue('helloo_{user_school}');
+                if(strval($school)!='other')
+                {
+                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchool')->onQueue('helloo_{one_time_user_score_update}');
+                }else{
+                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchoolOther')->onQueue('helloo_{one_time_user_score_update}');
+                }
             }
+        }
+        if(isset($data['user_avatar'])&&$model->user_avatar=='default_avatar.jpg')
+        {
+            OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
+        }
+        if(isset($data['user_avatar'])&&blank($model->user_bg))
+        {
+            OneTimeUserScoreUpdate::dispatch($user , 'fillCover')->onQueue('helloo_{one_time_user_score_update}');
+        }
+        if(isset($data['user_about'])&&blank($model->user_about))
+        {
+            OneTimeUserScoreUpdate::dispatch($user , 'fillAbout')->onQueue('helloo_{one_time_user_score_update}');
         }
         return $user;
     }
