@@ -8,6 +8,7 @@ use App\Models\Photo;
 use App\Models\UserFriend;
 use App\Models\Video;
 use App\Repositories\Contracts\UserFriendRepository;
+use App\Traits\CacheableScore;
 use Illuminate\Validation\Rule;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UserCenterController extends BaseController
 {
+    use CacheableScore;
     private $user;
     private $userId;
 
@@ -159,7 +161,11 @@ class UserCenterController extends BaseController
 
         $create = $model->create($data);
         if (!empty($create->getKey())) {
-            $this->addScore('addMedia', $create->getKey(), $params['type']);
+            $score['sourceType'] = $params['type'];
+            $score['type'] = 'addMedia';
+            $score['user_id'] = $this->userId;
+            $score['id'] = $create->getKey();
+            $this->addScore($score);
         }
         return $this->response->accepted();
     }
@@ -275,22 +281,15 @@ class UserCenterController extends BaseController
             $data['created_at'] = date('Y-m-d H:i:s');
             $result = $like->insert($data);
             if ($result) {
-                $this->addScore('like', $id, $type);
+                $score['sourceType'] = $type;
+                $score['type'] = 'like';
+                $score['user_id'] = $this->userId;
+                $score['friend_id'] = $row['user_id'];
+                $score['id'] = $id;
+                $this->addScore($score);
             }
         }
        return $this->response->accepted();
-    }
-
-    /**
-     * @param string $type 类型：like 等
-     * @param $id
-     * @param string $sourceType 来源：如 video / photo
-     * @return bool
-     * 增加积分
-     */
-    public function addScore(string $type, $id, $sourceType='')
-    {
-        return true;
     }
 
 
