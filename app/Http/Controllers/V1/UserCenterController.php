@@ -7,6 +7,7 @@ use App\Models\LikeVideo;
 use App\Models\Photo;
 use App\Models\UserFriend;
 use App\Models\Video;
+use App\Repositories\Contracts\UserFriendRepository;
 use Illuminate\Validation\Rule;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
@@ -35,6 +36,7 @@ class UserCenterController extends BaseController
     public function media($friendId='')
     {
         $video = $photo = $friend = false;
+
         if (!empty($friendId) && $friendId!=$this->userId) {
             //个人隐私设置
             $mKey    = 'helloo:account:service:account-privacy:'.$friendId;
@@ -70,7 +72,7 @@ class UserCenterController extends BaseController
      */
     public function getFriends($userId)
     {
-        $userFriends = UserFriend::where('user_id' , $userId)->orderBy('created_at', 'DESC')->groupBy('friend_id')->limit(10)->get();
+        $userFriends = app(UserFriendRepository::class)->getAllByUser($userId, 10);
         $friendIds   = $userFriends->pluck('friend_id')->all();
         $friends     = app(UserRepository::class)->findByMany($friendIds);
         $userFriends->each(function($userFriend) use ($friends){
