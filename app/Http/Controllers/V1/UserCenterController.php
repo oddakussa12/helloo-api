@@ -221,6 +221,20 @@ class UserCenterController extends BaseController
         Validator::make($params, $rules)->validate();
 
         $params['updated_at'] = date('Y-m-d H:i:s');
+
+        // 临时用
+        $select = DB::table('users_settings')->where('user_id', $this->userId)->first();
+        if (empty($select)) {
+            $in = [
+                'user_id' => $this->userId,
+                'friend'  => 1,
+                'video'   => 1,
+                'photo'   => 1,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+           $insert = DB::table('users_settings')->insert($in);
+        }
+
         $result = DB::table('users_settings')->where('user_id', $this->userId)->update($params);
         if (!empty($result)) {
             $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
