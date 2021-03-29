@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
@@ -341,6 +342,10 @@ class AuthController extends BaseController
         $mKey = 'helloo:account:service:account-privacy:'.$userId;
         $privacy = Redis::get($mKey);
         $user->privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
+
+        // 积分
+        $score = UserScore::where('user_id', $userId)->first();
+        $user->score = !empty($score['score']) ? $score['score'] : 0;
 
         $user->userNamePrompted = boolval(app(UserRepository::class)->usernamePrompt($userId));
         $user->makeVisible(array('user_name_changed_at'));
