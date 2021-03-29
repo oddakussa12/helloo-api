@@ -7,12 +7,14 @@ use App\Models\LikeVideo;
 use App\Models\Photo;
 use App\Models\UserFriend;
 use App\Models\Video;
+use Illuminate\Validation\Rule;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 
 class UserCenterController extends BaseController
 {
@@ -37,16 +39,16 @@ class UserCenterController extends BaseController
             //个人隐私设置
             $mKey    = 'helloo:account:service:account-privacy:'.$friendId;
             $privacy = Redis::get($mKey);
-            $setting = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>1, 'video'=>1,'photo'=>1];
+            $setting = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
             $friends = UserFriend::where('user_id' , $this->userId)->where('friend_id', $friendId)->first();
 
-            if ($setting['friend']==1 || ($setting['friend']==2 && !empty($friends))) {
+            if ($setting['friend']=='1' || ($setting['friend']=='2' && !empty($friends))) {
                 $friend = true;
             }
-            if ($setting['video']==1 || ($setting['video']==2 && !empty($friends))) {
+            if ($setting['video']=='1' || ($setting['video']=='2' && !empty($friends))) {
                 $video = true;
             }
-            if ($setting['photo']==1 || ($setting['photo']==2 && !empty($friends))) {
+            if ($setting['photo']=='1' || ($setting['photo']=='2' && !empty($friends))) {
                 $photo = true;
             }
         } else {
@@ -107,7 +109,6 @@ class UserCenterController extends BaseController
      */
     public function getPhotos($userId)
     {
-
         $photos = Photo::select('photo_id', 'photo', 'like')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $photoIds = $photos->pluck('photo_id')->toArray();
         // 查询点赞表
@@ -154,7 +155,10 @@ class UserCenterController extends BaseController
             $data['video_url'] = $params['video_url'];
         }
 
-        $model->create($data);
+        $create = $model->create($data);
+        if (!empty($create->getKey())) {
+            $this->addScore('addMedia', $create->getKey(), $params['type']);
+        }
         return $this->response->accepted();
     }
 
@@ -197,21 +201,84 @@ class UserCenterController extends BaseController
      */
     public function updatePrivacy(Request $request)
     {
-        $this->validate($request, [
-            'friend' => 'required|string',
-            'video' => 'required|string',
-            'photo' => 'required|string',
-        ]);
+        $rules = [
+            'friend' => [
+                'required',
+                Rule::in([1 , 2 , 3])
+            ],
+            'video' => [
+                'required',
+                Rule::in([1 , 2 , 3])
+            ],
+            'photo' => [
+                'required',
+                Rule::in([1 , 2 , 3])
+            ]
+        ];
+        $params = array(
+            'friend' => $request->input('friend'),
+            'video' => $request->input('video'),
+            'photo' => $request->input('photo')
+        );
+        Validator::make($params, $rules)->validate();
+
         $params = $request->only('friend', 'video', 'photo');
         $params['updated_at'] = date('Y-m-d H:i:s');
 
-        $result = DB::table('users_setting')->where('user_id', $this->userId)->update($params);
+        $result = DB::table('users_settings')->where('user_id', $this->userId)->update($params);
         if (!empty($result)) {
             $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
             Redis::set($mKey, json_encode($params));
             Redis::expire($mKey , 86400*30);
+            return $this->response->accepted();
+        } else {
+            return $this->response->errorNotFound();
         }
-        return $this->response->accepted();
+    }
+
+    /**
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     * 点赞Video/Photo
+     */
+    public function likes(Request $request)
+    {
+        $type  = $request->input('type', '');
+        $id    = $request->input('id', 0);
+        if (empty($type) || empty($id)) {
+            return $this->response->errorNotFound();
+        }
+
+        $model = $type == 'video' ? new Video() : new Photo();
+        $row   = $model->find($id);
+        if (empty($row)) {
+            return $this->response->errorNotFound();
+        }
+
+        $like  = $type == 'video' ? new LikeVideo() : new LikePhoto();
+        $check = $like->where(['user_id'=>$this->userId, 'liked_id'=>$id])->first();
+        if (empty($check)) {
+            $data['user_id'] = $this->userId;
+            $data['liked_id'] = $id;
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $result = $like->insert($data);
+            if ($result) {
+                $this->addScore('like', $id, $type);
+            }
+        }
+       return $this->response->accepted();
+    }
+
+    /**
+     * @param string $type 类型：like 等
+     * @param $id
+     * @param string $sourceType 来源：如 video / photo
+     * @return bool
+     * 增加积分
+     */
+    public function addScore(string $type, $id, $sourceType='')
+    {
+        return true;
     }
 
 

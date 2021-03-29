@@ -154,7 +154,7 @@ class UserController extends BaseController
         //个人隐私设置
         $mKey    = 'helloo:account:service:account-privacy:'.$id;
         $privacy = Redis::get($mKey);
-        $privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>1, 'video'=>1,'photo'=>1];
+        $privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
 
         $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('liked_id' , $id)->first()):false;
         $friend = auth()->check()?DB::table('users_friends')->where('user_id' , auth()->id())->where('friend_id' , $id)->first():null;

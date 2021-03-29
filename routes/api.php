@@ -161,6 +161,7 @@ $api->group($V1Params , function ($api){
         $api->delete('user/center/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('user.center.destroyMedia'); // 删除video/photo
         $api->get('user/center/privacy' , 'UserCenterController@privacy')->name('user.center.privacy'); // 获取隐私配置
         $api->patch('user/center/privacy' , 'UserCenterController@updatePrivacy')->name('user.center.updatePrivacy'); // 修改隐私配置
+        $api->post('user/center/like' , 'UserCenterController@likes')->name('user.center.likes'); // 点赞video/photo
 
         /*****个人中心 结束*****/
 
