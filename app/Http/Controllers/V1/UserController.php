@@ -551,5 +551,10 @@ class UserController extends BaseController
         return UserCollection::collection($users);
     }
 
+    public function rank()
+    {
+        //helloo:account:user-score-rank;
+    }
+
 
 }

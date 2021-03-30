@@ -11,7 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
-class MoreTimeUserScoreUpdate implements ShouldQueue
+class GreatUserScoreUpdate implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -44,35 +44,34 @@ class MoreTimeUserScoreUpdate implements ShouldQueue
     {
         switch ($this->type)
         {
-            case 'likeVideo':
-            case 'likedVideo':
-                $score = 1;
+            case 'gameI':
+            case 'talkativeIII':
+                $score = 300;
                 break;
-            case 'firstTxtMessage':
-            case 'videoIncrease':
-                $score = 5;
+            case 'gameII':
+                $score = 800;
                 break;
-            case 'firstVideoMessage':
-                $score = 15;
+            case 'gameIII':
+                $score = 1500;
                 break;
-            case 'friendAccept':
-            case 'friendAccepted':
-            case 'photoIncrease':
-                $score = 2;
+            case 'socialI':
+                $score = 30;
                 break;
-            case 'friendDestroy':
-            case 'friendDestroyed':
-            case 'photoDecrease':
-                $score = -2;
+            case 'socialII':
+                $score = 150;
                 break;
-            case 'videoDecrease':
-                $score = -5;
+            case 'socialIII':
+                $score = 350;
                 break;
-            case 'tenTxtMessage':
-                $score = 25;
-                break;
-            case 'tenVideoMessage':
+            case 'talkativeI':
                 $score = 50;
+                break;
+            case 'talkativeII':
+            case 'otherSchoolFriend':
+                $score = 100;
+                break;
+            case 'maskCollection':
+                $score = 250;
                 break;
             default:
                 $score = 0;

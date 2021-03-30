@@ -194,7 +194,12 @@ class RyChat implements ShouldQueue
             {
                 $audioUrl = isset($content['uri'])?$content['uri']:'';
                 $duration = isset($content['duration'])?$content['duration']:0;
-                $this->handleVoice($raw['msgUID'] , $audioUrl , $duration);
+                $this->handleAudio($raw['fromUserId'] , $raw['toUserId'] , $raw['msgUID'] , $audioUrl , $duration);
+            }
+
+            if($messageContent['message_type']=='RC:ImgMsg')
+            {
+                $this->handleImage($raw['fromUserId'] , $raw['toUserId']);
             }
 
             if($messageContent['message_type']=='Yooul:VideoLike')
@@ -275,6 +280,7 @@ class RyChat implements ShouldQueue
                 }
             }
         }
+        Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
     }
 
     private function handleVideo($from , $to  , $messageId , $videoUrl , $isRecord , $voiceName , $bundleName)
@@ -345,7 +351,62 @@ class RyChat implements ShouldQueue
                 }
             }
         }
-        Redis::expireAt($lock_key , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
+        Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
+        if(!blank($bundleName))
+        {
+            $props = DB::table('users_props')->where('user_id' , $from)->first();
+            if(blank($props))
+            {
+                DB::table('users_props')->insert(array(
+                    'user_id'=>$from,
+                    'props'=>\json_encode(array($bundleName=>1)),
+                    'created_at'=>$this->now,
+                    'updated_at'=>$this->now,
+                ));
+            }else{
+                $data = \json_decode($props->prop , true);
+                if(is_array($data))
+                {
+                    if(isset($data[$bundleName]))
+                    {
+                        $data[$bundleName] = $data[$bundleName]+1;
+                    }else{
+                        $data[$bundleName] = 1;
+                    }
+                }else{
+                    $data[$bundleName] = 1;
+                }
+                DB::table('users_props')->where('id' , $props->id)->update(array(
+                    'props'=>\json_encode($data),
+                    'updated_at'=>$this->now
+                ));
+            }
+            $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+            if(blank($counts))
+            {
+                DB::table('ry_messages_counts')->insertGetId((array(
+                    'user_id'=>$from,
+                    'props'=>1,
+                    'created_at'=>$this->now,
+                    'updated_at'=>$this->now,
+                )));
+                $count = 1;
+            }else{
+                $id = $counts->id;
+                DB::table('ry_messages_counts')->where('id' , $id)->increment('props' , 1 , array(
+                    'updated_at'=>$this->now,
+                ));
+                $count = $counts->props+1;
+            }
+            if($count==5)
+            {
+                OneTimeUserScoreUpdate::dispatch($from , 'fiveMaskVideo')->onQueue('helloo_{one_time_user_score_update}');
+            }
+            if($count==50)
+            {
+                GreatUserScoreUpdate::dispatch($from , 'maskCollection')->onQueue('helloo_{great_user_score_update}');
+            }
+        }
         $video = array(
             'message_id'=>$messageId,
             'video_url'=>$videoUrl,
@@ -365,8 +426,39 @@ class RyChat implements ShouldQueue
         }
     }
 
-    private function handleVoice($messageId , $audioUrl , $duration )
+    private function handleAudio($from , $to , $messageId , $audioUrl , $duration )
     {
+        $lock_key = "helloo:message:service:unique-audio-".strval($from).'-'.strval($to);
+        if(!Redis::exists($lock_key))
+        {
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'audio')->first();
+            if(blank($flag))
+            {
+                DB::table('ry_chats_logs')->insert(array(
+                    'from'=>$from,
+                    'to'=>$to,
+                    'type'=>'audio',
+                    'created_at'=>$this->now,
+                ));
+                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                if(blank($counts))
+                {
+                    DB::table('ry_messages_counts')->insertGetId((array(
+                        'user_id'=>$from,
+                        'audio'=>1,
+                        'created_at'=>$this->now,
+                        'updated_at'=>$this->now,
+                    )));
+                }else{
+                    $id = $counts->id;
+                    DB::table('ry_messages_counts')->where('id' , $id)->increment('audio' , 1 , array(
+                        'updated_at'=>$this->now,
+                    ));
+                }
+            }
+        }
         $audio = array(
             'message_id'=>$messageId,
             'audio_url'=>$audioUrl,
@@ -381,6 +473,41 @@ class RyChat implements ShouldQueue
                 'code'=>$e->getCode(),
                 'message'=>$e->getMessage(),
             ));
+        }
+    }
+
+    private function handleImage($from , $to)
+    {
+        $lock_key = "helloo:message:service:unique-image-".strval($from).'-'.strval($to);
+        if(!Redis::exists($lock_key))
+        {
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'image')->first();
+            if(blank($flag))
+            {
+                DB::table('ry_chats_logs')->insert(array(
+                    'from'=>$from,
+                    'to'=>$to,
+                    'type'=>'image',
+                    'created_at'=>$this->now,
+                ));
+                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                if(blank($counts))
+                {
+                    DB::table('ry_messages_counts')->insertGetId((array(
+                        'user_id'=>$from,
+                        'image'=>1,
+                        'created_at'=>$this->now,
+                        'updated_at'=>$this->now,
+                    )));
+                }else{
+                    $id = $counts->id;
+                    DB::table('ry_messages_counts')->where('id' , $id)->increment('image' , 1 , array(
+                        'updated_at'=>$this->now,
+                    ));
+                }
+            }
         }
     }
 

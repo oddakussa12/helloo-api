@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Models\UserFriend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
@@ -144,6 +145,8 @@ class UserFriendController extends BaseController
         // 融云推送 聊天
         if($flag)
         {
+            MoreTimeUserScoreUpdate::dispatch($userId , 'friendDestroy' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
+            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendDestroyed' , $userId)->onQueue('helloo_{more_time_user_score_update}');
             $sortKey = "helloo:account:friend:game:rank:sort:".$userId.'-coronation';//暂时一个游戏
             $friendSortKey = "helloo:account:friend:game:rank:sort:".$friendId.'-coronation';//暂时一个游戏
             Redis::zrem($sortKey , $friendId);

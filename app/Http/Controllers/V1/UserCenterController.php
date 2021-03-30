@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Models\LikePhoto;
 use App\Models\LikeVideo;
 use App\Models\Photo;
@@ -158,15 +159,8 @@ class UserCenterController extends BaseController
         if ($params['type'] =='video') {
             $data['video_url'] = $params['video_url'];
         }
-
-        $create = $model->create($data);
-        if (!empty($create->getKey())) {
-            $score['sourceType'] = $params['type'];
-            $score['type'] = 'addMedia';
-            $score['user_id'] = $this->userId;
-            $score['id'] = $create->getKey();
-            $this->addScore($score);
-        }
+        $model->create($data);
+//        MoreTimeUserScoreUpdate::dispatch($userId , 'friendDestroy' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
         return $this->response->accepted();
     }
 
