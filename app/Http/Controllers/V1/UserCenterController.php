@@ -57,8 +57,8 @@ class UserCenterController extends BaseController
                 $photo = true;
             }
         } else {
-            $video  = $photo = $friend = true;
-            $friend = $this->userId;
+            $video    = $photo = $friend = true;
+            $friendId = $this->userId;
         }
 
         $friend && $result['friend'] = $this->getFriends($friendId);
@@ -150,14 +150,15 @@ class UserCenterController extends BaseController
         $image = $params['type'] == 'video' ? 'image' : 'photo';
         $count = $model->where('user_id', $this->userId)->count();
         if ($count>=10) {
-            return $this->response->error('超出上限，最多十条');
+            return $this->response->errorNotFound('超出上限，最多十条');
         }
 
         $data['user_id'] = $this->userId;
         $data[$image] = $params['image'];
 
         if ($params['type'] =='video') {
-            $data['video_url'] = $params['video_url'];
+            $data['video_url']   = $params['video_url'];
+            $data['bundle_name'] = $params['mask'] ?? '';
         }
         $model->create($data);
 //        MoreTimeUserScoreUpdate::dispatch($userId , 'friendDestroy' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
@@ -185,6 +186,13 @@ class UserCenterController extends BaseController
             if ($delete) {
                 $result->deleted_at = date('Y-m-d H:i:s');
                 DB::table($table."_logs")->insert(collect($result)->toArray());
+
+                // 减积分
+                $params['user_id']    = $this->userId;
+                $params['type']       = 'delMedia';
+                $params['sourceType'] = $type;
+                $params['id']         = $id;
+                $this->delMedia($params);
                 DB::commit();
                 return $this->response->accepted();
             }
@@ -234,7 +242,7 @@ class UserCenterController extends BaseController
                 'photo'   => 1,
                 'created_at' => date('Y-m-d H:i:s')
             ];
-           $insert = DB::table('users_settings')->insert($in);
+           DB::table('users_settings')->insert($in);
         }
 
         $result = DB::table('users_settings')->where('user_id', $this->userId)->update($params);
@@ -286,5 +294,157 @@ class UserCenterController extends BaseController
        return $this->response->accepted();
     }
 
+    /**
+     * 获取勋章列表
+     */
+    public function medal()
+    {
+        $locale = locale();
+        $locale = $locale == 'zh-CN' ? 'cn' : 'en';
+        $result = DB::table('medals')->select('id', 'name', 'desc', 'image', 'sort', 'category')->get();
+        $medals = [];
+        $categories = $result->pluck('category')->unique()->toArray();
+
+        $friends = UserFriend::where('user_id', $this->userId)->count();
+        $game    = DB::table('users_games')->whereIn('user_id', $this->userId)->orderByDesc('score')->orderBy('created_at')->first();
+        $game    = !empty($game) ? $game['score'] : 0;
+
+
+        foreach ($result as $item) {
+            foreach ($categories as $category) {
+                if ($category==$item->category) {
+                    $name = json_decode($item->name, true);
+                    $desc = json_decode($item->desc, true);
+                    $item->name = $name[$locale];
+                    $item->desc = $desc[$locale];
+                    $this->status($item, $friends, $game);
+
+                    $medals[$category][] = $item;
+                }
+            }
+       }
+        return $medals;
+    }
+
+    /**
+     * @param $media
+     * @param $friends
+     * @param $game
+     * @return bool
+     * 奖章状态
+     */
+    public function status($media, $friends, $game)
+    {
+        $info = $this->user;
+        switch ($media->name) {
+            case 'Profile picture': // 个人头像
+                $flag = stripos($info->user_avatar,'helloo')!==false;
+                break;
+            case 'Background': // 个人背景
+                $flag = !empty($info->user_bg);
+                break;
+            case 'School': // 学校信息
+                $flag = stripos($info->user_school, 'other')!==false;
+                break;
+            case 'Bio':  // 个性签名
+                $flag = !empty($info->user_about);
+                break;
+            case 'ID': // 专属ID
+                $flag = stripos($info->user, 'lb_')!==false;
+                break;
+            case 'Used5Masks': // 百变大咖
+                $flag = $this->usedMasks($this->userId, 5);
+                break;
+            case 'Video being liked': // 人气之星
+                $flag = $this->scoreStatistics($this->userId);
+                break;
+            case 'Liked others\' videos': // 海中霸主
+                $flag = true;
+                break;
+            case 'Msgpoint': // message
+                $flag = true;
+                break;
+            case 'Videopoint': // video
+                $flag = true;
+                break;
+            case 'Add friends': // 交友达人
+                $flag= true;
+                break;
+            case 'Post video': // Vlog Video
+                $flag= true;
+                break;
+            case 'Post photo': // Photo Wall
+                $flag= true;
+                break;
+            case '10txt chats': // 文字战斗机
+                $flag= true;
+                break;
+            case '10video chats': // 视频创作者
+                $flag= true;
+                break;
+            case 'BronzeGamer': // 游戏小能手Ⅰ
+                $flag= $game>=300;
+                break;
+            case 'SilverGamer': // 游戏小能手Ⅱ
+                $flag= $game>=800;
+                break;
+            case 'GoldGamer': // 游戏小能手Ⅲ
+                $flag= $game>=1500;
+                break;
+            case '10Friends': // 社交达人Ⅰ
+                $flag= $friends>=10;
+                break;
+            case '30Friends': // 社交达人Ⅱ
+                $flag= $friends>=30;
+                break;
+            case '100Friends': // 社交达人Ⅲ
+                $flag= $friends>=100;
+                break;
+            case '300Msgs': // 妙语连珠Ⅰ
+                $flag= $this->message($this->userId, 300);
+                break;
+            case '1000Msgs': // 妙语连珠Ⅱ
+                $flag= $this->message($this->userId, 1000);
+                break;
+            case '3000Msgs': // 妙语连珠Ⅲ
+                $flag= $this->message($this->userId, 3000);
+                break;
+            case 'Used50Masks': // 面具收集者
+                $flag= $this->usedMasks($this->userId);
+                break;
+            case 'Friend from another school': // 交际爱好者
+                $flag= $this->message($this->userId, 3000);
+                break;
+            default:
+                break;
+        }
+        return $flag;
+
+    }
+
+    public function message($userId, $num)
+    {
+        return true;
+        
+    }
+
+    /**
+     * @param $userId
+     * @return bool
+     * 查询统计表
+     */
+    public function scoreStatistics($userId)
+    {
+        // DB::table('')->where()->first();
+        return true;
+    }
+
+    public function usedMasks($userId, $num=5)
+    {
+        $count = DB::table('users_videos')->where('user_id', $userId)->where('bundle_name', '!=', '')->count();
+        if ($count>=$num) {
+            return true;
+        }
+    }
 
 }
