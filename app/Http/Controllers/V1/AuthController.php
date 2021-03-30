@@ -343,9 +343,12 @@ class AuthController extends BaseController
         $privacy = Redis::get($mKey);
         $user->privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
 
-        // 积分
-        $score = UserScore::where('user_id', $userId)->first();
-        $user->score = !empty($score['score']) ? $score['score'] : 0;
+        // 积分 排行
+        $memKey = 'helloo:account:user-score-rank';
+        $rank   = Redis::zrevrank($memKey , $userId);
+        $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
+        $user->rank  = (int)$rank+1;
+        $user->score = (int)Redis::zscore($memKey , $userId);
 
         $user->userNamePrompted = boolval(app(UserRepository::class)->usernamePrompt($userId));
         $user->makeVisible(array('user_name_changed_at'));
