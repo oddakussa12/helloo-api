@@ -292,5 +292,29 @@ class UserCenterController extends BaseController
        return $this->response->accepted();
     }
 
+    /**
+     * 获取勋章列表
+     */
+    public function medal()
+    {
+        $locale = locale();
+        $locale = $locale == 'zh-CN' ? 'cn' : 'en';
+        $result = DB::table('medals')->select('id', 'name', 'desc', 'image', 'sort', 'category')->get();
+        $medals = [];
+        $categories = $result->pluck('category')->unique()->toArray();
+
+        foreach ($result as $key=>$item) {
+            foreach ($categories as $category) {
+                if ($category==$item->category) {
+                    $name = json_decode($item->name, true);
+                    $desc = json_decode($item->desc, true);
+                    $item->name = $name[$locale];
+                    $item->desc = $desc[$locale];
+                    $medals[$category][] = $item;
+                }
+            }
+       }
+        return $medals;
+    }
 
 }
