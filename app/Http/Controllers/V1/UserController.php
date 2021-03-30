@@ -157,14 +157,10 @@ class UserController extends BaseController
         $privacy = Redis::get($mKey);
         $privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
 
-        // 积分
-        $memKey   = 'helloo:account:user-score-rank';
-        $memValue = Redis::zrevrank($memKey , auth()->id());
-
-        $score = UserScore::where('user_id', $id)->first();
-        $user->score = !empty($score['score']) ? $score['score'] : 0;
-
-
+        // 积分 排行
+        $memKey = 'helloo:account:user-score-rank';
+        $rank   = Redis::zrevrank($memKey , $id);
+        $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
 
         $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('liked_id' , $id)->first()):false;
         $friend = auth()->check()?DB::table('users_friends')->where('user_id' , auth()->id())->where('friend_id' , $id)->first():null;
@@ -174,6 +170,8 @@ class UserController extends BaseController
         $user->put('isFriend' , !blank($friend));
         $user->put('likeState' , $likeState);
         $user->put('privacy', $privacy);
+        $user->put('rank', (int)$rank+1);
+        $user->put('score', (int)Redis::zscore($memKey, $id));
 
 //        if(!blank($user->get('user_school')))
 //        {
