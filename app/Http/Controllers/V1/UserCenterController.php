@@ -56,8 +56,8 @@ class UserCenterController extends BaseController
                 $photo = true;
             }
         } else {
-            $video  = $photo = $friend = true;
-            $friend = $this->userId;
+            $video    = $photo = $friend = true;
+            $friendId = $this->userId;
         }
 
         $friend && $result['friend'] = $this->getFriends($friendId);
