@@ -22,6 +22,7 @@ trait CacheableScore
      */
     public function addScore($params)
     {
+        return;
         switch ($params['type']) {
 
             case "type": //点赞
@@ -59,6 +60,7 @@ trait CacheableScore
      */
     public function addMedia($params)
     {
+        return;
         // 积分历史
         $score = $params['sourceType'] == 'video' ? 5 : 2;
         $this->scoreDetail($params['type'], $params['user_id'], $params['id'], $score);
@@ -73,6 +75,7 @@ trait CacheableScore
      */
     public function delMedia($params)
     {
+        return;
         // 积分历史
         $score = $params['sourceType'] == 'video' ? -5 : -2;
         $this->scoreDetail($params['type'], $params['user_id'], $params['id'], $score);
