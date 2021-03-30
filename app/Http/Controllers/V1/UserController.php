@@ -158,8 +158,13 @@ class UserController extends BaseController
         $privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
 
         // 积分
+        $memKey   = 'helloo:account:user-score-rank';
+        $memValue = Redis::zrevrank($memKey , auth()->id());
+
         $score = UserScore::where('user_id', $id)->first();
         $user->score = !empty($score['score']) ? $score['score'] : 0;
+
+
 
         $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('liked_id' , $id)->first()):false;
         $friend = auth()->check()?DB::table('users_friends')->where('user_id' , auth()->id())->where('friend_id' , $id)->first():null;
