@@ -76,8 +76,8 @@ class OneTimeUserScoreUpdate implements ShouldQueue
                 {
                     throw new \Exception('user score log insert fail');
                 }
-                $score = DB::table('users_scores')->where('user_id' , $userId)->first();
-                if(blank($score))
+                $userScore = DB::table('users_scores')->where('user_id' , $userId)->first();
+                if(blank($userScore))
                 {
                     $scoreResult = DB::table('users_scores')->insert(array(
                         'user_id'=>$userId,

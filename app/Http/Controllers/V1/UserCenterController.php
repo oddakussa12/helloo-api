@@ -137,15 +137,15 @@ class UserCenterController extends BaseController
     public function storeMedia(Request $request)
     {
         $params = $request->all();
-        if (empty($params['type']) || !in_array($params['type'], ['video', 'photo'])) {
-            return $this->response->error('type error', 400);
-        }
         $valid  = [
+            'type'=> [
+                'required',
+                Rule::in(['video', 'photo'])
+            ],
             'image' => 'required|string|min:40',
             'video_url' => 'required|string|min:40'
         ];
         $this->validate($request, $valid);
-
         $model = $params['type'] == 'video' ? new Video() : new Photo();
         $image = $params['type'] == 'video' ? 'image' : 'photo';
         $count = $model->where('user_id', $this->userId)->count();
@@ -161,7 +161,7 @@ class UserCenterController extends BaseController
             $data['bundle_name'] = $params['mask'] ?? '';
         }
         $model->create($data);
-//        MoreTimeUserScoreUpdate::dispatch($userId , 'friendDestroy' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
+
         return $this->response->accepted();
     }
 
@@ -261,35 +261,64 @@ class UserCenterController extends BaseController
      * @return \Dingo\Api\Http\Response
      * 点赞Video/Photo
      */
-    public function likes(Request $request)
+    public function like(Request $request)
     {
+        $rules = [
+            'type' => [
+                'required',
+                Rule::in(array('video' , 'photo'))
+            ],
+            'id' => [
+                'required',
+            ],
+        ];
         $type  = $request->input('type', '');
         $id    = $request->input('id', 0);
-        if (empty($type) || empty($id)) {
-            return $this->response->errorNotFound();
-        }
-
+        $params = array('type'=>$type , 'id'=>$id);
+        Validator::make($params, $rules)->validate();
+        $time = date('Y-m-d H:i:s');
         $model = $type == 'video' ? new Video() : new Photo();
-        $row   = $model->find($id);
-        if (empty($row)) {
-            return $this->response->errorNotFound();
-        }
-
+        $model = $model->findOrFail($id);
         $like  = $type == 'video' ? new LikeVideo() : new LikePhoto();
         $check = $like->where(['user_id'=>$this->userId, 'liked_id'=>$id])->first();
         if (empty($check)) {
+            $snowId =  app('snowflake')->id();
+            $data['id'] = $snowId;
             $data['user_id'] = $this->userId;
             $data['liked_id'] = $id;
-            $data['created_at'] = date('Y-m-d H:i:s');
-            $result = $like->insert($data);
-            if ($result) {
-                $score['sourceType'] = $type;
-                $score['type'] = 'like';
-                $score['user_id'] = $this->userId;
-                $score['friend_id'] = $row['user_id'];
-                $score['id'] = $id;
-                $this->addScore($score);
+            $data['created_at'] = $time;
+            $like->create($data);
+
+            $likeCount = DB::table('ry_messages_counts')->where('user_id' , $this->userId)->first();
+            if(blank($likeCount))
+            {
+                DB::table('ry_messages_counts')->insert(array(
+                    'user_id'=>$this->userId,
+                    'like_video'=>1,
+                    'created_at'=>$time,
+                    'updated_at'=>$time,
+                ));
+            }else{
+                DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->increment('like' , 1 , array(
+                    'updated_at'=>$time,
+                ));
             }
+            MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
+            $likedCount = DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->first();
+            if(blank($likedCount))
+            {
+                DB::table('ry_messages_counts')->insert(array(
+                    'user_id'=>$model->user_id,
+                    'liked_video'=>1,
+                    'created_at'=>$time,
+                    'updated_at'=>$time,
+                ));
+            }else{
+                DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->increment('liked' , 1 , array(
+                    'updated_at'=>$time,
+                ));
+            }
+            MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
         }
        return $this->response->accepted();
     }
