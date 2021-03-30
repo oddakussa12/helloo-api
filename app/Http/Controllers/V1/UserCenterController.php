@@ -156,8 +156,8 @@ class UserCenterController extends BaseController
         $data[$image] = $params['image'];
 
         if ($params['type'] =='video') {
-            $data['video_url'] = $params['video_url'];
-            $data['mask']      = $params['mask'] ?? '';
+            $data['video_url']   = $params['video_url'];
+            $data['bundle_name'] = $params['mask'] ?? '';
         }
 
         $create = $model->create($data);
