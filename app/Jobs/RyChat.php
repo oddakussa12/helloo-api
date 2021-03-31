@@ -281,6 +281,21 @@ class RyChat implements ShouldQueue
             }
         }
         Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
+        }
     }
 
     private function handleVideo($from , $to  , $messageId , $videoUrl , $isRecord , $voiceName , $bundleName)
@@ -424,6 +439,21 @@ class RyChat implements ShouldQueue
                 'message'=>$e->getMessage(),
             ));
         }
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
+        }
     }
 
     private function handleAudio($from , $to , $messageId , $audioUrl , $duration )
@@ -474,6 +504,21 @@ class RyChat implements ShouldQueue
                 'message'=>$e->getMessage(),
             ));
         }
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
+        }
     }
 
     private function handleImage($from , $to)
@@ -508,6 +553,21 @@ class RyChat implements ShouldQueue
                     ));
                 }
             }
+        }
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
         }
     }
 

@@ -172,7 +172,11 @@ class UserFriendRequestController extends BaseController
         {
             DB::rollBack();
             $flag = false;
-            Log::error('friend_request_accept_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            Log::info('friend_request_accept_failed' , array(
+                'requestId'=>$requestId,
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
         }
         if($flag)
         {
