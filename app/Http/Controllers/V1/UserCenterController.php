@@ -6,7 +6,9 @@ use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Models\LikePhoto;
 use App\Models\LikeVideo;
 use App\Models\Photo;
+use App\Models\User;
 use App\Models\UserFriend;
+use App\Models\UserFriendRequest;
 use App\Models\Video;
 use App\Repositories\Contracts\UserFriendRepository;
 use App\Traits\CacheableScore;
@@ -18,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
+use Ramsey\Uuid\Uuid;
 
 class UserCenterController extends BaseController
 {
@@ -142,25 +145,36 @@ class UserCenterController extends BaseController
                 'required',
                 Rule::in(['video', 'photo'])
             ],
-            'image' => 'required|string|min:40',
-            'video_url' => 'required|string|min:40'
+            'image' => 'required|array|max:10',
+            'video_url' => 'sometimes|array|max:10'
         ];
         $this->validate($request, $valid);
+
+        $images    = $request->input('image');
+        $video_url = $request->input('video_url');
+
         $model = $params['type'] == 'video' ? new Video() : new Photo();
         $image = $params['type'] == 'video' ? 'image' : 'photo';
         $count = $model->where('user_id', $this->userId)->count();
         if ($count>=10) {
             return $this->response->errorNotFound('超出上限，最多十条');
         }
-
-        $data['user_id'] = $this->userId;
-        $data[$image] = $params['image'];
-
-        if ($params['type'] =='video') {
-            $data['video_url']   = $params['video_url'];
-            $data['bundle_name'] = $params['mask'] ?? '';
+        if (count($images)+$count>10) {
+            return $this->response->errorNotFound('超出上限，最多十条，当前已有'.$count.'条');
         }
-        $model->create($data);
+
+        foreach ($images as $key=>$item) {
+            $data = [];
+            $data[$model->getKeyName()] = app('snowflake')->id();
+            $data['user_id'] = $this->userId;
+            $data[$image] = $item;
+
+            if ($params['type'] =='video') {
+                $data['video_url']   = $video_url[$key];
+                $data['bundle_name'] = $params['mask'] ?? '';
+            }
+            $model->create($data);
+        }
 
         return $this->response->accepted();
     }
@@ -330,15 +344,19 @@ class UserCenterController extends BaseController
     {
         $locale = locale();
         $locale = $locale == 'zh-CN' ? 'cn' : 'en';
-        $result = DB::table('medals')->select('id', 'name', 'desc', 'image', 'sort', 'category')->get();
+        $result = DB::table('medals')->get();
         $medals = [];
+        $day    = date('Y-m-d');
+        $vlog   = DB::table('users_videos')->where('user_id', $this->userId)->get()->count();
+        $photo  = DB::table('users_photos')->where('user_id', $this->userId)->count();
+        $statistic = DB::table('ry_messages_counts')->where('user_id', $this->userId)->first();
+
+        $mKey       = "helloo:message:service:mutual-video-geq-ten".$day;
+        $memKey     = "helloo:message:service:mutual-txt-geq-ten".$day;
+
+        $tenText    = Redis::sismember($memKey, $this->userId);
+        $tenVideo   = Redis::sismember($mKey, $this->userId);
         $categories = $result->pluck('category')->unique()->toArray();
-
-        $friends = UserFriend::where('user_id', $this->userId)->count();
-        $game    = DB::table('users_games')->whereIn('user_id', $this->userId)->orderByDesc('score')->orderBy('created_at')->first();
-        $game    = !empty($game) ? $game['score'] : 0;
-
-
         foreach ($result as $item) {
             foreach ($categories as $category) {
                 if ($category==$item->category) {
@@ -346,7 +364,7 @@ class UserCenterController extends BaseController
                     $desc = json_decode($item->desc, true);
                     $item->name = $name[$locale];
                     $item->desc = $desc[$locale];
-                    $this->status($item, $friends, $game);
+                    $item->flag = $this->status($item, $statistic, $vlog, $photo, $tenVideo, $tenText);
 
                     $medals[$category][] = $item;
                 }
@@ -357,123 +375,144 @@ class UserCenterController extends BaseController
 
     /**
      * @param $media
-     * @param $friends
-     * @param $game
+     * @param $statistic
+     * @param $vlog
+     * @param $photo
      * @return bool
      * 奖章状态
      */
-    public function status($media, $friends, $game)
+    public function status($media, $statistic, $vlog, $photo, $tenVideo, $tenText)
     {
         $info = $this->user;
-        switch ($media->name) {
+        switch ($media->title) {
             case 'Profile picture': // 个人头像
-                $flag = stripos($info->user_avatar,'helloo')!==false;
+                $flag = stristr($info->user_avatar,'helloo')!==false;
                 break;
             case 'Background': // 个人背景
                 $flag = !empty($info->user_bg);
                 break;
             case 'School': // 学校信息
-                $flag = stripos($info->user_school, 'other')!==false;
+                $flag = stristr($info->user_school, 'other')===false;
                 break;
             case 'Bio':  // 个性签名
                 $flag = !empty($info->user_about);
                 break;
             case 'ID': // 专属ID
-                $flag = stripos($info->user, 'lb_')!==false;
+                $flag = stristr($info->user, 'lb_')===false;
                 break;
             case 'Used5Masks': // 百变大咖
-                $flag = $this->usedMasks($this->userId, 5);
+                $flag = $statistic->props>=5;
                 break;
             case 'Video being liked': // 人气之星
-                $flag = $this->scoreStatistics($this->userId);
+                $flag = $statistic->liked_video ?? false;
                 break;
             case 'Liked others\' videos': // 海中霸主
-                $flag = true;
+                $flag = $statistic->like_video ?? false;
                 break;
             case 'Msgpoint': // message
-                $flag = true;
+                $flag = $statistic->txt ?? false;
                 break;
             case 'Videopoint': // video
-                $flag = true;
+                $flag = $statistic->video ?? false;
                 break;
             case 'Add friends': // 交友达人
-                $flag= true;
+                $flag = $statistic->friend ?? false;
                 break;
             case 'Post video': // Vlog Video
-                $flag= true;
+                $flag = $vlog;
                 break;
             case 'Post photo': // Photo Wall
-                $flag= true;
+                $flag = $photo;
                 break;
             case '10txt chats': // 文字战斗机
-                $flag= true;
+                $flag = $tenText;
                 break;
             case '10video chats': // 视频创作者
-                $flag= true;
+                $flag = $tenVideo;
                 break;
             case 'BronzeGamer': // 游戏小能手Ⅰ
-                $flag= $game>=300;
+                $flag = $statistic->game_score>=300;
                 break;
             case 'SilverGamer': // 游戏小能手Ⅱ
-                $flag= $game>=800;
+                $flag = $statistic->game_score>=800;
                 break;
             case 'GoldGamer': // 游戏小能手Ⅲ
-                $flag= $game>=1500;
+                $flag = $statistic->game_score>=1500;
                 break;
             case '10Friends': // 社交达人Ⅰ
-                $flag= $friends>=10;
+                $flag = $statistic->friend>=10;
                 break;
             case '30Friends': // 社交达人Ⅱ
-                $flag= $friends>=30;
+                $flag = $statistic->friend>=30;
                 break;
             case '100Friends': // 社交达人Ⅲ
-                $flag= $friends>=100;
+                $flag = $statistic->friend>=100;
                 break;
             case '300Msgs': // 妙语连珠Ⅰ
-                $flag= $this->message($this->userId, 300);
+                $flag = $statistic->message>=300;
                 break;
             case '1000Msgs': // 妙语连珠Ⅱ
-                $flag= $this->message($this->userId, 1000);
+                $flag = $statistic->message>=1000;
                 break;
             case '3000Msgs': // 妙语连珠Ⅲ
-                $flag= $this->message($this->userId, 3000);
+                $flag = $statistic->message>=3000;
                 break;
             case 'Used50Masks': // 面具收集者
-                $flag= $this->usedMasks($this->userId);
+                $flag = $statistic->props=50;
                 break;
             case 'Friend from another school': // 交际爱好者
-                $flag= $this->message($this->userId, 3000);
+                $flag = !empty($statistic->other_school_friend);
                 break;
             default:
+                $flag = false;
                 break;
         }
         return $flag;
 
     }
 
-    public function message($userId, $num)
-    {
-        return true;
-        
-    }
-
     /**
-     * @param $userId
-     * @return bool
-     * 查询统计表
+     * @param $num
+     * @return mixed
      */
-    public function scoreStatistics($userId)
+    public function top($num)
     {
-        // DB::table('')->where()->first();
-        return true;
-    }
-
-    public function usedMasks($userId, $num=5)
-    {
-        $count = DB::table('users_videos')->where('user_id', $userId)->where('bundle_name', '!=', '')->count();
-        if ($count>=$num) {
-            return true;
+        $num     = $num >=100 ? 100 : $num;
+        $memKey  = 'helloo:account:user-score-rank';
+        $members = Redis::zrevrangebyscore($memKey, '+inf', '-inf', ['withScores'=>true, 'limit'=>[0,$num]]);
+        $userIds = array_keys($members);
+        $isExist = array_search($this->userId, $userIds);
+        $users   = User::whereIn('user_id', $userIds)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
+        $friends = UserFriend::where('user_id', $this->userId)->whereIn('friend_id', $userIds)->get();
+        $request = UserFriendRequest::where('request_from_id', $this->userId)->whereIn('request_to_id', $userIds)->get();
+        foreach ($users as $user) {
+            $user->status = false;
+            if ($isExist && $user->user_id==$this->userId) {
+                $user->status='self';
+            }
+            foreach ($members as $key=>$score) {
+                if ($user->user_id==$key) {
+                    $user->score = $score;
+                }
+            }
+            foreach ($friends as $friend) {
+                if ($user->user_id==$friend->friend_id) {
+                    $user->status = 'friend';
+                }
+            }
+            if (empty($user->status)) {
+                foreach ($request as $item) {
+                    if ($user->user_id==$item->friend_id) {
+                        $user->status = 'request';
+                    }
+                }
+            }
         }
+
+        $users = collect($users)->sortByDesc('score')->values();
+
+        return $users;
+
     }
 
 }
