@@ -145,26 +145,36 @@ class UserCenterController extends BaseController
                 'required',
                 Rule::in(['video', 'photo'])
             ],
-            'image' => 'required|string|min:40',
-            'video_url' => 'sometimes|string|min:40'
+            'image' => 'required|array|max:10',
+            'video_url' => 'sometimes|array|max:10'
         ];
         $this->validate($request, $valid);
+
+        $images    = $request->input('image');
+        $video_url = $request->input('video_url');
+
         $model = $params['type'] == 'video' ? new Video() : new Photo();
         $image = $params['type'] == 'video' ? 'image' : 'photo';
         $count = $model->where('user_id', $this->userId)->count();
         if ($count>=10) {
             return $this->response->errorNotFound('超出上限，最多十条');
         }
-
-        $data[$model->getKeyName()] = app('snowflake')->id();
-        $data['user_id'] = $this->userId;
-        $data[$image] = $params['image'];
-
-        if ($params['type'] =='video') {
-            $data['video_url']   = $params['video_url'];
-            $data['bundle_name'] = $params['mask'] ?? '';
+        if (count($images)+$count>10) {
+            return $this->response->errorNotFound('超出上限，最多十条，当前已有'.$count.'条');
         }
-        $model->create($data);
+
+        foreach ($images as $key=>$item) {
+            $data = [];
+            $data[$model->getKeyName()] = app('snowflake')->id();
+            $data['user_id'] = $this->userId;
+            $data[$image] = $item;
+
+            if ($params['type'] =='video') {
+                $data['video_url']   = $video_url[$key];
+                $data['bundle_name'] = $params['mask'] ?? '';
+            }
+            $model->create($data);
+        }
 
         return $this->response->accepted();
     }
