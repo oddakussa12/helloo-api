@@ -345,7 +345,7 @@ class UserCenterController extends BaseController
     {
         $locale = locale();
         $locale = $locale == 'zh-CN' ? 'cn' : 'en';
-        $result = DB::table('medals')->select('id', 'title', 'name', 'desc','image', 'score', 'category')->get();
+        $result = DB::table('medals')->select('title', 'name', 'desc','image', 'score', 'category')->get();
         $medals = [];
         $day    = date('Y-m-d');
 
@@ -360,6 +360,7 @@ class UserCenterController extends BaseController
         $tenText    = Redis::sismember($memKey, $this->userId);
         $tenVideo   = Redis::sismember($mKey, $this->userId);
         $categories = $result->pluck('category')->unique()->toArray();
+        $num = 0;
         foreach ($result as $item) {
             foreach ($categories as $category) {
                 if ($category==$item->category) {
@@ -367,12 +368,14 @@ class UserCenterController extends BaseController
                     $desc = json_decode($item->desc, true);
                     $item->name = $name[$locale];
                     $item->desc = $desc[$locale];
-                    $item->flag = $this->status($item, $statistic, $vlog, $photo, $tenVideo, $tenText);
-
-                    $medals[$category][] = $item;
+                    $flag = $this->status($item, $statistic, $vlog, $photo, $tenVideo, $tenText);
+                    $item->flag = empty($flag) ? -1 : ($flag===true ? -2 : $flag);
+                    $flag == true && $num++;
+                    $medals[$category][] = collect($item)->except(['title', 'category']);
                 }
             }
        }
+        $medals['achievements'] = $num."/".count($result);
         return $medals;
     }
 
