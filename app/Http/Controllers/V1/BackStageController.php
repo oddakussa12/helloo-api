@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\V1;
 
 
+use App\Custom\RedisList;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 
@@ -22,6 +24,18 @@ class BackStageController extends BaseController
         Redis::del($lastVersion);
         //backStage/version/upgrade
         return $this->response->noContent();
+    }
+
+    public function lastOnline(Request $request)
+    {
+        $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
+        $chinaNow = Carbon::now('Asia/Shanghai')->startOfDay()->timestamp;
+        $redis = new RedisList();
+        $perPage = 10;
+        $page = $request->input('page' , 1);
+        $offset   = ($page-1)*$perPage;
+        $users = $redis->zRevRangeByScore($lastActivityTime , '+inf' , $chinaNow , true , array($offset , $perPage));
+        return $this->response->array(array('users'=>$users , 'chinaTime'=>$chinaNow));
     }
 
 

@@ -207,6 +207,8 @@ $api->group($V1Params , function ($api){
 
     $api->patch('backStage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backStage.version.upgrade');
 
+    $api->get('backStage/last/online' , 'BackStageController@lastOnline')->name('backStage.last.online');
+
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');
     $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');
