@@ -6,6 +6,7 @@ use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Models\LikePhoto;
 use App\Models\LikeVideo;
 use App\Models\Photo;
+use App\Models\RyMessageCount;
 use App\Models\User;
 use App\Models\UserFriend;
 use App\Models\UserFriendRequest;
@@ -344,12 +345,14 @@ class UserCenterController extends BaseController
     {
         $locale = locale();
         $locale = $locale == 'zh-CN' ? 'cn' : 'en';
-        $result = DB::table('medals')->get();
+        $result = DB::table('medals')->select('id', 'title', 'name', 'desc','image', 'score', 'category')->get();
         $medals = [];
         $day    = date('Y-m-d');
+
         $vlog   = DB::table('users_videos')->where('user_id', $this->userId)->get()->count();
         $photo  = DB::table('users_photos')->where('user_id', $this->userId)->count();
-        $statistic = DB::table('ry_messages_counts')->where('user_id', $this->userId)->first();
+        $statistic = RyMessageCount::where('user_id', $this->userId)->first();
+        $statistic = !empty($statistic) ? $statistic : new RyMessageCount();
 
         $mKey       = "helloo:message:service:mutual-video-geq-ten".$day;
         $memKey     = "helloo:message:service:mutual-txt-geq-ten".$day;
@@ -378,13 +381,15 @@ class UserCenterController extends BaseController
      * @param $statistic
      * @param $vlog
      * @param $photo
+     * @param $tenVideo
+     * @param $tenText
      * @return bool
      * 奖章状态
      */
     public function status($media, $statistic, $vlog, $photo, $tenVideo, $tenText)
     {
         $info = $this->user;
-        switch ($media->title) {
+        switch (trim($media->title)) {
             case 'Profile picture': // 个人头像
                 $flag = stristr($info->user_avatar,'helloo')!==false;
                 break;
@@ -398,25 +403,25 @@ class UserCenterController extends BaseController
                 $flag = !empty($info->user_about);
                 break;
             case 'ID': // 专属ID
-                $flag = stristr($info->user, 'lb_')===false;
+                $flag = stristr($info->user_name, 'lb_')===false;
                 break;
             case 'Used5Masks': // 百变大咖
                 $flag = $statistic->props>=5;
                 break;
             case 'Video being liked': // 人气之星
-                $flag = $statistic->liked_video ?? false;
+                $flag = $statistic->liked_video;
                 break;
             case 'Liked others\' videos': // 海中霸主
-                $flag = $statistic->like_video ?? false;
+                $flag = $statistic->like_video;
                 break;
             case 'Msgpoint': // message
-                $flag = $statistic->txt ?? false;
+                $flag = $statistic->txt;
                 break;
             case 'Videopoint': // video
-                $flag = $statistic->video ?? false;
+                $flag = $statistic->video;
                 break;
             case 'Add friends': // 交友达人
-                $flag = $statistic->friend ?? false;
+                $flag = $statistic->friend;
                 break;
             case 'Post video': // Vlog Video
                 $flag = $vlog;
@@ -458,7 +463,7 @@ class UserCenterController extends BaseController
                 $flag = $statistic->message>=3000;
                 break;
             case 'Used50Masks': // 面具收集者
-                $flag = $statistic->props=50;
+                $flag = $statistic->props>=50;
                 break;
             case 'Friend from another school': // 交际爱好者
                 $flag = !empty($statistic->other_school_friend);
