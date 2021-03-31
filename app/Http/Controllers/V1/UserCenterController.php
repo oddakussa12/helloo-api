@@ -409,19 +409,19 @@ class UserCenterController extends BaseController
                 $flag = $statistic->props>=5;
                 break;
             case 'Video being liked': // 人气之星
-                $flag = $statistic->liked_video;
+                $flag = $statistic->liked_video ?? false;
                 break;
             case 'Liked others\' videos': // 海中霸主
-                $flag = $statistic->like_video;
+                $flag = $statistic->like_video ?? false;
                 break;
             case 'Msgpoint': // message
-                $flag = $statistic->txt;
+                $flag = $statistic->txt ?? false;
                 break;
             case 'Videopoint': // video
-                $flag = $statistic->video;
+                $flag = $statistic->video ?? false;
                 break;
             case 'Add friends': // 交友达人
-                $flag = $statistic->friend;
+                $flag = $statistic->friend ?? false;
                 break;
             case 'Post video': // Vlog Video
                 $flag = $vlog;
