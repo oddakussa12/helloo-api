@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
+use Ramsey\Uuid\Uuid;
 
 class UserCenterController extends BaseController
 {
@@ -143,7 +144,7 @@ class UserCenterController extends BaseController
                 Rule::in(['video', 'photo'])
             ],
             'image' => 'required|string|min:40',
-            'video_url' => 'required|string|min:40'
+            'video_url' => 'sometimes|string|min:40'
         ];
         $this->validate($request, $valid);
         $model = $params['type'] == 'video' ? new Video() : new Photo();
@@ -153,6 +154,7 @@ class UserCenterController extends BaseController
             return $this->response->errorNotFound('超出上限，最多十条');
         }
 
+        $data[$model->getKeyName()] = app('snowflake')->id();
         $data['user_id'] = $this->userId;
         $data[$image] = $params['image'];
 
