@@ -30,11 +30,12 @@ class BackStageController extends BaseController
     {
         $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
         $chinaNow = Carbon::now('Asia/Shanghai')->startOfDay()->timestamp;
+        $max = $request->input('max' , Carbon::now('Asia/Shanghai')->timestamp);
         $redis = new RedisList();
         $perPage = 10;
         $page = $request->input('page' , 1);
         $offset   = ($page-1)*$perPage;
-        $users = $redis->zRevRangeByScore($lastActivityTime , '+inf' , $chinaNow , true , array($offset , $perPage));
+        $users = $redis->zRevRangeByScore($lastActivityTime , $max , $chinaNow , true , array($offset , $perPage));
         return $this->response->array(array('users'=>$users , 'chinaTime'=>$chinaNow));
     }
 
