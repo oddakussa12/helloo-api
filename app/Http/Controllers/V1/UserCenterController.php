@@ -346,18 +346,17 @@ class UserCenterController extends BaseController
         $locale = $locale == 'zh-CN' ? 'cn' : 'en';
         $result = DB::table('medals')->get();
         $medals = [];
-        $categories = $result->pluck('category')->unique()->toArray();
-
-        $friends = UserFriend::where('user_id', $this->userId)->count();
-        $game    = DB::table('users_games')->where('user_id', $this->userId)->orderByDesc('score')->first();
-        $game    = !empty($game->score) ? $game->score : 0;
-        $vlogs   = DB::table('users_videos')->where('user_id', $this->userId)->get(); // Vlog video
-        $mask    = $vlogs->where('bundle_name', '!=', '')->count();
-        $vlog    = count($vlogs);
-        $photo   = DB::table('users_photos')->where('user_id', $this->userId)->count();
+        $day    = date('Y-m-d');
+        $vlog   = DB::table('users_videos')->where('user_id', $this->userId)->get()->count();
+        $photo  = DB::table('users_photos')->where('user_id', $this->userId)->count();
         $statistic = DB::table('ry_messages_counts')->where('user_id', $this->userId)->first();
 
+        $mKey       = "helloo:message:service:mutual-video-geq-ten".$day;
+        $memKey     = "helloo:message:service:mutual-txt-geq-ten".$day;
 
+        $tenText    = Redis::sismember($memKey, $this->userId);
+        $tenVideo   = Redis::sismember($mKey, $this->userId);
+        $categories = $result->pluck('category')->unique()->toArray();
         foreach ($result as $item) {
             foreach ($categories as $category) {
                 if ($category==$item->category) {
@@ -365,7 +364,7 @@ class UserCenterController extends BaseController
                     $desc = json_decode($item->desc, true);
                     $item->name = $name[$locale];
                     $item->desc = $desc[$locale];
-                    $item->flag = $this->status($item, $friends, $game, $mask, $statistic, $vlog, $photo);
+                    $item->flag = $this->status($item, $statistic, $vlog, $photo, $tenVideo, $tenText);
 
                     $medals[$category][] = $item;
                 }
@@ -376,20 +375,14 @@ class UserCenterController extends BaseController
 
     /**
      * @param $media
-     * @param $friends
-     * @param $game
-     * @param $mask
      * @param $statistic
      * @param $vlog
      * @param $photo
      * @return bool
      * 奖章状态
      */
-    public function status($media, $friends, $game, $mask, $statistic, $vlog, $photo)
+    public function status($media, $statistic, $vlog, $photo, $tenVideo, $tenText)
     {
-        // 发送的所有消息总数
-        $totalMsg = !empty($statistic) ? $statistic->txt + $statistic->audio + $statistic->image + $statistic->video : 0;
-
         $info = $this->user;
         switch ($media->title) {
             case 'Profile picture': // 个人头像
@@ -408,7 +401,7 @@ class UserCenterController extends BaseController
                 $flag = stristr($info->user, 'lb_')===false;
                 break;
             case 'Used5Masks': // 百变大咖
-                $flag = $mask>=5;
+                $flag = $statistic->props>=5;
                 break;
             case 'Video being liked': // 人气之星
                 $flag = $statistic->liked_video ?? false;
@@ -423,7 +416,7 @@ class UserCenterController extends BaseController
                 $flag = $statistic->video ?? false;
                 break;
             case 'Add friends': // 交友达人
-                $flag = $friends;
+                $flag = $statistic->friend ?? false;
                 break;
             case 'Post video': // Vlog Video
                 $flag = $vlog;
@@ -432,40 +425,40 @@ class UserCenterController extends BaseController
                 $flag = $photo;
                 break;
             case '10txt chats': // 文字战斗机
-                $flag = true;
+                $flag = $tenText;
                 break;
             case '10video chats': // 视频创作者
-                $flag = true;
+                $flag = $tenVideo;
                 break;
             case 'BronzeGamer': // 游戏小能手Ⅰ
-                $flag = $game>=300;
+                $flag = $statistic->game_score>=300;
                 break;
             case 'SilverGamer': // 游戏小能手Ⅱ
-                $flag = $game>=800;
+                $flag = $statistic->game_score>=800;
                 break;
             case 'GoldGamer': // 游戏小能手Ⅲ
-                $flag = $game>=1500;
+                $flag = $statistic->game_score>=1500;
                 break;
             case '10Friends': // 社交达人Ⅰ
-                $flag = $friends>=10;
+                $flag = $statistic->friend>=10;
                 break;
             case '30Friends': // 社交达人Ⅱ
-                $flag = $friends>=30;
+                $flag = $statistic->friend>=30;
                 break;
             case '100Friends': // 社交达人Ⅲ
-                $flag = $friends>=100;
+                $flag = $statistic->friend>=100;
                 break;
             case '300Msgs': // 妙语连珠Ⅰ
-                $flag = $totalMsg>=300;
+                $flag = $statistic->message>=300;
                 break;
             case '1000Msgs': // 妙语连珠Ⅱ
-                $flag = $totalMsg>=1000;
+                $flag = $statistic->message>=1000;
                 break;
             case '3000Msgs': // 妙语连珠Ⅲ
-                $flag = $totalMsg>=3000;
+                $flag = $statistic->message>=3000;
                 break;
             case 'Used50Masks': // 面具收集者
-                $flag = $mask>=50;
+                $flag = $statistic->props=50;
                 break;
             case 'Friend from another school': // 交际爱好者
                 $flag = !empty($statistic->other_school_friend);
@@ -476,24 +469,6 @@ class UserCenterController extends BaseController
         }
         return $flag;
 
-    }
-
-    public function message($userId, $num)
-    {
-        return true;
-        
-    }
-
-    /**
-     * @param $userId
-     * @return bool
-     * 查询统计表
-     */
-    public function scoreStatistics($userId)
-    {
-        $statistic = DB::table('ry_message_count')->where('user_id', $userId)->first();
-        // DB::table('')->where()->first();
-        return true;
     }
 
     /**
