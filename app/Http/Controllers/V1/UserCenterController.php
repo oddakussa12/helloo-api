@@ -340,25 +340,28 @@ class UserCenterController extends BaseController
 
     /**
      * 获取勋章列表
+     * @param $userId
+     * @return array
      */
-    public function medal()
+    public function medal($userId)
     {
+        $userInfo = User::find($userId);
         $locale = locale();
         $locale = $locale == 'zh-CN' ? 'cn' : 'en';
         $result = DB::table('medals')->select('title', 'name', 'desc','image', 'score', 'category')->get();
         $medals = [];
         $day    = date('Y-m-d');
 
-        $vlog   = DB::table('users_videos')->where('user_id', $this->userId)->get()->count();
-        $photo  = DB::table('users_photos')->where('user_id', $this->userId)->count();
+        $vlog   = DB::table('users_videos')->where('user_id', $userId)->get()->count();
+        $photo  = DB::table('users_photos')->where('user_id', $userId)->count();
         $statistic = RyMessageCount::where('user_id', $this->userId)->first();
         $statistic = !empty($statistic) ? $statistic : new RyMessageCount();
 
         $mKey       = "helloo:message:service:mutual-video-geq-ten".$day;
         $memKey     = "helloo:message:service:mutual-txt-geq-ten".$day;
 
-        $tenText    = Redis::sismember($memKey, $this->userId);
-        $tenVideo   = Redis::sismember($mKey, $this->userId);
+        $tenText    = Redis::sismember($memKey, $userId);
+        $tenVideo   = Redis::sismember($mKey, $userId);
         $categories = $result->pluck('category')->unique()->toArray();
         $num = 0;
         foreach ($result as $item) {
@@ -368,7 +371,7 @@ class UserCenterController extends BaseController
                     $desc = json_decode($item->desc, true);
                     $item->name = $name[$locale];
                     $item->desc = $desc[$locale];
-                    $flag = $this->status($item, $statistic, $vlog, $photo, $tenVideo, $tenText);
+                    $flag = $this->status($item, $userInfo, $statistic, $vlog, $photo, $tenVideo, $tenText);
                     $item->flag = empty($flag) ? -1 : ($flag===true ? -2 : $flag);
                     $flag == true && $num++;
                     $medals[$category][] = collect($item)->except(['title', 'category']);
@@ -376,11 +379,20 @@ class UserCenterController extends BaseController
             }
        }
         $medals['achievements'] = $num."/".count($result);
+
+        // 积分 排行
+        $memKey = 'helloo:account:user-score-rank';
+        $rank   = Redis::zrevrank($memKey , $userId);
+        $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
+        $medals['rank']   = (int)$rank+1;
+        $medals['score']  = (int)Redis::zscore($memKey, $userId);
+        $medals['avatar'] = userCover($userInfo->user_avatar);
         return $medals;
     }
 
     /**
      * @param $media
+     * @param $userInfo
      * @param $statistic
      * @param $vlog
      * @param $photo
@@ -389,24 +401,23 @@ class UserCenterController extends BaseController
      * @return bool
      * 奖章状态
      */
-    public function status($media, $statistic, $vlog, $photo, $tenVideo, $tenText)
+    public function status($media, $userInfo, $statistic, $vlog, $photo, $tenVideo, $tenText)
     {
-        $info = $this->user;
         switch (trim($media->title)) {
             case 'Profile picture': // 个人头像
-                $flag = stristr($info->user_avatar,'helloo')!==false;
+                $flag = stristr($userInfo->user_avatar,'helloo')!==false;
                 break;
             case 'Background': // 个人背景
-                $flag = !empty($info->user_bg);
+                $flag = !empty($userInfo->user_bg);
                 break;
             case 'School': // 学校信息
-                $flag = stristr($info->user_school, 'other')===false;
+                $flag = stristr($userInfo->user_school, 'other')===false;
                 break;
             case 'Bio':  // 个性签名
-                $flag = !empty($info->user_about);
+                $flag = !empty($userInfo->user_about);
                 break;
             case 'ID': // 专属ID
-                $flag = stristr($info->user_name, 'lb_')===false;
+                $flag = stristr($userInfo->user_name, 'lb_')===false;
                 break;
             case 'Used5Masks': // 百变大咖
                 $flag = $statistic->props>=5;
