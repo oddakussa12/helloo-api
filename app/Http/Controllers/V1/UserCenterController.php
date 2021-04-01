@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
-use Ramsey\Uuid\Uuid;
 
 class UserCenterController extends BaseController
 {
@@ -99,12 +98,12 @@ class UserCenterController extends BaseController
         $videos = Video::select('video_id', 'image', 'like', 'video_url')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $videoIds = $videos->pluck('video_id')->toArray();
         // 查询点赞表
-        $likes = LikeVideo::where('user_id', $this->userId)->whereIn('liked_id', $videoIds);
+        $likes = LikeVideo::where('user_id', $this->userId)->whereIn('liked_id', $videoIds)->get();
         foreach ($videos as $video) {
             $video->isLiked = false;
             foreach ($likes as $like) {
                 if ($like->liked_id==$video->video_id) {
-                    $like->isLiked = true;
+                    $video->isLiked = true;
                 }
             }
         }
@@ -121,12 +120,12 @@ class UserCenterController extends BaseController
         $photos = Photo::select('photo_id', 'photo', 'like')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $photoIds = $photos->pluck('photo_id')->toArray();
         // 查询点赞表
-        $likes = LikePhoto::where('user_id', $this->userId)->whereIn('liked_id', $photoIds);
+        $likes = LikePhoto::where('user_id', $this->userId)->whereIn('liked_id', $photoIds)->get();
         foreach ($photos as $photo) {
             $photo->isLiked = false;
             foreach ($likes as $like) {
                 if ($like->liked_id==$photo->photo_id) {
-                    $like->isLiked = true;
+                    $photo->isLiked = true;
                 }
             }
         }
@@ -264,7 +263,7 @@ class UserCenterController extends BaseController
         if (!empty($result)) {
             $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
             Redis::set($mKey, json_encode($params));
-            Redis::expire($mKey , 86400*30);
+            Redis::expire($mKey , 86400*7);
             return $this->response->accepted();
         } else {
             return $this->response->errorNotFound();
@@ -490,12 +489,6 @@ class UserCenterController extends BaseController
 
     }
 
-    public function array_insert (&$array, $position, $insert_array) {
-        $first_array = array_splice ($array, 0, $position);
-        $array = array_merge($first_array, $insert_array, $array);
-
-    }
-
     /**
      * @param $num
      * @return mixed
@@ -503,8 +496,7 @@ class UserCenterController extends BaseController
     public function top($num)
     {
         $num     = $num >=100 ? 100 : $num;
-        $account = ['1. YungChuck, 2. MattB, 3. itsizz, 4. Rach, 5. Brianna, 6. BrettP'];
-        $rank    = [2=>100, 3=>101, 6=>102, 7=>103, 11=>104, 23=>105, 35=>106];
+        $rank    = [2=>100, 3=>1234072139, 6=>1562134513, 7=>1402551869, 11=>2091996857, 23=>1885497935, 35=>1399005307];
         $tmpId   = array_values($rank);
         $memKey  = 'helloo:account:user-score-rank';
         $members = Redis::zrevrangebyscore($memKey, '+inf', '-inf', ['withScores'=>true, 'limit'=>[0,$num]]);
