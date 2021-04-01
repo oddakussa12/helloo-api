@@ -302,7 +302,7 @@ class UserCenterController extends BaseController
             $data['user_id'] = $this->userId;
             $data['liked_id'] = $id;
             $data['created_at'] = $time;
-            $like->create($data);
+            $like->insert($data);
 
             $likeCount = DB::table('ry_messages_counts')->where('user_id' , $this->userId)->first();
             if(blank($likeCount))
