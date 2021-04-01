@@ -28,15 +28,19 @@ class BackStageController extends BaseController
 
     public function lastOnline(Request $request)
     {
-        $userId = intval($request->input('user_id' , 0));
+        $userId = $request->input('user_id' , 0);
         $chinaNow = Carbon::now('Asia/Shanghai')->startOfDay()->timestamp;
         $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
         $perPage = 10;
-        if($userId>0)
+        if(!blank($userId)&&is_array($userId))
         {
-            $time = Redis::zscore($lastActivityTime , $userId);
-            $users = array($userId=>intval($time));
-            $count = 1;
+            $users = array();
+            foreach ($userId as $id)
+            {
+                $time = Redis::zscore($lastActivityTime , $id);
+                $users[$id] = $time==null?946656000:intval($time);
+            }
+            $count = count($users);
         }else{
             $max = $request->input('max' , Carbon::now('Asia/Shanghai')->timestamp);
             $redis = new RedisList();
