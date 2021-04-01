@@ -45,6 +45,7 @@ class BackStageController extends BaseController
             Log::info('$users' , $users);
             $count = count($users);
         }else{
+            Log::info('test' , array($userId));
             $max = $request->input('max' , Carbon::now('Asia/Shanghai')->timestamp);
             $redis = new RedisList();
             $page = $request->input('page' , 1);
