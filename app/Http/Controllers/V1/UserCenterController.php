@@ -490,6 +490,12 @@ class UserCenterController extends BaseController
 
     }
 
+    public function array_insert (&$array, $position, $insert_array) {
+        $first_array = array_splice ($array, 0, $position);
+        $array = array_merge($first_array, $insert_array, $array);
+
+    }
+
     /**
      * @param $num
      * @return mixed
@@ -497,13 +503,26 @@ class UserCenterController extends BaseController
     public function top($num)
     {
         $num     = $num >=100 ? 100 : $num;
+        $account = ['1. YungChuck, 2. MattB, 3. itsizz, 4. Rach, 5. Brianna, 6. BrettP'];
+        $rank    = [2=>100, 3=>101, 6=>102, 7=>103, 11=>104, 23=>105, 35=>106];
+        $tmpId   = array_values($rank);
         $memKey  = 'helloo:account:user-score-rank';
         $members = Redis::zrevrangebyscore($memKey, '+inf', '-inf', ['withScores'=>true, 'limit'=>[0,$num]]);
-        $userIds = array_keys($members);
+
+        foreach ($rank as $kk=>$vv) {
+            $score       = intval(array_sum(array_slice($members, $kk-2, 2))/2);
+            $first_array = array_slice($members, 0, $kk-1, true);
+            $members     = $first_array + [$vv=>"$score"] + $members;
+        }
+        $members = array_slice($members, 0, 100, true);
+
+        $uIds    = array_keys($members);
+        $userIds = array_merge($uIds, $tmpId);
         $isExist = array_search($this->userId, $userIds);
         $users   = User::whereIn('user_id', $userIds)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
         $friends = UserFriend::where('user_id', $this->userId)->whereIn('friend_id', $userIds)->get();
         $request = UserFriendRequest::where('request_from_id', $this->userId)->whereIn('request_to_id', $userIds)->get();
+
         foreach ($users as $user) {
             $user->status = false;
             if ($isExist && $user->user_id==$this->userId) {
