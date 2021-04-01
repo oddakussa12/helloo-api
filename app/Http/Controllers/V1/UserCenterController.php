@@ -348,7 +348,8 @@ class UserCenterController extends BaseController
     {
         $userInfo = User::find($userId);
         $locale = locale();
-        $locale = $locale == 'zh-CN' ? 'cn' : 'en';
+
+        $locale = $locale == 'zh-CN' ? 'cn' : ($locale =='id' ? $locale : 'en');
         $result = DB::table('medals')->select('title', 'name', 'desc','image', 'score', 'category')->get();
         $medals = [];
         $day    = date('Y-m-d');
