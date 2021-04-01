@@ -341,7 +341,7 @@ class UserCenterController extends BaseController
      */
     public function medal($userId)
     {
-        if (empty($userId)) {
+        if (empty((int)$userId)) {
             return $this->response->errorNotFound('参数异常 userId 不能为空');
         }
         $userInfo = User::find($userId);
