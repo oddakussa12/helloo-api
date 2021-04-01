@@ -278,13 +278,8 @@ class UserCenterController extends BaseController
     public function like(Request $request)
     {
         $rules = [
-            'type' => [
-                'required',
-                Rule::in(array('video' , 'photo'))
-            ],
-            'id' => [
-                'required',
-            ],
+            'type' => ['required', Rule::in(array('video' , 'photo'))],
+            'id'   => ['required'],
         ];
         $type  = $request->input('type', '');
         $id    = $request->input('id', 0);
