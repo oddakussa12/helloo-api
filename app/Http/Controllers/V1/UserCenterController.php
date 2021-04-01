@@ -372,7 +372,7 @@ class UserCenterController extends BaseController
                     $rule = json_decode($item->rule, true);
                     $item->name = $name[$locale];
                     $item->desc = $desc[$locale];
-                    $item->rule = $rule[$locale];
+                    $item->rule = $rule[$locale] ?? '';
                     $flag = $this->status($item, $userInfo, $statistic, $vlog, $photo, $tenVideo, $tenText);
                     $item->flag = empty($flag) ? -1 : ($flag===true ? -2 : $flag);
                     $flag == true && $num++;
