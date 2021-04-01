@@ -348,7 +348,7 @@ class UserCenterController extends BaseController
         $locale = locale();
 
         $locale = $locale == 'zh-CN' ? 'cn' : ($locale =='id' ? $locale : 'en');
-        $result = DB::table('medals')->select('title', 'name', 'desc', 'rule', 'image', 'score', 'category')->get();
+        $result = DB::table('medals')->select('title', 'name', 'desc', 'image_light', 'image', 'score', 'category')->get();
         $medals = [];
         $day    = date('Y-m-d');
 
@@ -369,14 +369,13 @@ class UserCenterController extends BaseController
                 if ($category==$item->category) {
                     $name = json_decode($item->name, true);
                     $desc = json_decode($item->desc, true);
-                    $rule = json_decode($item->rule, true);
                     $item->name = $name[$locale];
                     $item->desc = $desc[$locale];
-                    $item->rule = $rule[$locale] ?? '';
                     $flag = $this->status($item, $userInfo, $statistic, $vlog, $photo, $tenVideo, $tenText);
-                    $item->flag = empty($flag) ? -1 : ($flag===true ? -2 : $flag);
-                    $flag == true && $num++;
-                    $medals[$category][] = collect($item)->except(['title', 'category']);
+                    $item->flag  = empty($flag) ? -1 : ($flag===true ? -2 : $flag);
+                    $item->image = empty($flag) ? $item->image : $item->image_light;
+                    $flag && $num++;
+                    $medals[$category][] = collect($item)->except(['title', 'category', 'light_image']);
                 }
             }
        }
