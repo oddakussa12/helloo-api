@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\V1;
 
 
-use App\Custom\RedisList;
 use Carbon\Carbon;
+use App\Custom\RedisList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -35,11 +36,13 @@ class BackStageController extends BaseController
         if(!blank($userId)&&is_array($userId))
         {
             $users = array();
+            Log::info('$userId' , $userId);
             foreach ($userId as $id)
             {
                 $time = Redis::zscore($lastActivityTime , $id);
                 $users[$id] = $time==null?946656000:intval($time);
             }
+            Log::info('$users' , $users);
             $count = count($users);
         }else{
             $max = $request->input('max' , Carbon::now('Asia/Shanghai')->timestamp);
