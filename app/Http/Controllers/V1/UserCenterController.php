@@ -334,6 +334,8 @@ class UserCenterController extends BaseController
             }
             MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
         }
+        $model->like +=1;
+        $model->save();
        return $this->response->accepted();
     }
 
