@@ -51,10 +51,10 @@ class FriendFromDifferentSchool implements ShouldQueue
                 })->where('users_friends.user_id' , $this->user->user_id)->first();
                 if(blank($flag))
                 {
-                    $counts = DB::table('ry_messages_counts')->where('user_id' , $this->user->user_id)->first();
+                    $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();
                     if(blank($counts))
                     {
-                        DB::table('ry_messages_counts')->insertGetId((array(
+                        DB::table('users_kpi_counts')->insertGetId((array(
                             'user_id'=>$this->user->user_id,
                             'other_school_friend'=>1,
                             'created_at'=>$this->now,
@@ -62,14 +62,14 @@ class FriendFromDifferentSchool implements ShouldQueue
                         )));
                     }else{
                         $id = $counts->id;
-                        DB::table('ry_messages_counts')->where('id' , $id)->increment('other_school_friend' , 1 , array(
+                        DB::table('users_kpi_counts')->where('id' , $id)->increment('other_school_friend' , 1 , array(
                             'updated_at'=>$this->now,
                         ));
                     }
-                    $counts = DB::table('ry_messages_counts')->where('user_id' , $friend['user_id'])->first();
+                    $counts = DB::table('users_kpi_counts')->where('user_id' , $friend['user_id'])->first();
                     if(blank($counts))
                     {
-                        DB::table('ry_messages_counts')->insertGetId((array(
+                        DB::table('users_kpi_counts')->insertGetId((array(
                             'user_id'=>$friend['user_id'],
                             'other_school_friend'=>1,
                             'created_at'=>$this->now,
@@ -77,7 +77,7 @@ class FriendFromDifferentSchool implements ShouldQueue
                         )));
                     }else{
                         $id = $counts->id;
-                        DB::table('ry_messages_counts')->where('id' , $id)->increment('other_school_friend' , 1 , array(
+                        DB::table('users_kpi_counts')->where('id' , $id)->increment('other_school_friend' , 1 , array(
                             'updated_at'=>$this->now,
                         ));
                     }
@@ -85,10 +85,10 @@ class FriendFromDifferentSchool implements ShouldQueue
                     GreatUserScoreUpdate::dispatch($this->friendId , 'otherSchoolFriend' , $this->user->user_id)->onQueue('helloo_{great_user_score_update}');
                 }
             }
-            $counts = DB::table('ry_messages_counts')->where('user_id' , $this->user->user_id)->first();
+            $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();
             if(blank($counts))
             {
-                DB::table('ry_messages_counts')->insertGetId((array(
+                DB::table('users_kpi_counts')->insertGetId((array(
                     'user_id'=>$this->user->user_id,
                     'friend'=>1,
                     'created_at'=>$this->now,
@@ -96,14 +96,14 @@ class FriendFromDifferentSchool implements ShouldQueue
                 )));
             }else{
                 $id = $counts->id;
-                DB::table('ry_messages_counts')->where('id' , $id)->increment('friend' , 1 , array(
+                DB::table('users_kpi_counts')->where('id' , $id)->increment('friend' , 1 , array(
                     'updated_at'=>$this->now,
                 ));
             }
-            $counts = DB::table('ry_messages_counts')->where('user_id' , $friend['user_id'])->first();
+            $counts = DB::table('users_kpi_counts')->where('user_id' , $friend['user_id'])->first();
             if(blank($counts))
             {
-                DB::table('ry_messages_counts')->insertGetId((array(
+                DB::table('users_kpi_counts')->insertGetId((array(
                     'user_id'=>$friend['user_id'],
                     'friend'=>1,
                     'created_at'=>$this->now,
@@ -111,15 +111,15 @@ class FriendFromDifferentSchool implements ShouldQueue
                 )));
             }else{
                 $id = $counts->id;
-                DB::table('ry_messages_counts')->where('id' , $id)->increment('friend' , 1 , array(
+                DB::table('users_kpi_counts')->where('id' , $id)->increment('friend' , 1 , array(
                     'updated_at'=>$this->now,
                 ));
             }
         }else{
-            $counts = DB::table('ry_messages_counts')->where('user_id' , $this->user->user_id)->first();
+            $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();
             if(blank($counts))
             {
-//                DB::table('ry_messages_counts')->insertGetId((array(
+//                DB::table('users_kpi_counts')->insertGetId((array(
 //                    'user_id'=>$this->user->user_id,
 //                    'friend'=>1,
 //                    'created_at'=>$this->now,
@@ -127,14 +127,14 @@ class FriendFromDifferentSchool implements ShouldQueue
 //                )));
             }else{
                 $id = $counts->id;
-                DB::table('ry_messages_counts')->where('id' , $id)->decrement('friend' , 1 , array(
+                DB::table('users_kpi_counts')->where('id' , $id)->decrement('friend' , 1 , array(
                     'updated_at'=>$this->now,
                 ));
             }
-            $counts = DB::table('ry_messages_counts')->where('user_id' , $friend['user_id'])->first();
+            $counts = DB::table('users_kpi_counts')->where('user_id' , $friend['user_id'])->first();
             if(blank($counts))
             {
-//                DB::table('ry_messages_counts')->insertGetId((array(
+//                DB::table('users_kpi_counts')->insertGetId((array(
 //                    'user_id'=>$friend['user_id'],
 //                    'friend'=>1,
 //                    'created_at'=>$this->now,
@@ -142,7 +142,7 @@ class FriendFromDifferentSchool implements ShouldQueue
 //                )));
             }else{
                 $id = $counts->id;
-                DB::table('ry_messages_counts')->where('id' , $id)->decrement('friend' , 1 , array(
+                DB::table('users_kpi_counts')->where('id' , $id)->decrement('friend' , 1 , array(
                     'updated_at'=>$this->now,
                 ));
             }
