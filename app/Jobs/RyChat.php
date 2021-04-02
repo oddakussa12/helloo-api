@@ -409,7 +409,7 @@ class RyChat implements ShouldQueue
                 $count = 1;
             }else{
                 $id = $counts->id;
-                $count = count($data),;
+                $count = count($data);
                 DB::table('users_kpi_counts')->where('id' , $id)->update(array(
                     'props'=>$count,
                     'updated_at'=>$this->now,
