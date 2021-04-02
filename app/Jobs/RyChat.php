@@ -221,12 +221,12 @@ class RyChat implements ShouldQueue
         {
             Redis::set($lock_key , 1);
             Redis::expire($lock_key , 600);
-            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'txt')->first();
+            $flag = DB::table('ry_chats_logs')->where('from_id' , $from)->where('to_id' , $to)->where('type' , 'txt')->first();
             if(blank($flag))
             {
                 DB::table('ry_chats_logs')->insert(array(
-                    'from'=>$from,
-                    'to'=>$to,
+                    'from_id'=>$from,
+                    'to_id'=>$to,
                     'type'=>'txt',
                     'created_at'=>$this->now,
                 ));
@@ -307,12 +307,12 @@ class RyChat implements ShouldQueue
         {
             Redis::set($lock_key , 1);
             Redis::expire($lock_key , 600);
-            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'video')->first();
+            $flag = DB::table('ry_chats_logs')->where('from_id' , $from)->where('to_id' , $to)->where('type' , 'video')->first();
             if(blank($flag))
             {
                 DB::table('ry_chats_logs')->insert(array(
-                    'from'=>$from,
-                    'to'=>$to,
+                    'from_id'=>$from,
+                    'to_id'=>$to,
                     'type'=>'video',
                     'created_at'=>$this->now,
                 ));
@@ -463,12 +463,12 @@ class RyChat implements ShouldQueue
         {
             Redis::set($lock_key , 1);
             Redis::expire($lock_key , 600);
-            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'audio')->first();
+            $flag = DB::table('ry_chats_logs')->where('from_id' , $from)->where('to_id' , $to)->where('type' , 'audio')->first();
             if(blank($flag))
             {
                 DB::table('ry_chats_logs')->insert(array(
-                    'from'=>$from,
-                    'to'=>$to,
+                    'from_id'=>$from,
+                    'to_id'=>$to,
                     'type'=>'audio',
                     'created_at'=>$this->now,
                 ));
@@ -528,12 +528,12 @@ class RyChat implements ShouldQueue
         {
             Redis::set($lock_key , 1);
             Redis::expire($lock_key , 600);
-            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'image')->first();
+            $flag = DB::table('ry_chats_logs')->where('from_id' , $from)->where('to_id' , $to)->where('type' , 'image')->first();
             if(blank($flag))
             {
                 DB::table('ry_chats_logs')->insert(array(
-                    'from'=>$from,
-                    'to'=>$to,
+                    'from_id'=>$from,
+                    'to_id'=>$to,
                     'type'=>'image',
                     'created_at'=>$this->now,
                 ));
