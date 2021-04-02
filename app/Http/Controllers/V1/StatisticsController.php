@@ -39,7 +39,7 @@ class StatisticsController extends BaseController
         {
             $uuid = substr(strval($request->input('uuid' , '')) , 0 , 64);
             $num = substr(strval($request->input('num' , '')) , 0 , 64);
-            DB::table('logs')->insert(array('phone'=>$num , 'uuid'=>$uuid , 'created_at'=>Carbon::now()->toDateTimeString()));
+            DB::table('logs')->insert(array('phone'=>$num , 'uuid'=>$uuid , 'ip'=>getRequestIpAddress() , 'created_at'=>Carbon::now()->toDateTimeString()));
         }
         return $this->response->created();
     }
