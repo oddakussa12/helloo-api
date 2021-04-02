@@ -619,7 +619,7 @@ class RyChat implements ShouldQueue
             }
         }
         DB::table('ry_like_messages')->insert(array(
-            'messageId'=>$messageId,
+            'message_id'=>$messageId,
             'from_id'=>$from,
             'to_id'=>$to,
             'liked_id'=>$likeId,
