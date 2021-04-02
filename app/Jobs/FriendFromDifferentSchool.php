@@ -48,7 +48,7 @@ class FriendFromDifferentSchool implements ShouldQueue
             {
                 $flag = DB::table('users_friends')->join('users' , function ($user) use ($friend){
                     $user->on('users.user_id' , 'users_friends.friend_id')->where('user_sl' , $friend['user_sl']);
-                })->where('user_id' , $this->user->user_id)->first();
+                })->where('users_friends.user_id' , $this->user->user_id)->first();
                 if(blank($flag))
                 {
                     $counts = DB::table('ry_messages_counts')->where('user_id' , $this->user->user_id)->first();
