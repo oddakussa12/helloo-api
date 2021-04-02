@@ -70,6 +70,7 @@ class OneTimeUserScoreUpdate implements ShouldQueue
         {
             $userId = $this->userId;
             $data = array(
+                'id'=>app('snowflake')->id(),
                 'user_id'=>$userId,
                 'type'=>$this->type,
                 'score'=>$score,
