@@ -379,7 +379,7 @@ class RyChat implements ShouldQueue
                     'updated_at'=>$this->now,
                 ));
             }else{
-                $data = \json_decode($props->prop , true);
+                $data = \json_decode($props->props , true);
                 if(is_array($data))
                 {
                     if(isset($data[$bundleName]))
