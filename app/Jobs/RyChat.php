@@ -241,7 +241,7 @@ class RyChat implements ShouldQueue
                     ));
                 }else{
                     $id = $counts->id;
-                    DB::table('users_kpi_counts')->where('id' , $id)->increment('video' , 1 , array(
+                    DB::table('users_kpi_counts')->where('id' , $id)->increment('txt' , 1 , array(
                         'updated_at'=>$this->now,
                     ));
                 }
