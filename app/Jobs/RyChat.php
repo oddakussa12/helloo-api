@@ -372,9 +372,10 @@ class RyChat implements ShouldQueue
             $props = DB::table('users_props')->where('user_id' , $from)->first();
             if(blank($props))
             {
+                $data = array($bundleName=>1);
                 DB::table('users_props')->insert(array(
                     'user_id'=>$from,
-                    'props'=>\json_encode(array($bundleName=>1)),
+                    'props'=>\json_encode($data),
                     'created_at'=>$this->now,
                     'updated_at'=>$this->now,
                 ));
@@ -408,10 +409,11 @@ class RyChat implements ShouldQueue
                 $count = 1;
             }else{
                 $id = $counts->id;
-                DB::table('users_kpi_counts')->where('id' , $id)->increment('props' , 1 , array(
+                $count = count($data),;
+                DB::table('users_kpi_counts')->where('id' , $id)->update(array(
+                    'props'=>$count,
                     'updated_at'=>$this->now,
                 ));
-                $count = $counts->props+1;
             }
             if($count==5)
             {
