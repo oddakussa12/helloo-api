@@ -656,13 +656,12 @@ class UserCenterController extends BaseController
      */
     public function mutualFriend($num, $all, $memKey)
     {
-        $users = [];
         $rand    = count($all) > $num ? $num : count($all);
         $friends = array_random($all, $rand);
-        foreach ($friends as $friend) {
-            $list  = UserFriend::where('user_id', $friend['friend_id'])->pluck('friend_id')->toArray();
-            $users = array_merge(array_diff($list, $all));
-        }
+
+        $list    = UserFriend::whereIn('user_id', $friends)->pluck('friend_id')->unique()->toArray();
+        $users   = array_merge(array_diff($list, $all));
+
         return $this->diff($num, $all, $users);
     }
 
@@ -675,6 +674,7 @@ class UserCenterController extends BaseController
      */
     public function diff($num, $all, $users)
     {
+        $all  = array_merge($all, [$this->userId]);
         $diff = array_diff($users, $all);
         $diff = collect($diff)->unique()->toArray();
         $rand = count($diff) > $num ? $num : count($diff);
