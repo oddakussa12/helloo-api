@@ -81,100 +81,113 @@ class ChatDepth extends Command
             $end = (Carbon::now($tz)->endOfDay()->timestamp)*1000+999;
             $index = Carbon::now($tz)->format("Ym");
             $time = Carbon::now($tz)->toDateString();
+            $pIndex = Carbon::createFromTimestamp(Carbon::now($tz)->startOfDay()->timestamp , "UTC")->format("Ym");
+            $aIndex = Carbon::createFromTimestamp(Carbon::now($tz)->endOfDay()->timestamp , "UTC")->format("Ym");
         }else{
             $start = (Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay()->timestamp)*1000;
             $end = (Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay()->timestamp)*1000+999;
             $index = Carbon::createFromFormat('Y-m-d' , $date , $tz)->format("Ym");
             $time = Carbon::createFromFormat('Y-m-d' , $date , $tz)->toDateString();
+            $pIndex = Carbon::createFromTimestamp(Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay()->timestamp , "UTC")->format("Ym");
+            $aIndex = Carbon::createFromTimestamp(Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay()->timestamp , "UTC")->format("Ym");
         }
-
-        $table = 'ry_chats_'.$index;
+        if($pIndex==$aIndex)
+        {
+            $indexes = array($index);
+        }else{
+            $indexes = array($pIndex , $aIndex);
+        }
         $counted = $completed = $videoCompleted = array();
         $turn = 0;
         $chatData = array();
-        DB::table($table)
-            ->where('chat_time' , '>=' , $start)
-            ->where('chat_time' , '<=' , $end)
-            ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
-            ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
-            ->groupBy('ft')->orderByDesc('chat_from_id')
-            ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
-                $fromIds = $chats->pluck('chat_from_id')->all();
-                $toIds = $chats->pluck('chat_to_id')->all();
-                $userIds = array_unique(array_merge($fromIds , $toIds));
-                $userIds = DB::table('users_countries')->whereIn('user_id' , $userIds)->where('country' , $country)->pluck('user_id')->toArray();
-                foreach ($chats as $chat)
-                {
-                    if($chat->chat_from_id>$chat->chat_to_id)
+        foreach ($indexes as $ii)
+        {
+            $table = 'ry_chats_'.$ii;
+            DB::table($table)
+                ->where('chat_time' , '>=' , $start)
+                ->where('chat_time' , '<=' , $end)
+                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
+                ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
+                ->groupBy('ft')->orderByDesc('chat_from_id')
+                ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
+                    $fromIds = $chats->pluck('chat_from_id')->all();
+                    $toIds = $chats->pluck('chat_to_id')->all();
+                    $userIds = array_unique(array_merge($fromIds , $toIds));
+                    $userIds = DB::table('users_countries')->whereIn('user_id' , $userIds)->where('country' , $country)->pluck('user_id')->toArray();
+                    foreach ($chats as $chat)
                     {
-                        $tag = $chat->chat_to_id.'-'.$chat->chat_from_id;
-                    }else{
-                        $tag = $chat->chat_from_id.'-'.$chat->chat_to_id;
-                    }
-                    if(in_array($tag , $counted))
-                    {
-                        continue;
-                    }
-                    array_push($counted , $tag);
-                    $abCount = $baCount = 0;
-                    if(in_array($chat->chat_from_id , $userIds)&&in_array($chat->chat_to_id , $userIds))
-                    {
-                        $ab = strval($chat->chat_from_id).'-'.strval($chat->chat_to_id);
-                        $ba = strval($chat->chat_to_id).'-'.strval($chat->chat_from_id);
-                        $preTurn = '';
-                        $video = false;
-                        DB::table($table)
-                            ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
-                            ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
-                            ->whereIn('chat_from_id' , array($chat->chat_from_id , $chat->chat_to_id))
-                            ->where('chat_time' , '>=' , $start)
-                            ->where('chat_time' , '<=' , $end)
-                            ->orderBy('chat_time')
-                            ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
-                                foreach ($chatData as $c)
-                                {
-                                    if($c->chat_msg_type=='Helloo:VideoMsg')
-                                    {
-                                        $video = true;
-                                    }
-                                    $flag = strval($c->chat_from_id).'-'.strval($c->chat_to_id);
-                                    if(!blank($preTurn)&&$preTurn!=$flag)
-                                    {
-                                        if($ab==$flag)
-                                        {
-                                            $baCount++;
-                                        }else if($ba==$flag){
-                                            $abCount++;
-                                        }
-                                    }
-                                    $preTurn = $flag;
-                                }
-                            });
-                        if($baCount>=$num||$abCount>=$num)
+                        if($chat->chat_from_id>$chat->chat_to_id)
                         {
-                            $turn++;
-                            if($video)
-                            {
-                                array_push($videoCompleted , $chat->chat_from_id , $chat->chat_to_id);
-                            }
-                            if(isset($chatData[$chat->chat_from_id]))
-                            {
-                                array_push($chatData[$chat->chat_from_id] , $chat->chat_to_id);
-                            }else{
-                                $chatData[$chat->chat_from_id] = array($chat->chat_to_id);
-                            }
-                            if(isset($chatData[$chat->chat_to_id]))
-                            {
-                                array_push($chatData[$chat->chat_to_id] , $chat->chat_from_id);
-                            }else{
-                                $chatData[$chat->chat_to_id] = array($chat->chat_from_id);
-                            }
-                            array_push($completed , $chat->chat_from_id , $chat->chat_to_id);
+                            $tag = $chat->chat_to_id.'-'.$chat->chat_from_id;
+                        }else{
+                            $tag = $chat->chat_from_id.'-'.$chat->chat_to_id;
                         }
+                        if(in_array($tag , $counted))
+                        {
+                            continue;
+                        }
+                        array_push($counted , $tag);
+                        $abCount = $baCount = 0;
+                        if(in_array($chat->chat_from_id , $userIds)&&in_array($chat->chat_to_id , $userIds))
+                        {
+                            $ab = strval($chat->chat_from_id).'-'.strval($chat->chat_to_id);
+                            $ba = strval($chat->chat_to_id).'-'.strval($chat->chat_from_id);
+                            $preTurn = '';
+                            $video = false;
+                            DB::table($table)
+                                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
+                                ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
+                                ->whereIn('chat_from_id' , array($chat->chat_from_id , $chat->chat_to_id))
+                                ->where('chat_time' , '>=' , $start)
+                                ->where('chat_time' , '<=' , $end)
+                                ->orderBy('chat_time')
+                                ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
+                                    foreach ($chatData as $c)
+                                    {
+                                        if($c->chat_msg_type=='Helloo:VideoMsg')
+                                        {
+                                            $video = true;
+                                        }
+                                        $flag = strval($c->chat_from_id).'-'.strval($c->chat_to_id);
+                                        if(!blank($preTurn)&&$preTurn!=$flag)
+                                        {
+                                            if($ab==$flag)
+                                            {
+                                                $baCount++;
+                                            }else if($ba==$flag){
+                                                $abCount++;
+                                            }
+                                        }
+                                        $preTurn = $flag;
+                                    }
+                                });
+                            if($baCount>=$num||$abCount>=$num)
+                            {
+                                $turn++;
+                                if($video)
+                                {
+                                    array_push($videoCompleted , $chat->chat_from_id , $chat->chat_to_id);
+                                }
+                                if(isset($chatData[$chat->chat_from_id]))
+                                {
+                                    array_push($chatData[$chat->chat_from_id] , $chat->chat_to_id);
+                                }else{
+                                    $chatData[$chat->chat_from_id] = array($chat->chat_to_id);
+                                }
+                                if(isset($chatData[$chat->chat_to_id]))
+                                {
+                                    array_push($chatData[$chat->chat_to_id] , $chat->chat_from_id);
+                                }else{
+                                    $chatData[$chat->chat_to_id] = array($chat->chat_from_id);
+                                }
+                                array_push($completed , $chat->chat_from_id , $chat->chat_to_id);
+                            }
 //                        dump('$chat->chat_from_id and $chat->chat_to_id '. $chat->chat_from_id .'-'. $chat->chat_to_id .' $baCount'.$baCount.' $abCount'.$abCount);
+                        }
                     }
-                }
-            });
+                });
+        }
+
         $completed = array_unique($completed);
         $videoCompleted = array_unique($videoCompleted);
         asort($completed);
@@ -226,9 +239,6 @@ class ChatDepth extends Command
 
     public function runCommandSchool($school , $date=null , $num=5)
     {
-        dump($school);
-        dump($date);
-        dump($num);
         $tz = 'Asia/Shanghai';
         if(blank($date))
         {
@@ -236,109 +246,122 @@ class ChatDepth extends Command
             $end = (Carbon::now($tz)->endOfDay()->timestamp)*1000+999;
             $index = Carbon::now($tz)->format("Ym");
             $time = Carbon::now($tz)->toDateString();
+            $pIndex = Carbon::createFromTimestamp(Carbon::now($tz)->startOfDay()->timestamp , "UTC")->format("Ym");
+            $aIndex = Carbon::createFromTimestamp(Carbon::now($tz)->endOfDay()->timestamp , "UTC")->format("Ym");
         }else{
             $start = (Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay()->timestamp)*1000;
             $end = (Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay()->timestamp)*1000+999;
             $index = Carbon::createFromFormat('Y-m-d' , $date , $tz)->format("Ym");
             $time = Carbon::createFromFormat('Y-m-d' , $date , $tz)->toDateString();
+            $pIndex = Carbon::createFromTimestamp(Carbon::createFromFormat('Y-m-d' , $date , $tz)->startOfDay()->timestamp , "UTC")->format("Ym");
+            $aIndex = Carbon::createFromTimestamp(Carbon::createFromFormat('Y-m-d' , $date , $tz)->endOfDay()->timestamp , "UTC")->format("Ym");
         }
-
-        $table = 'ry_chats_'.$index;
+        if($pIndex==$aIndex)
+        {
+            $indexes = array($index);
+        }else{
+            $indexes = array($pIndex , $aIndex);
+        }
         $counted = $completed = $videoCompleted = array();
         $turn = 0;
         $chatData = array();
-        DB::table($table)
-            ->where('chat_time' , '>=' , $start)
-            ->where('chat_time' , '<=' , $end)
-            ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
-            ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
-            ->groupBy('ft')->orderByDesc('chat_from_id')
-            ->chunk(100 , function($chats) use ($table , $school , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
-                $fromIds = $chats->pluck('chat_from_id')->all();
-                $toIds = $chats->pluck('chat_to_id')->all();
-                $userIds = array_unique(array_merge($fromIds , $toIds));
-                $userIds = DB::table('users')->whereIn('user_id' , $userIds)->where('user_sl' , $school)->pluck('user_id')->toArray();
-                foreach ($chats as $chat)
-                {
-                    if($chat->chat_from_id>$chat->chat_to_id)
+        foreach ($indexes as $ii)
+        {
+            $table = 'ry_chats_'.$ii;
+            DB::table($table)
+                ->where('chat_time' , '>=' , $start)
+                ->where('chat_time' , '<=' , $end)
+                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
+                ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
+                ->groupBy('ft')->orderByDesc('chat_from_id')
+                ->chunk(100 , function($chats) use ($table , $school , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
+                    $fromIds = $chats->pluck('chat_from_id')->all();
+                    $toIds = $chats->pluck('chat_to_id')->all();
+                    $userIds = array_unique(array_merge($fromIds , $toIds));
+                    $userIds = DB::table('users')->whereIn('user_id' , $userIds)->where('user_sl' , $school)->pluck('user_id')->toArray();
+                    foreach ($chats as $chat)
                     {
-                        $tag = $chat->chat_to_id.'-'.$chat->chat_from_id;
-                    }else{
-                        $tag = $chat->chat_from_id.'-'.$chat->chat_to_id;
-                    }
-                    if(in_array($tag , $counted))
-                    {
-                        continue;
-                    }
-                    array_push($counted , $tag);
-                    $abCount = $baCount = 0;
-                    if(in_array($chat->chat_from_id , $userIds)||in_array($chat->chat_to_id , $userIds))
-                    {
-                        $ab = strval($chat->chat_from_id).'-'.strval($chat->chat_to_id);
-                        $ba = strval($chat->chat_to_id).'-'.strval($chat->chat_from_id);
-                        $preTurn = '';
-                        $video = false;
-                        DB::table($table)
-                            ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
-                            ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
-                            ->whereIn('chat_from_id' , array($chat->chat_from_id , $chat->chat_to_id))
-                            ->where('chat_time' , '>=' , $start)
-                            ->where('chat_time' , '<=' , $end)
-                            ->orderBy('chat_time')
-                            ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
-                                foreach ($chatData as $c)
-                                {
-                                    if($c->chat_msg_type=='Helloo:VideoMsg')
-                                    {
-                                        $video = true;
-                                    }
-                                    $flag = strval($c->chat_from_id).'-'.strval($c->chat_to_id);
-                                    if(!blank($preTurn)&&$preTurn!=$flag)
-                                    {
-                                        if($ab==$flag)
-                                        {
-                                            $baCount++;
-                                        }else if($ba==$flag){
-                                            $abCount++;
-                                        }
-                                    }
-                                    $preTurn = $flag;
-                                }
-                            });
-                        if($baCount>=$num||$abCount>=$num)
+                        if($chat->chat_from_id>$chat->chat_to_id)
                         {
-                            $turn++;
-                            if($video)
-                            {
-                                array_push($videoCompleted , $chat->chat_from_id , $chat->chat_to_id);
-                            }
-                            if(in_array($chat->chat_from_id , $userIds))
-                            {
-                                array_push($completed , $chat->chat_from_id);
-                            }
-                            if(in_array($chat->chat_to_id , $userIds))
-                            {
-                                array_push($completed , $chat->chat_to_id);
-                            }
-
-                            if(isset($chatData[$chat->chat_from_id]))
-                            {
-                                array_push($chatData[$chat->chat_from_id] , $chat->chat_to_id);
-                            }else{
-                                $chatData[$chat->chat_from_id] = array($chat->chat_to_id);
-                            }
-                            if(isset($chatData[$chat->chat_to_id]))
-                            {
-                                array_push($chatData[$chat->chat_to_id] , $chat->chat_from_id);
-                            }else{
-                                $chatData[$chat->chat_to_id] = array($chat->chat_from_id);
-                            }
-
+                            $tag = $chat->chat_to_id.'-'.$chat->chat_from_id;
+                        }else{
+                            $tag = $chat->chat_from_id.'-'.$chat->chat_to_id;
                         }
+                        if(in_array($tag , $counted))
+                        {
+                            continue;
+                        }
+                        array_push($counted , $tag);
+                        $abCount = $baCount = 0;
+                        if(in_array($chat->chat_from_id , $userIds)||in_array($chat->chat_to_id , $userIds))
+                        {
+                            $ab = strval($chat->chat_from_id).'-'.strval($chat->chat_to_id);
+                            $ba = strval($chat->chat_to_id).'-'.strval($chat->chat_from_id);
+                            $preTurn = '';
+                            $video = false;
+                            DB::table($table)
+                                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
+                                ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
+                                ->whereIn('chat_from_id' , array($chat->chat_from_id , $chat->chat_to_id))
+                                ->where('chat_time' , '>=' , $start)
+                                ->where('chat_time' , '<=' , $end)
+                                ->orderBy('chat_time')
+                                ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
+                                    foreach ($chatData as $c)
+                                    {
+                                        if($c->chat_msg_type=='Helloo:VideoMsg')
+                                        {
+                                            $video = true;
+                                        }
+                                        $flag = strval($c->chat_from_id).'-'.strval($c->chat_to_id);
+                                        if(!blank($preTurn)&&$preTurn!=$flag)
+                                        {
+                                            if($ab==$flag)
+                                            {
+                                                $baCount++;
+                                            }else if($ba==$flag){
+                                                $abCount++;
+                                            }
+                                        }
+                                        $preTurn = $flag;
+                                    }
+                                });
+                            if($baCount>=$num||$abCount>=$num)
+                            {
+                                $turn++;
+                                if($video)
+                                {
+                                    array_push($videoCompleted , $chat->chat_from_id , $chat->chat_to_id);
+                                }
+                                if(in_array($chat->chat_from_id , $userIds))
+                                {
+                                    array_push($completed , $chat->chat_from_id);
+                                }
+                                if(in_array($chat->chat_to_id , $userIds))
+                                {
+                                    array_push($completed , $chat->chat_to_id);
+                                }
+
+                                if(isset($chatData[$chat->chat_from_id]))
+                                {
+                                    array_push($chatData[$chat->chat_from_id] , $chat->chat_to_id);
+                                }else{
+                                    $chatData[$chat->chat_from_id] = array($chat->chat_to_id);
+                                }
+                                if(isset($chatData[$chat->chat_to_id]))
+                                {
+                                    array_push($chatData[$chat->chat_to_id] , $chat->chat_from_id);
+                                }else{
+                                    $chatData[$chat->chat_to_id] = array($chat->chat_from_id);
+                                }
+
+                            }
 //                        dump('$chat->chat_from_id and $chat->chat_to_id '. $chat->chat_from_id .'-'. $chat->chat_to_id .' $baCount'.$baCount.' $abCount'.$abCount);
+                        }
                     }
-                }
-            });
+                });
+        }
+
         $completed = array_unique($completed);
         $videoCompleted = array_unique($videoCompleted);
         asort($completed);
