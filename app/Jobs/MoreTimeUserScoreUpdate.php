@@ -109,7 +109,7 @@ class MoreTimeUserScoreUpdate implements ShouldQueue
                         'updated_at'=>$this->time,
                     ));
                 }
-                if(intdiv($scoreResult)<=0)
+                if(intval($scoreResult)<=0)
                 {
                     throw new \Exception('user score insert or update fail');
                 }
