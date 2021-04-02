@@ -598,16 +598,21 @@ class UserCenterController extends BaseController
         $users = User::whereIn('user_id', $ids)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
         foreach ($users as $user) {
             if (in_array($user->user_id, $finalFriend)) {
-                $user->flag = 'friend';
+                $user->flag = 1;
             }
-            if (in_array($user->user_id, $finalSchool)) {
-                $user->flag = 'school';
+            if (empty($user->flag) && in_array($user->user_id, $finalSchool)) {
+                $user->flag = 2;
             }
-            if (in_array($user->user_id, $finalCountry)) {
-                $user->flag = 'country';
+            if (empty($user->flag) && in_array($user->user_id, $finalCountry)) {
+                $user->flag = 3;
             }
         }
 
+        $users = collect($users)->sortBy('flag')->values();
+        $users = collect($users)->map(function ($user) {
+            $user->flag = $user->flag == 1 ? 'friend' : ($user->flag==2 ? 'school' : 'country');
+            return $user;
+        });
         return UserCollection::collection($users);
     }
 
