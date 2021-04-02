@@ -83,6 +83,7 @@ class GreatUserScoreUpdate implements ShouldQueue
             $data = array(
                 'user_id'=>$userId,
                 'type'=>$this->type,
+                'score'=>$score,
                 'relation'=>$this->relation,
                 'created_at'=>$this->time,
             );
