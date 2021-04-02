@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -27,7 +28,7 @@ class GameScore implements ShouldQueue
         $this->snowId = $snowId;
         $this->score = $score;
         $this->game = $game;
-        $this->now = $now;
+        $this->now = Carbon::createFromTimestamp($now)->toDateTimeString();
     }
 
     /**
