@@ -25,7 +25,7 @@ class UserKpiCount extends Model
         'txt',
         'audio',
         'image',
-        'message',
+        'sent',
         'props',
         'like_video',
         'liked_video',

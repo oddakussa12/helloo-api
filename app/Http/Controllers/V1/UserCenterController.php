@@ -469,13 +469,13 @@ class UserCenterController extends BaseController
                 $flag = $statistic->friend>=100;
                 break;
             case '300Msgs': // 妙语连珠Ⅰ
-                $flag = $statistic->message>=300;
+                $flag = $statistic->sent>=300;
                 break;
             case '1000Msgs': // 妙语连珠Ⅱ
-                $flag = $statistic->message>=1000;
+                $flag = $statistic->sent>=1000;
                 break;
             case '3000Msgs': // 妙语连珠Ⅲ
-                $flag = $statistic->message>=3000;
+                $flag = $statistic->sent>=3000;
                 break;
             case 'Used50Masks': // 面具收集者
                 $flag = $statistic->props>=50;

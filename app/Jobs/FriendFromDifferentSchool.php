@@ -41,13 +41,13 @@ class FriendFromDifferentSchool implements ShouldQueue
      */
     public function handle()
     {
-        $friend = app(UserRepository::class)->findByUserId($this->friendId);
+        $friend = app(UserRepository::class)->findByUserId($this->friendId)->toArray();
         if($this->type=='accept')
         {
-            if($friend->user_sl!=$this->user->user_sl&&$friend->user_sl!='other'&&$this->user->user_sl!='other')
+            if($friend['user_sl']!=$this->user->user_sl&&$friend['user_sl']!='other'&&$this->user->user_sl!='other')
             {
                 $flag = DB::table('users_friends')->join('users' , function ($user) use ($friend){
-                    $user->on('users.user_id' , 'users_friends.friend_id')->where('user_sl' , $friend->user_sl);
+                    $user->on('users.user_id' , 'users_friends.friend_id')->where('user_sl' , $friend['user_sl']);
                 })->where('user_id' , $this->user->user_id)->first();
                 if(blank($flag))
                 {
@@ -66,11 +66,11 @@ class FriendFromDifferentSchool implements ShouldQueue
                             'updated_at'=>$this->now,
                         ));
                     }
-                    $counts = DB::table('ry_messages_counts')->where('user_id' , $friend->user_id)->first();
+                    $counts = DB::table('ry_messages_counts')->where('user_id' , $friend['user_id'])->first();
                     if(blank($counts))
                     {
                         DB::table('ry_messages_counts')->insertGetId((array(
-                            'user_id'=>$friend->user_id,
+                            'user_id'=>$friend['user_id'],
                             'other_school_friend'=>1,
                             'created_at'=>$this->now,
                             'updated_at'=>$this->now,
@@ -100,11 +100,11 @@ class FriendFromDifferentSchool implements ShouldQueue
                     'updated_at'=>$this->now,
                 ));
             }
-            $counts = DB::table('ry_messages_counts')->where('user_id' , $friend->user_id)->first();
+            $counts = DB::table('ry_messages_counts')->where('user_id' , $friend['user_id'])->first();
             if(blank($counts))
             {
                 DB::table('ry_messages_counts')->insertGetId((array(
-                    'user_id'=>$friend->user_id,
+                    'user_id'=>$friend['user_id'],
                     'friend'=>1,
                     'created_at'=>$this->now,
                     'updated_at'=>$this->now,
@@ -131,11 +131,11 @@ class FriendFromDifferentSchool implements ShouldQueue
                     'updated_at'=>$this->now,
                 ));
             }
-            $counts = DB::table('ry_messages_counts')->where('user_id' , $friend->user_id)->first();
+            $counts = DB::table('ry_messages_counts')->where('user_id' , $friend['user_id'])->first();
             if(blank($counts))
             {
 //                DB::table('ry_messages_counts')->insertGetId((array(
-//                    'user_id'=>$friend->user_id,
+//                    'user_id'=>$friend['user_id'],
 //                    'friend'=>1,
 //                    'created_at'=>$this->now,
 //                    'updated_at'=>$this->now,
