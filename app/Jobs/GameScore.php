@@ -19,13 +19,15 @@ class GameScore implements ShouldQueue
     private $snowId;
     private $score;
     private $game;
+    private $now;
 
-    public function __construct($userId , $score , $snowId , $game)
+    public function __construct($userId , $score , $snowId , $game , $now)
     {
         $this->userId = $userId;
         $this->snowId = $snowId;
         $this->score = $score;
         $this->game = $game;
+        $this->now = $now;
     }
 
     /**
