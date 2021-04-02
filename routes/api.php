@@ -165,6 +165,7 @@ $api->group($V1Params , function ($api){
         $api->post('user/center/like' , 'UserCenterController@like')->name('user.center.like'); // 点赞video/photo
         $api->get('user/center/{user}/medal' , 'UserCenterController@medal')->name('user.center.medal'); // 勋章列表
         $api->get('user/center/{num}/top' , 'UserCenterController@top')->name('user.center.top'); // top100
+        $api->get('user/friend/{num}/recommend' , 'UserCenterController@recommend')->name('friend.recommend');//获取用户朋友推荐列表
 
         /*****个人中心 结束*****/
 

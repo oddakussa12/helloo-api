@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\MoreTimeUserScoreUpdate;
+use App\Models\Country;
 use App\Models\LikePhoto;
 use App\Models\LikeVideo;
 use App\Models\Photo;
@@ -344,7 +345,7 @@ class UserCenterController extends BaseController
         if (empty((int)$userId)) {
             return $this->response->errorNotFound('参数异常 userId 不能为空');
         }
-        $userInfo = User::find($userId);
+        $userInfo = User::findOrFail($userId);
         $locale = locale();
 
         $locale = $locale == 'zh-CN' ? 'cn' : ($locale =='id' ? $locale : 'en');
@@ -375,7 +376,7 @@ class UserCenterController extends BaseController
                     $item->flag  = empty($flag) ? -1 : ($flag===true ? -2 : $flag);
                     $item->image = empty($flag) ? $item->image : $item->image_light;
                     $flag && $num++;
-                    $medals[$category][] = collect($item)->except(['title', 'category', 'light_image']);
+                    $medals[$category][] = collect($item)->except(['title', 'category', 'image_light']);
                 }
             }
        }
@@ -547,4 +548,135 @@ class UserCenterController extends BaseController
 
     }
 
+    /**
+     * @param $num
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|void
+     * 朋友推荐
+     */
+    public function recommend($num)
+    {
+        if (empty((int)$num)) {
+            return $this->response->errorBadRequest();
+        }
+        $num = $num >= 30 ? 30 : 10;
+        $middle = $num/2;
+        $memKey = 'helloo:account:user-recommend';
+        $all    = UserFriend::where('user_id', $this->userId)->pluck('friend_id')->toArray(); // 所有的好友
+
+        // 有共同好友
+        $friendIds = $this->mutualFriend($num, $all, $memKey);
+        $fCount    = count($friendIds);
+
+        // 同校
+        $all     = array_merge($all, $friendIds, [$this->userId]);
+        $schools = $this->mutualSchool($num, $all, $memKey);
+        $sCount  = count($schools);
+
+        $finalFriend = $finalSchool = $finalCountry = [];
+        // 同国家
+        if (($fCount+$sCount) < $num) {
+            $all     = array_merge($all, $schools);
+            $country = $this->mutualCountry($num, $all, $memKey);
+            $finalFriend = $friendIds;
+            $finalSchool = $schools;
+            $finalCountry= array_slice($country, $num-($fCount+$sCount));
+        } else {
+            if ($fCount >= $middle && $sCount >= $middle) {
+              $finalFriend = array_slice($friendIds, 0, $middle);
+              $finalSchool = array_slice($schools, 0, $middle);
+            }
+            if ($fCount >= $middle && $sCount < $middle) {
+                $finalFriend = array_slice($friendIds, 0, $num-$sCount);
+                $finalSchool = $schools;
+            }
+            if ($fCount < $middle && $sCount >= $middle) {
+                $finalFriend = $friendIds;
+                $finalSchool = array_slice($schools, 0, $num-$fCount);
+            }
+        }
+        $ids  = array_merge($finalFriend, $finalSchool, $finalCountry);
+        $users = User::whereIn('user_id', $ids)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
+        foreach ($users as $user) {
+            if (in_array($user->user_id, $finalFriend)) {
+                $user->flag = 'friend';
+            }
+            if (in_array($user->user_id, $finalSchool)) {
+                $user->flag = 'school';
+            }
+            if (in_array($user->user_id, $finalCountry)) {
+                $user->flag = 'country';
+            }
+        }
+
+        return UserCollection::collection($users);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $memKey
+     * 同国家
+     * @return array|mixed
+     */
+    public function mutualCountry($num, $all, $memKey)
+    {
+        $country = $this->user->user_country;
+        if(empty($country)) {
+            return [];
+        }
+
+        $users = Country::where('user_country', $country)->pluck('user_id')->toArray();
+        return $this->diff($num, $all, $users);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $memKey
+     * 同校的
+     * @return array
+     */
+    public function mutualSchool($num, $all, $memKey)
+    {
+        $school = $this->user->user_school;
+        if(empty($school) && strtolower($this->user->user_school) == 'other') {
+            return [];
+        }
+
+        $school = User::where('user_school', $school)->pluck('user_id')->toArray();
+        return $this->diff($num, $all, $school);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $memKey
+     * @return mixed
+     * 有共同好友的
+     */
+    public function mutualFriend($num, $all, $memKey)
+    {
+        $users = [];
+        $friends    = array_random($all, $num);
+        foreach ($friends as $friend) {
+            $list  = UserFriend::where('user_id', $friend['friend_id'])->pluck('friend_id')->toArray();
+            $users = array_merge(array_diff($list, $all));
+        }
+        return $this->diff($num, $all, $users);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $users
+     * @return mixed
+     *
+     */
+    public function diff($num, $all, $users)
+    {
+        $diff = array_diff($users, $all);
+        $diff = collect($diff)->unique()->toArray();
+        $rand = count($diff) > $num ? $num : count($diff);
+        return array_random($diff, $rand);
+    }
 }
