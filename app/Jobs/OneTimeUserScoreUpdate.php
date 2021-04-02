@@ -17,16 +17,21 @@ class OneTimeUserScoreUpdate implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
 
-    private $user;
+    private $userId;
     private $type;
     /**
      * @var int
      */
     private $time;
 
-    public function __construct(User $user , $type)
+    public function __construct($user , $type)
     {
-        $this->user = $user;
+        if($user instanceof User)
+        {
+            $this->userId = $user->getKey();
+        }else{
+            $this->userId = $user;
+        }
         $this->type = $type;
         $this->time = Carbon::now()->toDateTimeString();
     }
@@ -63,7 +68,7 @@ class OneTimeUserScoreUpdate implements ShouldQueue
         }
         if($score!=0)
         {
-            $userId = $this->user->getKey();
+            $userId = $this->userId;
             $data = array(
                 'user_id'=>$userId,
                 'type'=>$this->type,
