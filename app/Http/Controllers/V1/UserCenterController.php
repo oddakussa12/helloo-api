@@ -6,7 +6,7 @@ use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Models\LikePhoto;
 use App\Models\LikeVideo;
 use App\Models\Photo;
-use App\Models\RyMessageCount;
+use App\Models\UserKpiCount;
 use App\Models\User;
 use App\Models\UserFriend;
 use App\Models\UserFriendRequest;
@@ -298,32 +298,32 @@ class UserCenterController extends BaseController
             $data['created_at'] = $time;
             $like->insert($data);
 
-            $likeCount = DB::table('ry_messages_counts')->where('user_id' , $this->userId)->first();
+            $likeCount = DB::table('users_kpi_counts')->where('user_id' , $this->userId)->first();
             if(blank($likeCount))
             {
-                DB::table('ry_messages_counts')->insert(array(
+                DB::table('users_kpi_counts')->insert(array(
                     'user_id'=>$this->userId,
                     'like_video'=>1,
                     'created_at'=>$time,
                     'updated_at'=>$time,
                 ));
             }else{
-                DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->increment('like' , 1 , array(
+                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('like' , 1 , array(
                     'updated_at'=>$time,
                 ));
             }
             MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
-            $likedCount = DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->first();
+            $likedCount = DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->first();
             if(blank($likedCount))
             {
-                DB::table('ry_messages_counts')->insert(array(
+                DB::table('users_kpi_counts')->insert(array(
                     'user_id'=>$model->user_id,
                     'liked_video'=>1,
                     'created_at'=>$time,
                     'updated_at'=>$time,
                 ));
             }else{
-                DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->increment('liked' , 1 , array(
+                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('liked' , 1 , array(
                     'updated_at'=>$time,
                 ));
             }
@@ -354,8 +354,8 @@ class UserCenterController extends BaseController
 
         $vlog   = DB::table('users_videos')->where('user_id', $userId)->get()->count();
         $photo  = DB::table('users_photos')->where('user_id', $userId)->count();
-        $statistic = RyMessageCount::where('user_id', $this->userId)->first();
-        $statistic = !empty($statistic) ? $statistic : new RyMessageCount();
+        $statistic = UserKpiCount::where('user_id', $this->userId)->first();
+        $statistic = !empty($statistic) ? $statistic : new UserKpiCount();
 
         $mKey       = "helloo:message:service:mutual-video-geq-ten".$day;
         $memKey     = "helloo:message:service:mutual-txt-geq-ten".$day;

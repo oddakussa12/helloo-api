@@ -230,10 +230,10 @@ class RyChat implements ShouldQueue
                     'type'=>'txt',
                     'created_at'=>$this->now,
                 ));
-                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
                 if(blank($counts))
                 {
-                    $id = DB::table('ry_messages_counts')->insertGetId(array(
+                    $id = DB::table('users_kpi_counts')->insertGetId(array(
                         'user_id'=>$from,
                         'txt'=>1,
                         'created_at'=>$this->now,
@@ -241,7 +241,7 @@ class RyChat implements ShouldQueue
                     ));
                 }else{
                     $id = $counts->id;
-                    DB::table('ry_messages_counts')->where('id' , $id)->increment('video' , 1 , array(
+                    DB::table('users_kpi_counts')->where('id' , $id)->increment('video' , 1 , array(
                         'updated_at'=>$this->now,
                     ));
                 }
@@ -281,10 +281,10 @@ class RyChat implements ShouldQueue
             }
         }
         Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
-        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
         if(blank($counts))
         {
-            DB::table('ry_messages_counts')->insertGetId(array(
+            DB::table('users_kpi_counts')->insertGetId(array(
                 'user_id'=>$from,
                 'sent'=>1,
                 'created_at'=>$this->now,
@@ -292,7 +292,7 @@ class RyChat implements ShouldQueue
             ));
         }else{
             $id = $counts->id;
-            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+            DB::table('users_kpi_counts')->where('id' , $id)->increment('sent' , 1 , array(
                 'updated_at'=>$this->now,
             ));
         }
@@ -316,10 +316,10 @@ class RyChat implements ShouldQueue
                     'type'=>'video',
                     'created_at'=>$this->now,
                 ));
-                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
                 if(blank($counts))
                 {
-                    $id = DB::table('ry_messages_counts')->insertGetId((array(
+                    $id = DB::table('users_kpi_counts')->insertGetId((array(
                         'user_id'=>$from,
                         'video'=>1,
                         'created_at'=>$this->now,
@@ -327,7 +327,7 @@ class RyChat implements ShouldQueue
                     )));
                 }else{
                     $id = $counts->id;
-                    DB::table('ry_messages_counts')->where('id' , $id)->increment('video' , 1 , array(
+                    DB::table('users_kpi_counts')->where('id' , $id)->increment('video' , 1 , array(
                         'updated_at'=>$this->now,
                     ));
                 }
@@ -396,10 +396,10 @@ class RyChat implements ShouldQueue
                     'updated_at'=>$this->now
                 ));
             }
-            $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+            $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
             if(blank($counts))
             {
-                DB::table('ry_messages_counts')->insertGetId((array(
+                DB::table('users_kpi_counts')->insertGetId((array(
                     'user_id'=>$from,
                     'props'=>1,
                     'created_at'=>$this->now,
@@ -408,7 +408,7 @@ class RyChat implements ShouldQueue
                 $count = 1;
             }else{
                 $id = $counts->id;
-                DB::table('ry_messages_counts')->where('id' , $id)->increment('props' , 1 , array(
+                DB::table('users_kpi_counts')->where('id' , $id)->increment('props' , 1 , array(
                     'updated_at'=>$this->now,
                 ));
                 $count = $counts->props+1;
@@ -439,10 +439,10 @@ class RyChat implements ShouldQueue
                 'message'=>$e->getMessage(),
             ));
         }
-        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
         if(blank($counts))
         {
-            DB::table('ry_messages_counts')->insertGetId(array(
+            DB::table('users_kpi_counts')->insertGetId(array(
                 'user_id'=>$from,
                 'sent'=>1,
                 'created_at'=>$this->now,
@@ -450,7 +450,7 @@ class RyChat implements ShouldQueue
             ));
         }else{
             $id = $counts->id;
-            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+            DB::table('users_kpi_counts')->where('id' , $id)->increment('sent' , 1 , array(
                 'updated_at'=>$this->now,
             ));
         }
@@ -472,10 +472,10 @@ class RyChat implements ShouldQueue
                     'type'=>'audio',
                     'created_at'=>$this->now,
                 ));
-                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
                 if(blank($counts))
                 {
-                    DB::table('ry_messages_counts')->insertGetId((array(
+                    DB::table('users_kpi_counts')->insertGetId((array(
                         'user_id'=>$from,
                         'audio'=>1,
                         'created_at'=>$this->now,
@@ -483,7 +483,7 @@ class RyChat implements ShouldQueue
                     )));
                 }else{
                     $id = $counts->id;
-                    DB::table('ry_messages_counts')->where('id' , $id)->increment('audio' , 1 , array(
+                    DB::table('users_kpi_counts')->where('id' , $id)->increment('audio' , 1 , array(
                         'updated_at'=>$this->now,
                     ));
                 }
@@ -504,10 +504,10 @@ class RyChat implements ShouldQueue
                 'message'=>$e->getMessage(),
             ));
         }
-        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
         if(blank($counts))
         {
-            DB::table('ry_messages_counts')->insertGetId(array(
+            DB::table('users_kpi_counts')->insertGetId(array(
                 'user_id'=>$from,
                 'sent'=>1,
                 'created_at'=>$this->now,
@@ -515,7 +515,7 @@ class RyChat implements ShouldQueue
             ));
         }else{
             $id = $counts->id;
-            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+            DB::table('users_kpi_counts')->where('id' , $id)->increment('sent' , 1 , array(
                 'updated_at'=>$this->now,
             ));
         }
@@ -537,10 +537,10 @@ class RyChat implements ShouldQueue
                     'type'=>'image',
                     'created_at'=>$this->now,
                 ));
-                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
                 if(blank($counts))
                 {
-                    DB::table('ry_messages_counts')->insertGetId((array(
+                    DB::table('users_kpi_counts')->insertGetId((array(
                         'user_id'=>$from,
                         'image'=>1,
                         'created_at'=>$this->now,
@@ -548,16 +548,16 @@ class RyChat implements ShouldQueue
                     )));
                 }else{
                     $id = $counts->id;
-                    DB::table('ry_messages_counts')->where('id' , $id)->increment('image' , 1 , array(
+                    DB::table('users_kpi_counts')->where('id' , $id)->increment('image' , 1 , array(
                         'updated_at'=>$this->now,
                     ));
                 }
             }
         }
-        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
         if(blank($counts))
         {
-            DB::table('ry_messages_counts')->insertGetId(array(
+            DB::table('users_kpi_counts')->insertGetId(array(
                 'user_id'=>$from,
                 'sent'=>1,
                 'created_at'=>$this->now,
@@ -565,7 +565,7 @@ class RyChat implements ShouldQueue
             ));
         }else{
             $id = $counts->id;
-            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+            DB::table('users_kpi_counts')->where('id' , $id)->increment('sent' , 1 , array(
                 'updated_at'=>$this->now,
             ));
         }
@@ -586,32 +586,32 @@ class RyChat implements ShouldQueue
             $like = DB::table('ry_like_messages')->where('from_id' , $from)->where('to_id' , $to)->where('liked_id' , $likeId)->first();
             if(blank($like))
             {
-                $likeCount = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                $likeCount = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
                 if(blank($likeCount))
                 {
-                    DB::table('ry_messages_counts')->insert(array(
+                    DB::table('users_kpi_counts')->insert(array(
                         'user_id'=>$from,
                         'like'=>1,
                         'created_at'=>$this->now,
                         'updated_at'=>$this->now,
                     ));
                 }else{
-                    DB::table('ry_messages_counts')->where('user_id' , $from)->increment('like' , 1 , array(
+                    DB::table('users_kpi_counts')->where('user_id' , $from)->increment('like' , 1 , array(
                         'updated_at'=>$this->now,
                     ));
                 }
                 MoreTimeUserScoreUpdate::dispatch($from , 'likeVideo' , $likeId)->onQueue('helloo_{more_time_user_score_update}');
-                $likedCount = DB::table('ry_messages_counts')->where('user_id' , $to)->first();
+                $likedCount = DB::table('users_kpi_counts')->where('user_id' , $to)->first();
                 if(blank($likedCount))
                 {
-                    DB::table('ry_messages_counts')->insert(array(
+                    DB::table('users_kpi_counts')->insert(array(
                         'user_id'=>$to,
                         'liked'=>1,
                         'created_at'=>$this->now,
                         'updated_at'=>$this->now,
                     ));
                 }else{
-                    DB::table('ry_messages_counts')->where('user_id' , $to)->increment('liked' , 1 , array(
+                    DB::table('users_kpi_counts')->where('user_id' , $to)->increment('liked' , 1 , array(
                         'updated_at'=>$this->now,
                     ));
                 }

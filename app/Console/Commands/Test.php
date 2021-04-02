@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Custom\Uuid\RandomStringGenerator;
-use App\Models\RyMessageCount;
+use App\Models\UserKpiCount;
 use App\Models\User;
 use App\Traits\CachableUser;
 use App\Jobs\Test as TestJob;

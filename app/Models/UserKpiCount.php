@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 
-class RyMessageCount extends Model
+class UserKpiCount extends Model
 {
 
-    protected $table = "ry_messages_counts";
+    protected $table = "users_kpi_counts";
 
     protected $primaryKey = 'id';
 

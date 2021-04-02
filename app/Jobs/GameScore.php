@@ -35,13 +35,13 @@ class GameScore implements ShouldQueue
      */
     public function handle()
     {
-        $counts = DB::table('ry_messages_counts')->where('user_id' , $this->userId)->first();
+        $counts = DB::table('users_kpi_counts')->where('user_id' , $this->userId)->first();
         $score = $this->score;
         $userId = $this->userId;
         $snowId = $this->snowId;
         if(blank($counts))
         {
-            DB::table('ry_messages_counts')->insertGetId(array(
+            DB::table('users_kpi_counts')->insertGetId(array(
                 'user_id'=>$this->userId,
                 'game_score'=>$this->score,
                 'created_at'=>$this->now,
@@ -61,7 +61,7 @@ class GameScore implements ShouldQueue
             $id = $counts->id;
             if($score>$counts->game_score)
             {
-                DB::table('ry_messages_counts')->where('id' , $id)->update(array(
+                DB::table('users_kpi_counts')->where('id' , $id)->update(array(
                     'game_score'=>$score,
                     'updated_at'=>$this->now,
                 ));
