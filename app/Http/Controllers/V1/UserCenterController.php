@@ -81,6 +81,9 @@ class UserCenterController extends BaseController
     {
         $userFriends = app(UserFriendRepository::class)->getAllByUser($userId, 10);
         $friendIds   = $userFriends->pluck('friend_id')->all();
+        if (empty($friends)) {
+            return [];
+        }
         $friends     = app(UserRepository::class)->findByMany($friendIds);
         $userFriends->each(function($userFriend) use ($friends){
             $userFriend->friend = new UserCollection($friends->where('user_id', $userFriend->friend_id)->first());
@@ -98,6 +101,9 @@ class UserCenterController extends BaseController
     {
         $videos = Video::select('video_id', 'image', 'like', 'video_url')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $videoIds = $videos->pluck('video_id')->toArray();
+        if (empty($videoIds)) {
+            return [];
+        }
         // 查询点赞表
         $likes = LikeVideo::where('user_id', $this->userId)->whereIn('liked_id', $videoIds)->get();
         foreach ($videos as $video) {
@@ -120,6 +126,9 @@ class UserCenterController extends BaseController
     {
         $photos = Photo::select('photo_id', 'photo', 'like')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $photoIds = $photos->pluck('photo_id')->toArray();
+        if (empty($photoIds)) {
+            return [];
+        }
         // 查询点赞表
         $likes = LikePhoto::where('user_id', $this->userId)->whereIn('liked_id', $photoIds)->get();
         foreach ($photos as $photo) {
