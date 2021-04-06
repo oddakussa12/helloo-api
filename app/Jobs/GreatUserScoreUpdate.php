@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Redis;
 
 class GreatUserScoreUpdate implements ShouldQueue
 {
@@ -113,6 +114,12 @@ class GreatUserScoreUpdate implements ShouldQueue
                 {
                     throw new \Exception('user score insert or update fail');
                 }
+
+                // 积分 排行
+                $memKey = 'helloo:account:user-score-rank';
+                $total  = !empty($userScore['score']) ? $score+$userScore['score'] : $score;
+                Redis::zadd($memKey, $total, $userId);
+
                 DB::commit();
             }catch (\Exception $e){
                 DB::rollBack();
