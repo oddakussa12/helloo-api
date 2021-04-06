@@ -18,7 +18,7 @@ class RealTimeChatDepth extends Command
      *
      * @var string
      */
-    protected $signature = 'real:time_chat_depth {type?} {date?}';
+    protected $signature = 'real:time_chat_depth {type?} {date?} {num?}';
 
     /**
      * The console command description.
@@ -46,6 +46,8 @@ class RealTimeChatDepth extends Command
     {
         $dates = array();
         $date = $this->argument('date');
+        $num = $this->argument('num');
+        $num = $num==null?5:intval($num);
         $startDate = $date==null?Carbon::yesterday('Asia/Shanghai')->toDateString():$date;
         $endTime = Carbon::now('Asia/Shanghai')->toDateString();
         $type = $this->argument('type');
@@ -68,7 +70,7 @@ class RealTimeChatDepth extends Command
             foreach ($dates as $date)
             {
                 $command = "chat:depth";
-                $param = array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date);
+                $param = array('type'=>'country' , 'value'=>strtolower($country['code']) , 'date'=>$date , 'num'=>$num);
                 dump($command);
                 dump($param);
                 Log::info('$command' , array($command));
@@ -82,7 +84,7 @@ class RealTimeChatDepth extends Command
             foreach ($dates as $date)
             {
                 $command = "chat:depth";
-                $param = array('type'=>'school' , 'value'=>$school , 'date'=>$date);
+                $param = array('type'=>'school' , 'value'=>$school , 'date'=>$date , 'num'=>$num);
                 dump($command);
                 dump($param);
                 Log::info('$command' , array($command));
