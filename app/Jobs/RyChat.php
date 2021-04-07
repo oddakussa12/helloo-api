@@ -281,6 +281,7 @@ class RyChat implements ShouldQueue
             }
         }
         Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
+        Redis::expireAt($setKey , Carbon::createFromFormat('Y-m-d' , $this->day)->addDays(7)->endOfDay()->timestamp);
         $counts = DB::table('users_kpi_counts')->where('user_id' , $from)->first();
         if(blank($counts))
         {
@@ -367,6 +368,7 @@ class RyChat implements ShouldQueue
             }
         }
         Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
+        Redis::expireAt($setKey , Carbon::createFromFormat('Y-m-d' , $this->day)->addDays(7)->endOfDay()->timestamp);
         if(!blank($bundleName))
         {
             $props = DB::table('users_props')->where('user_id' , $from)->first();
