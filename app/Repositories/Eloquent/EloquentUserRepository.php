@@ -39,10 +39,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function update($model, $data)
     {
-        $user = parent::update($model, $data);
-        $key = "helloo:account:service:account:".$model->getKey();
+        $original = collect($model)->toArray();
+        $user     = parent::update($model, $data);
+        $key      = "helloo:account:service:account:".$model->getKey();
+
         $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
-        $ageSortSetKey = 'helloo:account:service:account-age-sort-set';
+        $ageSortSetKey    = 'helloo:account:service:account-age-sort-set';
         Redis::del($key);
         isset($data['user_gender'])&&Redis::zadd($genderSortSetKey , intval($data['user_gender']) , $model->getKey());
         isset($data['user_birthday'])&&Redis::zadd($ageSortSetKey , age($data['user_birthday']) , $model->getKey());
@@ -83,15 +85,15 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 }
             }
         }
-        if(isset($data['user_avatar'])&&$model->getOriginal('user_avatar')=='default_avatar.jpg')
+        if(isset($data['user_avatar'])&&$original['user_avatar']=='default_avatar.jpg')
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
         }
-        if(isset($data['user_avatar'])&&blank($model->getOriginal('user_bg')))
+        if(isset($data['user_avatar'])&&blank($original['user_avatar']))
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillCover')->onQueue('helloo_{one_time_user_score_update}');
         }
-        if(isset($data['user_about'])&&blank($model->getOriginal('user_about')))
+        if(isset($data['user_about'])&& blank($original['user_about']))
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillAbout')->onQueue('helloo_{one_time_user_score_update}');
         }
