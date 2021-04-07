@@ -130,6 +130,9 @@ class UserFriendController extends BaseController
             {
                 $flag = true;
                 DB::commit();
+                $mKey = 'helloo:account:user-friends';
+                Redis::del($mKey.$userId);
+                Redis::del($mKey.$friendId);
             }else{
                 throw new \Exception('userId:'.$userId.' and friendId:'.$friendId.' delete fail');
             }

@@ -28,6 +28,7 @@ class UserCenterController extends BaseController
     use CacheableScore;
     private $user;
     private $userId;
+    private $friendKey = 'helloo:account:user-friends';
 
     public function __construct()
     {
@@ -599,7 +600,12 @@ class UserCenterController extends BaseController
         $num = $num >= 30 ? 30 : 10;
         $middle = $num/2;
         $memKey = 'helloo:account:user-recommend';
-        $all    = UserFriend::where('user_id', $this->userId)->pluck('friend_id')->toArray(); // 所有的好友
+        $all    = Redis::SMEMBERS($this->friendKey.$this->userId);
+        if (empty($all)) {
+            $all = UserFriend::where('user_id', $this->userId)->pluck('friend_id')->toArray(); // 所有的好友
+            Redis::sadd($this->friendKey.$this->userId, $all);
+            Redis::expires($this->friendKey.$this->userId, 86400*30);
+        }
 
         // 有共同好友
         $friendIds = $this->mutualFriend($num, $all, $memKey);
@@ -702,10 +708,18 @@ class UserCenterController extends BaseController
         $rand    = count($all) > $num ? $num : count($all);
         $friends = array_random($all, $rand);
 
-        $list    = UserFriend::whereIn('user_id', $friends)->pluck('friend_id')->unique()->toArray();
-        $users   = array_merge(array_diff($list, $all));
+        $list = [];
+        foreach ($friends as $friend) {
+            $users = Redis::SMEMBERS($this->friendKey.$friend);
+            if (empty($users)) {
+                $users = UserFriend::where('user_id', $friends)->pluck('friend_id')->unique()->toArray();
+                Redis::sadd($this->friendKey.$friend, $users);
+                Redis::expires($this->friendKey.$friend, 86400*30);
+            }
+            $list = array_merge(array_diff($list, $all));
+        }
 
-        return $this->diff($num, $all, $users);
+        return $this->diff($num, $all, $list);
     }
 
     /**

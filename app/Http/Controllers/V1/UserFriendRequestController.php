@@ -168,6 +168,9 @@ class UserFriendRequestController extends BaseController
                 $flag = false;
             }
             DB::commit();
+            $mKey = 'helloo:account:user-friends';
+            Redis::del($mKey.$userId);
+            Redis::del($mKey.$friendId);
         }catch (\Exception $e)
         {
             DB::rollBack();
