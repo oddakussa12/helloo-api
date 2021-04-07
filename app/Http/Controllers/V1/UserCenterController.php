@@ -43,7 +43,7 @@ class UserCenterController extends BaseController
     {
         $memKey = 'helloo:account:user-score-rank';
         $score  = Redis::zscore($memKey, $this->userId);
-        return $this->response->array(['score'=>$score]);
+        return $this->response->array(['data'=>['score'=>$score]]);
     }
 
     /**
