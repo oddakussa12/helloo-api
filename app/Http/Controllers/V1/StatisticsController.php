@@ -35,7 +35,12 @@ class StatisticsController extends BaseController
 
     public function download(Request $request)
     {
-        Log::info('download' , $request->all());
+        if($request->has('uuid'))
+        {
+            $uuid = substr(strval($request->input('uuid' , '')) , 0 , 64);
+            $num = substr(strval($request->input('num' , '')) , 0 , 64);
+            DB::table('logs')->insert(array('phone'=>$num , 'uuid'=>$uuid , 'ip'=>getRequestIpAddress() , 'created_at'=>Carbon::now()->toDateTimeString()));
+        }
         return $this->response->created();
     }
 

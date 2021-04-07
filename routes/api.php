@@ -220,7 +220,9 @@ $api->group($V1Params , function ($api){
 
     $api->get('question/hot' , 'QuestionController@hot')->name('question.hot');
 
-    $api->patch('backStage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backStage.version.upgrade');
+    $api->patch('backstage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backStage.version.upgrade');
+
+    $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backStage.last.online');
 
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');
