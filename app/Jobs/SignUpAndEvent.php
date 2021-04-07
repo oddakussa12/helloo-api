@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
@@ -39,8 +40,7 @@ class SignUpAndEvent implements ShouldQueue
         {
             $key = "helloo:account:system:senderId";
             $systemId = Redis::get($key);
-            if($systemId===null)
-            {
+            if ($systemId===null) {
                 return;
             }
             $sender = app(UserRepository::class)->findByUserId(intval($systemId))->toArray();
@@ -77,6 +77,19 @@ class SignUpAndEvent implements ShouldQueue
                 $content['content']['videoUrl'] = $activeEvent['value'];
                 $this->sendEventMessage($content);
             }
+
+            // 写入隐私表
+            $result['user_id']    = $sender['user_id'];
+            $result['friend']     = 1;
+            $result['video']      = 1;
+            $result['photo']      = 1;
+            $result['created_at'] = date('Y-m-d H:i:s');
+            DB::table('users_setting')->insert($result);
+
+            $result = collect($result)->only('friend', 'video', 'photo')->toArray();
+            $mKey   = 'helloo:account:service:account-privacy:'.$sender['user_id'];
+            Redis::set($mKey, json_encode($result));
+            Redis::expire($mKey , 86400*30);
         }
     }
 

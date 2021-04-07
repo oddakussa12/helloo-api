@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Jobs\GameScore;
 use Carbon\Carbon;
 use App\Jobs\FriendScore;
 use Illuminate\Http\Request;
 use Godruoyi\Snowflake\Snowflake;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\GreatUserScoreUpdate;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -61,9 +63,10 @@ class GameScoreController extends BaseController
             $oldRank = $oldRank===null?0:$oldRank+1;//全国排行
             DB::beginTransaction();
             try{
+                $snowId = $nowFlake->id();
                 $result = DB::table('users_games')->insert(
                     array(
-                        'id'=>$nowFlake->id(),
+                        'id'=>$snowId,
                         'user_id'=>$userId ,
                         'game'=>$game ,
                         'country'=>$country ,
@@ -106,8 +109,8 @@ class GameScoreController extends BaseController
                         Redis::zadd($key , $score , $userId);
                     }
                 }
-
                 DB::commit();
+                GameScore::dispatch($userId , $score , $snowId , $game)->onQueue('helloo_{great_user_score_update}');
             }catch (\Exception $e)
             {
                 $code = $e->getCode();

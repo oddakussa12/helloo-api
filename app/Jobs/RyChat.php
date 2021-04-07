@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,8 @@ class RyChat implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $index;
+    public $day;
     public $data;
     public $now;
 
@@ -106,7 +109,8 @@ class RyChat implements ShouldQueue
             $messageContent['message_time'] = $raw['msgTimestamp'];
             $messageContent['message_type'] = $raw['objectName'];
             $msgTimestamp = $raw['msgTimestamp'];
-            $index = Carbon::createFromTimestampMs($msgTimestamp)->format("Ym");
+            $this->index = $index = Carbon::createFromTimestampMs($msgTimestamp)->format("Ym");
+            $this->day = Carbon::createFromTimestampMs($msgTimestamp)->format("Y-m-d");
             $data = array(
                 'chat_msg_uid'  => $raw['msgUID'],
                 'chat_from_id'  => $raw['fromUserId'],
@@ -117,110 +121,510 @@ class RyChat implements ShouldQueue
             if(isset($raw['source'])) {
                 $data['chat_source'] = $raw['source'];
             }
-            if(isset($raw['content']))
+
+            $content = \json_decode($raw['content'] , true);
+
+            if(isset($content['content'])) //txt message
             {
-                $content = \json_decode($raw['content'] , true);
+                $messageContent['message_content'] = $content['content'];
+            }
+            if(isset($content['imageUri'])) //image message
+            {
+                $messageContent['message_content'] = $content['imageUri'];
+            }
+            if(isset($content['callId'])) { //call message
+                $messageContent['message_content'] = $content['callId'];
+            }
+            if(isset($content['videoUrl'])) { //video message
+                $messageContent['message_content'] = $content['videoUrl'];
+            }
+            if(isset($content['videoID'])) { //like message
+                $messageContent['message_content'] = $content['videoID'];
+            }
+            if(isset($content['uri'])) { //audio message
+                $messageContent['message_content'] = $content['uri'];
+            }
 
-                if(isset($content['content']))
+            if(isset($content['reason'])) { //video call or audio call reason
+                $data['chat_extend'] = $content['reason'];
+            }
+            if(isset($content['mediaType'])) { //video call or audio call type
+                $data['chat_extend'] = $content['mediaType'];
+            }
+            if(isset($content['LikeType'])) { //like
+                $data['chat_extend'] = intval($content['LikeType']);
+            }
+
+            $data['chat_created_at'] = $this->now;
+            DB::table('ry_chats_'.$index)->insert($data);
+
+            try{
+                $messageContent['created_at'] = $this->now;
+                DB::table('ry_messages_'.$index)->insert($messageContent);
+            }catch (\Exception $e)
+            {
+                Log::info('insert_ry_message_fail' , array(
+                    'code'=>$e->getCode(),
+                    'message'=>$e->getMessage(),
+                ));
+            }
+
+            if($messageContent['message_type']=='RC:TxtMsg')
+            {
+                $this->handleTxt($raw['fromUserId'] , $raw['toUserId']);
+            }
+
+            if($messageContent['message_type']=='Helloo:VideoMsg')
+            {
+                if(isset($content['user']['extra']))
                 {
-                    $messageContent['message_content'] = $content['content'];
+                    $extra = \json_decode($content['user']['extra'] , true);
+                }else{
+                    $extra = array();
                 }
-                if(isset($content['imageUri']))
+                $messageId = $raw['msgUID'];
+                $videoUrl = isset($content['videoUrl'])?$content['videoUrl']:'';
+                $isRecord = isset($extra['isRecord'])?intval($extra['isRecord']):0;
+                $voiceName = isset($extra['changeVoiceName'])?$extra['changeVoiceName']:'';
+                $bundleName = isset($content['bundleName'])&&$content['bundleName']!='none'?$content['bundleName']:'';
+                $this->handleVideo($raw['fromUserId'] , $raw['toUserId'] , $messageId , $videoUrl , $isRecord , $voiceName , $bundleName);
+            }
+
+            if($messageContent['message_type']=='Helloo:VoiceMsg')
+            {
+                $audioUrl = isset($content['uri'])?$content['uri']:'';
+                $duration = isset($content['duration'])?$content['duration']:0;
+                $this->handleAudio($raw['fromUserId'] , $raw['toUserId'] , $raw['msgUID'] , $audioUrl , $duration);
+            }
+
+            if($messageContent['message_type']=='RC:ImgMsg')
+            {
+                $this->handleImage($raw['fromUserId'] , $raw['toUserId']);
+            }
+
+            if($messageContent['message_type']=='Yooul:VideoLike')
+            {
+                $likeId = isset($content['videoID'])?$content['videoID']:'';
+                $this->handleVideoLike($raw['msgUID'] , $raw['fromUserId'] , $raw['toUserId'] , $likeId);
+            }
+
+        }
+
+    }
+
+    private function handleTxt($from , $to)
+    {
+        $hashKey = "helloo:message:service:mutual-txt-".$this->day;
+        $setKey = "helloo:message:service:mutual-txt-geq-ten".$this->day;
+        $lock_key = "helloo:message:service:unique-txt-".strval($from).'-'.strval($to);
+        if(!Redis::exists($lock_key))
+        {
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'txt')->first();
+            if(blank($flag))
+            {
+                DB::table('ry_chats_logs')->insert(array(
+                    'from'=>$from,
+                    'to'=>$to,
+                    'type'=>'txt',
+                    'created_at'=>$this->now,
+                ));
+                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                if(blank($counts))
                 {
-                    $messageContent['message_content'] = $content['imageUri'];
-                }
-//                if(isset($content['user'])) {
-//                    $data['chat_from_name'] = $content['user']['name'];
-//                }
-//                if(isset($content['user'])) {
-//                    $data['chat_from_name'] = $content['user']['name'];
-//                }
-
-                if(isset($content['reason'])) {
-                    $data['chat_extend'] = $content['reason'];
-                }
-
-                if(isset($content['mediaType'])) {
-                    $data['chat_extend'] = $content['mediaType'];
-                }
-
-                if(isset($content['callId'])) {
-                    $messageContent['message_content'] = $content['callId'];
-                }
-
-                if(isset($content['videoUrl'])) {
-                    $messageContent['message_content'] = $content['videoUrl'];
-                }
-                if($messageContent['message_type']=='Yooul:VideoLike')
-                {
-                    $data['chat_extend'] = intval($content['LikeType']);
-                    if(isset($content['videoID']))
-                    {
-                        $messageContent['message_content'] = $content['videoID'];
-                    }else{
-                        $messageContent['message_content'] = '';
-                        Log::info('BLANK_VIDEO_ID' , $raw);
-                    }
-                }
-                if($messageContent['message_type']=='Helloo:VideoMsg')
-                {
-                    if(isset($content['user']['extra']))
-                    {
-                        $extra = \json_decode($content['user']['extra'] , true);
-                    }else{
-                        $extra = array();
-                    }
-                    $video = array(
-                        'message_id'=>$raw['msgUID'],
-                        'video_url'=>isset($content['videoUrl'])?$content['videoUrl']:'',
-                        'is_record'=>isset($extra['isRecord'])?intval($extra['isRecord']):0,
-                        'voice_name'=>isset($extra['changeVoiceName'])?$extra['changeVoiceName']:'',
-                        'bundle_name'=>isset($content['bundleName'])&&$content['bundleName']!='none'?$content['bundleName']:'',
+                    $id = DB::table('ry_messages_counts')->insertGetId(array(
+                        'user_id'=>$from,
+                        'txt'=>1,
                         'created_at'=>$this->now,
-                    );
-                    try{
-                        DB::table('ry_video_messages_'.$index)->insert($video);
-                    }catch (\Exception $e)
-                    {
-                        Log::info('insert_ry_video_message_fail' , array(
-                            'code'=>$e->getCode(),
-                            'message'=>$e->getMessage(),
-                        ));
-                    }
+                        'updated_at'=>$this->now,
+                    ));
+                }else{
+                    $id = $counts->id;
+                    DB::table('ry_messages_counts')->where('id' , $id)->increment('video' , 1 , array(
+                        'updated_at'=>$this->now,
+                    ));
                 }
-                if($messageContent['message_type']=='Helloo:VoiceMsg')
+                MoreTimeUserScoreUpdate::dispatch($from , 'firstTxtMessage' , $id)->onQueue('helloo_{more_time_user_score_update}');
+            }
+        }
+        $fc = Redis::hincrby($hashKey , strval($from).'-'.strval($to) , 1);
+        if($fc==10)
+        {
+            $cf = Redis::hget($hashKey , strval($to).'-'.strval($from));
+            if($cf>=10)
+            {
+                if(!Redis::sismember($setKey , $from))
                 {
-                    $messageContent['message_content'] = $content['uri'];
-                    $audio = array(
-                        'message_id'=>$raw['msgUID'],
-                        'audio_url'=>isset($content['uri'])?$content['uri']:'',
-                        'duration'=>isset($content['duration'])?$content['duration']:0,
+                    Redis::sadd($setKey , $from);
+                    DB::table('ry_mutual_messages')->insertGetId(array(
+                        'from_id'=>$from,
+                        'to_id'=>$to,
+                        'type'=>'txt',
+                        'time'=>$this->day,
                         'created_at'=>$this->now,
-                    );
-                    try{
-                        DB::table('ry_audio_messages_'.$index)->insert($audio);
-                    }catch (\Exception $e)
-                    {
-                        Log::info('insert_ry_audio_message_fail' , array(
-                            'code'=>$e->getCode(),
-                            'message'=>$e->getMessage(),
-                        ));
-                    }
+                    ));
+                    MoreTimeUserScoreUpdate::dispatch($from , 'tenVideoMessage')->onQueue('helloo_{more_time_user_score_update}');
                 }
-                try{
-                    $messageContent['created_at'] = $this->now;
-                    DB::table('ry_messages_'.$index)->insert($messageContent);
-                }catch (\Exception $e)
+                if(!Redis::sismember($setKey , $to))
                 {
-                    Log::info('insert_ry_message_fail' , array(
-                        'code'=>$e->getCode(),
-                        'message'=>$e->getMessage(),
+                    Redis::sadd($setKey , $to);
+                    DB::table('ry_mutual_messages')->insert(array(
+                        'from_id'=>$to,
+                        'to_id'=>$from,
+                        'type'=>'txt',
+                        'time'=>$this->day,
+                        'created_at'=>$this->now,
+                    ));
+                    MoreTimeUserScoreUpdate::dispatch($to , 'tenVideoMessage')->onQueue('helloo_{more_time_user_score_update}');
+                }
+            }
+        }
+        Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
+        }
+    }
+
+    private function handleVideo($from , $to  , $messageId , $videoUrl , $isRecord , $voiceName , $bundleName)
+    {
+        $hashKey = "helloo:message:service:mutual-video-".$this->day;
+        $setKey = "helloo:message:service:mutual-video-geq-ten".$this->day;
+        $lock_key = "helloo:message:service:unique-video-".strval($from).'-'.strval($to);
+        if(!Redis::exists($lock_key))
+        {
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'video')->first();
+            if(blank($flag))
+            {
+                DB::table('ry_chats_logs')->insert(array(
+                    'from'=>$from,
+                    'to'=>$to,
+                    'type'=>'video',
+                    'created_at'=>$this->now,
+                ));
+                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                if(blank($counts))
+                {
+                    $id = DB::table('ry_messages_counts')->insertGetId((array(
+                        'user_id'=>$from,
+                        'video'=>1,
+                        'created_at'=>$this->now,
+                        'updated_at'=>$this->now,
+                    )));
+                }else{
+                    $id = $counts->id;
+                    DB::table('ry_messages_counts')->where('id' , $id)->increment('video' , 1 , array(
+                        'updated_at'=>$this->now,
+                    ));
+                }
+                MoreTimeUserScoreUpdate::dispatch($from , 'firstVideoMessage' , $id)->onQueue('helloo_{more_time_user_score_update}');
+            }
+        }
+        $fc = Redis::hincrby($hashKey , strval($from).'-'.strval($to) , 1);
+        if($fc==10)
+        {
+            $cf = Redis::hget($hashKey , strval($to).'-'.strval($from));
+            if($cf>=10)
+            {
+                if(!Redis::sismember($setKey , $from))
+                {
+                    Redis::sadd($setKey , $from);
+                    DB::table('ry_mutual_messages')->insertGetId(array(
+                        'from_id'=>$from,
+                        'to_id'=>$to,
+                        'type'=>'video',
+                        'time'=>$this->day,
+                        'created_at'=>$this->now,
+                    ));
+                    MoreTimeUserScoreUpdate::dispatch($from , 'tenVideoMessage' , $to)->onQueue('helloo_{more_time_user_score_update}');
+                }
+                if(!Redis::sismember($setKey , $to))
+                {
+                    Redis::sadd($setKey , $to);
+                    DB::table('ry_mutual_messages')->insert(array(
+                        'from_id'=>$to,
+                        'to_id'=>$from,
+                        'type'=>'video',
+                        'time'=>$this->day,
+                        'created_at'=>$this->now,
+                    ));
+                    MoreTimeUserScoreUpdate::dispatch($to , 'tenVideoMessage' , $from)->onQueue('helloo_{more_time_user_score_update}');
+                }
+            }
+        }
+        Redis::expireAt($hashKey , Carbon::createFromFormat('Y-m-d' , $this->day)->endOfDay()->addMinutes(15)->timestamp);
+        if(!blank($bundleName))
+        {
+            $props = DB::table('users_props')->where('user_id' , $from)->first();
+            if(blank($props))
+            {
+                DB::table('users_props')->insert(array(
+                    'user_id'=>$from,
+                    'props'=>\json_encode(array($bundleName=>1)),
+                    'created_at'=>$this->now,
+                    'updated_at'=>$this->now,
+                ));
+            }else{
+                $data = \json_decode($props->prop , true);
+                if(is_array($data))
+                {
+                    if(isset($data[$bundleName]))
+                    {
+                        $data[$bundleName] = $data[$bundleName]+1;
+                    }else{
+                        $data[$bundleName] = 1;
+                    }
+                }else{
+                    $data[$bundleName] = 1;
+                }
+                DB::table('users_props')->where('id' , $props->id)->update(array(
+                    'props'=>\json_encode($data),
+                    'updated_at'=>$this->now
+                ));
+            }
+            $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+            if(blank($counts))
+            {
+                DB::table('ry_messages_counts')->insertGetId((array(
+                    'user_id'=>$from,
+                    'props'=>1,
+                    'created_at'=>$this->now,
+                    'updated_at'=>$this->now,
+                )));
+                $count = 1;
+            }else{
+                $id = $counts->id;
+                DB::table('ry_messages_counts')->where('id' , $id)->increment('props' , 1 , array(
+                    'updated_at'=>$this->now,
+                ));
+                $count = $counts->props+1;
+            }
+            if($count==5)
+            {
+                OneTimeUserScoreUpdate::dispatch($from , 'fiveMaskVideo')->onQueue('helloo_{one_time_user_score_update}');
+            }
+            if($count==50)
+            {
+                GreatUserScoreUpdate::dispatch($from , 'maskCollection')->onQueue('helloo_{great_user_score_update}');
+            }
+        }
+        $video = array(
+            'message_id'=>$messageId,
+            'video_url'=>$videoUrl,
+            'is_record'=>$isRecord,
+            'voice_name'=>$voiceName,
+            'bundle_name'=>$bundleName,
+            'created_at'=>$this->now,
+        );
+        try{
+            DB::table('ry_video_messages_'.$this->index)->insert($video);
+        }catch (\Exception $e)
+        {
+            Log::info('insert_ry_video_message_fail' , array(
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
+        }
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
+        }
+    }
+
+    private function handleAudio($from , $to , $messageId , $audioUrl , $duration )
+    {
+        $lock_key = "helloo:message:service:unique-audio-".strval($from).'-'.strval($to);
+        if(!Redis::exists($lock_key))
+        {
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'audio')->first();
+            if(blank($flag))
+            {
+                DB::table('ry_chats_logs')->insert(array(
+                    'from'=>$from,
+                    'to'=>$to,
+                    'type'=>'audio',
+                    'created_at'=>$this->now,
+                ));
+                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                if(blank($counts))
+                {
+                    DB::table('ry_messages_counts')->insertGetId((array(
+                        'user_id'=>$from,
+                        'audio'=>1,
+                        'created_at'=>$this->now,
+                        'updated_at'=>$this->now,
+                    )));
+                }else{
+                    $id = $counts->id;
+                    DB::table('ry_messages_counts')->where('id' , $id)->increment('audio' , 1 , array(
+                        'updated_at'=>$this->now,
                     ));
                 }
             }
-            $data['chat_created_at'] = $this->now;
-            DB::table('ry_chats_'.$index)->insert($data);
         }
+        $audio = array(
+            'message_id'=>$messageId,
+            'audio_url'=>$audioUrl,
+            'duration'=>$duration,
+            'created_at'=>$this->now,
+        );
+        try{
+            DB::table('ry_audio_messages_'.$this->index)->insert($audio);
+        }catch (\Exception $e)
+        {
+            Log::info('insert_ry_audio_message_fail' , array(
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
+        }
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
+        }
+    }
+
+    private function handleImage($from , $to)
+    {
+        $lock_key = "helloo:message:service:unique-image-".strval($from).'-'.strval($to);
+        if(!Redis::exists($lock_key))
+        {
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+            $flag = DB::table('ry_chats_logs')->where('from' , $from)->where('to' , $to)->where('type' , 'image')->first();
+            if(blank($flag))
+            {
+                DB::table('ry_chats_logs')->insert(array(
+                    'from'=>$from,
+                    'to'=>$to,
+                    'type'=>'image',
+                    'created_at'=>$this->now,
+                ));
+                $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                if(blank($counts))
+                {
+                    DB::table('ry_messages_counts')->insertGetId((array(
+                        'user_id'=>$from,
+                        'image'=>1,
+                        'created_at'=>$this->now,
+                        'updated_at'=>$this->now,
+                    )));
+                }else{
+                    $id = $counts->id;
+                    DB::table('ry_messages_counts')->where('id' , $id)->increment('image' , 1 , array(
+                        'updated_at'=>$this->now,
+                    ));
+                }
+            }
+        }
+        $counts = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+        if(blank($counts))
+        {
+            DB::table('ry_messages_counts')->insertGetId(array(
+                'user_id'=>$from,
+                'sent'=>1,
+                'created_at'=>$this->now,
+                'updated_at'=>$this->now,
+            ));
+        }else{
+            $id = $counts->id;
+            DB::table('ry_messages_counts')->where('id' , $id)->increment('sent' , 1 , array(
+                'updated_at'=>$this->now,
+            ));
+        }
+    }
+
+
+    private function handleVideoLike($messageId , $from , $to , $likeId)
+    {
+        if(blank($likeId))
+        {
+            return;
+        }
+        $lock_key = "helloo:message:service:unique-video-like-".strval($from).'-'.strval($to).'-'.$likeId;
+        if(!Redis::exists($lock_key))
+        {
+            Redis::set($lock_key , 1);
+            Redis::expire($lock_key , 600);
+            $like = DB::table('ry_like_messages')->where('from_id' , $from)->where('to_id' , $to)->where('liked_id' , $likeId)->first();
+            if(blank($like))
+            {
+                $likeCount = DB::table('ry_messages_counts')->where('user_id' , $from)->first();
+                if(blank($likeCount))
+                {
+                    DB::table('ry_messages_counts')->insert(array(
+                        'user_id'=>$from,
+                        'like'=>1,
+                        'created_at'=>$this->now,
+                        'updated_at'=>$this->now,
+                    ));
+                }else{
+                    DB::table('ry_messages_counts')->where('user_id' , $from)->increment('like' , 1 , array(
+                        'updated_at'=>$this->now,
+                    ));
+                }
+                MoreTimeUserScoreUpdate::dispatch($from , 'likeVideo' , $likeId)->onQueue('helloo_{more_time_user_score_update}');
+                $likedCount = DB::table('ry_messages_counts')->where('user_id' , $to)->first();
+                if(blank($likedCount))
+                {
+                    DB::table('ry_messages_counts')->insert(array(
+                        'user_id'=>$to,
+                        'liked'=>1,
+                        'created_at'=>$this->now,
+                        'updated_at'=>$this->now,
+                    ));
+                }else{
+                    DB::table('ry_messages_counts')->where('user_id' , $to)->increment('liked' , 1 , array(
+                        'updated_at'=>$this->now,
+                    ));
+                }
+                MoreTimeUserScoreUpdate::dispatch($to , 'likedVideo' , $likeId)->onQueue('helloo_{more_time_user_score_update}');
+            }
+        }
+        DB::table('ry_like_messages')->insert(array(
+            'messageId'=>$messageId,
+            'from_id'=>$from,
+            'to_id'=>$to,
+            'liked_id'=>$likeId,
+            'created_at'=>$this->now
+        ));
 
     }
 

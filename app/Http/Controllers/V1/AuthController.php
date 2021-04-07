@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Jobs\Device;
 use Ramsey\Uuid\Uuid;
@@ -336,6 +337,19 @@ class AuthController extends BaseController
         $userNameKey = 'helloo:account:service:account-username-change';
         $time = Redis::zscore($userNameKey , $userId);
         $user->userNameCanChange = $time===null;
+
+        //个人隐私设置
+        $mKey = 'helloo:account:service:account-privacy:'.$userId;
+        $privacy = Redis::get($mKey);
+        $user->privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
+
+        // 积分 排行
+        $memKey = 'helloo:account:user-score-rank';
+        $rank   = Redis::zrevrank($memKey , $userId);
+        $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
+        $user->rank  = (int)$rank+1;
+        $user->score = (int)Redis::zscore($memKey , $userId);
+
         $user->userNamePrompted = boolval(app(UserRepository::class)->usernamePrompt($userId));
         $user->makeVisible(array('user_name_changed_at'));
         return new UserCollection($user);

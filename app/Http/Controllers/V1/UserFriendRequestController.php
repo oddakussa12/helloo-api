@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Jobs\FriendLevel;
-use App\Models\UserFriend;
 use Carbon\Carbon;
+use App\Models\UserFriend;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
-use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
 use App\Resources\UserCollection;
+use App\Jobs\GreatUserScoreUpdate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use App\Jobs\MoreTimeUserScoreUpdate;
+use App\Jobs\FriendFromDifferentSchool;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Http\Requests\StoreUserFriendRequestRequest;
@@ -171,10 +172,17 @@ class UserFriendRequestController extends BaseController
         {
             DB::rollBack();
             $flag = false;
-            Log::error('friend_request_accept_failed:'.\json_encode($e->getMessage() , JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));
+            Log::info('friend_request_accept_failed' , array(
+                'requestId'=>$requestId,
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
         }
         if($flag)
         {
+            FriendFromDifferentSchool::dispatch($user , $friendId)->onQueue('helloo_{friend_from_different_school}');
+            MoreTimeUserScoreUpdate::dispatch($user->user_id , 'friendAccept' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
+            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendAccepted' , $user->user_id)->onQueue('helloo_{more_time_user_score_update}');
             $phone = DB::table('users_phones')->where('user_id' , $userId)->first();
             $country = $phone->user_phone_country;
             if(!in_array($country , array(670 , '670' , '62' , 62 , '251' , 251)))

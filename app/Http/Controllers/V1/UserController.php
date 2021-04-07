@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 
+use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
@@ -151,6 +152,16 @@ class UserController extends BaseController
         {
             return $this->response->errorNotFound('Sorry, this account does not exist or is blocked!');
         }
+        //个人隐私设置
+        $mKey    = 'helloo:account:service:account-privacy:'.$id;
+        $privacy = Redis::get($mKey);
+        $privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
+
+        // 积分 排行
+        $memKey = 'helloo:account:user-score-rank';
+        $rank   = Redis::zrevrank($memKey , $id);
+        $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
+
         $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('liked_id' , $id)->first()):false;
         $friend = auth()->check()?DB::table('users_friends')->where('user_id' , auth()->id())->where('friend_id' , $id)->first():null;
         $likedKey = 'helloo:account:service:account-liked-num';
@@ -158,6 +169,10 @@ class UserController extends BaseController
         $user->put('friendCount' , 0);
         $user->put('isFriend' , !blank($friend));
         $user->put('likeState' , $likeState);
+        $user->put('privacy', $privacy);
+        $user->put('rank', (int)$rank+1);
+        $user->put('score', (int)Redis::zscore($memKey, $id));
+
 //        if(!blank($user->get('user_school')))
 //        {
 //            $school = DB::table('schools')->where('key' , $user->get('user_school'))->first();
@@ -537,6 +552,11 @@ class UserController extends BaseController
             return in_array($u->user_id , $friendIds);
         })->splice(0 , 3);
         return UserCollection::collection($users);
+    }
+
+    public function rank()
+    {
+        //helloo:account:user-score-rank;
     }
 
 

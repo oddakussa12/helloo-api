@@ -77,6 +77,7 @@ $api->group($V1Params , function ($api){
         $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');//我的好友
 //        $api->post('my/friend' , 'UserFriendController@update')->name('my.friend.update');//好友备注
         $api->delete('my/friend/{friend}' , 'UserFriendController@destroy')->name('my.friend.destroy');//删除我的好友
+        $api->get('user/{userId}/friend' , 'UserFriendController@index')->name('friend.list');//获取用户朋友列表
         /*****好友 结束*****/
 
         /*****好友请求 开始*****/
@@ -155,6 +156,18 @@ $api->group($V1Params , function ($api){
 
         $api->get('user/recommendation' , 'UserController@recommendation')->name('user.recommendation');
 
+        /*****个人中心 开始*****/
+        $api->get('user/center/media/{user?}' , 'UserCenterController@media')->name('user.center.media'); // 获取video/photo
+        $api->post('user/center/media' , 'UserCenterController@storeMedia')->name('user.center.storeMedia'); // 提交video/photo
+        $api->delete('user/center/media/{id}/{type}' , 'UserCenterController@destroyMedia')->name('user.center.destroyMedia'); // 删除video/photo
+        $api->get('user/center/privacy' , 'UserCenterController@privacy')->name('user.center.privacy'); // 获取隐私配置
+        $api->patch('user/center/privacy' , 'UserCenterController@updatePrivacy')->name('user.center.updatePrivacy'); // 修改隐私配置
+        $api->post('user/center/like' , 'UserCenterController@like')->name('user.center.like'); // 点赞video/photo
+        $api->get('user/center/medal' , 'UserCenterController@medal')->name('user.center.medal'); // 勋章列表
+        $api->get('user/center/{num}/top' , 'UserCenterController@top')->name('user.center.top'); // top100
+
+        /*****个人中心 结束*****/
+
     });
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
@@ -223,8 +236,6 @@ $api->group($V1Params , function ($api){
     $api->get('test/office' , 'TestController@office')->name('test.office');
     $api->get('test/ding' , 'TestController@ding')->name('test.ding');
     $api->get('test/sms' , 'TestController@sms')->name('test.sms');
-
-
 });
 
 
