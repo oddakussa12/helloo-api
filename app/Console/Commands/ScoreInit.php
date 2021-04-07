@@ -51,6 +51,7 @@ class ScoreInit extends Command
                     $data = array();
                     $score = 0;
                     $userId = $user->user_id;
+                    $avatar = $bg = $user_sl = $about = $name = false;
                     if($user->user_avatar!='default_avatar.jpg')
                     {
                         array_push($data , array(
@@ -173,6 +174,23 @@ class ScoreInit extends Command
                         'score'=>$score,
                         'created_at'=>$now,
                     ));
+                    $kpi = DB::table('users_kpi_counts')->where('user_id' , $userId)->first();
+                    if(blank($kpi))
+                    {
+                        DB::table('users_kpi_counts')->insert(array(
+                            'user_id'=>$userId,
+                            'friend'=>intval($friendCount),
+                            'game_score'=>isset($userGameScore->score)?intval($userGameScore->score):0,
+                            'created_at'=>$now,
+                            'updated_at'=>$now,
+                        ));
+                    }else{
+                        DB::table('users_kpi_counts')->where('user_id' , $userId)->update(array(
+                            'friend'=>intval($friendCount),
+                            'game_score'=>isset($userGameScore->score)?intval($userGameScore->score):0,
+                            'updated_at'=>$now,
+                        ));
+                    }
                 }
         });
     }
