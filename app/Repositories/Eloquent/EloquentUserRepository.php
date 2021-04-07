@@ -85,7 +85,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 }
             }
         }
-        if(isset($data['user_avatar'])&&$original['user_avatar']=='default_avatar.jpg')
+        if(isset($data['user_avatar'])&& stripos($original['user_avatar_link'], 'default_avatar')!==false)
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
         }
