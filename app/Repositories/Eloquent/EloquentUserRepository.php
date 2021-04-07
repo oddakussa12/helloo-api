@@ -83,15 +83,15 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 }
             }
         }
-        if(isset($data['user_avatar'])&&$model->user_avatar=='default_avatar.jpg')
+        if(isset($data['user_avatar'])&&$model->getOriginal('user_avatar')=='default_avatar.jpg')
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
         }
-        if(isset($data['user_avatar'])&&blank($model->user_bg))
+        if(isset($data['user_avatar'])&&blank($model->getOriginal('user_bg')))
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillCover')->onQueue('helloo_{one_time_user_score_update}');
         }
-        if(isset($data['user_about'])&&blank($model->user_about))
+        if(isset($data['user_about'])&&blank($model->getOriginal('user_about')))
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillAbout')->onQueue('helloo_{one_time_user_score_update}');
         }
