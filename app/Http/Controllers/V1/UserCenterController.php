@@ -81,7 +81,7 @@ class UserCenterController extends BaseController
     {
         $userFriends = app(UserFriendRepository::class)->getAllByUser($userId, 10);
         $friendIds   = $userFriends->pluck('friend_id')->all();
-        if (empty($friends)) {
+        if (empty($friendIds)) {
             return null;
         }
         $friends     = app(UserRepository::class)->findByMany($friendIds);
