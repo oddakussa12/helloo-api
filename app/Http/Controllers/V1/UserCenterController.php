@@ -537,7 +537,7 @@ class UserCenterController extends BaseController
     public function top($num)
     {
         $num     = $num >=100 ? 100 : $num;
-        $rank    = [2=>100, 3=>1234072139, 6=>1562134513, 7=>1402551869, 11=>2091996857, 23=>1885497935, 35=>1399005307];
+        $rank    = [3=>1234072139, 6=>1562134513, 7=>1402551869, 11=>2091996857, 23=>1885497935, 35=>1399005307];
         $tmpId   = array_values($rank);
         $memKey  = 'helloo:account:user-score-rank';
         $members = Redis::zrevrangebyscore($memKey, '+inf', '-inf', ['withScores'=>true, 'limit'=>[0,$num]]);
