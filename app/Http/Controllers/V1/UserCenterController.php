@@ -167,10 +167,11 @@ class UserCenterController extends BaseController
         $image = $params['type'] == 'video' ? 'image' : 'photo';
         $count = $model->where('user_id', $this->userId)->count();
         if ($count>=10) {
-            return $this->response->errorNotFound('超出上限，最多十条');
+            return $this->response->errorNotFound('Extra limit, maximum 10');
         }
+        Log::info('上传参数：', $request->all());
         if (count($images)+$count>10) {
-            return $this->response->errorNotFound('超出上限，最多十条，当前已有'.$count.'条');
+            return $this->response->errorNotFound('Extra limit, maximum 10');
         }
 
         foreach ($images as $key=>$item) {
