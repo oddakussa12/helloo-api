@@ -43,6 +43,8 @@ class MoreTimeUserScoreUpdate implements ShouldQueue
      */
     public function handle()
     {
+        Log::info("MoreTimeUserScoreUpdate handle::: ". $this->type);
+        dump($this->type);
         switch ($this->type)
         {
             case 'likeVideo':
@@ -91,6 +93,7 @@ class MoreTimeUserScoreUpdate implements ShouldQueue
                 'created_at'=>$this->time,
             );
             try{
+                Log::info("准备开始事务");
                 DB::beginTransaction();
                 $logResult = DB::table('users_scores_logs_'.$this->hashDbIndex($userId))->insert($data);
                 if(!$logResult)
@@ -121,6 +124,7 @@ class MoreTimeUserScoreUpdate implements ShouldQueue
                 Redis::zadd($memKey, $total, $userId);
 
                 DB::commit();
+                Log::info('事务提交成功');
             }catch (\Exception $e){
                 DB::rollBack();
                 Log::info('moreTimeUserScoreUpdateFile' , array(
@@ -129,7 +133,11 @@ class MoreTimeUserScoreUpdate implements ShouldQueue
                     'relation'=>$this->relation,
                     'message'=>$e->getMessage(),
                 ));
+                Log::info('事务异常');
             }
+
+            Log::info("事务结束");
+
         }
     }
 
