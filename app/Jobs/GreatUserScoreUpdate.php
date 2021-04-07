@@ -117,7 +117,7 @@ class GreatUserScoreUpdate implements ShouldQueue
 
                 // 积分 排行
                 $memKey = 'helloo:account:user-score-rank';
-                $total  = !empty($userScore['score']) ? $score+$userScore['score'] : $score;
+                $total  = !empty($userScore->score) ? $score+$userScore->score : $score;
                 Redis::zadd($memKey, $total, $userId);
 
                 DB::commit();
