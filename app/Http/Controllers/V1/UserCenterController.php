@@ -308,37 +308,46 @@ class UserCenterController extends BaseController
             $data['liked_id'] = $id;
             $data['created_at'] = $time;
             $like->insert($data);
+            if($type=='video')
+            {
+                $likeCount = DB::table('users_kpi_counts')->where('user_id' , $this->userId)->first();
+                if(blank($likeCount))
+                {
+                    DB::table('users_kpi_counts')->insert(array(
+                        'user_id'=>$this->userId,
+                        'like'=>1,
+                        'like_video'=>1,
+                        'created_at'=>$time,
+                        'updated_at'=>$time,
+                    ));
+                }else{
+                    DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->update(array(
+                        'like'=>DB::raw('like+1'),
+                        'like_video'=>DB::raw('like_video+1'),
+                        'updated_at'=>$time,
+                    ));
+                }
+                MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
+                $likedCount = DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->first();
+                if(blank($likedCount))
+                {
+                    DB::table('users_kpi_counts')->insert(array(
+                        'user_id'=>$model->user_id,
+                        'liked'=>1,
+                        'liked_video'=>1,
+                        'created_at'=>$time,
+                        'updated_at'=>$time,
+                    ));
+                }else{
+                    DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->update(array(
+                        'liked'=>DB::raw('liked+1'),
+                        'liked_video'=>DB::raw('liked_video+1'),
+                        'updated_at'=>$time,
+                    ));
+                }
+                MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
+            }
 
-            $likeCount = DB::table('users_kpi_counts')->where('user_id' , $this->userId)->first();
-            if(blank($likeCount))
-            {
-                DB::table('users_kpi_counts')->insert(array(
-                    'user_id'=>$this->userId,
-                    'like_video'=>1,
-                    'created_at'=>$time,
-                    'updated_at'=>$time,
-                ));
-            }else{
-                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('like' , 1 , array(
-                    'updated_at'=>$time,
-                ));
-            }
-            MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
-            $likedCount = DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->first();
-            if(blank($likedCount))
-            {
-                DB::table('users_kpi_counts')->insert(array(
-                    'user_id'=>$model->user_id,
-                    'liked_video'=>1,
-                    'created_at'=>$time,
-                    'updated_at'=>$time,
-                ));
-            }else{
-                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('liked' , 1 , array(
-                    'updated_at'=>$time,
-                ));
-            }
-            MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
         }
         $model->like +=1;
         $model->save();
