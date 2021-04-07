@@ -84,7 +84,7 @@ class SignUpAndEvent implements ShouldQueue
             $result['video']      = 1;
             $result['photo']      = 1;
             $result['created_at'] = date('Y-m-d H:i:s');
-            DB::table('users_setting')->insert($result);
+            DB::table('users_settings')->insert($result);
 
             $result = collect($result)->only('friend', 'video', 'photo')->toArray();
             $mKey   = 'helloo:account:service:account-privacy:'.$sender['user_id'];
