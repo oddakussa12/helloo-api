@@ -299,6 +299,8 @@ class UserCenterController extends BaseController
         $time = date('Y-m-d H:i:s');
         $model = $type == 'video' ? new Video() : new Photo();
         $model = $model->findOrFail($id);
+
+        Log::info('点赞：like:'.$this->userId. ' liked:'.$model->user_id);
         $like  = $type == 'video' ? new LikeVideo() : new LikePhoto();
         $check = $like->where(['user_id'=>$this->userId, 'liked_id'=>$id])->first();
         if (empty($check)) {
