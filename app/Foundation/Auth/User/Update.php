@@ -549,7 +549,7 @@ trait Update
                 }else{
                     throw new \Exception('Database update failed');
                 }
-                substr($user->user_name , 0 , 3)=='lb_'&&OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{more_time_user_score_update}');
+                substr($user->user_name , 0 , 3)=='lb_' && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
             }catch (\Exception $e)
             {
                 DB::rollBack();

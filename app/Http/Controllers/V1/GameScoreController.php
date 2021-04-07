@@ -110,7 +110,7 @@ class GameScoreController extends BaseController
                     }
                 }
                 DB::commit();
-                GameScore::dispatch($userId , $score , $snowId , $game)->onQueue('helloo_{great_user_score_update}');
+                GameScore::dispatch($userId , $score , $snowId , $game , $now)->onQueue('helloo_{great_user_score_update}');
             }catch (\Exception $e)
             {
                 $code = $e->getCode();

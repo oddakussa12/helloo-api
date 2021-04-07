@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class LikeVideo extends Model
 {
 
-    protected $table = "questions";
+    protected $table = "likes_videos";
 
     protected $primaryKey = 'id';
 

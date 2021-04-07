@@ -163,8 +163,10 @@ $api->group($V1Params , function ($api){
         $api->get('user/center/privacy' , 'UserCenterController@privacy')->name('user.center.privacy'); // 获取隐私配置
         $api->patch('user/center/privacy' , 'UserCenterController@updatePrivacy')->name('user.center.updatePrivacy'); // 修改隐私配置
         $api->post('user/center/like' , 'UserCenterController@like')->name('user.center.like'); // 点赞video/photo
-        $api->get('user/center/medal' , 'UserCenterController@medal')->name('user.center.medal'); // 勋章列表
+        $api->get('user/center/score' , 'UserCenterController@totalScore')->name('user.center.totalScore'); // 总积分
+        $api->get('user/center/{user}/medal' , 'UserCenterController@medal')->name('user.center.medal'); // 勋章列表
         $api->get('user/center/{num}/top' , 'UserCenterController@top')->name('user.center.top'); // top100
+        $api->get('user/friend/{num}/recommend' , 'UserCenterController@recommend')->name('friend.recommend');//获取用户朋友推荐列表
 
         /*****个人中心 结束*****/
 

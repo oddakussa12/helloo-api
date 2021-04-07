@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Custom\Uuid\RandomStringGenerator;
+use App\Models\UserKpiCount;
 use App\Models\User;
 use App\Traits\CachableUser;
 use App\Jobs\Test as TestJob;
@@ -46,6 +47,16 @@ class Test extends Command
         parent::__construct();
     }
 
+    public function initScore(): bool
+    {
+        $users = User::get();
+        foreach ($users as $key=>$user) {
+            //$score  = intval($key/100);
+            $memKey = 'helloo:account:user-score-rank';
+            Redis::zadd($memKey, $key*2, $user->user_id);
+        }
+        return true;
+    }
     /**
      * Execute the console command.
      *
@@ -53,6 +64,11 @@ class Test extends Command
      */
     public function handle()
     {
+        $type = $this->argument('type');
+        if ($type=='score') {
+            return $this->initScore();
+        }
+
         $schools = array(
             "Sekolah Menengah Atas Negri 10",
             "Addis Ababa University",

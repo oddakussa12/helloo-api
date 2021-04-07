@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\V1;
 
 use App\Jobs\MoreTimeUserScoreUpdate;
+use App\Models\Country;
 use App\Models\LikePhoto;
 use App\Models\LikeVideo;
 use App\Models\Photo;
+use App\Models\UserKpiCount;
 use App\Models\User;
 use App\Models\UserFriend;
 use App\Models\UserFriendRequest;
@@ -20,18 +22,29 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
-use Ramsey\Uuid\Uuid;
 
 class UserCenterController extends BaseController
 {
     use CacheableScore;
     private $user;
     private $userId;
+    private $friendKey = 'helloo:account:user-friends';
 
     public function __construct()
     {
         $this->user   = auth()->user();
         $this->userId = auth()->id();
+    }
+
+    /**
+     * @return int
+     * 总积分
+     */
+    public function totalScore()
+    {
+        $memKey = 'helloo:account:user-score-rank';
+        $score  = Redis::zscore($memKey, $this->userId);
+        return $this->response->array(['data'=>['score'=>$score]]);
     }
 
     /**
@@ -80,6 +93,9 @@ class UserCenterController extends BaseController
     {
         $userFriends = app(UserFriendRepository::class)->getAllByUser($userId, 10);
         $friendIds   = $userFriends->pluck('friend_id')->all();
+        if (empty($friendIds)) {
+            return null;
+        }
         $friends     = app(UserRepository::class)->findByMany($friendIds);
         $userFriends->each(function($userFriend) use ($friends){
             $userFriend->friend = new UserCollection($friends->where('user_id', $userFriend->friend_id)->first());
@@ -97,13 +113,16 @@ class UserCenterController extends BaseController
     {
         $videos = Video::select('video_id', 'image', 'like', 'video_url')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $videoIds = $videos->pluck('video_id')->toArray();
+        if (empty($videoIds)) {
+            return [];
+        }
         // 查询点赞表
-        $likes = LikeVideo::where('user_id', $this->userId)->whereIn('liked_id', $videoIds);
+        $likes = LikeVideo::where('user_id', $this->userId)->whereIn('liked_id', $videoIds)->get();
         foreach ($videos as $video) {
             $video->isLiked = false;
             foreach ($likes as $like) {
                 if ($like->liked_id==$video->video_id) {
-                    $like->isLiked = true;
+                    $video->isLiked = true;
                 }
             }
         }
@@ -119,13 +138,16 @@ class UserCenterController extends BaseController
     {
         $photos = Photo::select('photo_id', 'photo', 'like')->where('user_id', $userId)->orderByDesc('created_at')->limit(10)->get();
         $photoIds = $photos->pluck('photo_id')->toArray();
+        if (empty($photoIds)) {
+            return [];
+        }
         // 查询点赞表
-        $likes = LikePhoto::where('user_id', $this->userId)->whereIn('liked_id', $photoIds);
+        $likes = LikePhoto::where('user_id', $this->userId)->whereIn('liked_id', $photoIds)->get();
         foreach ($photos as $photo) {
             $photo->isLiked = false;
             foreach ($likes as $like) {
                 if ($like->liked_id==$photo->photo_id) {
-                    $like->isLiked = true;
+                    $photo->isLiked = true;
                 }
             }
         }
@@ -157,15 +179,17 @@ class UserCenterController extends BaseController
         $image = $params['type'] == 'video' ? 'image' : 'photo';
         $count = $model->where('user_id', $this->userId)->count();
         if ($count>=10) {
-            return $this->response->errorNotFound('超出上限，最多十条');
+            return $this->response->errorNotFound('Extra limit, maximum 10');
         }
+        Log::info('上传参数：', $request->all());
         if (count($images)+$count>10) {
-            return $this->response->errorNotFound('超出上限，最多十条，当前已有'.$count.'条');
+            return $this->response->errorNotFound('Extra limit, maximum 10');
         }
 
         foreach ($images as $key=>$item) {
             $data = [];
-            $data[$model->getKeyName()] = app('snowflake')->id();
+            $id = app('snowflake')->id();
+            $data[$model->getKeyName()] = $id;
             $data['user_id'] = $this->userId;
             $data[$image] = $item;
 
@@ -174,6 +198,8 @@ class UserCenterController extends BaseController
                 $data['bundle_name'] = $params['mask'] ?? '';
             }
             $model->create($data);
+            $type = $params['type'] == 'video' ? 'videoIncrease' : 'photoIncrease';
+            MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
         }
 
         return $this->response->accepted();
@@ -206,7 +232,10 @@ class UserCenterController extends BaseController
                 $params['type']       = 'delMedia';
                 $params['sourceType'] = $type;
                 $params['id']         = $id;
-                $this->delMedia($params);
+
+                $type = $params['type'] == 'video' ? 'videoDecrease' : 'photoDecrease';
+                MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
+
                 DB::commit();
                 return $this->response->accepted();
             }
@@ -263,7 +292,7 @@ class UserCenterController extends BaseController
         if (!empty($result)) {
             $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
             Redis::set($mKey, json_encode($params));
-            Redis::expire($mKey , 86400*30);
+            Redis::expire($mKey , 86400*7);
             return $this->response->accepted();
         } else {
             return $this->response->errorNotFound();
@@ -278,13 +307,8 @@ class UserCenterController extends BaseController
     public function like(Request $request)
     {
         $rules = [
-            'type' => [
-                'required',
-                Rule::in(array('video' , 'photo'))
-            ],
-            'id' => [
-                'required',
-            ],
+            'type' => ['required', Rule::in(array('video' , 'photo'))],
+            'id'   => ['required'],
         ];
         $type  = $request->input('type', '');
         $id    = $request->input('id', 0);
@@ -293,6 +317,8 @@ class UserCenterController extends BaseController
         $time = date('Y-m-d H:i:s');
         $model = $type == 'video' ? new Video() : new Photo();
         $model = $model->findOrFail($id);
+
+        Log::info('点赞：like:'.$this->userId. ' liked:'.$model->user_id);
         $like  = $type == 'video' ? new LikeVideo() : new LikePhoto();
         $check = $like->where(['user_id'=>$this->userId, 'liked_id'=>$id])->first();
         if (empty($check)) {
@@ -301,62 +327,83 @@ class UserCenterController extends BaseController
             $data['user_id'] = $this->userId;
             $data['liked_id'] = $id;
             $data['created_at'] = $time;
-            $like->create($data);
+            $like->insert($data);
+            if($type=='video')
+            {
+                $likeCount = DB::table('users_kpi_counts')->where('user_id' , $this->userId)->first();
+                if(blank($likeCount))
+                {
+                    DB::table('users_kpi_counts')->insert(array(
+                        'user_id'=>$this->userId,
+                        'like'=>1,
+                        'like_video'=>1,
+                        'created_at'=>$time,
+                        'updated_at'=>$time,
+                    ));
+                }else{
+                    DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->update(array(
+                        'like'=>DB::raw('like+1'),
+                        'like_video'=>DB::raw('like_video+1'),
+                        'updated_at'=>$time,
+                    ));
+                }
+                MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
+                $likedCount = DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->first();
+                if(blank($likedCount))
+                {
+                    DB::table('users_kpi_counts')->insert(array(
+                        'user_id'=>$model->user_id,
+                        'liked'=>1,
+                        'liked_video'=>1,
+                        'created_at'=>$time,
+                        'updated_at'=>$time,
+                    ));
+                }else{
+                    DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->update(array(
+                        'liked'=>DB::raw('liked+1'),
+                        'liked_video'=>DB::raw('liked_video+1'),
+                        'updated_at'=>$time,
+                    ));
+                }
+                MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
+            }
 
-            $likeCount = DB::table('ry_messages_counts')->where('user_id' , $this->userId)->first();
-            if(blank($likeCount))
-            {
-                DB::table('ry_messages_counts')->insert(array(
-                    'user_id'=>$this->userId,
-                    'like_video'=>1,
-                    'created_at'=>$time,
-                    'updated_at'=>$time,
-                ));
-            }else{
-                DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->increment('like' , 1 , array(
-                    'updated_at'=>$time,
-                ));
-            }
-            MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
-            $likedCount = DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->first();
-            if(blank($likedCount))
-            {
-                DB::table('ry_messages_counts')->insert(array(
-                    'user_id'=>$model->user_id,
-                    'liked_video'=>1,
-                    'created_at'=>$time,
-                    'updated_at'=>$time,
-                ));
-            }else{
-                DB::table('ry_messages_counts')->where('user_id' , $model->user_id)->increment('liked' , 1 , array(
-                    'updated_at'=>$time,
-                ));
-            }
-            MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
         }
+        $model->like +=1;
+        $model->save();
        return $this->response->accepted();
     }
 
     /**
      * 获取勋章列表
+     * @param $userId
+     * @return array
      */
-    public function medal()
+    public function medal($userId)
     {
+        if (empty((int)$userId)) {
+            return $this->response->errorNotFound('参数异常 userId 不能为空');
+        }
+        $userInfo = User::findOrFail($userId);
         $locale = locale();
-        $locale = $locale == 'zh-CN' ? 'cn' : 'en';
-        $result = DB::table('medals')->get();
+
+        $locale = $locale == 'zh-CN' ? 'cn' : ($locale =='id' ? $locale : 'en');
+        $result = DB::table('medals')->select('title', 'name', 'desc', 'image_light', 'image', 'score', 'category')->get();
         $medals = [];
         $day    = date('Y-m-d');
-        $vlog   = DB::table('users_videos')->where('user_id', $this->userId)->get()->count();
-        $photo  = DB::table('users_photos')->where('user_id', $this->userId)->count();
-        $statistic = DB::table('ry_messages_counts')->where('user_id', $this->userId)->first();
+
+        $vlog   = DB::table('users_videos')->where('user_id', $userId)->get()->count();
+        $photo  = DB::table('users_photos')->where('user_id', $userId)->count();
+        $statistic = UserKpiCount::where('user_id', $this->userId)->first();
+        $statistic = !empty($statistic) ? $statistic : new UserKpiCount();
 
         $mKey       = "helloo:message:service:mutual-video-geq-ten".$day;
         $memKey     = "helloo:message:service:mutual-txt-geq-ten".$day;
 
-        $tenText    = Redis::sismember($memKey, $this->userId);
-        $tenVideo   = Redis::sismember($mKey, $this->userId);
+        $tenText    = Redis::sismember($memKey, $userId);
+        $tenVideo   = Redis::sismember($mKey, $userId);
         $categories = $result->pluck('category')->unique()->toArray();
+        $num = 0;
         foreach ($result as $item) {
             foreach ($categories as $category) {
                 if ($category==$item->category) {
@@ -364,50 +411,63 @@ class UserCenterController extends BaseController
                     $desc = json_decode($item->desc, true);
                     $item->name = $name[$locale];
                     $item->desc = $desc[$locale];
-                    $item->flag = $this->status($item, $statistic, $vlog, $photo, $tenVideo, $tenText);
-
-                    $medals[$category][] = $item;
+                    $flag = $this->status($item, $userInfo, $statistic, $vlog, $photo, $tenVideo, $tenText);
+                    $item->flag  = empty($flag) ? -1 : ($flag===true ? -2 : $flag);
+                    $item->image = empty($flag) ? $item->image : $item->image_light;
+                    $flag && $num++;
+                    $medals[$category][] = collect($item)->except(['title', 'category', 'image_light']);
                 }
             }
        }
+        $medals['achievements'] = $num."/".count($result);
+
+        // 积分 排行
+        $memKey = 'helloo:account:user-score-rank';
+        $rank   = Redis::zrevrank($memKey , $userId);
+        $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
+        $medals['rank']   = (int)$rank+1;
+        $medals['score']  = (int)Redis::zscore($memKey, $userId);
+        $medals['avatar'] = userCover($userInfo->user_avatar);
         return $medals;
     }
 
     /**
      * @param $media
+     * @param $userInfo
      * @param $statistic
      * @param $vlog
      * @param $photo
+     * @param $tenVideo
+     * @param $tenText
      * @return bool
      * 奖章状态
      */
-    public function status($media, $statistic, $vlog, $photo, $tenVideo, $tenText)
+    public function status($media, $userInfo, $statistic, $vlog, $photo, $tenVideo, $tenText)
     {
-        $info = $this->user;
-        switch ($media->title) {
+        switch (trim($media->title)) {
             case 'Profile picture': // 个人头像
-                $flag = stristr($info->user_avatar,'helloo')!==false;
+                $flag = stristr($userInfo->user_avatar,'helloo')!==false;
                 break;
             case 'Background': // 个人背景
-                $flag = !empty($info->user_bg);
+                $flag = !empty($userInfo->user_bg);
                 break;
             case 'School': // 学校信息
-                $flag = stristr($info->user_school, 'other')===false;
+                $flag = !empty($userInfo->user_sl) && stristr($userInfo->user_sl, 'others')===false;
                 break;
             case 'Bio':  // 个性签名
-                $flag = !empty($info->user_about);
+                $flag = !empty($userInfo->user_about);
                 break;
             case 'ID': // 专属ID
-                $flag = stristr($info->user, 'lb_')===false;
+                $flag = stristr($userInfo->user_name, 'lb_')===false;
                 break;
             case 'Used5Masks': // 百变大咖
                 $flag = $statistic->props>=5;
                 break;
             case 'Video being liked': // 人气之星
-                $flag = $statistic->liked_video ?? false;
+                $flag = $statistic->liked ?? false;
                 break;
             case 'Liked others\' videos': // 海中霸主
-                $flag = $statistic->like_video ?? false;
+                $flag = $statistic->like ?? false;
                 break;
             case 'Msgpoint': // message
                 $flag = $statistic->txt ?? false;
@@ -449,16 +509,16 @@ class UserCenterController extends BaseController
                 $flag = $statistic->friend>=100;
                 break;
             case '300Msgs': // 妙语连珠Ⅰ
-                $flag = $statistic->message>=300;
+                $flag = $statistic->sent>=300;
                 break;
             case '1000Msgs': // 妙语连珠Ⅱ
-                $flag = $statistic->message>=1000;
+                $flag = $statistic->sent>=1000;
                 break;
             case '3000Msgs': // 妙语连珠Ⅲ
-                $flag = $statistic->message>=3000;
+                $flag = $statistic->sent>=3000;
                 break;
             case 'Used50Masks': // 面具收集者
-                $flag = $statistic->props=50;
+                $flag = $statistic->props>=50;
                 break;
             case 'Friend from another school': // 交际爱好者
                 $flag = !empty($statistic->other_school_friend);
@@ -478,13 +538,25 @@ class UserCenterController extends BaseController
     public function top($num)
     {
         $num     = $num >=100 ? 100 : $num;
+        $rank    = [3=>1234072139, 6=>1562134513, 7=>1402551869, 11=>2091996857, 23=>1885497935, 35=>1399005307];
+        $tmpId   = array_values($rank);
         $memKey  = 'helloo:account:user-score-rank';
         $members = Redis::zrevrangebyscore($memKey, '+inf', '-inf', ['withScores'=>true, 'limit'=>[0,$num]]);
-        $userIds = array_keys($members);
+
+        foreach ($rank as $kk=>$vv) {
+            $score       = intval(array_sum(array_slice($members, $kk-2, 2))/2);
+            $first_array = array_slice($members, 0, $kk-1, true);
+            $members     = $first_array + [$vv=>"$score"] + $members;
+        }
+        $members = array_slice($members, 0, 100, true);
+
+        $uIds    = array_keys($members);
+        $userIds = array_merge($uIds, $tmpId);
         $isExist = array_search($this->userId, $userIds);
         $users   = User::whereIn('user_id', $userIds)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
         $friends = UserFriend::where('user_id', $this->userId)->whereIn('friend_id', $userIds)->get();
         $request = UserFriendRequest::where('request_from_id', $this->userId)->whereIn('request_to_id', $userIds)->get();
+
         foreach ($users as $user) {
             $user->status = false;
             if ($isExist && $user->user_id==$this->userId) {
@@ -515,4 +587,154 @@ class UserCenterController extends BaseController
 
     }
 
+    /**
+     * @param $num
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|void
+     * 朋友推荐
+     */
+    public function recommend($num)
+    {
+        if (empty((int)$num)) {
+            return $this->response->errorBadRequest();
+        }
+        $num = $num >= 30 ? 30 : 10;
+        $middle = $num/2;
+        $memKey = 'helloo:account:user-recommend';
+        $all    = Redis::SMEMBERS($this->friendKey.$this->userId);
+        if (empty($all)) {
+            $all = UserFriend::where('user_id', $this->userId)->pluck('friend_id')->toArray(); // 所有的好友
+            Redis::sadd($this->friendKey.$this->userId, $all);
+            Redis::expire($this->friendKey.$this->userId, 86400*30);
+        }
+
+        // 有共同好友
+        $friendIds = $this->mutualFriend($num, $all, $memKey);
+        $fCount    = count($friendIds);
+
+        // 同校
+        $all     = array_merge($all, $friendIds, [$this->userId]);
+        $schools = $this->mutualSchool($num, $all, $memKey);
+        $sCount  = count($schools);
+
+        $finalFriend = $finalSchool = $finalCountry = [];
+        // 同国家
+        if (($fCount+$sCount) < $num) {
+            $all     = array_merge($all, $schools);
+            $country = $this->mutualCountry($num, $all, $memKey);
+            $finalFriend = $friendIds;
+            $finalSchool = $schools;
+            $finalCountry= array_slice($country, $num-($fCount+$sCount));
+        } else {
+            if ($fCount >= $middle && $sCount >= $middle) {
+              $finalFriend = array_slice($friendIds, 0, $middle);
+              $finalSchool = array_slice($schools, 0, $middle);
+            }
+            if ($fCount >= $middle && $sCount < $middle) {
+                $finalFriend = array_slice($friendIds, 0, $num-$sCount);
+                $finalSchool = $schools;
+            }
+            if ($fCount < $middle && $sCount >= $middle) {
+                $finalFriend = $friendIds;
+                $finalSchool = array_slice($schools, 0, $num-$fCount);
+            }
+        }
+        $ids  = array_merge($finalFriend, $finalSchool, $finalCountry);
+        $users = User::whereIn('user_id', $ids)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
+        foreach ($users as $user) {
+            if (in_array($user->user_id, $finalFriend)) {
+                $user->flag = 1;
+            }
+            if (empty($user->flag) && in_array($user->user_id, $finalSchool)) {
+                $user->flag = 2;
+            }
+            if (empty($user->flag) && in_array($user->user_id, $finalCountry)) {
+                $user->flag = 3;
+            }
+        }
+
+        $users = collect($users)->sortBy('flag')->values();
+        $users = collect($users)->map(function ($user) {
+            $user->flag = $user->flag == 1 ? 'friend' : ($user->flag==2 ? 'school' : 'country');
+            return $user;
+        });
+        return UserCollection::collection($users);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $memKey
+     * 同国家
+     * @return array|mixed
+     */
+    public function mutualCountry($num, $all, $memKey)
+    {
+        $country = $this->user->user_country;
+        if(empty($country)) {
+            return [];
+        }
+
+        $users = Country::where('user_country', $country)->pluck('user_id')->toArray();
+        return $this->diff($num, $all, $users);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $memKey
+     * 同校的
+     * @return array
+     */
+    public function mutualSchool($num, $all, $memKey)
+    {
+        $school = $this->user->user_school;
+        if(empty($school) && strtolower($this->user->user_school) == 'other') {
+            return [];
+        }
+
+        $school = User::where('user_school', $school)->pluck('user_id')->toArray();
+        return $this->diff($num, $all, $school);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $memKey
+     * @return mixed
+     * 有共同好友的
+     */
+    public function mutualFriend($num, $all, $memKey)
+    {
+        $rand    = count($all) > $num ? $num : count($all);
+        $friends = array_random($all, $rand);
+
+        $list = [];
+        foreach ($friends as $friend) {
+            $users = Redis::SMEMBERS($this->friendKey.$friend);
+            if (empty($users)) {
+                $users = UserFriend::where('user_id', $friends)->pluck('friend_id')->unique()->toArray();
+                Redis::sadd($this->friendKey.$friend, $users);
+                Redis::expire($this->friendKey.$friend, 86400*30);
+            }
+            $list = array_merge(array_diff($list, $all));
+        }
+
+        return $this->diff($num, $all, $list);
+    }
+
+    /**
+     * @param $num
+     * @param $all
+     * @param $users
+     * @return mixed
+     *
+     */
+    public function diff($num, $all, $users)
+    {
+        $all  = array_merge($all, [$this->userId]);
+        $diff = array_diff($users, $all);
+        $diff = collect($diff)->unique()->toArray();
+        $rand = count($diff) > $num ? $num : count($diff);
+        return array_random($diff, $rand);
+    }
 }

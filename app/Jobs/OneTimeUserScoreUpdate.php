@@ -11,22 +11,28 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Redis;
 
 class OneTimeUserScoreUpdate implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
 
-    private $user;
+    private $userId;
     private $type;
     /**
      * @var int
      */
     private $time;
 
-    public function __construct(User $user , $type)
+    public function __construct($user , $type)
     {
-        $this->user = $user;
+        if($user instanceof User)
+        {
+            $this->userId = $user->getKey();
+        }else{
+            $this->userId = $user;
+        }
         $this->type = $type;
         $this->time = Carbon::now()->toDateTimeString();
     }
@@ -63,10 +69,12 @@ class OneTimeUserScoreUpdate implements ShouldQueue
         }
         if($score!=0)
         {
-            $userId = $this->user->getKey();
+            $userId = $this->userId;
             $data = array(
+                'id'=>app('snowflake')->id(),
                 'user_id'=>$userId,
                 'type'=>$this->type,
+                'score'=>$score,
                 'created_at'=>$this->time,
             );
             try{
@@ -90,10 +98,16 @@ class OneTimeUserScoreUpdate implements ShouldQueue
                         'updated_at'=>$this->time,
                     ));
                 }
-                if(intdiv($scoreResult)<=0)
+                if(intval($scoreResult)<=0)
                 {
                     throw new \Exception('user score insert or update fail');
                 }
+
+                // 积分 排行
+                $memKey = 'helloo:account:user-score-rank';
+                $total  = !empty($userScore->score) ? $score+$userScore->score : $score;
+                Redis::zadd($memKey, $total, $userId);
+
                 DB::commit();
             }catch (\Exception $e){
                 DB::rollBack();
