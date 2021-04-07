@@ -44,6 +44,7 @@ class MoreTimeUserScoreUpdate implements ShouldQueue
     public function handle()
     {
         Log::info("MoreTimeUserScoreUpdate handle::: ". $this->type);
+        dump($this->type);
         switch ($this->type)
         {
             case 'likeVideo':
