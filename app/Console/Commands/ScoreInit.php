@@ -167,7 +167,10 @@ class ScoreInit extends Command
                             $score = $score+100;
                         }
                     }
-                    !blank($data)&&DB::table('users_scores_logs_'.$this->hashDbIndex($user->user_id))->insert($data);
+                    if(!blank($data))
+                    {
+                        DB::table('users_scores_logs_'.$this->hashDbIndex($user->user_id))->insert($data);
+                    }
                     $score>0&&DB::table('users_scores')->insert(array(
                         'user_id'=>$userId,
                         'init'=>$score,
