@@ -1349,7 +1349,7 @@ if (! function_exists('fakeLike')) {
 if (!function_exists('userCover')) {
     function userCover($value='', $type='avatar') {
         if ($type=='avatar') {
-            $value = empty($value) ? 'default_avatar.png' : $value;
+            $value = empty($value) ? 'default_avatar.jpg' : $value;
         } else {
             $value = empty($value) ? 'default_cover.png' : $value;
         }
