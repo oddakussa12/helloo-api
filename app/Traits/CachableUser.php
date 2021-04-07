@@ -19,7 +19,7 @@ trait CachableUser
             'user_name'=>$user->user_name,
             'user_nick_name'=>$user->user_nick_name,
             'user_gender'=>-1,
-            'user_avatar'=>'default_avatar.jpg', //默认头像
+            'user_avatar'=>'default_avatar.png', //默认头像
             'user_cover'=>'default_cover.png',
             'user_country_id'=>$user->user_country_id,
             'user_age'=>0,

@@ -440,7 +440,7 @@ trait Update
         if($flag==true)
         {
             UserSynchronization::dispatch($user , 'activation')->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
-            if(isset($data['user_avatar'])&&$data['user_avatar']!='default_avatar.jpg')
+            if(isset($data['user_avatar'])&&$data['user_avatar']!='default_avatar.png')
             {
                 OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
             }

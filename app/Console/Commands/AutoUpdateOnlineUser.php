@@ -89,7 +89,7 @@ class AutoUpdateOnlineUser extends Command
                                     'user_age'=>$user_age,
                                     'user_gender'=>$user_gender??0,
                                     'user_country_id'=>$user_country_id??246,
-                                    'user_avatar'=>$user_avatar??'default_avatar.jpg',
+                                    'user_avatar'=>$user_avatar??'default_avatar.png',
                                     'user_created_at'=>$user_created_at??$date,
                                     'created_at'=>$time,
                                     'updated_at'=>$time,

@@ -52,7 +52,7 @@ class ScoreInit extends Command
                     $score = 0;
                     $userId = $user->user_id;
                     $avatar = $bg = $user_sl = $about = $name = false;
-                    if($user->user_avatar!='default_avatar.jpg')
+                    if($user->user_avatar!='default_avatar.png')
                     {
                         array_push($data , array(
                             'id'=>app('snowflake')->id(),

@@ -129,7 +129,7 @@ class AuthController extends BaseController
         {
             $fields['user_birthday'] = $user_birthday;
         }
-        if(!empty($user_avatar)&&$user->user_avatar=='default_avatar.jpg')
+        if(!empty($user_avatar)&&$user->user_avatar=='default_avatar.png')
         {
             $fields['user_avatar'] = $user_avatar;
         }
