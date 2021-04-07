@@ -55,6 +55,7 @@ class ScoreInit extends Command
                     if($user->user_avatar!='default_avatar.jpg')
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'fillAvatar',
                             'score'=>20,
@@ -65,6 +66,7 @@ class ScoreInit extends Command
                     if(!blank($user->user_bg))
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'fillCover',
                             'score'=>15,
@@ -75,6 +77,7 @@ class ScoreInit extends Command
                     if(!blank($user->user_sl)&&strtolower($user->user_sl)!='other')
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'fillSchool',
                             'score'=>15,
@@ -85,6 +88,7 @@ class ScoreInit extends Command
                     if(!blank($user->user_about))
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'fillAbout',
                             'score'=>20,
@@ -95,6 +99,7 @@ class ScoreInit extends Command
                     if(!blank($user->user_name)&&substr($user->user_name , 0 , 3)!='lb_')
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'fillName',
                             'score'=>5,
@@ -106,6 +111,7 @@ class ScoreInit extends Command
                     if($friendCount>=10)
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'socialI',
                             'score'=>30,
@@ -116,6 +122,7 @@ class ScoreInit extends Command
                     if($friendCount>=30)
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'socialII',
                             'score'=>150,
@@ -126,6 +133,7 @@ class ScoreInit extends Command
                     if($friendCount>=100)
                     {
                         array_push($data , array(
+                            'id'=>app('snowflake')->id(),
                             'user_id'=>$userId,
                             'type'=>'socialIII',
                             'score'=>350,
@@ -139,6 +147,7 @@ class ScoreInit extends Command
                         if($userGameScore->score>=300)
                         {
                             array_push($data , array(
+                                'id'=>app('snowflake')->id(),
                                 'user_id'=>$userId,
                                 'type'=>'talkativeI',
                                 'score'=>25,
@@ -149,6 +158,7 @@ class ScoreInit extends Command
                         if($userGameScore->score>=800)
                         {
                             array_push($data , array(
+                                'id'=>app('snowflake')->id(),
                                 'user_id'=>$userId,
                                 'type'=>'talkativeII',
                                 'score'=>50,
@@ -159,6 +169,7 @@ class ScoreInit extends Command
                         if($userGameScore->score>=1500)
                         {
                             array_push($data , array(
+                                'id'=>app('snowflake')->id(),
                                 'user_id'=>$userId,
                                 'type'=>'talkativeIII',
                                 'score'=>100,
