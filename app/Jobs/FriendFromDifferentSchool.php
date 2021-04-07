@@ -43,18 +43,18 @@ class FriendFromDifferentSchool implements ShouldQueue
     public function handle()
     {
         $friend = app(UserRepository::class)->findByUserId($this->friendId)->toArray();
-        Log::info('$friend' , $friend);
+//        Log::info('$friend' , $friend);
         if($this->type=='accept')
         {
-            Log::info('user' , array($this->user->user_sl , $friend['user_sl']));
+//            Log::info('user' , array($this->user->user_sl , $friend['user_sl']));
             if($friend['user_sl']!=$this->user->user_sl&&$friend['user_sl']!='other'&&$this->user->user_sl!='other')
             {
-                $flag = DB::table('users_friends')->join('users' , function ($user) use ($friend){
-                    $user->on('users.user_id' , 'users_friends.friend_id')->where('user_sl' , $friend['user_sl']);
-                })->where('users_friends.user_id' , $this->user->user_id)->first();
-                Log::info('$flag' , array($flag));
-                if(blank($flag))
-                {
+//                $flag = DB::table('users_friends')->join('users' , function ($user) use ($friend){
+//                    $user->on('users.user_id' , 'users_friends.friend_id')->where('user_sl' , $friend['user_sl']);
+//                })->where('users_friends.user_id' , $this->user->user_id)->first();
+//                Log::info('$flag' , array($flag));
+//                if(blank($flag))
+//                {
                     $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();
                     if(blank($counts))
                     {
@@ -87,7 +87,7 @@ class FriendFromDifferentSchool implements ShouldQueue
                     }
                     GreatUserScoreUpdate::dispatch($this->user->user_id , 'otherSchoolFriend' , $this->friendId)->onQueue('helloo_{great_user_score_update}');
                     GreatUserScoreUpdate::dispatch($this->friendId , 'otherSchoolFriend' , $this->user->user_id)->onQueue('helloo_{great_user_score_update}');
-                }
+//                }
             }
             $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();
             if(blank($counts))
