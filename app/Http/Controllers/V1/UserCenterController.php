@@ -342,7 +342,7 @@ class UserCenterController extends BaseController
                     ));
                 }else{
                     DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->update(array(
-                        'like'=>DB::raw('like+1'),
+                        'like'=>DB::raw('`like`+1'),
                         'like_video'=>DB::raw('like_video+1'),
                         'updated_at'=>$time,
                     ));
