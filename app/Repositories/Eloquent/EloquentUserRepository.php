@@ -89,7 +89,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
         }
-        if(isset($data['user_avatar'])&&blank($original['user_avatar']))
+        if(isset($data['user_bg'])&&blank($original['user_bg']))
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillCover')->onQueue('helloo_{one_time_user_score_update}');
         }
