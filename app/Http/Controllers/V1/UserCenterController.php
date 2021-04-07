@@ -319,7 +319,7 @@ class UserCenterController extends BaseController
                     'updated_at'=>$time,
                 ));
             }else{
-                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('like' , 1 , array(
+                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('like_video' , 1 , array(
                     'updated_at'=>$time,
                 ));
             }
@@ -334,7 +334,7 @@ class UserCenterController extends BaseController
                     'updated_at'=>$time,
                 ));
             }else{
-                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('liked' , 1 , array(
+                DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->increment('liked_video' , 1 , array(
                     'updated_at'=>$time,
                 ));
             }
