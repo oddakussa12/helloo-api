@@ -423,7 +423,7 @@ class UserCenterController extends BaseController
                 $flag = !empty($userInfo->user_bg);
                 break;
             case 'School': // 学校信息
-                $flag = stristr($userInfo->user_school, 'other')===false;
+                $flag = !empty($userInfo->user_sl) && stristr($userInfo->user_sl, 'others')===false;
                 break;
             case 'Bio':  // 个性签名
                 $flag = !empty($userInfo->user_about);
