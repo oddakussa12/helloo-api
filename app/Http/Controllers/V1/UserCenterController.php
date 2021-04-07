@@ -187,7 +187,8 @@ class UserCenterController extends BaseController
 
         foreach ($images as $key=>$item) {
             $data = [];
-            $data[$model->getKeyName()] = app('snowflake')->id();
+            $id = app('snowflake')->id();
+            $data[$model->getKeyName()] = $id;
             $data['user_id'] = $this->userId;
             $data[$image] = $item;
 
@@ -196,6 +197,8 @@ class UserCenterController extends BaseController
                 $data['bundle_name'] = $params['mask'] ?? '';
             }
             $model->create($data);
+            $type = $params['type'] == 'video' ? 'videoIncrease' : 'photoIncrease';
+            MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
         }
 
         return $this->response->accepted();
@@ -228,7 +231,10 @@ class UserCenterController extends BaseController
                 $params['type']       = 'delMedia';
                 $params['sourceType'] = $type;
                 $params['id']         = $id;
-                $this->delMedia($params);
+
+                $type = $params['type'] == 'video' ? 'videoDecrease' : 'photoDecrease';
+                MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
+
                 DB::commit();
                 return $this->response->accepted();
             }
