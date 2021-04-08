@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 
 
+use App\Models\UserScore;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,7 @@ class ScoreInit extends Command
      *
      * @var string
      */
-    protected $signature = 'score:init';
+    protected $signature = 'score:init {type}';
 
     /**
      * The console command description.
@@ -39,6 +40,60 @@ class ScoreInit extends Command
      * @return void
      */
     public function handle()
+    {
+        $type = $this->argument('type');
+        if ($type =='friend') {
+            $this->friendInit();
+        }
+        if ($type =='all') {
+            // $this->allInit();
+        }
+    }
+
+    public function friendInit()
+    {
+        $now = date('Y-m-d H:i:s');
+        DB::table('users')
+            ->where('user_activation' , 1)
+            ->where('user_created_at' , '<=' , $now)
+            ->where('user_id', '1233392469')
+            ->orderByDesc('user_id')
+            ->chunk(100 , function ($users) use ($now){
+                foreach ($users as $user)
+                {
+                    $userId = $user->user_id;
+                    $hash   = $this->hashDbIndex($userId);
+                    $friendCount = DB::table('users_friends')->where('user_id' , $userId)->count();
+                    if (empty($friendCount))
+                    {
+                        return;
+                    }
+                    $score  = $friendCount*2;
+                    $result = DB::table('users_scores_logs_'.$hash)->select(DB::raw('sum(score) score'))->where('type', 'like', 'friend%')->where('user_id', $userId)->first();
+                    $info   = UserScore::where('user_id', $userId)->first();
+                    if (empty($info)) {
+                        $score>0&&DB::table('users_scores')->insert(array(
+                            'user_id'=>$userId,
+                            'init'=>$score,
+                            'score'=>$score,
+                            'created_at'=>$now,
+                        ));
+                    } else {
+                        $friend = !empty($result->score) ? $result->score : 0;
+                        $score  = $score-$friend;
+                        if ($score) {
+                            $info->init  += $score;
+                            $info->score += $score;
+                            $info->updated_at = $now;
+                            $info->save();
+                        }
+                    }
+                }
+            });
+
+    }
+
+    public function allInit()
     {
         $now = date('Y-m-d H:i:s');
         DB::table('users')
@@ -108,6 +163,18 @@ class ScoreInit extends Command
                         $score = $score+5;
                     }
                     $friendCount = DB::table('users_friends')->where('user_id' , $user->user_id)->count();
+                    if (!empty($friendCount))
+                    {
+                        $fCount = $friendCount*2;
+                        array_push($data , array(
+                            'id'=>app('snowflake')->id(),
+                            'user_id'=>$userId,
+                            'type'=>'friendAccept',
+                            'score'=>$fCount,
+                            'created_at'=>$now,
+                        ));
+                        $score = $score+$fCount;
+                    }
                     if($friendCount>=10)
                     {
                         array_push($data , array(
@@ -206,7 +273,8 @@ class ScoreInit extends Command
                         ));
                     }
                 }
-        });
+            });
+
     }
 
     private function hashDbIndex($string , $hashNumber=8)
