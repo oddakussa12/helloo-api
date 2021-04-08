@@ -1,33 +1,42 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Console\Commands;
 
-use App\Models\User;
-use App\Models\UserFriend;
-use App\Models\UserFriendRequest;
-use Carbon\Carbon;
-use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
+
+
+use App\Models\UserScore;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
-class Rank implements ShouldQueue
+class RankInit extends Command
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-
-    private $school;
-
-    public function __construct($school)
-    {
-        $this->school = $school;
-    }
 
     /**
-     * Execute the job.
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'rank:init';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Rank init';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+    /**
+     * Execute the console command.
      *
      * @return void
      */
