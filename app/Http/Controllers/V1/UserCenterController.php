@@ -446,7 +446,7 @@ class UserCenterController extends BaseController
     {
         switch (trim($media->title)) {
             case 'Profile picture': // 个人头像
-                $flag = stristr($userInfo->user_avatar,'helloo')!==false;
+                $flag = $userInfo->user_avatar !=='default_avatar.jpg'; // stristr($userInfo->user_avatar,'helloo')!==false;
                 break;
             case 'Background': // 个人背景
                 $flag = !empty($userInfo->user_bg);

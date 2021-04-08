@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Models\UserScore;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class ScoreInit extends Command
 {
@@ -86,6 +87,9 @@ class ScoreInit extends Command
                             $info->score += $score;
                             $info->updated_at = $now;
                             $info->save();
+                            $memKey  = 'helloo:account:user-score-rank';
+                            Redis::zadd($memKey, $info->score, $userId);
+
                         }
                     }
                 }
