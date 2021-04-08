@@ -42,20 +42,21 @@ class ScoreInit extends Command
     public function handle()
     {
         $type = $this->argument('type');
-        if ($type =='school') {
-            $this->schoolInit();
+        if ($type =='friend') {
+            $this->friendInit();
         }
         if ($type =='all') {
-            $this->allInit();
+            // $this->allInit();
         }
     }
 
-    public function schoolInit()
+    public function friendInit()
     {
         $now = date('Y-m-d H:i:s');
         DB::table('users')
             ->where('user_activation' , 1)
             ->where('user_created_at' , '<=' , $now)
+            ->where('user_id', '1233392469')
             ->orderByDesc('user_id')
             ->chunk(100 , function ($users) use ($now){
                 foreach ($users as $user)
@@ -67,21 +68,9 @@ class ScoreInit extends Command
                     {
                         return;
                     }
-                    $score = $friendCount*2;
-                    /*$data = [
-                        'id'=>app('snowflake')->id(),
-                        'user_id'=>$userId,
-                        'type'=>'friendAccept',
-                        'score'=>$score,
-                        'created_at'=>$now
-                    ];
-                    if(!blank($data))
-                    {
-                        DB::table('users_scores_logs_'.$this->hashDbIndex($user->user_id))->insert($data);
-                    }*/
-
+                    $score  = $friendCount*2;
                     $result = DB::table('users_scores_logs_'.$hash)->select(DB::raw('sum(score) score'))->where('type', 'like', 'friend%')->where('user_id', $userId)->first();
-                    $info = UserScore::where('user_id', $userId)->first();
+                    $info   = UserScore::where('user_id', $userId)->first();
                     if (empty($info)) {
                         $score>0&&DB::table('users_scores')->insert(array(
                             'user_id'=>$userId,
