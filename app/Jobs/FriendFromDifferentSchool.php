@@ -55,8 +55,8 @@ class FriendFromDifferentSchool implements ShouldQueue
 //                Log::info('$flag' , array($flag));
 //                if(blank($flag))
 //                {
-                    $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();
-                    if(blank($counts))
+                    $uCounts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();
+                    if(blank($uCounts))
                     {
                         DB::table('users_kpi_counts')->insertGetId((array(
                             'user_id'=>$this->user->user_id,
@@ -65,13 +65,13 @@ class FriendFromDifferentSchool implements ShouldQueue
                             'updated_at'=>$this->now,
                         )));
                     }else{
-                        $id = $counts->id;
+                        $id = $uCounts->id;
                         DB::table('users_kpi_counts')->where('id' , $id)->increment('other_school_friend' , 1 , array(
                             'updated_at'=>$this->now,
                         ));
                     }
-                    $counts = DB::table('users_kpi_counts')->where('user_id' , $friend['user_id'])->first();
-                    if(blank($counts))
+                    $fCounts = DB::table('users_kpi_counts')->where('user_id' , $friend['user_id'])->first();
+                    if(blank($fCounts))
                     {
                         DB::table('users_kpi_counts')->insertGetId((array(
                             'user_id'=>$friend['user_id'],
@@ -80,13 +80,17 @@ class FriendFromDifferentSchool implements ShouldQueue
                             'updated_at'=>$this->now,
                         )));
                     }else{
-                        $id = $counts->id;
+                        $id = $fCounts->id;
                         DB::table('users_kpi_counts')->where('id' , $id)->increment('other_school_friend' , 1 , array(
                             'updated_at'=>$this->now,
                         ));
                     }
-                    GreatUserScoreUpdate::dispatch($this->user->user_id , 'otherSchoolFriend' , $this->friendId)->onQueue('helloo_{great_user_score_update}');
-                    GreatUserScoreUpdate::dispatch($this->friendId , 'otherSchoolFriend' , $this->user->user_id)->onQueue('helloo_{great_user_score_update}');
+                    if (empty($uCounts) || $uCounts->other_school_friend<1) {
+                        GreatUserScoreUpdate::dispatch($this->user->user_id , 'otherSchoolFriend' , $this->friendId)->onQueue('helloo_{great_user_score_update}');
+                    }
+                    if (empty($fCounts) || $fCounts->other_school_friend<1) {
+                        GreatUserScoreUpdate::dispatch($this->friendId , 'otherSchoolFriend' , $this->user->user_id)->onQueue('helloo_{great_user_score_update}');
+                    }
 //                }
             }
             $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();

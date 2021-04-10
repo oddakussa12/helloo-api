@@ -4,9 +4,12 @@ namespace App\Console\Commands;
 
 
 
+use App\Models\User;
+use App\Models\UserKpiCount;
 use App\Models\UserScore;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class ScoreInit extends Command
@@ -46,8 +49,43 @@ class ScoreInit extends Command
         if ($type =='friend') {
             $this->friendInit();
         }
+        if ($type =='otherSchool') {
+            $this->otherSchoolInit();
+        }
         if ($type =='all') {
-            // $this->allInit();
+             $this->allInit();
+        }
+    }
+
+    public function otherSchoolInit()
+    {
+        $time = date('Y-m-d H:i:s');
+        $kpis = UserKpiCount::where('other_school_friend', '>', 1)->select('user_id', 'other_school_friend')->get();
+        foreach ($kpis as $kpi) {
+            $hash  = hashDbIndex($kpi->user_id);
+            try{
+                DB::beginTransaction();
+                $table = 'users_scores_logs_'.$hash;
+
+                $where = ['user_id'=>$kpi->user_id, 'type'=>'otherSchoolFriend'];
+                $count = DB::table($table)->where($where)->count();
+                if ($count>1) {
+                    $score = ($count-1) * 100;
+                    $minId = DB::table($table)->select(DB::raw('min(id)'))->where($where)->first();
+                    DB::table($table)->where($where)->whereNotIn('id', collect($minId)->toArray())->delete();
+
+                    $userScore = DB::table('users_scores')->where('user_id', $kpi->user_id)->first();
+                    $update    = DB::table('users_scores')->where('user_id', $kpi->user_id)->decrement('score', $score, ['updated_at'=>$time]);
+                }
+                DB::commit();
+                // 积分 排行
+                $memKey = 'helloo:account:user-score-rank';
+                $total  = $userScore->score - $score;
+                Redis::zadd($memKey, $total, $kpi->user_id);
+
+            }catch (\Exception $e){
+                DB::rollBack();
+            }
         }
     }
 
@@ -63,7 +101,7 @@ class ScoreInit extends Command
                 foreach ($users as $user)
                 {
                     $userId = $user->user_id;
-                    $hash   = $this->hashDbIndex($userId);
+                    $hash   = hashDbIndex($userId);
                     $friendCount = DB::table('users_friends')->where('user_id' , $userId)->count();
                     if (empty($friendCount))
                     {
@@ -83,13 +121,9 @@ class ScoreInit extends Command
                         $friend = !empty($result->score) ? $result->score : 0;
                         $score  = $score-$friend;
                         if ($score) {
-                            $info->init  += $score;
-                            $info->score += $score;
-                            $info->updated_at = $now;
-                            $info->save();
+                            UserScore::where('user_id', $userId)->update(['init'=>$info->init+$score, 'score'=>$info->score+$score,'updated_at'=>$now]);
                             $memKey  = 'helloo:account:user-score-rank';
                             Redis::zadd($memKey, $info->score, $userId);
-
                         }
                     }
                 }
@@ -99,10 +133,13 @@ class ScoreInit extends Command
 
     public function allInit()
     {
-        $now = date('Y-m-d H:i:s');
+        $result = DB::select("select user_id from (select user_id, count(1) num from t_users_scores group by user_id having num > 1) b");
+        $uids   = collect($result)->pluck('user_id')->toArray();
+        $now    = date('Y-m-d H:i:s');
         DB::table('users')
             ->where('user_activation' , 1)
             ->where('user_created_at' , '<=' , $now)
+            ->whereIn('user_id', $uids)
             ->orderByDesc('user_id')
             ->chunk(100 , function ($users) use ($now){
                 foreach ($users as $user)
@@ -110,7 +147,7 @@ class ScoreInit extends Command
                     $data = array();
                     $score = 0;
                     $userId = $user->user_id;
-                    $avatar = $bg = $user_sl = $about = $name = false;
+                    dump($userId. '--------------------'.hashDbIndex($userId));
                     if($user->user_avatar!='default_avatar.jpg')
                     {
                         array_push($data , array(
@@ -166,6 +203,7 @@ class ScoreInit extends Command
                         ));
                         $score = $score+5;
                     }
+
                     $friendCount = DB::table('users_friends')->where('user_id' , $user->user_id)->count();
                     if (!empty($friendCount))
                     {
@@ -251,14 +289,19 @@ class ScoreInit extends Command
                     }
                     if(!blank($data))
                     {
-                        DB::table('users_scores_logs_'.$this->hashDbIndex($user->user_id))->insert($data);
+                        DB::table('users_scores_logs_'.hashDbIndex($user->user_id))->delete();
+                        DB::table('users_scores_logs_'.hashDbIndex($user->user_id))->insert($data);
                     }
-                    $score>0&&DB::table('users_scores')->insert(array(
-                        'user_id'=>$userId,
-                        'init'=>$score,
-                        'score'=>$score,
-                        'created_at'=>$now,
-                    ));
+
+                    $info   = UserScore::where('user_id', $userId)->first();
+                    if (empty($info)) {
+                        $score>0 && DB::table('users_scores')->insert(['user_id'=>$userId, 'init'=>$score, 'score'=>$score, 'created_at'=>$now]);
+                    } else {
+                        UserScore::where('user_id', $userId)->update(['init'=>$score, 'score'=>$score,'updated_at'=>$now]);
+                        $memKey = 'helloo:account:user-score-rank';
+                        Redis::zadd($memKey, $score, $userId);
+                    }
+
                     $kpi = DB::table('users_kpi_counts')->where('user_id' , $userId)->first();
                     if(blank($kpi))
                     {
@@ -278,20 +321,5 @@ class ScoreInit extends Command
                     }
                 }
             });
-
     }
-
-    private function hashDbIndex($string , $hashNumber=8)
-    {
-        $checksum  = crc32(md5(strtolower(strval($string))));
-        if(8==PHP_INT_SIZE){
-            if($checksum >2147483647){
-                $checksum  = $checksum&(2147483647);
-                $checksum = ~($checksum-1);
-                $checksum = $checksum&2147483647;
-            }
-        }
-        return (abs($checksum) % intval($hashNumber));
-    }
-
 }

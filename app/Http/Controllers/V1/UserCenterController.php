@@ -13,7 +13,6 @@ use App\Models\UserFriend;
 use App\Models\UserFriendRequest;
 use App\Models\Video;
 use App\Repositories\Contracts\UserFriendRepository;
-use App\Traits\CacheableScore;
 use Illuminate\Validation\Rule;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
@@ -25,7 +24,6 @@ use Illuminate\Support\Facades\Validator;
 
 class UserCenterController extends BaseController
 {
-    use CacheableScore;
     private $user;
     private $userId;
     private $friendKey = 'helloo:account:user-friends';
