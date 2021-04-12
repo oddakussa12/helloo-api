@@ -130,11 +130,14 @@ class GroupMemberController extends BaseController
         {
             return $this->response->errorNotFound('Sorry, this user was not found!');
         }
-        $group = Group::where('id' , $id)->first();
+        $group = Group::where('id' , $id)->first()->makeVisible(array('is_deleted'));
         if(empty($group)||$group->is_deleted==1)
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
+        Log::info('administator' , array(
+            $group->administator,$userId
+        ));
         if($group->administator!=$userId)
         {
             return $this->response->errorForbidden('Sorry, you do not have permission to delete others!');
