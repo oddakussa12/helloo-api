@@ -136,7 +136,8 @@ class GroupMemberController extends BaseController
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
         Log::info('administator' , array(
-            $group->administator,$userId
+            $group->id,$userId,
+            $group->administator
         ));
         if($group->administator!=$userId)
         {
