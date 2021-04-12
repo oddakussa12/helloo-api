@@ -111,6 +111,7 @@ class GroupController extends BaseController
                         'id'      => $id,
                         'name'    => $name,
                     ));
+                    Log::info('$result' , $result);
                     $result['code']!=200 && abort(405 , 'RY Group update failed!');
                 }
                 !$groupResult        && abort(405 , 'Group update failed!');
