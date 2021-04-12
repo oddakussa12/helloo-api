@@ -13,7 +13,6 @@ use App\Models\UserFriend;
 use App\Models\UserFriendRequest;
 use App\Models\Video;
 use App\Repositories\Contracts\UserFriendRepository;
-use App\Traits\CacheableScore;
 use Illuminate\Validation\Rule;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\UserCollection;
@@ -25,7 +24,6 @@ use Illuminate\Support\Facades\Validator;
 
 class UserCenterController extends BaseController
 {
-    use CacheableScore;
     private $user;
     private $userId;
     private $friendKey = 'helloo:account:user-friends';
@@ -446,7 +444,7 @@ class UserCenterController extends BaseController
     {
         switch (trim($media->title)) {
             case 'Profile picture': // 个人头像
-                $flag = stristr($userInfo->user_avatar,'helloo')!==false;
+                $flag = $userInfo->user_avatar !=='default_avatar.jpg'; // stristr($userInfo->user_avatar,'helloo')!==false;
                 break;
             case 'Background': // 个人背景
                 $flag = !empty($userInfo->user_bg);
@@ -538,20 +536,10 @@ class UserCenterController extends BaseController
     public function top($num)
     {
         $num     = $num >=100 ? 100 : $num;
-        $rank    = [3=>1234072139, 6=>1562134513, 7=>1402551869, 11=>2091996857, 23=>1885497935, 35=>1399005307];
-        $tmpId   = array_values($rank);
         $memKey  = 'helloo:account:user-score-rank';
         $members = Redis::zrevrangebyscore($memKey, '+inf', '-inf', ['withScores'=>true, 'limit'=>[0,$num]]);
 
-        foreach ($rank as $kk=>$vv) {
-            $score       = intval(array_sum(array_slice($members, $kk-2, 2))/2);
-            $first_array = array_slice($members, 0, $kk-1, true);
-            $members     = $first_array + [$vv=>"$score"] + $members;
-        }
-        $members = array_slice($members, 0, 100, true);
-
-        $uIds    = array_keys($members);
-        $userIds = array_merge($uIds, $tmpId);
+        $userIds = array_keys($members);
         $isExist = array_search($this->userId, $userIds);
         $users   = User::whereIn('user_id', $userIds)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
         $friends = UserFriend::where('user_id', $this->userId)->whereIn('friend_id', $userIds)->get();
@@ -582,7 +570,9 @@ class UserCenterController extends BaseController
         }
 
         $users = collect($users)->sortByDesc('score')->values();
-
+        /*if (empty($isExist)) {
+            $self = collect($this->user)->only(['user_id', 'user_name', 'user_nick_name', 'user_avatar']);
+        }*/
         return $users;
 
     }

@@ -12,7 +12,7 @@ return [
         'video_domain' => 'https://qnidyooulvideo.mmantou.cn/',
         'subtitle_domain' => 'https://qnidyooulsubtitle.mmantou.cn/',
         'thumbnail_domain' => 'https://qnidyooulimage.mmantou.cn/',
-        'avatar_domain' => 'https://qnwebothersia.mmantou.cn/',
+        'avatar_domain' => 'https://qneventsource.mmantou.cn/',
         'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
 	],
     'awsUploadDomain'=>[
