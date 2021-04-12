@@ -149,11 +149,12 @@ class GroupMemberController extends BaseController
         {
             return $this->response->errorForbidden('Sorry, you do not have permission to delete others!');
         }
-        $groupMember = GroupMember::where('group_id' , $id)->where('user_id' , $kickedUserId)->first()->makeVisible(array('id'))->toArray();
+        $groupMember = GroupMember::where('group_id' , $id)->where('user_id' , $kickedUserId)->first();
         if(empty($groupMember))
         {
             return $this->response->errorNotFound('Sorry, this user has left this group!');
         }
+        $groupMember = $groupMember->makeVisible(array('id'))->toArray();
         $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
         DB::beginTransaction();
         try{
