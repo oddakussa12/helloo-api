@@ -173,11 +173,11 @@ $api->group($V1Params , function ($api){
         /*****群 开始*****/
         $api->get('my/group' , 'GroupController@my')->name('group.my');
         $api->post('group' , 'GroupController@store')->name('group.store');
+        $api->patch('group/member' , 'GroupMemberController@update')->name('group.member.update');
         $api->patch('group/{group}' , 'GroupController@update')->name('group.update');
         $api->delete('group/{group}' , 'GroupController@destroy')->name('group.destroy');
         $api->get('group/member' , 'GroupMemberController@index')->name('group.member.index');
         $api->get('group/{group}' , 'GroupController@show')->name('group.show');
-        $api->patch('group/member' , 'GroupMemberController@update')->name('group.member.update');
         $api->post('group/member' , 'GroupMemberController@join')->name('group.member.join');
         /*****群 结束*****/
 
