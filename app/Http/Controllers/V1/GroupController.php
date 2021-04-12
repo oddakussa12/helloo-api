@@ -149,13 +149,13 @@ class GroupController extends BaseController
             ]);
             $result['code']!=200 && abort(405 , 'RY Group dismiss failed!');
             !$groupResult        && abort(405 , 'Group dismiss failed!');
+            DB::commit();
         }catch (\Exception $exception){
             DB::rollBack();
             Log::info('group_dismiss_fail' , array(
                 'user_id'=>$userId,
                 'message'=>$exception->getMessage()
             ));
-            DB::rollBack();
             throw new UpdateResourceFailedException('Group dismiss failed');
         }
         return $this->response->noContent();
