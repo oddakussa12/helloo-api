@@ -95,7 +95,7 @@ class GroupController extends BaseController
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
-        $data = array();
+        $data = array('updated_at'=>date('Y-m-d H:i:s'));
         $name = strval($request->input('name' , ''));
         $avatar = strval($request->input('avatar' , ''));
         !empty($name)&&$data['name']=$name;
