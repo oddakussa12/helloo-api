@@ -147,6 +147,7 @@ class GroupController extends BaseController
             $result = app('rcloud')->getGroup()->dismiss([
                 'id'=>$group->group_id, 'member'=>['id'=>$userId]
             ]);
+            Log::info('$result' , $result);
             $result['code']!=200 && abort(405 , 'RY Group dismiss failed!');
             !$groupResult        && abort(405 , 'Group dismiss failed!');
         }catch (\Exception $exception){
