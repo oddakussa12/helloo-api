@@ -24,7 +24,7 @@ class StoreGroupRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'bail|required|string|max:200',
+            'name' => 'bail|present|string|max:200',
             'user_id' => 'bail|required|array|between:2,100',
         ];
     }
