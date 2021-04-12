@@ -213,44 +213,86 @@ class GroupMemberController extends BaseController
 
     public function join(Request $request)
     {
+        $type = strval($request->input('type' , 'join'));
         $id = strval($request->input('group_id' , 0));
-        $userId = auth()->id();
+        $auth = auth()->id();
         $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
         if(empty($group))
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
         $now = date('Y-m-d H:i:s');
-        $member = DB::table('groups_members')->where('group_id' , $id)->where('user_id' ,$userId)->first();
-        if(blank($member))
+        if($type=='join')
         {
-            DB::beginTransaction();
-            try{
-                $groupResult = DB::table('groups_members')->insert(array(
-                    'group_id'=>$id,
-                    'user_id'=>$userId,
-                    'created_at'=>$now,
-                    'updated_at'=>$now,
-                ));
-                !$groupResult        && abort(405 , 'Group join failed!');
-                $result = app('rcloud')->getGroup()->joins(array(
-                    'id'      => $id,
-                    'name'    => $group->name,
-                    'member'=>array(
-                        'id'=> $userId
-                    )
-                ));
-                $result['code']!=200 && abort(405 , 'RY Group join failed!');
-                DB::commit();
-            }catch (\Exception $e)
+            $member = DB::table('groups_members')->where('group_id' , $id)->where('user_id' ,$auth)->first();
+            if(blank($member))
             {
-                DB::rollBack();
-                Log::info('group_join_fail' , array(
-                    'user_id'=>$userId,
-                    'id'=>$id,
-                    'message'=>$e->getMessage()
-                ));
-                throw new UpdateResourceFailedException('Group join failed');
+                DB::beginTransaction();
+                try{
+                    $groupResult = DB::table('groups_members')->insert(array(
+                        'group_id'=>$id,
+                        'user_id'=>$auth,
+                        'created_at'=>$now,
+                        'updated_at'=>$now,
+                    ));
+                    !$groupResult        && abort(405 , 'Group join failed!');
+                    $result = app('rcloud')->getGroup()->joins(array(
+                        'id'      => $id,
+                        'name'    => $group->name,
+                        'member'=>array(
+                            'id'=> $auth
+                        )
+                    ));
+                    $result['code']!=200 && abort(405 , 'RY Group join failed!');
+                    DB::commit();
+                }catch (\Exception $e)
+                {
+                    DB::rollBack();
+                    Log::info('group_join_fail' , array(
+                        'user_id'=>$auth,
+                        'id'=>$id,
+                        'message'=>$e->getMessage()
+                    ));
+                    throw new UpdateResourceFailedException('Group join failed!');
+                }
+            }
+        }else if($type=='pull'){
+            $userIds = (array)$request->input('user_id' , array());
+            if(empty($userIds))
+            {
+                return $this->response->accepted();
+            }
+            $members = DB::table('groups_members')->where('group_id' , $id)->whereIn('user_id' ,$userIds)->get();
+            $memberIds = $members->pluck('user_id')->toArray();
+            $userIds = array_diff($userIds , $memberIds);
+            if(!empty($userIds))
+            {
+                $memberData = collect($userIds)->map(function($memberId) use ($id , $now){
+                    return array('user_id'=>$memberId , 'group_id'=>$id , 'created_at'=>$now , 'updated_at'=>$now);
+                })->toArray();
+                DB::beginTransaction();
+                try{
+                    $groupResult = DB::table('groups_members')->insert($memberData);
+                    !$groupResult        && abort(405 , 'Group pull join failed!');
+                    $result = app('rcloud')->getGroup()->joins(array(
+                        'id'      => $id,
+                        'name'    => $group->name,
+                        'member'=>array(
+                            'id'=> $userIds
+                        )
+                    ));
+                    $result['code']!=200 && abort(405 , 'RY Group pull join failed!');
+                    DB::commit();
+                }catch (\Exception $e)
+                {
+                    DB::rollBack();
+                    Log::info('group_request_join_fail' , array(
+                        'user_id'=>$userIds,
+                        'id'=>$id,
+                        'message'=>$e->getMessage()
+                    ));
+                    throw new UpdateResourceFailedException('Group pull join failed!');
+                }
             }
         }
         return $this->response->accepted();
