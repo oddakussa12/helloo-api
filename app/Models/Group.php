@@ -10,7 +10,7 @@ class Group extends Model
 
     protected $table = "groups";
     
-    protected $fillable = ['user_id' , 'administrator' , 'name' , 'avatar' , 'member'];
+    protected $fillable = ['user_id' , 'administrator' , 'name' , 'avatar' , 'member' , 'is_deleted' , 'deleted_at'];
 
     /**
      * The attributes that should be hidden for arrays.
