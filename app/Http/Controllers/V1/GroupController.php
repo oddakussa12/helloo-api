@@ -40,7 +40,7 @@ class GroupController extends BaseController
         $groupId = app('snowflake')->id();
         $memberData = collect(array_merge($memberIds , array($userId)))->map(function($memberId) use ($groupId , $userId , $now){
             return array('user_id'=>$memberId , 'group_id'=>$groupId , 'role'=>intval($userId==$memberId) , 'created_at'=>$now , 'updated_at'=>$now);
-        });
+        })->toArray();
         DB::beginTransaction();
         try {
             $groupResult        = DB::table('groups')->insert(array(
