@@ -72,15 +72,15 @@ class GroupController extends BaseController
             ));
             throw new StoreResourceFailedException('Group creation failed');
         }
-        $group = Group::where('id' , $groupId)->first();
+        $group = Group::where('id' , $groupId)->where('is_deleted' , 0)->first();
         return new AnonymousCollection($group);
     }
 
     public function show($id)
     {
         $userId = auth()->id();
-        $group = Group::where('id' , $id)->first();
-        if(empty($group)||$group->is_deleted==1||$group->administrator!=$userId)
+        $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
+        if(empty($group)||$group->administrator!=$userId)
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
@@ -90,8 +90,8 @@ class GroupController extends BaseController
     public function update(UpdateGroupRequest $request , $id)
     {
         $userId = auth()->id();
-        $group = Group::where('id' , $id)->first();
-        if(empty($group)||$group->is_deleted==1||$group->administrator!=$userId)
+        $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
+        if(empty($group)||$group->administrator!=$userId)
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
@@ -132,8 +132,8 @@ class GroupController extends BaseController
     public function destroy($id)
     {
         $userId = auth()->id();
-        $group = Group::where('id' , $id)->first();
-        if(empty($group)||$group->is_deleted==1||$group->administrator!=$userId)
+        $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
+        if(empty($group)||$group->administrator!=$userId)
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }

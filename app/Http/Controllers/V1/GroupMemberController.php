@@ -19,8 +19,8 @@ class GroupMemberController extends BaseController
     {
         $userId = auth()->id();
         $groupId = intval($request->input('group_id' , 0));
-        $group = Group::where('id' , $groupId)->first();
-        if(empty($group)||$group->is_deleted==1)
+        $group = Group::where('id' , $groupId)->where('is_deleted' , 0)->first();
+        if(empty($group))
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
@@ -46,8 +46,8 @@ class GroupMemberController extends BaseController
     {
         $id = strval($request->input('group_id' , 0));
         $userId = auth()->id();
-        $group = Group::where('id' , $id)->first();
-        if(empty($group)||$group->is_deleted==1)
+        $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
+        if(empty($group))
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
@@ -130,8 +130,8 @@ class GroupMemberController extends BaseController
         {
             return $this->response->errorNotFound('Sorry, this user was not found!');
         }
-        $group = Group::where('id' , $id)->first()->makeVisible(array('is_deleted'));
-        if(empty($group)||$group->is_deleted==1)
+        $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
+        if(empty($group))
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
@@ -186,8 +186,8 @@ class GroupMemberController extends BaseController
     {
         $id = strval($request->input('group_id' , 0));
         $userId = auth()->id();
-        $group = Group::where('id' , $id)->first();
-        if(empty($group)||$group->is_deleted==1)
+        $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
+        if(empty($group))
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
