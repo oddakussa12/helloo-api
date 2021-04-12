@@ -156,7 +156,7 @@ class GroupMemberController extends BaseController
         {
             return $this->response->errorNotFound('Sorry, this user has left this group!');
         }
-        $groupMember = $groupMember->makeVisible(array('id'))->toArray();
+        $groupMember = $groupMember->toArray();
         $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
         DB::beginTransaction();
         try{
