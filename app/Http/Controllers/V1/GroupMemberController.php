@@ -4,14 +4,14 @@ namespace App\Http\Controllers\V1;
 
 
 use App\Models\Group;
+use App\Jobs\Dispatcher;
 use App\Models\GroupMember;
-use App\Resources\UserCollection;
-use App\Resources\AnonymousCollection;
 use Dingo\Api\Exception\ResourceException;
 use Illuminate\Http\Request;
+use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
-use App\Repositories\Contracts\UserRepository;
 use Illuminate\Support\Facades\Log;
+use App\Repositories\Contracts\UserRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Dingo\Api\Exception\UpdateResourceFailedException;
 
@@ -62,7 +62,7 @@ class GroupMemberController extends BaseController
         if($group->administrator==$userId)
         {
             $commonFirstMember = GroupMember::where('group_id' , $id)->where('role' , 0)->orderBy('created_at')->first();
-            if(!blank($commonFirstMember))
+            if(!empty($commonFirstMember))
             {
                 $groupData = array('member'=>DB::raw('member-1') , 'administrator'=>$commonFirstMember->user_id ,  'updated_at'=>$now);
                 DB::beginTransaction();
@@ -91,9 +91,31 @@ class GroupMemberController extends BaseController
                     ));
                     throw new StoreResourceFailedException('Group quit failed');
                 }
-
             }else{
-//                $this->destroy($id);
+                if(empty($group)||$group->administrator!=$userId)
+                {
+                    return $this->response->errorNotFound('Sorry, this group was not found!');
+                }
+                DB::beginTransaction();
+                try{
+                    $groupResult = DB::table('groups')->where('id' , $id)->update(array(
+                        'is_deleted'=>1,
+                        'deleted_at'=>$now,
+                    ));
+                    $result = app('rcloud')->getGroup()->dismiss([
+                        'id'=>$id, 'member'=>['id'=>$userId]
+                    ]);
+                    $result['code']!=200 && abort(405 , 'RY Group dismiss failed!');
+                    !$groupResult        && abort(405 , 'Group dismiss failed!');
+                    DB::commit();
+                }catch (\Exception $exception){
+                    DB::rollBack();
+                    Log::info('group_dismiss_fail' , array(
+                        'user_id'=>$userId,
+                        'message'=>$exception->getMessage()
+                    ));
+                    throw new UpdateResourceFailedException('Group dismiss failed');
+                }
             }
         }else{
             $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
