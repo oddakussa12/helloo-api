@@ -107,11 +107,10 @@ class GroupController extends BaseController
                 $groupResult = DB::table('groups')->where('id' , $id)->update($data);
                 if(isset($data['name']))
                 {
-                    $result = app('rcloud')->getGroup()->create(array(
+                    $result = app('rcloud')->getGroup()->update(array(
                         'id'      => $id,
                         'name'    => $name,
                     ));
-                    Log::info('$result' , $result);
                     $result['code']!=200 && abort(405 , 'RY Group update failed!');
                 }
                 !$groupResult        && abort(405 , 'Group update failed!');
