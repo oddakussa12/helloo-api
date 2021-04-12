@@ -78,6 +78,7 @@ class GroupMemberController extends BaseController
                         "members" => [['id'=>$userId]],
                     ));
                     $result['code']!=200&&abort(405 , 'RY Group quit failed!');
+                    DB::commit();
                 }catch (\Exception $exception)
                 {
                     DB::rollBack();
@@ -90,7 +91,7 @@ class GroupMemberController extends BaseController
                 }
 
             }else{
-                $this->destroy($id);
+//                $this->destroy($id);
             }
         }else{
             $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
@@ -107,6 +108,7 @@ class GroupMemberController extends BaseController
                     "members" => [['id'=>$userId]],
                 ));
                 $result['code']!=200&&abort(405 , 'RY Group quit failed!');
+                DB::commit();
             }catch (\Exception $exception)
             {
                 DB::rollBack();
@@ -169,6 +171,7 @@ class GroupMemberController extends BaseController
                 "members" => [['id'=>$kickedUserId]],
             ));
             $result['code']!=200&&abort(405 , 'RY Group kick failed!');
+            DB::commit();
         }catch (\Exception $exception)
         {
             DB::rollBack();
