@@ -141,7 +141,7 @@ class ChatDepth extends Command
                                 ->where('chat_time' , '>=' , $start)
                                 ->where('chat_time' , '<=' , $end)
                                 ->orderBy('chat_time')
-                                ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
+                                ->chunk(200 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
                                     foreach ($chatData as $c)
                                     {
                                         if($c->chat_msg_type=='Helloo:VideoMsg')
