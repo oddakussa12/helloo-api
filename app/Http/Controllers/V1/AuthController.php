@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Jobs\Device;
+use Dingo\Api\Exception\ResourceException;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
@@ -726,6 +727,116 @@ class AuthController extends BaseController
         $userId = auth()->id();
         app(UserRepository::class)->updateUsernamePrompt($userId);
         return $this->response->created();
+    }
+
+    public function signUp(Request $request)
+    {
+        $agent = new Agent();
+        $version = $agent->getHttpHeader('HellooVersion');
+        if(version_compare($version , config('common.block_version') , '<='))
+        {
+            abort(401 , __('Please update to the latest version from Play Store.'));
+        }
+        $user_nick_name = strval($request->input('user_nick_name' , ''));
+        $password = strval($request->input('password' , ""));
+        $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
+        $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
+        $gps = strval($request->input('gps' , ''));
+//        $code = strval($request->input('code' , ''));
+        $phone = $user_phone_country.$user_phone;
+        $validationField = array(
+            'user_phone'=>$phone,
+//            'code'=> $code,
+            'password'=> $password,
+            'user_nick_name'=> $user_nick_name,
+        );
+        $rule = [
+            'user_phone' => [
+                'bail',
+                'string',
+                'required',
+                new UserPhone()
+            ],
+            'password' => 'bail|required|string|min:6|max:16',
+            'user_nick_name' => 'bail|required|string|min:1|max:64',
+        ];
+        try{
+            Validator::make($validationField, $rule)->validate();
+        }catch (ValidationException $exception)
+        {
+            $errorJob = new SignUpOrInFail($exception->errors());
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
+            throw new ValidationException($exception->validator);
+        }
+        if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
+        {
+            $user_phone = substr($user_phone , 2);
+        }
+        $userPhone = DB::table('users_phones')->where('user_phone_country' ,  $user_phone_country)->where('user_phone' ,  $user_phone)->first();
+        if(!empty($userPhone))
+        {
+            $errorJob = new SignUpOrInFail(trans('validation.custom.phone.unique'));
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
+            abort(422 , trans('validation.custom.phone.unique'));
+        }
+        $now = Carbon::now()->toDateTimeString();
+        if($agent->match('HellooAndroid'))
+        {
+            $src = 'android';
+        }elseif($agent->match('HellooiOS')){
+            $src = 'ios';
+        }else{
+            $src = 'unknown';
+        }
+        $password = empty($password)?Uuid::uuid1()->toString():$password;
+        $username = $uuid = $this->generateUniqueName();
+        $userId = $this->generateUserId();
+        $user_fields = array(
+            'user_id'=>$userId,
+            'user_src'=>$src,
+            'user_name'=>$username,
+            'user_nick_name'=>$user_nick_name,
+            'user_created_at'=>$now,
+            'user_updated_at'=>$now,
+            'user_uuid'=>$uuid,
+            'user_pwd'=>bcrypt($password)
+        );
+        DB::beginTransaction();
+        try{
+            DB::table('users')->insert($user_fields);
+            DB::table('users_phones')->insert(array('user_id'=>$userId , 'user_phone'=>$user_phone , 'user_phone_country'=>$user_phone_country));
+            DB::commit();
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            Log::info('sign_up_fail' , array(
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
+            $errorJob = new SignUpOrInFail($e->getMessage());
+            $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
+            throw new StoreResourceFailedException('sign up failed');
+        }
+        $user = $this->user->find($userId);
+        if(intval($user_phone)%2==0)
+        {
+            $phoneKey = "helloo:account:service:account-phone-{even}-number";
+        }else{
+            $phoneKey = "helloo:account:service:account-phone-{odd}-number";
+        }
+        Redis::zadd($phoneKey , $userId , $phone);
+        $addresses = getRequestIpAddress();
+        event(new SignupEvent($user , $addresses , array(
+            'user_phone'=>$user_phone,
+            'user_phone_country'=>$user_phone_country,
+            'gps'=>$gps,
+        )));
+        $token = auth()->login($user);
+        return $this->respondWithToken($token , false);
     }
 
 
