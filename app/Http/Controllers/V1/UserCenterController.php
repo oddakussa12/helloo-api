@@ -677,12 +677,12 @@ class UserCenterController extends BaseController
      */
     public function mutualSchool($num, $all, $memKey)
     {
-        $school = $this->user->user_school;
-        if(empty($school) && strtolower($this->user->user_school) == 'other') {
+        $school = $this->user->user_sl;
+        if(empty($school) && strtolower($this->user->user_sl)=='other') {
             return [];
         }
 
-        $school = User::where('user_school', $school)->pluck('user_id')->toArray();
+        $school = User::where('user_sl', $school)->pluck('user_id')->toArray();
         return $this->diff($num, $all, $school);
     }
 
