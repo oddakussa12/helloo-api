@@ -803,6 +803,7 @@ class AuthController extends BaseController
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>$uuid,
+            'user_activation'=>1,
             'user_pwd'=>bcrypt($password)
         );
         DB::beginTransaction();
