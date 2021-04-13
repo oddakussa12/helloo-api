@@ -593,8 +593,11 @@ class UserCenterController extends BaseController
         $all    = Redis::SMEMBERS($this->friendKey.$this->userId);
         if (empty($all)) {
             $all = UserFriend::where('user_id', $this->userId)->pluck('friend_id')->toArray(); // 所有的好友
-            Redis::sadd($this->friendKey.$this->userId, $all);
-            Redis::expire($this->friendKey.$this->userId, 86400*30);
+            if(!empty($all))
+            {
+                Redis::sadd($this->friendKey.$this->userId, $all);
+                Redis::expire($this->friendKey.$this->userId, 86400*30);
+            }
         }
 
         // 有共同好友
@@ -703,8 +706,11 @@ class UserCenterController extends BaseController
             $users = Redis::SMEMBERS($this->friendKey.$friend);
             if (empty($users)) {
                 $users = UserFriend::where('user_id', $friends)->pluck('friend_id')->unique()->toArray();
-                Redis::sadd($this->friendKey.$friend, $users);
-                Redis::expire($this->friendKey.$friend, 86400*30);
+                if(!empty($users))
+                {
+                    Redis::sadd($this->friendKey.$friend, $users);
+                    Redis::expire($this->friendKey.$friend, 86400*30);
+                }
             }
             $list = array_merge(array_diff($list, $all));
         }
