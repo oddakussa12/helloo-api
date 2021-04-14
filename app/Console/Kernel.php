@@ -117,19 +117,20 @@ class Kernel extends ConsoleKernel
                 return config('common.cron_switch');
             });
 
-        //chatDepth 1
-        $schedule->command('real:time_chat_depth' , array('yesterday' , null , 1))
-            ->cron('15 */3 * * *')->when(function(){
-                return config('common.cron_switch');
-            });
-        $schedule->command('real:time_chat_depth' , array('today' , null , 1))
-            ->hourlyAt(40)->when(function(){
-                return config('common.cron_switch');
-            });
-        $schedule->command('real:time_chat_depth' , array('other' , null , 1))
-            ->dailyAt('15:00')->when(function(){
-                return config('common.cron_switch');
-            });
+//        chatDepth 1
+//        $schedule->command('real:time_chat_depth' , array('yesterday' , null , 1))
+//            ->cron('15 */3 * * *')->when(function(){
+//                return config('common.cron_switch');
+//            });
+//        $schedule->command('real:time_chat_depth' , array('today' , null , 1))
+//            ->hourlyAt(40)->when(function(){
+//                return config('common.cron_switch');
+//            });
+//        $schedule->command('real:time_chat_depth' , array('other' , null , 1))
+//            ->dailyAt('15:00')->when(function(){
+//                return config('common.cron_switch');
+//            });
+
     }
 
     /**

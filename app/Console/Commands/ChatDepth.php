@@ -104,9 +104,9 @@ class ChatDepth extends Command
         {
             $table = 'ry_chats_'.$ii;
             DB::table($table)
+                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
                 ->where('chat_time' , '>=' , $start)
                 ->where('chat_time' , '<=' , $end)
-                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
                 ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
                 ->groupBy('ft')->orderByDesc('chat_from_id')
                 ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
@@ -136,12 +136,12 @@ class ChatDepth extends Command
                             $video = false;
                             DB::table($table)
                                 ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
-                                ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
                                 ->whereIn('chat_from_id' , array($chat->chat_from_id , $chat->chat_to_id))
+                                ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
                                 ->where('chat_time' , '>=' , $start)
                                 ->where('chat_time' , '<=' , $end)
                                 ->orderBy('chat_time')
-                                ->chunk(100 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
+                                ->chunk(200 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
                                     foreach ($chatData as $c)
                                     {
                                         if($c->chat_msg_type=='Helloo:VideoMsg')
@@ -269,9 +269,9 @@ class ChatDepth extends Command
         {
             $table = 'ry_chats_'.$ii;
             DB::table($table)
+                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
                 ->where('chat_time' , '>=' , $start)
                 ->where('chat_time' , '<=' , $end)
-                ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
                 ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
                 ->groupBy('ft')->orderByDesc('chat_from_id')
                 ->chunk(100 , function($chats) use ($table , $school , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
@@ -301,8 +301,8 @@ class ChatDepth extends Command
                             $video = false;
                             DB::table($table)
                                 ->whereIn('chat_msg_type' , array('RC:TxtMsg' , 'Helloo:VideoMsg'))
-                                ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
                                 ->whereIn('chat_from_id' , array($chat->chat_from_id , $chat->chat_to_id))
+                                ->whereIn('chat_to_id' , array($chat->chat_from_id , $chat->chat_to_id))
                                 ->where('chat_time' , '>=' , $start)
                                 ->where('chat_time' , '<=' , $end)
                                 ->orderBy('chat_time')
