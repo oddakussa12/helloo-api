@@ -4,17 +4,18 @@ namespace App\Http\Controllers\V1;
 
 
 use App\Models\Group;
+use App\Jobs\GroupCreate;
 use App\Models\GroupMember;
-use App\Resources\AnonymousCollection;
-use Dingo\Api\Exception\ResourceException;
-use Dingo\Api\Exception\StoreResourceFailedException;
-use Dingo\Api\Exception\UpdateResourceFailedException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use App\Resources\AnonymousCollection;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
+use Dingo\Api\Exception\ResourceException;
+use Dingo\Api\Exception\StoreResourceFailedException;
+use Dingo\Api\Exception\UpdateResourceFailedException;
 
 class GroupController extends BaseController
 {
@@ -73,6 +74,7 @@ class GroupController extends BaseController
             throw new StoreResourceFailedException('Group creation failed');
         }
         $group = Group::where('id' , $groupId)->where('is_deleted' , 0)->first();
+        GroupCreate::dispatch($group , $user , $memberIds)->onQueue('helloo_{group_create}');
         return new AnonymousCollection($group);
     }
 
