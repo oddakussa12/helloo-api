@@ -77,10 +77,11 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 );
                 DB::table('users_schools_logs')->insert($logData);
                 School::dispatch($school)->onQueue('helloo_{user_school}');
-                if(strval($school)!='other')
-                {
+                if (empty($original['user_sl']) || $original['user_sl'] == 'other') {
                     OneTimeUserScoreUpdate::dispatch($user , 'fillSchool')->onQueue('helloo_{one_time_user_score_update}');
-                }else{
+                }
+                if($original['user_sl']=='other')
+                {
                     OneTimeUserScoreUpdate::dispatch($user , 'fillSchoolOther')->onQueue('helloo_{one_time_user_score_update}');
                 }
             }
