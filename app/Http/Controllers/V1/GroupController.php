@@ -43,8 +43,10 @@ class GroupController extends BaseController
             return array('user_id'=>$memberId , 'group_id'=>$groupId , 'role'=>intval($userId==$memberId) , 'created_at'=>$now , 'updated_at'=>$now);
         })->toArray();
         DB::beginTransaction();
+        $name = !empty($name) ? $name : '';
+
         try {
-            $groupResult        = DB::table('groups')->insert(array(
+            $groupResult = DB::table('groups')->insert(array(
                 'id'=>$groupId,
                 'user_id'=>$userId,
                 'administrator'=>$userId,
@@ -58,7 +60,7 @@ class GroupController extends BaseController
             !$groupMembersResult && abort(405 , 'Group members creation failed!');
             $result = app('rcloud')->getGroup()->create(array(
                 'id'      => $groupId,
-                'name'    => $name,
+                'name'    => $name ? $name : 'groupChat',
                 "members" => [['id'=>$userId]],
             ));
             $result['code']!=200 && abort(405 , 'RY Group creation failed!');
