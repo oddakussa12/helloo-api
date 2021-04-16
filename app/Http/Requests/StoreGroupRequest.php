@@ -25,7 +25,7 @@ class StoreGroupRequest extends FormRequest
     {
         return [
             'name' => 'bail|present|string|max:200',
-            'user_id' => 'bail|required|array|between:2,100',
+            'user_id' => 'bail|required|array|between:1,99',
         ];
     }
 
@@ -37,7 +37,7 @@ class StoreGroupRequest extends FormRequest
             'name.max' => 'The group name cannot exceed 200 characters',
             'user_id.required' => 'Group members are required',
             'user_id.array' => 'Group member ID is illegal',
-            'user_id.between' => 'The number of group members is limited to 2-100',
+            'user_id.between' => 'The number of group members is limited to 1-100',
         ];
     }
 }
