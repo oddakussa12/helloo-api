@@ -31,41 +31,50 @@ class GroupController extends BaseController
     {
         $userId = auth()->id();
         $groups = Group::where('administrator' , $userId)->where('is_deleted' , 0)->paginate(50);
+        $names  = $groups->where('name', '')->pluck('id')->toArray();
         return AnonymousCollection::collection($groups);
     }
 
     public function store(StoreGroupRequest $request)
     {
-        $user   = auth()->user();
-        $userId = $user->user_id;
-        $name = strval($request->input('name' , ''));
         $memberIds = $request->input('user_id' , '');
-        $now = date('Y-m-d H:i:s');
+        $user    = auth()->user();
+        $userId  = $user->user_id;
+        $now     = date('Y-m-d H:i:s');
         $groupId = app('snowflake')->id();
-        $users = app(UserRepository::class)->findByUserIds($memberIds);
-        $users = $users->reject(function($user){
+        $users   = app(UserRepository::class)->findByUserIds($memberIds);
+        $users   = $users->reject(function($user){
             return blank($user);
         });
-        $memberIds = $users->pluck('user_id')->toArray();
-        $memberData = collect(array_merge($memberIds , array($userId)))->map(function($memberId) use ($groupId , $userId , $now){
+
+        $memberIds  = $users->pluck('user_id')->toArray();
+        !$memberIds && abort(405 , 'User info fail!');
+
+        $memberIds  = collect(array_merge($memberIds , [$userId]))->unique()->values()->toArray();
+        $memberData = collect($memberIds)->map(function($memberId) use ($groupId , $userId , $now){
             return array('user_id'=>$memberId , 'group_id'=>$groupId , 'role'=>intval($userId==$memberId) , 'created_at'=>$now , 'updated_at'=>$now);
         })->toArray();
+
         $members = collect(array_merge($memberIds , array($userId)))->map(function($memberId){
             return array('id'=>$memberId);
         })->toArray();
+
+        $names   = $users->pluck('user_nick_name')->toArray();
+        $names   = array_merge([$user->user_nick_name], $names);
+        $names   = implode(',', $names);
         $avatars = array_slice(array_merge(array(
             $userId=>userCover($user->user_avatar)
-        ) , $users->pluck('user_avatar_link' , 'user_id')->toArray()) , 0 , 9);
-        DB::beginTransaction();
-        $name = !empty($name) ? $name : '';
+        ) , $users->pluck('user_avatar_link' , 'user_id')->toArray()) , 0 , 3);
+        $avatars = implode(',', $avatars);
 
+        DB::beginTransaction();
         try {
             $groupResult = DB::table('groups')->insert(array(
                 'id'=>$groupId,
                 'user_id'=>$userId,
                 'administrator'=>$userId,
-                'name'=>$name,
-                'avatar'=>\json_encode($avatars),
+                'name'=> $names,
+                'avatar'=>$avatars,
                 'member'=>count(array_merge($memberIds , array($userId))),
                 'created_at'=>$now,
                 'updated_at'=>$now
@@ -75,7 +84,7 @@ class GroupController extends BaseController
             !$groupMembersResult && abort(405 , 'Group members creation failed!');
             $result = app('rcloud')->getGroup()->create(array(
                 'id'      => $groupId,
-                'name'    => $name,
+                'name'    => $names,
                 "members" => $members,
             ));
             $result['code']!=200 && abort(405 , 'RY Group creation failed!');
@@ -84,7 +93,7 @@ class GroupController extends BaseController
             DB::rollBack();
             Log::info('group_create_fail' , array(
                 'user_id'=>$userId,
-                'name'=>$name,
+                'name'=>$names,
                 'memberIds'=>$memberIds,
                 'message'=>$exception->getMessage()
             ));
