@@ -60,11 +60,11 @@ class GroupController extends BaseController
         })->toArray();
 
         $names   = $users->pluck('user_nick_name')->toArray();
-        $names   = array_merge([$user->user_nick_name], $names);
+        $names   = array_slice(array_merge([$user->user_nick_name], $names),0, 4);
         $names   = implode(',', $names);
         $avatars = array_slice(array_merge(array(
             $userId=>userCover($user->user_avatar)
-        ) , $users->pluck('user_avatar_link' , 'user_id')->toArray()) , 0 , 3);
+        ) , $users->pluck('user_avatar_link' , 'user_id')->toArray()) , 0 , 4);
         $avatars = implode(',', $avatars);
 
         DB::beginTransaction();
