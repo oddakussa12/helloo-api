@@ -41,7 +41,7 @@ class GroupCreate implements ShouldQueue
         $members = app(UserRepository::class)->findByUserIds($this->userIds);
         $members = $members->reject(function ($member) {
             return blank($member);
-        })->toValues();
+        })->values();
         $members = collect(UserCollection::collection($members))->toArray();
         $content = array(
             'content'=>'Group create',

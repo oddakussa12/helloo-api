@@ -53,12 +53,9 @@ class GroupController extends BaseController
         $members = collect(array_merge($memberIds , array($userId)))->map(function($memberId){
             return array('id'=>$memberId);
         });
-        $avatars = array_merge(array(
+        $avatars = array_slice(array_merge(array(
             $userId=>userCover($user->user_avatar)
-        ) , $users->pluck('user_avatar' , 'user_uid')->toArray());
-        $avatars = collect($avatars)->map(function($avatar , $userId){
-            return array($userId=>userCover($avatar));
-        })->toArray();
+        ) , $users->pluck('user_avatar_link' , 'user_id')->toArray()) , 0 , 9);
         DB::beginTransaction();
         $name = !empty($name) ? $name : '';
 
