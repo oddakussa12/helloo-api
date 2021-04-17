@@ -31,8 +31,8 @@ class GroupController extends BaseController
     {
         $userId  = auth()->id();
         $members = GroupMember::where('user_id', $userId)->groupBy('group_id')->paginate(50);
-        $ids     = collect($members)->pluck('group_id')->unique()->values()->toArray();
-        $groups  = Group::where('is_deleted' , 0)->whereIn('user_id', $ids)->paginate(50);
+        $ids     = $members->pluck('group_id')->unique()->values()->toArray();
+        $groups  = Group::where('is_deleted' , 0)->whereIn('id', $ids)->paginate(50);
         return AnonymousCollection::collection($groups);
     }
 
