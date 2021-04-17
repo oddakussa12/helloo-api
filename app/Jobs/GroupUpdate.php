@@ -3,28 +3,24 @@
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
-use App\Resources\UserCollection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use App\Repositories\Contracts\UserRepository;
 
-class GroupCreate implements ShouldQueue
+class GroupUpdate implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
 
     private $group;
-    private $userIds;
     private $user;
 
-    public function __construct($group , $user , $userIds)
+    public function __construct($group , $user)
     {
         $this->group = $group;
         $this->user = $user;
-        $this->userIds = $userIds;
     }
 
     /**
@@ -38,13 +34,8 @@ class GroupCreate implements ShouldQueue
         $operatorNickname = $this->user->user_nick_name;
         $groupId = $this->group->id;
         $groupName = $this->group->name;
-        $members = app(UserRepository::class)->findByUserIds($this->userIds);
-        $members = $members->reject(function ($member) {
-            return blank($member);
-        })->toValues();
-        $members = collect(UserCollection::collection($members))->toArray();
         $content = array(
-            'content'=>'Group create',
+            'content'=>'Group update',
             'user'=> array(
                 'id'=>$senderId,
                 'name'=>$operatorNickname,
@@ -53,10 +44,9 @@ class GroupCreate implements ShouldQueue
                     'userLevel'=>$this->user->user_level
                 ),
             ),
-            'operation'=>'group_create',
+            'operation'=>'group_update',
             'data'=>array(
-                'groupName'=>$groupName,
-                'members'=>$members,
+                'groupName'=>$groupName
             )
         );
         $content = array(
@@ -64,9 +54,9 @@ class GroupCreate implements ShouldQueue
             "objectName" => "RC:GrpNtf",
             'targetId'      => $groupId,
             'content'    => \json_encode($content),
-            'pushContent'=>'Group create',
+            'pushContent'=>'Group update',
             'pushExt'=>\json_encode(array(
-                'title'=>'Group create',
+                'title'=>'Group update',
                 'forceShowPushContent'=>1
             ))
         );

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\Group;
 use App\Jobs\GroupCreate;
+use App\Jobs\GroupUpdate;
+use App\Jobs\GroupDestroy;
 use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,7 @@ use App\Resources\AnonymousCollection;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use Dingo\Api\Exception\ResourceException;
+use App\Repositories\Contracts\UserRepository;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Dingo\Api\Exception\UpdateResourceFailedException;
 
@@ -39,8 +42,22 @@ class GroupController extends BaseController
         $memberIds = $request->input('user_id' , '');
         $now = date('Y-m-d H:i:s');
         $groupId = app('snowflake')->id();
+        $users = app(UserRepository::class)->findByUserIds($memberIds);
+        $users = $users->reject(function($user){
+            return blank($user);
+        });
+        $memberIds = $users->pluck('user_id')->toArray();
         $memberData = collect(array_merge($memberIds , array($userId)))->map(function($memberId) use ($groupId , $userId , $now){
             return array('user_id'=>$memberId , 'group_id'=>$groupId , 'role'=>intval($userId==$memberId) , 'created_at'=>$now , 'updated_at'=>$now);
+        })->toArray();
+        $members = collect(array_merge($memberIds , array($userId)))->map(function($memberId){
+            return array('id'=>$memberId);
+        });
+        $avatars = array_merge(array(
+            $userId=>userCover($user->user_avatar)
+        ) , $users->pluck('user_avatar' , 'user_uid')->toArray());
+        $avatars = collect($avatars)->map(function($avatar , $userId){
+            return array($userId=>userCover($avatar));
         })->toArray();
         DB::beginTransaction();
         try {
@@ -49,6 +66,7 @@ class GroupController extends BaseController
                 'user_id'=>$userId,
                 'administrator'=>$userId,
                 'name'=>$name,
+                'avatar'=>\json_encode($avatars),
                 'member'=>count(array_merge($memberIds , array($userId))),
                 'created_at'=>$now,
                 'updated_at'=>$now
@@ -59,7 +77,7 @@ class GroupController extends BaseController
             $result = app('rcloud')->getGroup()->create(array(
                 'id'      => $groupId,
                 'name'    => $name,
-                "members" => [['id'=>$userId]],
+                "members" => $members,
             ));
             $result['code']!=200 && abort(405 , 'RY Group creation failed!');
             DB::commit();
@@ -74,7 +92,7 @@ class GroupController extends BaseController
             throw new StoreResourceFailedException('Group creation failed');
         }
         $group = Group::where('id' , $groupId)->where('is_deleted' , 0)->first();
-        GroupCreate::dispatch($group , $user , $memberIds)->onQueue('helloo_{group_create}');
+        GroupCreate::dispatch($group , $user , $memberIds)->onQueue('helloo_{group_operate}');
         return new AnonymousCollection($group);
     }
 
@@ -91,7 +109,8 @@ class GroupController extends BaseController
 
     public function update(UpdateGroupRequest $request , $id)
     {
-        $userId = auth()->id();
+        $user = auth()->user();
+        $userId = $user->user_id;
         $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
         if(empty($group)||$group->administrator!=$userId)
         {
@@ -127,13 +146,15 @@ class GroupController extends BaseController
                 ));
                 throw new UpdateResourceFailedException('Group update failed');
             }
+            GroupUpdate::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         }
         return $this->response->accepted();
     }
 
     public function destroy($id)
     {
-        $userId = auth()->id();
+        $user = auth()->user();
+        $userId = $user->user_id;
         $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
         if(empty($group)||$group->administrator!=$userId)
         {
@@ -160,6 +181,7 @@ class GroupController extends BaseController
             ));
             throw new UpdateResourceFailedException('Group dismiss failed');
         }
+        GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         return $this->response->noContent();
     }
 }

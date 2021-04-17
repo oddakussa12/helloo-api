@@ -7,11 +7,11 @@ use App\Resources\UserCollection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Repositories\Contracts\UserRepository;
 
-class GroupCreate implements ShouldQueue
+class GroupMemberJoin implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -44,7 +44,7 @@ class GroupCreate implements ShouldQueue
         })->toValues();
         $members = collect(UserCollection::collection($members))->toArray();
         $content = array(
-            'content'=>'Group create',
+            'content'=>'Group member join',
             'user'=> array(
                 'id'=>$senderId,
                 'name'=>$operatorNickname,
@@ -53,7 +53,7 @@ class GroupCreate implements ShouldQueue
                     'userLevel'=>$this->user->user_level
                 ),
             ),
-            'operation'=>'group_create',
+            'operation'=>'group_member_join',
             'data'=>array(
                 'groupName'=>$groupName,
                 'members'=>$members,
@@ -64,9 +64,9 @@ class GroupCreate implements ShouldQueue
             "objectName" => "RC:GrpNtf",
             'targetId'      => $groupId,
             'content'    => \json_encode($content),
-            'pushContent'=>'Group create',
+            'pushContent'=>'Group member join',
             'pushExt'=>\json_encode(array(
-                'title'=>'Group create',
+                'title'=>'Group member join',
                 'forceShowPushContent'=>1
             ))
         );

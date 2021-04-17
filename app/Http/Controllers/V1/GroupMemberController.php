@@ -4,10 +4,11 @@ namespace App\Http\Controllers\V1;
 
 
 use App\Models\Group;
-use App\Jobs\Dispatcher;
+use App\Jobs\GroupDestroy;
 use App\Models\GroupMember;
-use Dingo\Api\Exception\ResourceException;
 use Illuminate\Http\Request;
+use App\Jobs\GroupMemberJoin;
+use App\Jobs\GroupMemberExit;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +48,8 @@ class GroupMemberController extends BaseController
     private function exit(Request $request)
     {
         $id = strval($request->input('group_id' , 0));
-        $userId = auth()->id();
+        $user = auth()->user();
+        $userId = $user->user_id;
         $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
         if(empty($group))
         {
@@ -81,6 +83,7 @@ class GroupMemberController extends BaseController
                 ));
                 throw new UpdateResourceFailedException('Group dismiss failed');
             }
+            GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         }else{
             $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
             DB::beginTransaction();
@@ -107,6 +110,7 @@ class GroupMemberController extends BaseController
                 ));
                 throw new StoreResourceFailedException('Group quit failed');
             }
+            GroupMemberExit::dispatch($group , $user , [$userId])->onQueue('helloo_{group_member_update}');
         }
         return $this->response->accepted();
     }
@@ -114,9 +118,10 @@ class GroupMemberController extends BaseController
     private function kick(Request $request)
     {
         $id = strval($request->input('group_id' , 0));
-        $userId = auth()->id();
-        $kickedUserId =intval(request()->input('user_id' , 0));
-        if($kickedUserId<=0)
+        $user = auth()->user();
+        $userId = $user->user_id;
+        $kickedUserIds =(array)(request()->input('user_id' , array()));
+        if(count($kickedUserIds)<=0)
         {
             return $this->response->errorNotFound('Sorry, this user was not found!');
         }
@@ -139,25 +144,29 @@ class GroupMemberController extends BaseController
         {
             return $this->response->errorForbidden('Sorry, you do not have permission to delete others!');
         }
-        $groupMember = GroupMember::where('group_id' , $id)->where('user_id' , $kickedUserId)->first();
-        if(empty($groupMember))
+        $groupMembers = GroupMember::where('group_id' , $id)->whereIn('user_id' , $kickedUserIds)->get();
+        if(blank($groupMembers))
         {
             return $this->response->errorNotFound('Sorry, this user has left this group!');
         }
-        $groupMember = $groupMember->makeVisible('id')->toArray();
-        $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
+        $groupMemberIds = $groupMembers->pluck('user_id')->toArray();
+        $memberCount = count($groupMemberIds);
+        $groupData = array('member'=>DB::raw("member-$memberCount") ,  'updated_at'=>$now);
+        $groupMemberData = $groupMembers->toArray();
+        $members = collect($groupMemberIds)->map(function($groupMemberId){
+            return array('id'=>$groupMemberId);
+        })->toArray();
         DB::beginTransaction();
         try{
-            $deleteMemberResult = DB::table('groups_members')->where('id' , $groupMember['id'])->delete();
-            unset($groupMember['id']);
-            $insertMemberLogResult = DB::table('groups_members_logs')->insert($groupMember);
+            $deleteMemberResult = DB::table('groups_members')->whereIn('id' , $groupMemberIds)->delete();
+            $insertMemberLogResult = DB::table('groups_members_logs')->insert($groupMemberData);
             $updateGroupResult = DB::table('groups')->where('id' , $id)->update($groupData);
             !$deleteMemberResult&&abort(405 , 'Group member delete failed!');
             !$insertMemberLogResult&&abort(405 , 'Group member log insert failed!');
             !$updateGroupResult&&abort(405 , 'Group update failed!');
             $result = app('rcloud')->getGroup()->quit(array(
                 'id'      => $id,
-                "members" => [['id'=>$kickedUserId]],
+                "members" => [$members],
             ));
             $result['code']!=200&&abort(405 , 'RY Group kick failed!');
             DB::commit();
@@ -167,11 +176,12 @@ class GroupMemberController extends BaseController
             Log::info('group_kick_fail' , array(
                 'id'=>$id,
                 'user_id'=>$userId,
-                'kicked_user_id'=>$kickedUserId,
+                'members'=>$members,
                 'message'=>$exception->getMessage()
             ));
             throw new StoreResourceFailedException('Group kick failed');
         }
+        GroupMemberExit::dispatch($group , $user , $groupMemberIds)->onQueue('helloo_{group_member_update}');
         return $this->response->accepted();
     }
 
@@ -179,7 +189,8 @@ class GroupMemberController extends BaseController
     {
         $type = strval($request->input('type' , 'join'));
         $id = strval($request->input('group_id' , 0));
-        $auth = auth()->id();
+        $user = auth()->user();
+        $auth = $user->user_id;
         $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
         if(empty($group))
         {
@@ -219,6 +230,7 @@ class GroupMemberController extends BaseController
                     ));
                     throw new UpdateResourceFailedException('Group join failed!');
                 }
+                GroupMemberJoin::dispatch($group , $user , [$auth])->onQueue('helloo_{group_member_update}');
             }
         }else if($type=='pull'){
             $userIds = (array)$request->input('user_id' , array());
@@ -257,6 +269,7 @@ class GroupMemberController extends BaseController
                     ));
                     throw new UpdateResourceFailedException('Group pull join failed!');
                 }
+                GroupMemberJoin::dispatch($group , $user , $userIds)->onQueue('helloo_{group_member_update}');
             }
         }
         return $this->response->accepted();
