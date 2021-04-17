@@ -38,7 +38,7 @@ class GroupController extends BaseController
     {
         $user   = auth()->user();
         $userId = $user->user_id;
-        $name = $request->input('name' , '');
+        $name = strval($request->input('name' , ''));
         $memberIds = $request->input('user_id' , '');
         $now = date('Y-m-d H:i:s');
         $groupId = app('snowflake')->id();
@@ -60,8 +60,10 @@ class GroupController extends BaseController
             return array($userId=>userCover($avatar));
         })->toArray();
         DB::beginTransaction();
+        $name = !empty($name) ? $name : '';
+
         try {
-            $groupResult        = DB::table('groups')->insert(array(
+            $groupResult = DB::table('groups')->insert(array(
                 'id'=>$groupId,
                 'user_id'=>$userId,
                 'administrator'=>$userId,
