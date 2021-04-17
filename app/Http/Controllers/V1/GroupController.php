@@ -29,9 +29,10 @@ class GroupController extends BaseController
 
     public function my(Request $request)
     {
-        $userId = auth()->id();
-        $groups = Group::where('administrator' , $userId)->where('is_deleted' , 0)->paginate(50);
-        $names  = $groups->where('name', '')->pluck('id')->toArray();
+        $userId  = auth()->id();
+        $members = GroupMember::where('user_id', $userId)->groupBy('group_id')->paginate(50);
+        $ids     = collect($members)->pluck('group_id')->unique()->values()->toArray();
+        $groups  = Group::where('is_deleted' , 0)->whereIn('user_id', $ids)->paginate(50);
         return AnonymousCollection::collection($groups);
     }
 
@@ -106,9 +107,8 @@ class GroupController extends BaseController
 
     public function show($id)
     {
-        $userId = auth()->id();
         $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
-        if(empty($group)||$group->administrator!=$userId)
+        if(empty($group))
         {
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
