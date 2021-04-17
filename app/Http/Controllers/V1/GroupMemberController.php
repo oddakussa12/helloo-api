@@ -144,7 +144,7 @@ class GroupMemberController extends BaseController
         {
             return $this->response->errorForbidden('Sorry, you do not have permission to delete others!');
         }
-        $groupMembers = GroupMember::where('group_id' , $id)->whereIn('user_id' , $kickedUserIds)->get();
+        $groupMembers = GroupMember::where('group_id', $id)->whereIn('user_id' , $kickedUserIds)->get();
         if(blank($groupMembers))
         {
             return $this->response->errorNotFound('Sorry, this user has left this group!');
@@ -158,7 +158,7 @@ class GroupMemberController extends BaseController
         })->toArray();
         DB::beginTransaction();
         try{
-            $deleteMemberResult = DB::table('groups_members')->whereIn('id' , $groupMemberIds)->delete();
+            $deleteMemberResult = DB::table('groups_members')->where('group_id', $id)->whereIn('user_id' , $groupMemberIds)->delete();
             $insertMemberLogResult = DB::table('groups_members_logs')->insert($groupMemberData);
             $updateGroupResult = DB::table('groups')->where('id' , $id)->update($groupData);
             !$deleteMemberResult&&abort(405 , 'Group member delete failed!');
