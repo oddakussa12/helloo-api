@@ -52,7 +52,7 @@ class GroupController extends BaseController
         })->toArray();
         $members = collect(array_merge($memberIds , array($userId)))->map(function($memberId){
             return array('id'=>$memberId);
-        });
+        })->toArray();
         $avatars = array_slice(array_merge(array(
             $userId=>userCover($user->user_avatar)
         ) , $users->pluck('user_avatar_link' , 'user_id')->toArray()) , 0 , 9);
