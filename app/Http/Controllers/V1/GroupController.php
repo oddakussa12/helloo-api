@@ -51,8 +51,8 @@ class GroupController extends BaseController
         $memberIds  = $users->pluck('user_id')->toArray();
         !$memberIds && abort(405 , 'User info fail!');
 
-        $memberIds  = collect(array_merge($memberIds , [$userId]))->unique()->values()->toArray();
-        $memberData = collect($memberIds)->map(function($memberId) use ($groupId , $userId , $now){
+        $ids  = collect(array_merge($memberIds , [$userId]))->unique()->values()->toArray();
+        $memberData = collect($ids)->map(function($memberId) use ($groupId , $userId , $now){
             return array('user_id'=>$memberId , 'group_id'=>$groupId , 'role'=>intval($userId==$memberId) , 'created_at'=>$now , 'updated_at'=>$now);
         })->toArray();
 
@@ -70,16 +70,17 @@ class GroupController extends BaseController
 
         DB::beginTransaction();
         try {
-            $groupResult = DB::table('groups')->insert(array(
+            $insert = [
                 'id'=>$groupId,
                 'user_id'=>$userId,
                 'administrator'=>$userId,
                 'name'=> $names,
                 'avatar'=>$avatars,
-                'member'=>count(array_merge($memberIds , array($userId))),
+                'member'=>count($ids),
                 'created_at'=>$now,
                 'updated_at'=>$now
-            ));
+            ];
+            $groupResult = DB::table('groups')->insert($insert);
             $groupMembersResult = DB::table('groups_members')->insert($memberData);
             !$groupResult        && abort(405 , 'Group creation failed!');
             !$groupMembersResult && abort(405 , 'Group members creation failed!');
