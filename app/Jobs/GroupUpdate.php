@@ -34,6 +34,7 @@ class GroupUpdate implements ShouldQueue
         $operatorNickname = $this->user->user_nick_name;
         $groupId = $this->group->id;
         $groupName = $this->group->name;
+        $groupAvatar = $this->group->avatar;
         $content = array(
             'content'=>'Group update',
             'user'=> array(
@@ -46,7 +47,8 @@ class GroupUpdate implements ShouldQueue
             ),
             'operation'=>'group_update',
             'data'=>array(
-                'groupName'=>$groupName
+                'groupName'=>$groupName,
+                'groupAvatar'=>$groupAvatar,
             )
         );
         $content = array(
