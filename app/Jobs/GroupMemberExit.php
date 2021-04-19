@@ -79,7 +79,8 @@ class GroupMemberExit implements ShouldQueue
             'pushExt'=>\json_encode(array(
                 'title'=>'Group member exit',
                 'forceShowPushContent'=>1
-            ))
+            )),
+            'isPersisted'
         );
         Log::info('group_notice_request' , $content);
         $result = app('rcloud')->getMessage()->Group()->send($content);
