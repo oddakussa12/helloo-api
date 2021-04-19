@@ -71,7 +71,7 @@ class GroupMemberExit implements ShouldQueue
             ))
         );
         Log::info('group_notice_request' , $content);
-        $result = app('rcloud')->getMessage()->getGroup()->send($content);
+        $result = app('rcloud')->getMessage()->Group()->send($content);
         Log::info('group_notice_result' , $result);
     }
 
