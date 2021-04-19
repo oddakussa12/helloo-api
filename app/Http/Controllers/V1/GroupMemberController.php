@@ -97,7 +97,9 @@ class GroupMemberController extends BaseController
                 !$updateGroupResult&&abort(405 , 'Group update failed!');
                 $result = app('rcloud')->getGroup()->quit(array(
                     'id'      => $id,
-                    "members" => [['id'=>$userId]],
+                    "members" => array(
+                        'id'=>array($userId)
+                    ),
                 ));
                 $result['code']!=200&&abort(405 , 'RY Group quit failed!');
                 DB::commit();
@@ -156,7 +158,7 @@ class GroupMemberController extends BaseController
         $groupData = array('member'=>DB::raw("member-$memberCount") ,  'updated_at'=>$now);
         $groupMemberData = $groupMembers->toArray();
         $members = collect($groupMemberIds)->map(function($groupMemberId){
-            return array('id'=>$groupMemberId);
+            return $groupMemberId;
         })->toArray();
         DB::beginTransaction();
         try{
@@ -168,7 +170,7 @@ class GroupMemberController extends BaseController
             !$updateGroupResult&&abort(405 , 'Group update failed!');
             $result = app('rcloud')->getGroup()->quit(array(
                 'id'      => $id,
-                "members" => [$members],
+                "member" => array('id'=>$members),
             ));
             $result['code']!=200&&abort(405 , 'RY Group kick failed!');
             DB::commit();
