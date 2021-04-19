@@ -10,7 +10,9 @@ class Group extends Model
 
     protected $table = "groups";
     protected $casts = [
-        'id' => 'string'
+        'id' => 'string',
+        'name' => 'array',
+        'avatar' => 'array'
     ];
     protected $fillable = ['user_id' , 'administrator' , 'name' , 'avatar' , 'member' , 'is_deleted' , 'deleted_at'];
 

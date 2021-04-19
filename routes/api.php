@@ -183,6 +183,9 @@ $api->group($V1Params , function ($api){
         /*****群 结束*****/
 
     });
+
+    $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
+
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
     $api->post('user/contacts' , 'UserController@contacts')->name('user.contacts');

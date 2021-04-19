@@ -49,7 +49,10 @@ class GroupController extends BaseController
         });
 
         $memberIds  = $users->pluck('user_id')->toArray();
-        !$memberIds && abort(405 , 'User info fail!');
+        if(empty($memberIds))
+        {
+            return $this->response->errorBadRequest();
+        }
 
         $ids  = collect(array_merge($memberIds , [$userId]))->unique()->values()->toArray();
         $memberData = collect($ids)->map(function($memberId) use ($groupId , $userId , $now){
@@ -60,13 +63,16 @@ class GroupController extends BaseController
             return array('id'=>$memberId);
         })->toArray();
 
-        $names   = $users->pluck('user_nick_name')->toArray();
-        $names   = array_slice(array_merge([$user->user_nick_name], $names),0, 4);
-        $names   = implode(',', $names);
-        $avatars = array_slice(array_merge(array(
-            $userId=>userCover($user->user_avatar)
-        ) , $users->pluck('user_avatar_link' , 'user_id')->toArray()) , 0 , 4);
-        $avatars = implode(',', $avatars);
+        $names   = $users->pluck('user_nick_name' , 'user_id')->toArray();
+        $names = array($userId=>$user->user_nick_name)+$names;
+        $names   = array_slice($names,0, 4 , true);
+
+        $avatars = $users->pluck('user_avatar' , 'user_id')->toArray();
+        $avatars = array($userId=>$user->user_avatar)+$avatars;
+        $avatars = collect($avatars)->map(function($avatar , $userId){
+            return userCover($avatar);
+        })->toArray();
+        $avatars   = array_slice($avatars,0, 4 , true);
 
         DB::beginTransaction();
         try {
@@ -74,8 +80,8 @@ class GroupController extends BaseController
                 'id'=>$groupId,
                 'user_id'=>$userId,
                 'administrator'=>$userId,
-                'name'=> $names,
-                'avatar'=>$avatars,
+                'name'=> \json_encode($names),
+                'avatar'=>\json_encode($avatars),
                 'member'=>count($ids),
                 'created_at'=>$now,
                 'updated_at'=>$now
@@ -170,17 +176,28 @@ class GroupController extends BaseController
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
         $now = date('Y-m-d H:i:s');
+        $groupMembers = DB::table('groups_members')->where('group_id' , $id)->select(array(
+            'user_id',
+            'group_id',
+            'role',
+            'created_at',
+            'updated_at',
+        ))->get()->map(function ($value) {return (array)$value;})->toArray();
         DB::beginTransaction();
         try{
             $groupResult = DB::table('groups')->where('id' , $id)->update(array(
                 'is_deleted'=>1,
                 'deleted_at'=>$now,
             ));
+            $groupMemberResult = DB::table('groups_members')->where('group_id' , $id)->delete();
+            $insertMemberLogResult = DB::table('groups_members_logs')->insert($groupMembers);
+            !$groupResult && abort(405 , 'Group update failed!');
+            !$groupMemberResult && abort(405 , 'Group member delete failed!');
+            !$insertMemberLogResult && abort(405 , 'Group member log insert failed!');
             $result = app('rcloud')->getGroup()->dismiss([
                 'id'=>$id, 'member'=>['id'=>$userId]
             ]);
             $result['code']!=200 && abort(405 , 'RY Group dismiss failed!');
-            !$groupResult        && abort(405 , 'Group dismiss failed!');
             DB::commit();
         }catch (\Exception $exception){
             DB::rollBack();

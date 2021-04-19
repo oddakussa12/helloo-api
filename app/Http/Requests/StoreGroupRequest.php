@@ -32,9 +32,9 @@ class StoreGroupRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required' => 'Group name is required',
-            'name.string' => 'Incorrect group name format',
-            'name.max' => 'The group name cannot exceed 200 characters',
+//            'name.required' => 'Group name is required',
+//            'name.string' => 'Incorrect group name format',
+//            'name.max' => 'The group name cannot exceed 200 characters',
             'user_id.required' => 'Group members are required',
             'user_id.array' => 'Group member ID is illegal',
             'user_id.between' => 'The number of group members is limited to 1-100',
