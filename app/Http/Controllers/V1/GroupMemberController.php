@@ -56,11 +56,12 @@ class GroupMemberController extends BaseController
             return $this->response->errorNotFound('Sorry, this group was not found!');
         }
         $now = date('Y-m-d H:i:s');
-        $groupMember = GroupMember::where('group_id' , $id)->where('user_id' , $userId)->first()->makeVisible(array('id'))->toArray();
+        $groupMember = GroupMember::where('group_id' , $id)->where('user_id' , $userId)->first();
         if(empty($groupMember))
         {
             return $this->response->errorNotFound('Sorry, you have left this group!');
         }
+        $groupMember = $groupMember->makeVisible(array('id'))->toArray();
         if($group->administrator==$userId)
         {
             DB::beginTransaction();
@@ -135,11 +136,12 @@ class GroupMemberController extends BaseController
             return $this->response->errorForbidden('Sorry, you do not have permission to delete others!');
         }
         $now = date('Y-m-d H:i:s');
-        $groupAdmin = GroupMember::where('group_id' , $id)->where('user_id' , $userId)->first()->makeVisible(array('id'))->toArray();
+        $groupAdmin = GroupMember::where('group_id' , $id)->where('user_id' , $userId)->first();
         if(empty($groupAdmin))
         {
             return $this->response->errorNotFound('Sorry, you have left this group!');
         }
+        $groupAdmin = $groupAdmin->makeVisible(array('id'))->toArray();
         if($groupAdmin['role']!=1)
         {
             return $this->response->errorForbidden('Sorry, you do not have permission to delete others!');
