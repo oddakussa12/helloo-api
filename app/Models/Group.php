@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use function GuzzleHttp\Psr7\str;
 
 
 class Group extends Model
@@ -35,7 +36,7 @@ class Group extends Model
             $name = array_values($name);
             $name = implode(',' , $name);
         }
-        return $name==null?'':$name;
+        return $name==null?strval($name):$name;
     }
 
     public function getAvatarAttribute($avatar)
@@ -46,7 +47,7 @@ class Group extends Model
             $avatar = array_values($avatar);
             $avatar = implode(',' , $avatar);
         }
-        return $avatar==null?'':$avatar;
+        return $avatar==null?strval($avatar):$avatar;
     }
 
 }
