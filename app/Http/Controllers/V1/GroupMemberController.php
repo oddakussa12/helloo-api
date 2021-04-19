@@ -208,13 +208,16 @@ class GroupMemberController extends BaseController
             {
                 DB::beginTransaction();
                 try{
-                    $groupResult = DB::table('groups_members')->insert(array(
+                    $groupMemberResult = DB::table('groups_members')->insert(array(
                         'group_id'=>$id,
                         'user_id'=>$auth,
                         'created_at'=>$now,
                         'updated_at'=>$now,
                     ));
-                    !$groupResult        && abort(405 , 'Group join failed!');
+                    !$groupMemberResult && abort(405 , 'Group member join failed!');
+                    $groupData = array('member'=>DB::raw("member+1") ,  'updated_at'=>$now);
+                    $groupResult = DB::table('groups')->where('id' , $id)->update($groupData);
+                    !$groupResult        && abort(405 , 'Group pull join failed!');
                     $result = app('rcloud')->getGroup()->joins(array(
                         'id'      => $id,
                         'name'    => $group->name,
@@ -250,9 +253,13 @@ class GroupMemberController extends BaseController
                 $memberData = collect($userIds)->map(function($memberId) use ($id , $now){
                     return array('user_id'=>$memberId , 'group_id'=>$id , 'created_at'=>$now , 'updated_at'=>$now);
                 })->toArray();
+                $memberCount = count($memberData);
+                $groupData = array('member'=>DB::raw("member+$memberCount") ,  'updated_at'=>$now);
                 DB::beginTransaction();
                 try{
-                    $groupResult = DB::table('groups_members')->insert($memberData);
+                    $groupMemberResult = DB::table('groups_members')->insert($memberData);
+                    !$groupMemberResult && abort(405 , 'Group member pull join failed!');
+                    $groupResult = DB::table('groups')->where('id' , $id)->update($groupData);
                     !$groupResult        && abort(405 , 'Group pull join failed!');
                     $result = app('rcloud')->getGroup()->joins(array(
                         'id'      => $id,

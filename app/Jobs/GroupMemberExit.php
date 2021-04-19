@@ -19,12 +19,14 @@ class GroupMemberExit implements ShouldQueue
     private $group;
     private $userIds;
     private $user;
+    private $type;
 
-    public function __construct($group , $user , $userIds)
+    public function __construct($group , $user , $userIds , $type)
     {
         $this->group = $group;
         $this->user = $user;
         $this->userIds = $userIds;
+        $this->type = $type;
     }
 
     /**
@@ -34,6 +36,15 @@ class GroupMemberExit implements ShouldQueue
      */
     public function handle()
     {
+        if($this->type='exit')
+        {
+            $operation = 'group_member_exit';
+        }elseif ($this->type='kicked')
+        {
+            $operation = 'group_member_kicked';
+        }else{
+            return;
+        }
         $senderId = $this->user->user_id;
         $operatorNickname = $this->user->user_nick_name;
         $groupId = $this->group->id;
@@ -53,7 +64,7 @@ class GroupMemberExit implements ShouldQueue
                     'userLevel'=>$this->user->user_level
                 ),
             ),
-            'operation'=>'group_member_exit',
+            'operation'=>$operation,
             'data'=>array(
                 'groupName'=>$groupName,
                 'members'=>$members,
@@ -66,7 +77,7 @@ class GroupMemberExit implements ShouldQueue
             'content'    => \json_encode($content),
             'pushContent'=>'Group member exit',
             'pushExt'=>\json_encode(array(
-                'title'=>'Group Create',
+                'title'=>'Group member exit',
                 'forceShowPushContent'=>1
             ))
         );
