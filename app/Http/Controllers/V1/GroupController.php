@@ -9,6 +9,7 @@ use App\Jobs\GroupUpdate;
 use App\Jobs\GroupDestroy;
 use App\Models\GroupMember;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -17,11 +18,14 @@ use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use Dingo\Api\Exception\ResourceException;
 use App\Repositories\Contracts\UserRepository;
+use Illuminate\Database\Concerns\BuildsQueries;
 use Dingo\Api\Exception\StoreResourceFailedException;
 use Dingo\Api\Exception\UpdateResourceFailedException;
 
 class GroupController extends BaseController
 {
+    use BuildsQueries;
+
     public function index(Request $request)
     {
         $userId = intval($request->input('user_id' , 0));
@@ -30,9 +34,13 @@ class GroupController extends BaseController
     public function my(Request $request)
     {
         $userId  = auth()->id();
-        $members = GroupMember::where('user_id', $userId)->groupBy('group_id')->paginate(50);
+        $members = GroupMember::where('user_id', $userId)->paginate(50 , array('group_id'));
         $ids     = $members->pluck('group_id')->unique()->values()->toArray();
-        $groups  = Group::where('is_deleted' , 0)->whereIn('id', $ids)->paginate(50);
+        $groups  = Group::where('is_deleted' , 0)->whereIn('id', $ids)->get();
+        $groups = $this->paginator($groups, $groups->total(), 50 , $groups->currentPage(), [
+            'path' => Paginator::resolveCurrentPath(),
+            'pageName' => 'page',
+        ]);
         return AnonymousCollection::collection($groups);
     }
 
