@@ -35,6 +35,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
     $api->group(['middleware'=>['repeatedSubmit']] , function($api){
         $api->post('user/phone/signUp' , 'AuthController@phoneSignUp')->name('user.phone.sign.up');
+        $api->post('user/signUp' , 'AuthController@signUp')->name('user.sign.up');
     });
     $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired')]] , function ($api){
         $api->post('user/phone/code' , 'AuthController@signInPhoneCode')->name('sign.in.phone.code');
@@ -170,7 +171,21 @@ $api->group($V1Params , function ($api){
 
         /*****个人中心 结束*****/
 
+        /*****群 开始*****/
+        $api->get('my/group' , 'GroupController@my')->name('group.my');
+        $api->post('group' , 'GroupController@store')->name('group.store');
+        $api->patch('group/member' , 'GroupMemberController@update')->name('group.member.update');
+        $api->patch('group/{group}' , 'GroupController@update')->name('group.update');
+        $api->delete('group/{group}' , 'GroupController@destroy')->name('group.destroy');
+        $api->get('group/member' , 'GroupMemberController@index')->name('group.member.index');
+        $api->get('group/{group}' , 'GroupController@show')->name('group.show');
+        $api->post('group/member' , 'GroupMemberController@join')->name('group.member.join');
+        /*****群 结束*****/
+
     });
+
+    $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
+
     $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
     $api->post('user/contacts' , 'UserController@contacts')->name('user.contacts');
