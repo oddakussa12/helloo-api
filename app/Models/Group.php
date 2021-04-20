@@ -28,26 +28,26 @@ class Group extends Model
         'deleted_at',
     ];
 
-    public function getNameAttribute($name)
+    public function getNameAttribute($value)
     {
-        $name = \json_decode($name , true);
+        $name = \json_decode($value , true);
         if(is_array($name))
         {
             $name = array_values($name);
             $name = implode(',' , $name);
         }
-        return $name==null?strval($name):$name;
+        return $name==null?strval($value):$name;
     }
 
-    public function getAvatarAttribute($avatar)
+    public function getAvatarAttribute($value)
     {
-        $avatar = \json_decode($avatar , true);
+        $avatar = \json_decode($value , true);
         if(is_array($avatar))
         {
             $avatar = array_values($avatar);
             $avatar = implode(',' , $avatar);
         }
-        return $avatar==null?strval($avatar):$avatar;
+        return $avatar==null?strval($value):$avatar;
     }
 
 }

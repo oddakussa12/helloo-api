@@ -139,7 +139,7 @@ class GroupController extends BaseController
             $data['name']=$name;
             $data['name_isset']=1;
         }
-        if(empty($avatar))
+        if(!empty($avatar))
         {
             $data['avatar']=$avatar;
             $data['avatar_isset']=1;
