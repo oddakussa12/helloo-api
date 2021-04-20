@@ -65,7 +65,7 @@ class GroupMemberJoin implements ShouldQueue
         );
         $content = array(
             'senderId'   => $senderId,
-            "objectName" => "RC:GrpNtf",
+            "objectName" => "Helloo:GroupNotice",
             'targetId'      => $groupId,
             'content'    => \json_encode($content),
             'pushContent'=>'Group member join',
