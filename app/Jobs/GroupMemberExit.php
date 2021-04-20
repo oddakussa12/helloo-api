@@ -89,7 +89,7 @@ class GroupMemberExit implements ShouldQueue
         if($this->group->name_isset==0)
         {
             $names = $this->group->getOriginal('name');
-            Log::info('$names' , array($names));
+            Log::info('$names' , array(typeOf($names)));
             foreach ($names as $userId=>$name)
             {
                 if(in_array($userId , $this->userIds))
@@ -100,7 +100,7 @@ class GroupMemberExit implements ShouldQueue
         }
         if($this->group->avatar_isset==0)
         {
-            $avatars = $this->group->avatar;
+            $avatars = $this->group->getOriginal('avatar');
             Log::info('$avatars' , array($avatars));
 //            foreach ($avatars as $userId=>$avatar)
 //            {
