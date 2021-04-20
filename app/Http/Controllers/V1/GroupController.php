@@ -37,7 +37,7 @@ class GroupController extends BaseController
         $members = GroupMember::where('user_id', $userId)->paginate(50 , array('group_id'));
         $ids     = $members->pluck('group_id')->unique()->values()->toArray();
         $groups  = Group::where('is_deleted' , 0)->whereIn('id', $ids)->get();
-        $groups = $this->paginator($groups, $groups->total(), 50 , $groups->currentPage(), [
+        $groups = $this->paginator($groups, $members->total(), 50 , $members->currentPage(), [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);
