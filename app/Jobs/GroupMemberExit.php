@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
 use App\Resources\UserCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -20,6 +21,7 @@ class GroupMemberExit implements ShouldQueue
     private $userIds;
     private $user;
     private $type;
+    private $now;
 
     public function __construct($group , $user , $userIds , $type)
     {
@@ -27,6 +29,7 @@ class GroupMemberExit implements ShouldQueue
         $this->user = $user;
         $this->userIds = $userIds;
         $this->type = $type;
+        $this->now = date('Y-m-d H:i:s');
     }
 
     /**
@@ -89,26 +92,57 @@ class GroupMemberExit implements ShouldQueue
         if($this->group->name_isset==0)
         {
             $names = $this->group->getOriginal('name');
-            Log::info('$names' , array(gettype($names)));
-            foreach ($names as $userId=>$name)
+            $names = \json_decode($names , true);
+            if(is_array($names))
             {
-                if(in_array($userId , $this->userIds))
+                foreach ($names as $userId=>$name)
                 {
-                    unset($names[$userId]);
+                    if(in_array($userId , $this->userIds))
+                    {
+                        unset($names[$userId]);
+                    }
+                }
+                if(count($names)<4)
+                {
+                    $members = DB::table('groups_members')->where('group_id' , $groupId)->orderBy('created_at')->limit(4)->get();
+                    $memberIds = $members->pluck('user_id')->toArray();
+                    $members = app(UserRepository::class)->findByUserIds($memberIds);
+                    $names = $members->pluck('user_nick_name')->toArray();
+                    $names = implode(',' , $names);
+                    DB::table('groups')->where('id' , $groupId)->update(array(
+                        'name'=>$names,
+                        'updated_at'=>$this->now,
+                    ));
                 }
             }
+
         }
         if($this->group->avatar_isset==0)
         {
             $avatars = $this->group->getOriginal('avatar');
-            Log::info('$avatars' , array($avatars));
-//            foreach ($avatars as $userId=>$avatar)
-//            {
-//                if(in_array($userId , $this->userIds))
-//                {
-//                    unset($avatars[$userId]);
-//                }
-//            }
+            $avatars = \json_decode($avatars , true);
+            if(is_array($avatars))
+            {
+                foreach ($avatars as $userId=>$avatar)
+                {
+                    if(in_array($userId , $this->userIds))
+                    {
+                        unset($avatars[$userId]);
+                    }
+                }
+                if(count($avatars)<4)
+                {
+                    $members = DB::table('groups_members')->where('group_id' , $groupId)->orderBy('created_at')->limit(4)->get();
+                    $memberIds = $members->pluck('user_id')->toArray();
+                    $members = app(UserRepository::class)->findByUserIds($memberIds);
+                    $avatars = $members->pluck('user_avatar_link')->toArray();
+                    $avatars = implode(',' , $avatars);
+                    DB::table('groups')->where('id' , $groupId)->update(array(
+                        'avatar'=>$avatars,
+                        'updated_at'=>$this->now,
+                    ));
+                }
+            }
         }
     }
 

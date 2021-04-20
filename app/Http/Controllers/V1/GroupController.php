@@ -75,13 +75,13 @@ class GroupController extends BaseController
         $names = array($userId=>$user->user_nick_name)+$names;
         $names   = array_slice($names,0, 4 , true);
 
-        $avatars = $users->pluck('user_avatar' , 'user_id')->toArray();
+        $avatars = $users->pluck('user_avatar_link' , 'user_id')->toArray();
         $avatars = array($userId=>$user->user_avatar)+$avatars;
         $avatars = collect($avatars)->map(function($avatar , $userId){
             return userCover($avatar);
         })->toArray();
         $avatars   = array_slice($avatars,0, 4 , true);
-
+        $name = is_array($names)?implode(',' , $names):strval($names);
         DB::beginTransaction();
         try {
             $insert = [
@@ -100,7 +100,7 @@ class GroupController extends BaseController
             !$groupMembersResult && abort(405 , 'Group members creation failed!');
             $result = app('rcloud')->getGroup()->create(array(
                 'id'      => $groupId,
-                'name'    => $names,
+                'name'    => $name,
                 "members" => $members,
             ));
             $result['code']!=200 && abort(405 , 'RY Group creation failed!');
