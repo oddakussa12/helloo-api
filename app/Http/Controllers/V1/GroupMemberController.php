@@ -111,7 +111,7 @@ class GroupMemberController extends BaseController
                 !$updateGroupResult&&abort(405 , 'Group update failed!');
                 $result = app('rcloud')->getGroup()->quit(array(
                     'id'      => $id,
-                    "members" => array(
+                    "member" => array(
                         'id'=>array($userId)
                     ),
                 ));
