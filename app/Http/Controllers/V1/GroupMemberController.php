@@ -71,6 +71,7 @@ class GroupMemberController extends BaseController
                 'created_at',
                 'updated_at',
             ))->get()->map(function ($value) {return (array)$value;})->toArray();
+            $groupMembers['deleted_at'] = $now;
             DB::beginTransaction();
             try{
                 $groupResult = DB::table('groups')->where('id' , $id)->update(array(
@@ -97,6 +98,7 @@ class GroupMemberController extends BaseController
             }
             GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         }else{
+            $groupMember['deleted_at'] = $now;
             $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
             DB::beginTransaction();
             try{
@@ -169,6 +171,9 @@ class GroupMemberController extends BaseController
         $memberCount = count($groupMemberIds);
         $groupData = array('member'=>DB::raw("member-$memberCount") ,  'updated_at'=>$now);
         $groupMemberData = $groupMembers->toArray();
+        $groupMemberData = collect($groupMemberData)->each(function ($groupMember , $index) use ($now){
+            $groupMember['deleted_at'] = $now;
+        })->toArray();
         $members = collect($groupMemberIds)->map(function($groupMemberId){
             return $groupMemberId;
         })->toArray();
