@@ -107,7 +107,7 @@ class GroupMemberExit implements ShouldQueue
                     $members = DB::table('groups_members')->where('group_id' , $groupId)->orderBy('created_at')->limit(4)->get();
                     $memberIds = $members->pluck('user_id')->toArray();
                     $members = app(UserRepository::class)->findByUserIds($memberIds);
-                    $names = $members->pluck('user_id' , 'user_nick_name')->toArray();
+                    $names = $members->pluck('user_nick_name' , 'user_id')->toArray();
                     DB::table('groups')->where('id' , $groupId)->update(array(
                         'name'=>\json_encode($names),
                         'updated_at'=>$this->now,
@@ -134,7 +134,7 @@ class GroupMemberExit implements ShouldQueue
                     $members = DB::table('groups_members')->where('group_id' , $groupId)->orderBy('created_at')->limit(4)->get();
                     $memberIds = $members->pluck('user_id')->toArray();
                     $members = app(UserRepository::class)->findByUserIds($memberIds);
-                    $avatars = $members->pluck('user_id' , 'user_avatar_link')->toArray();
+                    $avatars = $members->pluck('user_avatar_link' , 'user_id')->toArray();
                     DB::table('groups')->where('id' , $groupId)->update(array(
                         'avatar'=>\json_encode($avatars),
                         'updated_at'=>$this->now,
