@@ -157,15 +157,16 @@ class GroupController extends BaseController
             DB::beginTransaction();
             try{
                 $groupResult = DB::table('groups')->where('id' , $id)->update($data);
+                !$groupResult && abort(405 , 'Group update failed!');
                 if(isset($data['name']))
                 {
                     $result = app('rcloud')->getGroup()->update(array(
                         'id'      => $id,
                         'name'    => $name,
                     ));
+                    Log::info('$result' , $result);
                     $result['code']!=200 && abort(405 , 'RY Group update failed!');
                 }
-                !$groupResult        && abort(405 , 'Group update failed!');
                 DB::commit();
             }catch (\Exception $e)
             {
