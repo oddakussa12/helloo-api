@@ -162,7 +162,7 @@ class GroupController extends BaseController
                 {
                     $result = app('rcloud')->getGroup()->update(array(
                         'id'      => $id,
-                        'name'    => $name,
+                        'name'    => substr($name , 0 , 60),
                     ));
                     Log::info('$result' , $result);
                     $result['code']!=200 && abort(405 , 'RY Group update failed!');
