@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Group;
 use Illuminate\Bus\Queueable;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -112,6 +113,8 @@ class GroupMemberExit implements ShouldQueue
                         'name'=>\json_encode($names),
                         'updated_at'=>$this->now,
                     ));
+                    $group = Group::where('id' , $groupId)->first();
+                    GroupUpdate::dispatch($group , $this->user)->onQueue('helloo_{group_operate}');
                 }
             }
 
@@ -139,6 +142,8 @@ class GroupMemberExit implements ShouldQueue
                         'avatar'=>\json_encode($avatars),
                         'updated_at'=>$this->now,
                     ));
+                    $group = Group::where('id' , $groupId)->first();
+                    GroupUpdate::dispatch($group , $this->user)->onQueue('helloo_{group_operate}');
                 }
             }
         }
