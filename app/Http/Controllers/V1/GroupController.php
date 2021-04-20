@@ -134,8 +134,16 @@ class GroupController extends BaseController
         $data = array('updated_at'=>date('Y-m-d H:i:s'));
         $name = strval($request->input('name' , ''));
         $avatar = strval($request->input('avatar' , ''));
-        !empty($name)&&$data['name']=$name;
-        !empty($avatar)&&$data['avatar']=$avatar;
+        if(!empty($name))
+        {
+            $data['name']=$name;
+            $data['name_isset']=1;
+        }
+        if(empty($avatar))
+        {
+            $data['avatar']=$avatar;
+            $data['avatar_isset']=1;
+        }
         if(!empty($data))
         {
             DB::beginTransaction();
