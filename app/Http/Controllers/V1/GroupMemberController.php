@@ -64,17 +64,28 @@ class GroupMemberController extends BaseController
         $groupMember = $groupMember->makeVisible(array('id'))->toArray();
         if($group->administrator==$userId)
         {
+            $groupMembers = DB::table('groups_members')->where('group_id' , $id)->select(array(
+                'user_id',
+                'group_id',
+                'role',
+                'created_at',
+                'updated_at',
+            ))->get()->map(function ($value) {return (array)$value;})->toArray();
             DB::beginTransaction();
             try{
                 $groupResult = DB::table('groups')->where('id' , $id)->update(array(
                     'is_deleted'=>1,
                     'deleted_at'=>$now,
                 ));
+                $groupMemberResult = DB::table('groups_members')->where('group_id' , $id)->delete();
+                $insertMemberLogResult = DB::table('groups_members_logs')->insert($groupMembers);
+                !$groupResult && abort(405 , 'Group update failed!');
+                !$groupMemberResult && abort(405 , 'Group member delete failed!');
+                !$insertMemberLogResult && abort(405 , 'Group member log insert failed!');
                 $result = app('rcloud')->getGroup()->dismiss([
                     'id'=>$id, 'member'=>['id'=>$userId]
                 ]);
                 $result['code']!=200 && abort(405 , 'RY Group dismiss failed!');
-                !$groupResult        && abort(405 , 'Group dismiss failed!');
                 DB::commit();
             }catch (\Exception $exception){
                 DB::rollBack();
