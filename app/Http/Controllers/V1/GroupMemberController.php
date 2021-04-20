@@ -173,6 +173,7 @@ class GroupMemberController extends BaseController
         $groupMemberData = $groupMembers->toArray();
         $groupMemberData = collect($groupMemberData)->each(function ($groupMember , $index) use ($now){
             $groupMember['deleted_at'] = $now;
+            return $groupMember;
         })->toArray();
         $members = collect($groupMemberIds)->map(function($groupMemberId){
             return $groupMemberId;
