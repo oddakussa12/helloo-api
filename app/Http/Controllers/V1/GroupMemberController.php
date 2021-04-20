@@ -97,11 +97,11 @@ class GroupMemberController extends BaseController
             }
             GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         }else{
-            unset($groupMember['id']);
             $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
             DB::beginTransaction();
             try{
                 $deleteMemberResult = DB::table('groups_members')->where('id' , $groupMember['id'])->delete();
+                unset($groupMember['id']);
                 $insertMemberLogResult = DB::table('groups_members_logs')->insert($groupMember);
                 $updateGroupResult = DB::table('groups')->where('id' , $id)->update($groupData);
                 !$deleteMemberResult&&abort(405 , 'Group member delete failed!');
