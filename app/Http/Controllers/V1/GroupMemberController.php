@@ -71,7 +71,10 @@ class GroupMemberController extends BaseController
                 'created_at',
                 'updated_at',
             ))->get()->map(function ($value) {return (array)$value;})->toArray();
-            $groupMembers['deleted_at'] = $now;
+            $groupMembers = collect($groupMembers)->each(function($groupMember , $index) use ($now){
+                $groupMember['deleted_at'] = $now;
+                return $groupMember;
+            })->toArray();
             DB::beginTransaction();
             try{
                 $groupResult = DB::table('groups')->where('id' , $id)->update(array(
