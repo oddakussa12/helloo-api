@@ -122,7 +122,7 @@ class GroupMemberController extends BaseController
                     'user_id'=>$userId,
                     'message'=>$exception->getMessage()
                 ));
-                throw new StoreResourceFailedException('Group quit failed');
+                throw new UpdateResourceFailedException('Group quit failed');
             }
             GroupMemberExit::dispatch($group , $user , [$userId] , 'exit')->onQueue('helloo_{group_member_update}');
         }
@@ -194,7 +194,7 @@ class GroupMemberController extends BaseController
                 'members'=>$members,
                 'message'=>$exception->getMessage()
             ));
-            throw new StoreResourceFailedException('Group kick failed');
+            throw new UpdateResourceFailedException('Group kick failed');
         }
         GroupMemberExit::dispatch($group , $user , $groupMemberIds , 'kicked')->onQueue('helloo_{group_member_update}');
         return $this->response->accepted();

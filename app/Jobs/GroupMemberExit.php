@@ -85,6 +85,31 @@ class GroupMemberExit implements ShouldQueue
         Log::info('group_notice_request' , $content);
         $result = app('rcloud')->getMessage()->Group()->send($content);
         Log::info('group_notice_result' , $result);
+
+        if($this->group->name_isset==0)
+        {
+            $names = $this->group->getOriginal('name');
+            Log::info('$names' , array($names));
+            foreach ($names as $userId=>$name)
+            {
+                if(in_array($userId , $this->userIds))
+                {
+                    unset($names[$userId]);
+                }
+            }
+        }
+        if($this->group->avatar_isset==0)
+        {
+            $avatars = $this->group->avatar;
+            Log::info('$avatars' , array($avatars));
+//            foreach ($avatars as $userId=>$avatar)
+//            {
+//                if(in_array($userId , $this->userIds))
+//                {
+//                    unset($avatars[$userId]);
+//                }
+//            }
+        }
     }
 
 }
