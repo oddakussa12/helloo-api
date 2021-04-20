@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Group;
 use Illuminate\Bus\Queueable;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
