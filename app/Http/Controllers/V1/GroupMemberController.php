@@ -97,6 +97,7 @@ class GroupMemberController extends BaseController
             }
             GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         }else{
+            unset($groupMember['id']);
             $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
             DB::beginTransaction();
             try{
