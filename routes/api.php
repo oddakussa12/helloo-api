@@ -239,6 +239,8 @@ $api->group($V1Params , function ($api){
 
     $api->post('backstage/block/device' , 'BackStageController@blockDevice')->name('backStage.block.device');
 
+    $api->post('backstage/block/user' , 'BackStageController@blockUser')->name('backStage.block.user');
+
     $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backStage.last.online');
     $api->get('backstage/score' , 'BackStageController@score')->name('backStage.score');
     $api->post('backstage/score' , 'BackStageController@storeScore')->name('backStage.storeScore');

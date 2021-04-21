@@ -188,6 +188,11 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    public function blockUser(Request $request)
+    {
+
+    }
+
 
 
 
