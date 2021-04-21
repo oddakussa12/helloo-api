@@ -40,9 +40,16 @@ class AuthController extends BaseController
     {
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
+        $deviceId = $agent->getHttpHeader('deviceId');
         if(version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
+        }
+        $deviceKey      = 'block_device';
+        $time = Redis::zscore($deviceKey , $deviceId);
+        if(!empty($time))
+        {
+            abort(401 , trans('auth.user_device_banned'));
         }
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
@@ -480,9 +487,16 @@ class AuthController extends BaseController
     {
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
+        $deviceId = $agent->getHttpHeader('deviceId');
         if(version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
+        }
+        $deviceKey      = 'block_device';
+        $time = Redis::zscore($deviceKey , $deviceId);
+        if(!empty($time))
+        {
+            abort(401 , trans('auth.user_device_banned'));
         }
 //        $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
@@ -733,9 +747,16 @@ class AuthController extends BaseController
     {
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
+        $deviceId = $agent->getHttpHeader('deviceId');
         if(version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
+        }
+        $deviceKey      = 'block_device';
+        $time = Redis::zscore($deviceKey , $deviceId);
+        if(!empty($time))
+        {
+            abort(401 , trans('auth.user_device_banned'));
         }
         $user_nick_name = strval($request->input('user_nick_name' , ''));
         $password = strval($request->input('password' , ""));

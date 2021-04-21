@@ -237,7 +237,7 @@ $api->group($V1Params , function ($api){
 
     $api->patch('backstage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backStage.version.upgrade');
 
-    $api->post('backstage/block/user' , 'BackStageController@blockUser')->name('backStage.block.user');
+    $api->post('backstage/block/device' , 'BackStageController@blockDevice')->name('backStage.block.device');
 
     $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backStage.last.online');
     $api->get('backstage/score' , 'BackStageController@score')->name('backStage.score');

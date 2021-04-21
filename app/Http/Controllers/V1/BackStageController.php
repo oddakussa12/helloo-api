@@ -140,7 +140,7 @@ class BackStageController extends BaseController
         return $this->response->array(array('users'=>$users , 'chinaTime'=>$chinaNow , 'count'=>$count , 'perPage'=>$perPage));
     }
 
-    public function blockUser(Request $request)
+    public function blockDevice(Request $request)
     {
         $userId = $request->input('user_id' , '');
         $deviceId = $request->input('device_id' , '');
