@@ -25,7 +25,7 @@ class Blacklist extends BaseMiddleware
                 $time = Redis::zscore($deviceKey , $deviceId);
                 if(!empty($time))
                 {
-                    abort('401' , trans('auth.user_banned'));
+                    abort(401 , trans('auth.user_device_banned'));
                 }
             }
         }
