@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 
+use App\Models\BlackUser;
 use App\Models\User;
 use App\Models\UserScore;
 use Carbon\Carbon;
@@ -190,6 +191,53 @@ class BackStageController extends BaseController
 
     public function blockUser(Request $request)
     {
+        $key      = 'block_user';
+        $userId   = $request->input('user_id' , 0);
+        $operator = $request->input('operator' , '');
+        $desc     = $request->input('desc' , '');
+        $minute   = $request->input('minute' , 43200);
+        if($userId<=0) {
+            return $this->response->errorNotFound();
+        }
+        try {
+            $start = date('Y-m-d H:i:s');
+            $end   = date('Y-m-d H:i:s', time()+$minute*60);
+            $res            = app('rcloud')->getUser()->Block()->add(array('id'=>$userId, 'minute'=>$minute));
+            $res['userId']  = $userId;
+            $res['minute']  = $minute;
+            $res['message'] = 'ok';
+
+            Redis::zadd($key, time(), $userId);
+            $blackUser = BlackUser::where('user_id' , $userId)->orderBy('updated_at' , "DESC")->first();
+            if(blank($blackUser))
+            {
+                $insert = [
+                    'user_id'=>$userId,
+                    'desc'=>$desc,
+                    'start_time'=>$start,
+                    'end_time'=>$end,
+                    'operator'=>$operator,
+                    'created_at'=>$start,
+                    'updated_at'=>$start,
+                ];
+                $data = BlackUser::insert($insert);
+            }else{
+                $blackUser->start_time = $start;
+                $blackUser->end_time = $end;
+                $blackUser->save();
+            }
+            throw_if($res['code']!=200 , new \Exception('internal error'));
+        } catch (\Throwable $e) {
+            Redis::zRem($key, $userId);
+            $res = array(
+                'code'    => $e->getCode(),
+                'userId'  => $userId,
+                'minute'  => $minute,
+                'message' => $e->getMessage(),
+            );
+            Log::info('block_fail' , $res);
+        }
+        return $this->response->array($res);
 
     }
 
