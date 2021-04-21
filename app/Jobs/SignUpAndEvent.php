@@ -33,6 +33,17 @@ class SignUpAndEvent implements ShouldQueue
      */
     public function handle()
     {
+        $result['user_id']    = $this->user->user_id;
+        $result['friend']     = 1;
+        $result['video']      = 1;
+        $result['photo']      = 1;
+        $result['created_at'] = date('Y-m-d H:i:s');
+        DB::table('users_settings')->insert($result);
+        $result = collect($result)->only('friend', 'video', 'photo')->toArray();
+        $mKey   = 'helloo:account:service:account-privacy:'.$this->user->user_id;
+        Redis::set($mKey, json_encode($result));
+        Redis::expire($mKey , 86400*7);
+        return;
         $now = Carbon::now()->timestamp;
         $activeEvents = app(EventRepository::class)->getActiveEvent();
         Log::info('$activeEvents' , array($activeEvents));

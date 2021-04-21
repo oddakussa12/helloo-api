@@ -7,10 +7,12 @@ use App\Models\User;
 use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Custom\RedisList;
+use Dingo\Api\Exception\ResourceException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 
 
 class BackStageController extends BaseController
@@ -136,6 +138,54 @@ class BackStageController extends BaseController
             $count = Redis::zcount($lastActivityTime , $chinaNow , $max);
         }
         return $this->response->array(array('users'=>$users , 'chinaTime'=>$chinaNow , 'count'=>$count , 'perPage'=>$perPage));
+    }
+
+    public function blockUser(Request $request)
+    {
+        $userId = $request->input('user_id' , '');
+        $deviceId = $request->input('device_id' , '');
+        $rules = [
+            'user_id' => [
+                'bail',
+                'required',
+                'string'
+            ],
+            'device_id' => [
+                'bail',
+                'required',
+                'string'
+            ]
+        ];
+        $validationField = array(
+            'user_id' => $userId,
+            'device_id' => $deviceId,
+        );
+        Validator::make($validationField, $rules)->validate();
+        $now = date('Y-m-d H:i:s');
+        try{
+            DB::beginTransaction();
+            $result = DB::table('block_devices')->insert(array(
+                'user_id'=>$userId,
+                'device_id'=>$deviceId,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            ));
+            if(empty($result))
+            {
+                abort(405 , 'block device insert fail!');
+            }
+            $deviceKey      = 'block_device';
+            Redis::sadd($deviceKey , $deviceId);
+            DB::commit();
+
+        }catch (\Exception $e){
+            Log::info('block_device_fail' , array(
+                'code'=>$e->getCode(),
+                'message'=>$e->getMessage(),
+            ));
+            throw new StoreResourceFailedException('block device insert failed!');
+        }
+        return $this->response->accepted();
     }
 
 

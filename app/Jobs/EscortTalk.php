@@ -63,6 +63,10 @@ class EscortTalk implements ShouldQueue
             array_push($data , array('user_id'=>$targetId , 'friend_id'=>$senderId , 'created_at'=>$cartedAt));
         }
         !blank($data)&&DB::table('users_friends')->insert($data);
+        if(!in_array($phoneCountry , array(670, '670' , 62 , '62')))
+        {
+            return;
+        }
         $content = array(
             'content'=>'video message',
             'user'=> array(
