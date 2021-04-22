@@ -753,12 +753,10 @@ class AuthController extends BaseController
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
-        $deviceKey      = 'block_device';
-        $time = Redis::zscore($deviceKey , $deviceId);
-        if(!empty($time))
-        {
-            abort(401 , trans('auth.user_device_banned'));
-        }
+
+        $time = Redis::sismember('block_device' , $deviceId);
+        $time && abort(401 , trans('auth.user_device_banned'));
+
         $user_nick_name = strval($request->input('user_nick_name' , ''));
         $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
