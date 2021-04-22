@@ -21,7 +21,7 @@ class RySetController extends BaseController
 
     public function unblock(Request $request)
     {
-        $key = 'block_user';
+        $key = 'helloo:account:service:block-user';
         $userId = intval($request->input('user_id' , 0));
         if($userId<=0)
         {
@@ -60,7 +60,7 @@ class RySetController extends BaseController
      */
     public function blockUser(Request $request)
     {
-        $key      = 'block_user';
+        $key      = 'helloo:account:service:block-user';
         $userId   = intval($request->input('user_id' , 0));
         $operator = intval($request->input('operator' , 0));
         $desc     = strval($request->input('desc' , ''));
@@ -111,7 +111,7 @@ class RySetController extends BaseController
 
     public function unblockUser(Request $request)
     {
-        $key = 'block_user';
+        $key = 'helloo:account:service:block-user';
         $userId = intval($request->input('user_id' , 0));
         $userName = intval($request->input('user_name' , ''));
         if($userId<=0) {

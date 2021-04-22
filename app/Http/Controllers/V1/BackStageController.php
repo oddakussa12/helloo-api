@@ -175,7 +175,7 @@ class BackStageController extends BaseController
             {
                 abort(405 , 'block device insert fail!');
             }
-            $deviceKey      = 'block_device';
+            $deviceKey      = 'helloo:account:service:block-device';
             Redis::sadd($deviceKey , $deviceId);
             DB::commit();
 
@@ -191,7 +191,7 @@ class BackStageController extends BaseController
 
     public function blockUser(Request $request)
     {
-        $key      = 'block_user';
+        $key      = 'helloo:account:service:block-user';
         $userId   = $request->input('user_id' , 0);
         $operator = $request->input('operator' , '');
         $desc     = $request->input('desc' , '');
