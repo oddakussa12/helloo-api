@@ -226,9 +226,9 @@ class BackStageController extends BaseController
                 $blackUser->save();
             }
             throw_if($res['code']!=200 , new \Exception('internal error'));
-            Redis::sadd($key, $userId);
+            Redis::zadd($key, time() , $userId);
         } catch (\Throwable $e) {
-            Redis::srem($key, $userId);
+            Redis::zrem($key, $userId);
             $res = array(
                 'code'    => $e->getCode(),
                 'userId'  => $userId,
