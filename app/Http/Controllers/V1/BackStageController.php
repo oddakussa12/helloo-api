@@ -207,7 +207,6 @@ class BackStageController extends BaseController
             $res['minute']  = $minute;
             $res['message'] = 'ok';
 
-            Redis::zadd($key, time(), $userId);
             $blackUser = BlackUser::where('user_id' , $userId)->orderBy('updated_at' , "DESC")->first();
             if(blank($blackUser))
             {
@@ -227,8 +226,9 @@ class BackStageController extends BaseController
                 $blackUser->save();
             }
             throw_if($res['code']!=200 , new \Exception('internal error'));
+            Redis::sadd($key, $userId);
         } catch (\Throwable $e) {
-            Redis::zRem($key, $userId);
+            Redis::srem($key, $userId);
             $res = array(
                 'code'    => $e->getCode(),
                 'userId'  => $userId,

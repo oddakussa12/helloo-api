@@ -45,12 +45,10 @@ class AuthController extends BaseController
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
-        $deviceKey      = 'block_device';
-        $time = Redis::zscore($deviceKey , $deviceId);
-        if(!empty($time))
-        {
-            abort(401 , trans('auth.user_device_banned'));
-        }
+
+        $time = Redis::sismember('block_device' , $deviceId);
+        $time && abort(401 , trans('auth.user_device_banned'));
+
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
         if($user_phone_country=='62'&&substr($user_phone , 0 , 2)=='62')
@@ -89,6 +87,9 @@ class AuthController extends BaseController
         {
             return $this->response->errorUnauthorized(__("Phone number hasn't been registered yet."));
         }
+        $exist = Redis::sismember('block_user' , $phone->user_id);
+        $exist && abort(401 , trans('auth.user_banned'));
+
         $user = $this->user->find($phone->user_id);
         if(!config('common.is_verification')||password_verify($password, $user->user_pwd))
         {
@@ -752,12 +753,10 @@ class AuthController extends BaseController
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
-        $deviceKey      = 'block_device';
-        $time = Redis::zscore($deviceKey , $deviceId);
-        if(!empty($time))
-        {
-            abort(401 , trans('auth.user_device_banned'));
-        }
+
+        $time = Redis::sismember('block_device' , $deviceId);
+        $time && abort(401 , trans('auth.user_device_banned'));
+
         $user_nick_name = strval($request->input('user_nick_name' , ''));
         $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
