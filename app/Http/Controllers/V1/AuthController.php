@@ -221,7 +221,6 @@ class AuthController extends BaseController
         $user_enrollment_at = strval($request->input('user_enrollment_at' , ''));
         $user_country = strval($request->input('user_country' , ''));
         $user_bg = strval($request->input('user_bg' , ''));
-        Log::info('修改个人资料:', $request->all());
         if(!empty($user_country))
         {
             $fields['user_country'] = $user_country;

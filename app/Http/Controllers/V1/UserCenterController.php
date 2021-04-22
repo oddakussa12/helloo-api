@@ -179,7 +179,6 @@ class UserCenterController extends BaseController
         if ($count>=10) {
             return $this->response->errorNotFound('Extra limit, maximum 10');
         }
-        Log::info('上传参数：', $request->all());
         if (count($images)+$count>10) {
             return $this->response->errorNotFound('Extra limit, maximum 10');
         }
@@ -241,7 +240,7 @@ class UserCenterController extends BaseController
             DB::rollBack();
             Log::info('delete fail:', ['code'=>$e->getCode(), 'message'=>$e->getMessage()]);
         }
-        return $this->response->error('删除失败，请稍后重试',400);
+        return $this->response->error('Operation failed. Please try again later',400);
 
     }
 
@@ -316,7 +315,6 @@ class UserCenterController extends BaseController
         $model = $type == 'video' ? new Video() : new Photo();
         $model = $model->findOrFail($id);
 
-        Log::info('点赞：like:'.$this->userId. ' liked:'.$model->user_id);
         $like  = $type == 'video' ? new LikeVideo() : new LikePhoto();
         $check = $like->where(['user_id'=>$this->userId, 'liked_id'=>$id])->first();
         if (empty($check)) {
