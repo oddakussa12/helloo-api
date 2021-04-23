@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use App\Models\UserFriendRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\Resource;
 use Illuminate\Queue\SerializesModels;
