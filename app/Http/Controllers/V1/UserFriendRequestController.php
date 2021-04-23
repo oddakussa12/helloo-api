@@ -109,7 +109,7 @@ class UserFriendRequestController extends BaseController
             $result = app('rcloud')->getMessage()->System()->send($content);
             Log::info('request_result' , $result);
             $kol = DB::table('kol_users')->where('user_id' , $friendId)->first();
-            !empty($kol)&&AutoFriend::dispatch($friend , $request_id)->onQueue('helloo_{auto_friend}')->delay(now()->addHours(mt_rand(1 , 4)));
+            !empty($kol)&&AutoFriend::dispatch($friend , $request_id)->onQueue('helloo_{auto_friend}')->delay(now()->addSeconds(mt_rand(5 , 15)));
         }
         return $this->response->created();
     }
