@@ -417,11 +417,11 @@ class RyChat implements ShouldQueue
                     'updated_at'=>$this->now,
                 ));
             }
-            if($count==5)
+            if($count==5&&$counts->props!=5)
             {
                 OneTimeUserScoreUpdate::dispatch($from , 'fiveMaskVideo')->onQueue('helloo_{one_time_user_score_update}');
             }
-            if($count==50)
+            if($count==50&&$counts->props!=50)
             {
                 GreatUserScoreUpdate::dispatch($from , 'maskCollection')->onQueue('helloo_{great_user_score_update}');
             }
