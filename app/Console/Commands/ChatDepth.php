@@ -109,7 +109,7 @@ class ChatDepth extends Command
                 ->where('chat_time' , '<=' , $end)
                 ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
                 ->groupBy('ft')->orderByDesc('chat_from_id')
-                ->chunk(100 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
+                ->chunk(500 , function($chats) use ($table , $country , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
                     $fromIds = $chats->pluck('chat_from_id')->all();
                     $toIds = $chats->pluck('chat_to_id')->all();
                     $userIds = array_unique(array_merge($fromIds , $toIds));
@@ -141,7 +141,7 @@ class ChatDepth extends Command
                                 ->where('chat_time' , '>=' , $start)
                                 ->where('chat_time' , '<=' , $end)
                                 ->orderBy('chat_time')
-                                ->chunk(200 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
+                                ->chunk(1000 , function ($chatData) use (&$abCount , &$baCount , &$preTurn , $chat , $ab , $ba , &$video){
                                     foreach ($chatData as $c)
                                     {
                                         if($c->chat_msg_type=='Helloo:VideoMsg')
@@ -274,7 +274,7 @@ class ChatDepth extends Command
                 ->where('chat_time' , '<=' , $end)
                 ->select('chat_from_id' , 'chat_to_id' , DB::raw("CONCAT(`chat_from_id`, ' ', `chat_to_id`) as `ft`"))
                 ->groupBy('ft')->orderByDesc('chat_from_id')
-                ->chunk(100 , function($chats) use ($table , $school , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
+                ->chunk(500 , function($chats) use ($table , $school , $start , $end , &$counted , &$turn , &$completed , $num , &$videoCompleted , &$chatData){
                     $fromIds = $chats->pluck('chat_from_id')->all();
                     $toIds = $chats->pluck('chat_to_id')->all();
                     $userIds = array_unique(array_merge($fromIds , $toIds));
