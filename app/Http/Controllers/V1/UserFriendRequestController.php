@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\V1;
 
 use Carbon\Carbon;
+use App\Jobs\AutoFriend;
 use App\Models\UserFriend;
 use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use App\Models\UserFriendRequest;
 use App\Resources\UserCollection;
-use App\Jobs\GreatUserScoreUpdate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -69,10 +69,10 @@ class UserFriendRequestController extends BaseController
         {
             return $this->response->created();
         }
-        app(UserRepository::class)->findOrFail($friendId);
+        $friend = app(UserRepository::class)->findOrFail($friendId);
         $userId   = $user->user_id;
-        $friend = UserFriend::where('user_id' , $user->user_id)->where('friend_id' , $friendId)->first();
-        if(blank($friend))
+        $userFriend = UserFriend::where('user_id' , $user->user_id)->where('friend_id' , $friendId)->first();
+        if(blank($userFriend))
         {
             $requestModel = UserFriendRequest::where('request_from_to' , $userId."-".$friendId)->first();
             if(blank($requestModel))
@@ -108,8 +108,9 @@ class UserFriendRequestController extends BaseController
             Log::info('request_content' , $content);
             $result = app('rcloud')->getMessage()->System()->send($content);
             Log::info('request_result' , $result);
+            $kol = DB::table('kol_users')->where('user_id' , $friendId)->first();
+            !empty($kol)&&AutoFriend::dispatch($friend , $request_id)->onQueue('helloo_{auto_friend}');
         }
-
         return $this->response->created();
     }
 
