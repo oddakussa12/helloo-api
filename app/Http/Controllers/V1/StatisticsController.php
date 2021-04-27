@@ -92,11 +92,18 @@ class StatisticsController extends BaseController
         if($request->has('log'))
         {
             $all = $request->input('log');
-        }else{
+            $userId = intval(auth()->id());
+            $ip = getRequestIpAddress();
+        }elseif ($request->has('session')){
             $all = \json_encode($request->all());
+            $userId = strval($request->input('u' , 0));
+            $ip = strval($request->input('ip' , ''));
+        }else{
+            $userId = intval(auth()->id());
+            $all = \json_encode($request->all());
+            $ip = getRequestIpAddress();
         }
-        $userId = intval(auth()->id());
-        DB::table('logs')->insert(array('log'=>$all , 'user_id'=>$userId , 'ip'=>getRequestIpAddress(), 'created_at'=>Carbon::now()->toDateTimeString()));
+        DB::table('logs')->insert(array('log'=>$all , 'user_id'=>$userId , 'ip'=>$ip, 'created_at'=>Carbon::now()->toDateTimeString()));
         return $this->response->created();
     }
 
