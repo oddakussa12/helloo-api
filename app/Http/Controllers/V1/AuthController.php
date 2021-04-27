@@ -854,6 +854,7 @@ class AuthController extends BaseController
             'gps'=>$gps,
         )));
         $token = auth()->login($user);
+        $this->activate($user);
         return $this->respondWithToken($token , false);
     }
 

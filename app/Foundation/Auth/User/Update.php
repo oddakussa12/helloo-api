@@ -369,7 +369,7 @@ trait Update
      * @param $data
      * @return bool|void
      */
-    public function activate(User $user ,$data)
+    public function activate(User $user ,$data=array())
     {
         $flag = false;
         $now = Carbon::now();
