@@ -85,7 +85,7 @@ class Promote extends Command
         $pushTime = $this->pushTime();
         $start = $pushTime['start'];
         $end = $pushTime['end'];
-        $lastActivityTime = 'ry_user_last_activity_time';
+        $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
         $options = array('withScores'=>true);
         $limit = 200;
         $count = Redis::zcount($lastActivityTime , $start , $end);
@@ -140,7 +140,7 @@ class Promote extends Command
         $pushTime = $this->pushTime(7);
         $start = $pushTime['start'];
         $end = $pushTime['end'];
-        $lastActivityTime = 'ry_user_last_activity_time';
+        $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
         $options = array('withScores'=>true);
         $limit = 200;
         $count = Redis::zcount($lastActivityTime , $start , $end);
@@ -195,7 +195,7 @@ class Promote extends Command
         $pushTime = $this->pushTime(30);
         $start = $pushTime['start'];
         $end = $pushTime['end'];
-        $lastActivityTime = 'ry_user_last_activity_time';
+        $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
         $options = array('withScores'=>true);
         $limit = 200;
         $count = Redis::zcount($lastActivityTime , $start , $end);

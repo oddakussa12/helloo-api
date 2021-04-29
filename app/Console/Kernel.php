@@ -23,7 +23,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Message::class,
         \App\Console\Commands\Dau::class,
         \App\Console\Commands\Retention::class,
-        \App\Console\Commands\RealTimeChatDepth::class
+        \App\Console\Commands\RealTimeChatDepth::class,
+        \App\Console\Commands\LastThreeDayActiveUser::class
     ];
 
     /**
@@ -117,6 +118,10 @@ class Kernel extends ConsoleKernel
                 return config('common.cron_switch');
             });
 
+        $schedule->command('last:three')
+            ->dailyAt('16:01')->when(function(){
+                return config('common.cron_switch');
+            });
 //        chatDepth 1
 //        $schedule->command('real:time_chat_depth' , array('yesterday' , null , 1))
 //            ->cron('15 */3 * * *')->when(function(){

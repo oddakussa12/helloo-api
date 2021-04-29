@@ -12,7 +12,7 @@ class LastActive extends BaseMiddleware
         if(auth()->check())
         {
             $time = time();
-            $lastActivityTime = 'ry_user_last_activity_time';
+            $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
             Redis::zadd($lastActivityTime , $time , intval(auth()->id()));
         }
         return $next($request);
