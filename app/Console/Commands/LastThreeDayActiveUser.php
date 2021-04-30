@@ -93,7 +93,7 @@ class LastThreeDayActiveUser extends Command
                 if(!empty($data))
                 {
                     $uIds = collect($data)->pluck('user_id')->toArray();
-                    $phones = collect(DB::table('t_users_phones')->whereIn('user_id' , $uIds)->get()->map(function ($value) {
+                    $phones = collect(DB::table('users_phones')->whereIn('user_id' , $uIds)->get()->map(function ($value) {
                         return (array)$value;
                     })->toArray());
                     foreach ($data as $i=>$d)
@@ -156,7 +156,7 @@ class LastThreeDayActiveUser extends Command
             if(!empty($data))
             {
                 $uIds = collect($data)->pluck('user_id')->toArray();
-                $phones = collect(DB::table('t_users_phones')->whereIn('user_id' , $uIds)->get()->map(function ($value) {
+                $phones = collect(DB::table('users_phones')->whereIn('user_id' , $uIds)->get()->map(function ($value) {
                     return (array)$value;
                 })->toArray());
                 foreach ($data as $i=>$d)
