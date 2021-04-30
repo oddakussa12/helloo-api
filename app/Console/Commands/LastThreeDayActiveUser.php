@@ -99,6 +99,7 @@ class LastThreeDayActiveUser extends Command
                     foreach ($data as $i=>$d)
                     {
                         $phone = $phones->where('user_id' , $d['user_id'])->first();
+                        dd($phone);
                         $userFriends = DB::table('users_friends')->where('user_id' , $d['user_id'])->where('created_at' , '>=' , $yesterdayChinaStart)
                             ->where('created_at' , '<=' , $yesterdayChinaEnd)->get()->map(function ($value) {
                                 return (array)$value;
