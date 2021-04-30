@@ -141,7 +141,7 @@ class LastThreeDayActiveUser extends Command
                         'user_id'=>$user->user_id,
                         'user_name'=>$user->user_name,
                         'user_nick_name'=>$user->user_nick_name,
-                        'count'=>empty($count)?0:$count->total,
+                        'friend'=>empty($count)?0:$count->total,
                         'user_created_at'=>$user->user_created_at,
                     ));
                 }
