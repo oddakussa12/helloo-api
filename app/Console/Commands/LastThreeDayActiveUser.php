@@ -92,8 +92,13 @@ class LastThreeDayActiveUser extends Command
                 }
                 if(!empty($data))
                 {
+                    $uIds = collect($data)->pluck('user_id')->toArray();
+                    $phones = collect(DB::table('t_users_phones')->whereIn('user_id' , $uIds)->get()->map(function ($value) {
+                        return (array)$value;
+                    })->toArray());
                     foreach ($data as $i=>$d)
                     {
+                        $phone = $phones->where('user_id' , $d['user_id'])->first();
                         $userFriends = DB::table('users_friends')->where('user_id' , $d['user_id'])->where('created_at' , '>=' , $yesterdayChinaStart)
                             ->where('created_at' , '<=' , $yesterdayChinaEnd)->get()->map(function ($value) {
                                 return (array)$value;
@@ -112,6 +117,8 @@ class LastThreeDayActiveUser extends Command
                         $d['detail'] = $json;
                         $d['new'] = $c;
                         $d['date'] = $today;
+                        $d['phone_country'] = $phone->phone_country;
+                        $d['phone'] = $phone->phone;
                         $data[$i] = $d;
                     }
                     DB::table('data_last_three_day_users')->insert($data);
@@ -148,8 +155,13 @@ class LastThreeDayActiveUser extends Command
             }
             if(!empty($data))
             {
+                $uIds = collect($data)->pluck('user_id')->toArray();
+                $phones = collect(DB::table('t_users_phones')->whereIn('user_id' , $uIds)->get()->map(function ($value) {
+                    return (array)$value;
+                })->toArray());
                 foreach ($data as $i=>$d)
                 {
+                    $phone = $phones->where('user_id' , $d['user_id'])->first();
                     $userFriends = DB::table('users_friends')->where('user_id' , $d['user_id'])->where('created_at' , '>=' , $yesterdayChinaStart)
                         ->where('created_at' , '<=' , $yesterdayChinaEnd)->get()->map(function ($value) {
                             return (array)$value;
@@ -168,6 +180,8 @@ class LastThreeDayActiveUser extends Command
                     $d['detail'] = $json;
                     $d['new'] = $c;
                     $d['date'] = $today;
+                    $d['phone_country'] = $phone->phone_country;
+                    $d['phone'] = $phone->phone;
                     $data[$i] = $d;
                 }
                 DB::table('data_last_three_day_users')->insert($data);
