@@ -42,6 +42,7 @@ class LastThreeDayActiveUser extends Command
     public function handle()
     {
         $today = Carbon::now('Asia/Shanghai')->toDateString();
+        $todayTime = Carbon::now('Asia/Shanghai')->toDateTimeString();
         $perPage = 1000;
         $key = 'helloo:account:service:account-ry-last-three-day-activity-user-'.$today;
         Redis::del($key);
@@ -84,7 +85,7 @@ class LastThreeDayActiveUser extends Command
                             'user_id'=>$user->user_id,
                             'user_name'=>$user->user_name,
                             'user_nick_name'=>$user->user_nick_name,
-                            'count'=>empty($count)?0:$count->total,
+                            'friend'=>empty($count)?0:$count->total,
                             'user_created_at'=>$user->user_created_at,
                         ));
                     }
@@ -107,8 +108,13 @@ class LastThreeDayActiveUser extends Command
                         });
                         $c = $todayFriend->count();
                         $json = implode(';' , $todayFriend->pluck('user_id')->toArray())."||".implode(';' , $todayFriend->pluck('user_name')->toArray())."||".implode(';' , $todayFriend->pluck('user_nick_name')->toArray());
-                        file_put_contents('/home/wwwroot/api.helloo.mantouhealth.com/storage/app/tmp/count.csv' , $d['user_id'].','.$d['user_name'].','.$d['user_nick_name'].','.$d['count'].','.$c.','.$json.','.$d['user_created_at'].PHP_EOL , FILE_APPEND);
+                        $d['created_at'] = $todayTime;
+                        $d['detail'] = $json;
+                        $d['new'] = $c;
+                        $d['date'] = $today;
+                        $data[$i] = $d;
                     }
+                    DB::table('data_last_three_day_users')->insert($data);
                 }
                 $data = array();
                 $userIds =  array();
@@ -158,9 +164,16 @@ class LastThreeDayActiveUser extends Command
                     });
                     $c = $todayFriend->count();
                     $json = implode(';' , $todayFriend->pluck('user_id')->toArray())."||".implode(';' , $todayFriend->pluck('user_name')->toArray())."||".implode(';' , $todayFriend->pluck('user_nick_name')->toArray());
-                    file_put_contents(storage_path('app/tmp/'.$today.'count.csv') , $d['user_id'].','.$d['user_name'].','.$d['user_nick_name'].','.$d['count'].','.$c.','.$json.','.$d['user_created_at'].PHP_EOL , FILE_APPEND);
+                    $d['created_at'] = $todayTime;
+                    $d['detail'] = $json;
+                    $d['new'] = $c;
+                    $d['date'] = $today;
+                    $data[$i] = $d;
                 }
+                DB::table('data_last_three_day_users')->insert($data);
             }
+            $data = array();
+            $userIds =  array();
         }
         Redis::del($key);
     }
