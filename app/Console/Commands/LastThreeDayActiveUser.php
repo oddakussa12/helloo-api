@@ -117,8 +117,8 @@ class LastThreeDayActiveUser extends Command
                         $d['detail'] = $json;
                         $d['new'] = $c;
                         $d['date'] = $today;
-                        $d['phone_country'] = $phone->phone_country;
-                        $d['phone'] = $phone->phone;
+                        $d['phone_country'] = $phone->user_phone_country;
+                        $d['phone'] = $phone->user_phone;
                         $data[$i] = $d;
                     }
                     DB::table('data_last_three_day_users')->insert($data);
@@ -180,8 +180,8 @@ class LastThreeDayActiveUser extends Command
                     $d['detail'] = $json;
                     $d['new'] = $c;
                     $d['date'] = $today;
-                    $d['phone_country'] = $phone->phone_country;
-                    $d['phone'] = $phone->phone;
+                    $d['phone_country'] = $phone->user_phone_country;
+                    $d['phone'] = $phone->user_phone;
                     $data[$i] = $d;
                 }
                 DB::table('data_last_three_day_users')->insert($data);
