@@ -24,7 +24,7 @@ class ForgetPasswordMessage extends Message
     // 定义直接使用内容发送平台的内容
     public function getContent(GatewayInterface $gateway = null)
     {
-        return sprintf('Password Reset: your Lovbee code is %s. Do not share with others..', $this->code);
+        return sprintf('Password Reset: your Beu code is %s. Do not share with others..', $this->code);
     }
 
     // 定义使用模板发送方式平台所需要的模板 ID
@@ -50,7 +50,7 @@ class ForgetPasswordMessage extends Message
     public function getData(GatewayInterface $gateway = null)
     {
         return [
-            'sign_name'=>'Lovbee',
+            'sign_name'=>'Beu',
             'code'=>$this->code
         ];
     }

@@ -25,7 +25,7 @@ class UpdatePhoneMessage extends Message
     // 定义直接使用内容发送平台的内容
     public function getContent(GatewayInterface $gateway = null)
     {
-        return sprintf('Your Lovbee APP security code is %s. You are trying to change your phone number. Please keep your account information in a safe place.', $this->code);
+        return sprintf('Your Beu APP security code is %s. You are trying to change your phone number. Please keep your account information in a safe place.', $this->code);
     }
 
     // 定义使用模板发送方式平台所需要的模板 ID
@@ -48,7 +48,7 @@ class UpdatePhoneMessage extends Message
     public function getData(GatewayInterface $gateway = null)
     {
         return [
-            'sign_name'=>'Lovbee',
+            'sign_name'=>'Beu',
             'code'=>$this->code
         ];
     }
