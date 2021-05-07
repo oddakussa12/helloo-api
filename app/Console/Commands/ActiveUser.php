@@ -52,7 +52,6 @@ class ActiveUser extends Command
             $yesterdayChinaEnd = Carbon::yesterday('Asia/Shanghai')->endOfDay()->timestamp;
             $yesterdayStart = Carbon::yesterday('Asia/Shanghai')->startOfDay()->subHours(8)->toDateTimeString();
             $yesterdayEnd = Carbon::yesterday('Asia/Shanghai')->endOfDay()->subHours(8)->toDateTimeString();
-            $table = "visit_logs_".$index;
         }else{
             $yesterday = Carbon::createFromFormat('Y-m-d' , $date , 'Asia/Shanghai');
             $index = $yesterday->format('Ym');
@@ -63,8 +62,8 @@ class ActiveUser extends Command
             $yesterdayChinaEnd = Carbon::createFromFormat('Y-m-d' , $date , 'Asia/Shanghai')->endOfDay()->timestamp;
             $yesterdayStart = Carbon::createFromFormat('Y-m-d' , $date , 'Asia/Shanghai')->startOfDay()->subHours(8)->toDateTimeString();
             $yesterdayEnd = Carbon::createFromFormat('Y-m-d' , $date , 'Asia/Shanghai')->endOfDay()->subHours(8)->toDateTimeString();
-            $table = "visit_logs_".$index;
         }
+        $table = "visit_logs_".$index;
         DB::table($table)->where('created_at' , $created_at)->select('user_id')->orderByDesc('visited_at')->distinct()->chunk(500 , function($users) use ($yesterdayChinaStart , $yesterdayChinaEnd , $yesterdayStart ,$yesterdayEnd , $todayTime , $today){
             $data = array();
             $userIds = $users->pluck('user_id')->toArray();
