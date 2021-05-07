@@ -14,7 +14,7 @@ class ActiveUser extends Command
      *
      * @var string
      */
-    protected $signature = 'active:user';
+    protected $signature = 'active:user {date?}';
 
     /**
      * The console command description.
@@ -43,8 +43,8 @@ class ActiveUser extends Command
         $yesterday = Carbon::yesterday('Asia/Shanghai');
         $index = $yesterday->format('Ym');
         $created_at =  $yesterday->toDateString();
-        $today = Carbon::yesterday('Asia/Shanghai')->toDateTimeString();
-        $todayTime = Carbon::today('Asia/Shanghai')->toDateTimeString();
+        $today = Carbon::yesterday('Asia/Shanghai')->toDateString();
+        $todayTime = Carbon::now('Asia/Shanghai')->toDateTimeString();
         $yesterdayChinaStart = Carbon::yesterday('Asia/Shanghai')->startOfDay()->timestamp;
         $yesterdayChinaEnd = Carbon::yesterday('Asia/Shanghai')->endOfDay()->timestamp;
         $yesterdayStart = Carbon::yesterday('Asia/Shanghai')->startOfDay()->subHours(8)->toDateTimeString();
