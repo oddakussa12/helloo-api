@@ -38,7 +38,7 @@ class EscortTalk implements ShouldQueue
         $targetId = $this->user->getKey();
         $extend = $this->extend;
         $phoneCountry = $extend['user_phone_country'];
-        if(in_array($phoneCountry , array(670, '670' , 62 , '62')))
+        if(in_array($phoneCountry , array(670, '670' , 62 , '62' , 251 , '251')))
         {
             $talkers = $this->getEscortTalkerByCountry($phoneCountry);
             if(empty($talkers))
@@ -63,10 +63,6 @@ class EscortTalk implements ShouldQueue
             array_push($data , array('user_id'=>$targetId , 'friend_id'=>$senderId , 'created_at'=>$cartedAt));
         }
         !blank($data)&&DB::table('users_friends')->insert($data);
-        if(!in_array($phoneCountry , array(670, '670' , 62 , '62')))
-        {
-            return;
-        }
         $content = array(
             'content'=>'video message',
             'user'=> array(
