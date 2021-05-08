@@ -11,6 +11,7 @@ use App\Models\UserFriendRequest;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\FriendSynchronization;
 use Illuminate\Support\Facades\Redis;
 use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Jobs\FriendFromDifferentSchool;
@@ -65,13 +66,13 @@ class UserFriendRequestController extends BaseController
     {
         $friendId = intval($request->input('friend_id'));
         $user     = auth()->user();
-        if($friendId==$user->user_id)
+        $userId   = $user->user_id;
+        if($friendId==$userId)
         {
             return $this->response->created();
         }
         $friend = app(UserRepository::class)->findOrFail($friendId);
-        $userId   = $user->user_id;
-        $userFriend = UserFriend::where('user_id' , $user->user_id)->where('friend_id' , $friendId)->first();
+        $userFriend = UserFriend::where('user_id' , $userId)->where('friend_id' , $friendId)->first();
         if(blank($userFriend))
         {
             $requestModel = UserFriendRequest::where('request_from_to' , $userId."-".$friendId)->first();
@@ -184,6 +185,7 @@ class UserFriendRequestController extends BaseController
         }
         if($flag)
         {
+            FriendSynchronization::dispatch($userId , $friendId)->onQueue('helloo_{friend_synchronization}');
             FriendFromDifferentSchool::dispatch($user , $friendId)->onQueue('helloo_{friend_from_different_school}');
             MoreTimeUserScoreUpdate::dispatch($user->user_id , 'friendAccept' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
             MoreTimeUserScoreUpdate::dispatch($friendId , 'friendAccepted' , $user->user_id)->onQueue('helloo_{more_time_user_score_update}');
