@@ -15,7 +15,7 @@ class Message
     {
         $this->salt = random_int(1, 99999999);
 
-        $date = new DateTime("now", new DateTimeZone('UTC'));
+        $date = new \DateTime("now", new \DateTimeZone('UTC'));
         $this->ts = $date->getTimestamp() + 24 * 3600;
 
         $this->privileges = array();
