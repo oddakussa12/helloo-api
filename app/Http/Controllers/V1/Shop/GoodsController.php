@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\V1;
-
+namespace App\Http\Controllers\V1\Shop;
 
 use Illuminate\Http\Request;
 
-class ShopController extends BaseController
+class GoodsController extends BaseController
 {
     public function index()
     {
