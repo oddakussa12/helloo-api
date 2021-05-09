@@ -558,9 +558,9 @@ class UserController extends BaseController
     {
         $appID = config('agora.app_id');
         $appCertificate = config('agora.app_certificate');;
-        $channelName = app('snowflake')->id();
-//        $uid = 2882341273;
         $uidStr = strval(auth()->id());
+        $channelName = strval(app('snowflake')->id()).'-'.$uidStr;
+//        $uid = 2882341273;
         $role = RtcTokenBuilder::RoleAttendee;
         $expireTimeInSeconds = 3600;
         $currentTimestamp = (new \DateTime("now", new \DateTimeZone('UTC')))->getTimestamp();
