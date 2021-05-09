@@ -563,7 +563,7 @@ class UserController extends BaseController
         $uidStr = strval(auth()->id());
         $role = RtcTokenBuilder::RoleAttendee;
         $expireTimeInSeconds = 3600;
-        $currentTimestamp = (new DateTime("now", new DateTimeZone('UTC')))->getTimestamp();
+        $currentTimestamp = (new DateTime("now", new \DateTimeZone('UTC')))->getTimestamp();
         $privilegeExpiredTs = $currentTimestamp + $expireTimeInSeconds;
 
 //        $token = RtcTokenBuilder::buildTokenWithUid($appID, $appCertificate, $channelName, $uid, $role, $privilegeExpiredTs);
