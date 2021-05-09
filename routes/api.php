@@ -182,6 +182,12 @@ $api->group($V1Params , function ($api){
         $api->post('group/member' , 'GroupMemberController@join')->name('group.member.join');
         /*****群 结束*****/
 
+        /*****商户 开始*****/
+        $api->get('shop/search' , 'Shop\ShopController@index')->name('shop.search');
+        $api->get('shop/recommend' , 'Shop\ShopController@recommend')->name('shop.recommend');
+        $api->resource('shop' , 'Shop\ShopController');
+        /*****商户 结束*****/
+
     });
 
     $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
