@@ -136,7 +136,7 @@ class AccessToken
         $crc_channel_name = crc32($this->channelName) & 0xffffffff;
         $crc_uid = crc32($this->uid) & 0xffffffff;
 
-        $content = array_merge(unpack("C*", packString($sig)), unpack("C*", pack("V", $crc_channel_name)), unpack("C*", pack("V", $crc_uid)), unpack("C*", pack("v", count($msg))), $msg);
+        $content = array_merge(unpack("C*", $this->packString($sig)), unpack("C*", pack("V", $crc_channel_name)), unpack("C*", pack("V", $crc_uid)), unpack("C*", pack("v", count($msg))), $msg);
         $version = "006";
         return $version . $this->appID . base64_encode(implode(array_map("chr", $content)));
     }
