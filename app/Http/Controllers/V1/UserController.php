@@ -571,7 +571,7 @@ class UserController extends BaseController
 
         $token = RtcTokenBuilder::buildTokenWithUserAccount($appID, $appCertificate, $channelName, $uidStr, $role, $privilegeExpiredTs);
         return $this->response->array(array('data'=>array(
-            'channel'=>$uidStr,
+            'channel'=>$channelName,
             'token'=>$token,
         )));
     }
