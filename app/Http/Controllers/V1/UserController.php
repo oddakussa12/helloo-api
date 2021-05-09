@@ -558,12 +558,12 @@ class UserController extends BaseController
     {
         $appID = config('agora.app_id');
         $appCertificate = config('agora.app_certificate');;
-        $channelName = app('snowflake')->id();
-//        $uid = 2882341273;
         $uidStr = strval(auth()->id());
+        $channelName = strval(app('snowflake')->id()).'-'.$uidStr.'-'.strval(millisecond());
+//        $uid = 2882341273;
         $role = RtcTokenBuilder::RoleAttendee;
         $expireTimeInSeconds = 3600;
-        $currentTimestamp = (new DateTime("now", new \DateTimeZone('UTC')))->getTimestamp();
+        $currentTimestamp = (new \DateTime("now", new \DateTimeZone('UTC')))->getTimestamp();
         $privilegeExpiredTs = $currentTimestamp + $expireTimeInSeconds;
 
 //        $token = RtcTokenBuilder::buildTokenWithUid($appID, $appCertificate, $channelName, $uid, $role, $privilegeExpiredTs);
@@ -571,7 +571,7 @@ class UserController extends BaseController
 
         $token = RtcTokenBuilder::buildTokenWithUserAccount($appID, $appCertificate, $channelName, $uidStr, $role, $privilegeExpiredTs);
         return $this->response->array(array('data'=>array(
-            'channel'=>$uidStr,
+            'channel'=>$channelName,
             'token'=>$token,
         )));
     }
