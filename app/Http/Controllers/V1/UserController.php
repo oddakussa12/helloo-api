@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\V1;
 
 
-use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Resources\TagCollection;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use libphonenumber\PhoneNumberUtil;
 use Illuminate\Support\Facades\Log;
+use App\Custom\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserTagRepository;
@@ -554,10 +554,25 @@ class UserController extends BaseController
         return UserCollection::collection($users);
     }
 
-    public function rank()
+    public function agoraToken()
     {
-        //helloo:account:user-score-rank;
+        $appID = config('agora.app_id');
+        $appCertificate = config('agora.app_certificate');;
+        $channelName = app('snowflake')->id();
+//        $uid = 2882341273;
+        $uidStr = strval(auth()->id());
+        $role = RtcTokenBuilder::RoleAttendee;
+        $expireTimeInSeconds = 3600;
+        $currentTimestamp = (new DateTime("now", new DateTimeZone('UTC')))->getTimestamp();
+        $privilegeExpiredTs = $currentTimestamp + $expireTimeInSeconds;
+
+//        $token = RtcTokenBuilder::buildTokenWithUid($appID, $appCertificate, $channelName, $uid, $role, $privilegeExpiredTs);
+//        echo 'Token with int uid: ' . $token . PHP_EOL;
+
+        $token = RtcTokenBuilder::buildTokenWithUserAccount($appID, $appCertificate, $channelName, $uidStr, $role, $privilegeExpiredTs);
+        return $this->response->array(array('data'=>array(
+            'channel'=>$uidStr,
+            'token'=>$token,
+        )));
     }
-
-
 }

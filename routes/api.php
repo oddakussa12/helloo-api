@@ -95,6 +95,9 @@ $api->group($V1Params , function ($api){
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
 
         $api->get('ry/token' , 'RySetController@token')->name('ry.token');
+
+        $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('agora.rtc.token');
+
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
             $api->get('tag' , 'TagController@index')->name('tag.index');
             $api->post('tag' , 'TagController@store')->name('tag.store');
