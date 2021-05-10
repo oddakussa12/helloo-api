@@ -4,11 +4,13 @@ namespace App\Http\Controllers\V1;
 
 
 use App\Models\BlackUser;
+use App\Models\Business\Shop;
 use App\Models\User;
 use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Custom\RedisList;
 use Dingo\Api\Exception\ResourceException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -241,6 +243,34 @@ class BackStageController extends BaseController
 
     }
 
+    /**
+     * @param Request $request
+     * 后台开启用户商铺权限，创建店铺
+     */
+    public function createShop(Request $request)
+    {
+        $userId   = $request->input('user_id' , 0);
+        Log::info('后台开启商铺权限', $request->all());
+
+        if($userId<=0) {
+            return $this->response->errorNotFound();
+        }
+        $userInfo = User::find($userId);
+        if (empty($userInfo)) {
+            return $this->response->errorNotFound();
+        }
+
+        if (empty($userInfo->user_shop)) {
+            $shop = Shop::where('user_id', $userId)->first();
+            if (empty($shop)) {
+                $shop = new Shop();
+                $shop->id      = app('snowflake')->id();
+                $shop->user_id = $userId;
+                $shop->save();
+            }
+        }
+        return $this->response->array([]);
+    }
 
 
 

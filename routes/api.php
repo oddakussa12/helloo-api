@@ -250,6 +250,7 @@ $api->group($V1Params , function ($api){
     $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backStage.last.online');
     $api->get('backstage/score' , 'BackStageController@score')->name('backStage.score');
     $api->post('backstage/score' , 'BackStageController@storeScore')->name('backStage.storeScore');
+    $api->post('backstage/createShop' , 'BackStageController@createShop')->name('backStage.createShop');
 
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');
