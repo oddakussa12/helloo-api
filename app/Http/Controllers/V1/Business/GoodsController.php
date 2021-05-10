@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Repositories\Contracts\UserRepository;
+use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use Illuminate\Validation\Rule;
@@ -196,6 +198,11 @@ class GoodsController extends BaseController
     public function like($id)
     {
         $likes = app(GoodsRepository::class)->like($id);
+        $userIds = $likes->pluck('user_id')->unique()->toArray();
+        $users = app(UserRepository::class)->findByUserIds($userIds);
+        $likes->each(function($like) use ($users){
+            $like->user = new UserCollection($users->where('user_id' , $like->user_id)->first());
+        });
         return AnonymousCollection::collection($likes);
     }
 }
