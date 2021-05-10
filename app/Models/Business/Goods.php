@@ -19,4 +19,6 @@ class Goods extends Model
 
     protected $fillable = ['user_id' , 'shop_id' , 'name' , 'image' , 'like' , 'price', 'recommend', 'recommended_at', 'description', 'status'];
 
+    protected $hidden = ['updated_at' , 'recommend' , 'recommended_at' , 'status'];
+
 }
