@@ -19,11 +19,24 @@ class ShopController extends BaseController
 
     public function index(Request $request)
     {
-        $params = strval($request->only('keyword'));
-        return Shop::select('id', 'avatar', 'cover', 'nick_name', 'address')
-            ->where('name', 'like', "%{$params['keyword']}%")
-            ->where('nick_name', 'like', "%{$params['keyword']}%")
-            ->paginate(10);
+        $keyword = strval($request->input('keyword' , ''));
+        $userId = intval($request->input('user_id' , 0));
+        if(!empty($keyword))
+        {
+            $shops = Shop::select('id', 'avatar', 'cover', 'nick_name', 'address')
+                ->where('name', 'like', "%{$keyword}%")
+                ->where('nick_name', 'like', "%{$keyword}%")
+                ->paginate(10);
+        }elseif ($userId>0)
+        {
+            $shops = Shop::select('id', 'avatar', 'cover', 'nick_name', 'address')
+                ->where('user_id', $userId)
+                ->orderByDesc('created_at')
+                ->paginate(10);
+        }else{
+            $shops = array();
+        }
+        return AnonymousCollection::collection($shops);
     }
 
     /**
@@ -32,11 +45,11 @@ class ShopController extends BaseController
      */
     public function recommend()
     {
-        $result = Shop::select('id', 'nick_name', 'avatar')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
-        if ($result->isEmpty()) {
-            $result = Shop::select('id', 'nick_name', 'avatar')->orderBy(DB::raw('rand()'))->limit(10)->get();
+        $shops = Shop::select('id', 'nick_name', 'avatar')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
+        if ($shops->isEmpty()) {
+            $shops = Shop::select('id', 'nick_name', 'avatar')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }
-        return $this->response->array(['data'=>$result]);
+        return AnonymousCollection::collection($shops);
     }
 
     /**
