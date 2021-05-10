@@ -186,10 +186,16 @@ class GoodsController extends BaseController
         return $this->response->accepted();
     }
 
-    public function like(Request $request , $id)
+    public function storeLike(Request $request , $id)
     {
         $user = auth()->user();
-        app(GoodsRepository::class)->like($user , $id);
+        app(GoodsRepository::class)->storeLike($user , $id);
         return $this->response->accepted();
+    }
+
+    public function like($id)
+    {
+        $likes = app(GoodsRepository::class)->like($id);
+        return AnonymousCollection::collection($likes);
     }
 }
