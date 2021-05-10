@@ -34,7 +34,7 @@ class ShopController extends BaseController
                 ->orderByDesc('created_at')
                 ->paginate(10);
         }else{
-            $shops = array();
+            $shops = collect();
         }
         return AnonymousCollection::collection($shops);
     }
@@ -43,7 +43,7 @@ class ShopController extends BaseController
      * @return mixed
      * 店铺推荐
      */
-    public function recommend()
+    public function recommendation()
     {
         $shops = Shop::select('id', 'nick_name', 'avatar')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
         if ($shops->isEmpty()) {
@@ -65,9 +65,9 @@ class ShopController extends BaseController
         $shop->user = new UserCollection(app(UserRepository::class)->findByUserId($shop->user_id));
         if ($userId!=$shop->user_id) {
             $friend = UserFriend::where('user_id', $userId)->where('friend_id', $shop->user_id)->first();
-            $shop->user->state = $friend ? 'friend' : false;
+            $shop->user->put('friendState' , $friend ? 'friend' : false);
         } else {
-            $shop->user->state = 'self';
+            $shop->user->put('friendState' , 'self');
         }
         return new AnonymousCollection($shop);
     }
@@ -88,7 +88,7 @@ class ShopController extends BaseController
                 'bail',
                 'filled',
                 'string',
-                'regex:/^[a-zA-Z0-9_-]{6,32}$/' ,
+                'alpha_dash' ,
                 function ($attribute, $value, $fail) use ($user){
                     $shop = Shop::where('name', $value)->where('user_id', '!=', $user->user_id)->first();
                     if(!empty($shop))
@@ -97,7 +97,7 @@ class ShopController extends BaseController
                     }
                 }
              ],
-            'nick_name'   => ['bail', 'filled', 'string', 'regex:/^[a-zA-Z0-9_-]{6,32}$/'],
+            'nick_name'   => ['bail', 'filled', 'string', 'alpha_dash'],
             'avatar'      => ['bail', 'filled', 'string', 'min:30', 'max:300'],
             'cover'       => ['bail', 'filled', 'string', 'min:30', 'max:300'],
             'address'     => ['bail', 'filled', 'string', 'min:10', 'max:100'],

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Models\Business\Shop;
-use App\Models\Business\Goods;
 use Illuminate\Http\Request;
-use App\Http\Controllers\V1\BaseController;
-use App\Repositories\Contracts\GoodsRepository;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Business\Goods;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use App\Resources\AnonymousCollection;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\V1\BaseController;
 use Illuminate\Validation\ValidationException;
+use App\Repositories\Contracts\GoodsRepository;
 
 class GoodsController extends BaseController
 {
@@ -28,7 +28,7 @@ class GoodsController extends BaseController
                 ->orderByDesc('created_at')
                 ->paginate(10);
         }else{
-            $goods = array();
+            $goods = collect();
         }
         return AnonymousCollection::collection($goods);
     }
@@ -53,7 +53,7 @@ class GoodsController extends BaseController
                 'bail',
                 'filled',
                 function ($attribute, $value, $fail) use ($user){
-                    if(empty($value)||$user->shop!=$value)
+                    if(empty($value)||$user->user_shop!=$value)
                     {
                         $fail('Shop does not exist!');
                     }
@@ -103,6 +103,7 @@ class GoodsController extends BaseController
             throw new ValidationException($exception->validator);
         }
         $now = date("Y-m-d H:i:s");
+        $data['id'] = app('snowflake')->id();
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
@@ -162,7 +163,14 @@ class GoodsController extends BaseController
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
-        !empty($params)&&DB::table('goods')->where('id' , $id)->update($params);
+        if(!empty($params))
+        {
+            if(isset($params['image']))
+            {
+                $params['image'] = \json_encode($params['image'] , JSON_UNESCAPED_UNICODE);
+            }
+            DB::table('goods')->where('id' , $id)->update($params);
+        }
         return $this->response->accepted();
     }
 
