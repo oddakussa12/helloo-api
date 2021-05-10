@@ -23,13 +23,11 @@ class ShopController extends BaseController
         $userId = intval($request->input('user_id' , 0));
         if(!empty($keyword))
         {
-            $shops = Shop::select('id', 'avatar', 'cover', 'nick_name', 'address')
-                ->where('nick_name', 'like', "%{$keyword}%")
+            $shops = Shop::where('nick_name', 'like', "%{$keyword}%")
                 ->paginate(10);
         }elseif ($userId>0)
         {
-            $shops = Shop::select('id', 'avatar', 'cover', 'nick_name', 'address')
-                ->where('user_id', $userId)
+            $shops = Shop::where('user_id', $userId)
                 ->orderByDesc('created_at')
                 ->paginate(10);
         }else{
