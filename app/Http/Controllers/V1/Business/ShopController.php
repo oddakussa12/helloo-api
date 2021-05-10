@@ -41,7 +41,7 @@ class ShopController extends BaseController
      */
     public function recommendation()
     {
-        $shops = Shop::select('id', 'nick_name', 'avatar')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
+        $shops = Shop::select('id', 'nick_name', 'avatar' , 'level')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
         if ($shops->isEmpty()) {
             $shops = Shop::select('id', 'nick_name', 'avatar')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }

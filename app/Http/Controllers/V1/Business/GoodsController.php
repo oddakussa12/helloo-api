@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Repositories\Contracts\UserRepository;
-use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use Illuminate\Validation\Rule;
+use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use App\Resources\AnonymousCollection;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\V1\BaseController;
+use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
 use App\Repositories\Contracts\GoodsRepository;
 
@@ -116,11 +116,19 @@ class GoodsController extends BaseController
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
+        $shop = Shop::where('id' , $shopId)->firstOrFail();
         $now = date("Y-m-d H:i:s");
         $data['id'] = app('snowflake')->id();
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
+        if($shop->country=='et')
+        {
+            $data['currency'] = 'ETB';
+        }else
+        {
+            $data['currency'] = 'USD';
+        }
         DB::table('goods')->insert($data);
         return $this->response->created();
     }
@@ -202,6 +210,7 @@ class GoodsController extends BaseController
         $users = app(UserRepository::class)->findByUserIds($userIds);
         $likes->each(function($like) use ($users){
             $like->user = new UserCollection($users->where('user_id' , $like->user_id)->first());
+            $like->format_created_at = dateTrans($like->created_at);
         });
         return AnonymousCollection::collection($likes);
     }
