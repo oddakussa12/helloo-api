@@ -24,7 +24,6 @@ class ShopController extends BaseController
         if(!empty($keyword))
         {
             $shops = Shop::select('id', 'avatar', 'cover', 'nick_name', 'address')
-                ->where('name', 'like', "%{$keyword}%")
                 ->where('nick_name', 'like', "%{$keyword}%")
                 ->paginate(10);
         }elseif ($userId>0)
