@@ -16,5 +16,5 @@ class Shop extends Model
 
     protected $fillable = ['user_id', 'name' , 'avatar' , 'cover' , 'recommend' , 'nick_name' , 'address', 'phone', 'description'];
 
-    protected $hidden = ['updated_at' , 'recommend' , 'recommended_at'];
+    protected $hidden = ['updated_at' , 'recommend' , 'recommended_at' , 'created_at'];
 }
