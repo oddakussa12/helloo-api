@@ -95,9 +95,6 @@ $api->group($V1Params , function ($api){
         $api->get('user/profile' , 'AuthController@me')->name('my.profile');
 
         $api->get('ry/token' , 'RySetController@token')->name('ry.token');
-
-        $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('agora.rtc.token');
-
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
             $api->get('tag' , 'TagController@index')->name('tag.index');
             $api->post('tag' , 'TagController@store')->name('tag.store');
@@ -184,6 +181,12 @@ $api->group($V1Params , function ($api){
         $api->get('group/{group}' , 'GroupController@show')->name('group.show');
         $api->post('group/member' , 'GroupMemberController@join')->name('group.member.join');
         /*****群 结束*****/
+
+        /*****商户 开始*****/
+        $api->get('shop/search' , 'Shop\ShopController@index')->name('shop.search');
+        $api->get('shop/recommend' , 'Shop\ShopController@recommend')->name('shop.recommend');
+        $api->resource('shop' , 'Shop\ShopController');
+        /*****商户 结束*****/
 
     });
 
