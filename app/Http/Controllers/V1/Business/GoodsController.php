@@ -20,8 +20,7 @@ class GoodsController extends BaseController
         $shopId = strval($request->input('shop_id' , ''));
         if(!empty($keyword))
         {
-            $goods = Goods::where('name', 'like', "%{$keyword}%")
-                ->paginate(10);
+            $goods = Goods::where('shop_id', $shopId)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
         }elseif (!empty($shopId))
         {
             $goods = Goods::where('shop_id', $shopId)
@@ -29,6 +28,19 @@ class GoodsController extends BaseController
                 ->paginate(10);
         }else{
             $goods = collect();
+        }
+        return AnonymousCollection::collection($goods);
+    }
+
+    /**
+     * @return mixed
+     * @note goods recommendation
+     */
+    public function recommendation()
+    {
+        $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
+        if ($goods->isEmpty()) {
+            $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }
         return AnonymousCollection::collection($goods);
     }
