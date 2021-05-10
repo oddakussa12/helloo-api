@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Models\Business\Shop;
-use App\Models\Business\Goods;
 use Illuminate\Http\Request;
-use App\Http\Controllers\V1\BaseController;
-use App\Repositories\Contracts\GoodsRepository;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Business\Goods;
 use Illuminate\Validation\Rule;
+use App\Resources\UserCollection;
+use Illuminate\Support\Facades\DB;
+use App\Resources\AnonymousCollection;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\V1\BaseController;
+use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
+use App\Repositories\Contracts\GoodsRepository;
 
 class GoodsController extends BaseController
 {
@@ -20,15 +22,27 @@ class GoodsController extends BaseController
         $shopId = strval($request->input('shop_id' , ''));
         if(!empty($keyword))
         {
-            $goods = Goods::where('name', 'like', "%{$keyword}%")
-                ->paginate(10);
+            $goods = Goods::where('shop_id', $shopId)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
         }elseif (!empty($shopId))
         {
             $goods = Goods::where('shop_id', $shopId)
                 ->orderByDesc('created_at')
                 ->paginate(10);
         }else{
-            $goods = array();
+            $goods = collect();
+        }
+        return AnonymousCollection::collection($goods);
+    }
+
+    /**
+     * @return mixed
+     * @note goods recommendation
+     */
+    public function recommendation()
+    {
+        $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
+        if ($goods->isEmpty()) {
+            $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }
         return AnonymousCollection::collection($goods);
     }
@@ -53,7 +67,7 @@ class GoodsController extends BaseController
                 'bail',
                 'filled',
                 function ($attribute, $value, $fail) use ($user){
-                    if(empty($value)||$user->shop!=$value)
+                    if(empty($value)||$user->user_shop!=$value)
                     {
                         $fail('Shop does not exist!');
                     }
@@ -102,10 +116,19 @@ class GoodsController extends BaseController
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
+        $shop = Shop::where('id' , $shopId)->firstOrFail();
         $now = date("Y-m-d H:i:s");
+        $data['id'] = app('snowflake')->id();
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
+        if($shop->country=='et')
+        {
+            $data['currency'] = 'ETB';
+        }else
+        {
+            $data['currency'] = 'USD';
+        }
         DB::table('goods')->insert($data);
         return $this->response->created();
     }
@@ -162,14 +185,33 @@ class GoodsController extends BaseController
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
-        !empty($params)&&DB::table('goods')->where('id' , $id)->update($params);
+        if(!empty($params))
+        {
+            if(isset($params['image']))
+            {
+                $params['image'] = \json_encode($params['image'] , JSON_UNESCAPED_UNICODE);
+            }
+            DB::table('goods')->where('id' , $id)->update($params);
+        }
         return $this->response->accepted();
     }
 
-    public function like(Request $request , $id)
+    public function storeLike(Request $request , $id)
     {
         $user = auth()->user();
-        app(GoodsRepository::class)->like($user , $id);
+        app(GoodsRepository::class)->storeLike($user , $id);
         return $this->response->accepted();
+    }
+
+    public function like($id)
+    {
+        $likes = app(GoodsRepository::class)->like($id);
+        $userIds = $likes->pluck('user_id')->unique()->toArray();
+        $users = app(UserRepository::class)->findByUserIds($userIds);
+        $likes->each(function($like) use ($users){
+            $like->user = new UserCollection($users->where('user_id' , $like->user_id)->first());
+            $like->format_created_at = dateTrans($like->created_at);
+        });
+        return AnonymousCollection::collection($likes);
     }
 }

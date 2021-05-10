@@ -186,10 +186,11 @@ $api->group($V1Params , function ($api){
         $api->get('shop' , 'Business\ShopController@index')->name('shop.index');
         $api->get('shop/recommendation' , 'Business\ShopController@recommendation')->name('shop.recommendation');
         $api->get('shop/{shop}' , 'Business\ShopController@show')->name('shop.show');
-        $api->post('shop' , 'Business\ShopController@store')->name('shop.store');
         $api->put('shop/{shop}' , 'Business\ShopController@update')->name('shop.update');
         $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
         $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
+        $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
+        $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
         $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
         $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
         /*****business end*****/

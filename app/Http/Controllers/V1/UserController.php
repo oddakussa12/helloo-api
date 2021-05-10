@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 
+use App\Models\Business\Shop;
 use Carbon\Carbon;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use libphonenumber\PhoneNumberUtil;
 use Illuminate\Support\Facades\Log;
 use App\Custom\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Redis;
+use App\Resources\AnonymousCollection;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
@@ -173,12 +175,11 @@ class UserController extends BaseController
         $user->put('rank', (int)$rank+1);
         $user->put('score', (int)Redis::zscore($memKey, $id));
 
-//        if(!blank($user->get('user_school')))
-//        {
-//            $school = DB::table('schools')->where('key' , $user->get('user_school'))->first();
-//            $userSchool = !blank($school)?$school->name:'';
-//            $user->put('user_school' , $userSchool);
-//        }
+        if(!empty($user->get('user_shop')))
+        {
+            $shop = Shop::where('id' , $user->get('user_shop'))->first();
+            $user->put('shop' , new AnonymousCollection($shop));
+        }
         return new UserCollection($user);
     }
 

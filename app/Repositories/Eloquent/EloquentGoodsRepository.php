@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRepository
 {
 
-    public function like(User $user , $goodsId)
+    public function storeLike(User $user , $goodsId)
     {
         $userId = $user->getKey();
         $id = strval($userId).'-'.strval($goodsId);
@@ -44,6 +44,11 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
             }
 
         }
+    }
+
+    public function like($goodsId)
+    {
+        return DB::table('likes_goods')->where('goods_id' , $goodsId)->select('user_id','goods_id','created_at')->paginate(10);
     }
 
 }

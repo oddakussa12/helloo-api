@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Event;
 use App\Models\UserTag;
 use App\Models\UserFriend;
-use App\Models\Shop\Goods;
+use App\Models\Business\Goods;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\Schema;
