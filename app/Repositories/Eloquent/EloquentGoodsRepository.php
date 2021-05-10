@@ -48,7 +48,7 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
 
     public function like($goodsId)
     {
-        return DB::table('likes_goods')->where('goods_id' , $goodsId)->paginate(10 , ['user_id' , 'goods_id' , 'created_at']);
+        return DB::table('likes_goods')->where('goods_id' , $goodsId)->select('user_id','goods_id','created_at')->paginate(10);
     }
 
 }
