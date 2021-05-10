@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Models\UserScore;
 use Carbon\Carbon;
 use App\Jobs\Device;
-use Dingo\Api\Exception\ResourceException;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
@@ -13,12 +11,14 @@ use App\Events\SignInEvent;
 use Jenssegers\Agent\Agent;
 use App\Jobs\SignUpOrInFail;
 use Illuminate\Http\Request;
+use App\Models\Business\Shop;
 use App\Rules\UserPhoneUnique;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Foundation\Auth\User\Update;
 use Illuminate\Support\Facades\Redis;
+use App\Resources\AnonymousCollection;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
@@ -359,6 +359,11 @@ class AuthController extends BaseController
 
         $user->userNamePrompted = boolval(app(UserRepository::class)->usernamePrompt($userId));
         $user->makeVisible(array('user_name_changed_at'));
+        if(!empty($user->user_shop))
+        {
+            $shop = Shop::where('id' , $user->user_shop)->first();
+            $user->shop = new AnonymousCollection($shop);
+        }
         return new UserCollection($user);
     }
 
