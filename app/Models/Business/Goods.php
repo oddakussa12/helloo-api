@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models\Shop;
+namespace App\Models\Business;
 
 use Illuminate\Database\Eloquent\Model;
 
 
-class Good extends Model
+class Goods extends Model
 {
     protected $table = "goods";
 

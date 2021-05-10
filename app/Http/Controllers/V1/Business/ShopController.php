@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\V1\Shop;
+namespace App\Http\Controllers\V1\Business;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\V1\BaseController;
 
 class ShopController extends BaseController
 {
