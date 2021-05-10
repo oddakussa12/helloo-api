@@ -182,11 +182,17 @@ $api->group($V1Params , function ($api){
         $api->post('group/member' , 'GroupMemberController@join')->name('group.member.join');
         /*****群 结束*****/
 
-        /*****商户 开始*****/
-        $api->get('shop/search' , 'Shop\ShopController@index')->name('shop.search');
-        $api->get('shop/recommend' , 'Shop\ShopController@recommend')->name('shop.recommend');
-        $api->resource('shop' , 'Shop\ShopController');
-        /*****商户 结束*****/
+        /*****business start*****/
+        $api->get('shop' , 'Business\ShopController@index')->name('shop.index');
+        $api->get('shop/recommendation' , 'Business\ShopController@recommendation')->name('shop.recommendation');
+        $api->get('shop/{shop}' , 'Business\ShopController@show')->name('shop.show');
+        $api->post('shop' , 'Business\ShopController@store')->name('shop.store');
+        $api->put('shop/{shop}' , 'Business\ShopController@update')->name('shop.update');
+        $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
+        $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
+        $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
+        $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
+        /*****business end*****/
 
     });
 
