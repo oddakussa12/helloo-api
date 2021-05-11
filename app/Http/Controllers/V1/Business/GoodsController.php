@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Models\Business\Shop;
 use App\Models\Business\Goods;
+use App\Jobs\BusinessSearchLog;
 use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +16,6 @@ use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
 use App\Repositories\Contracts\GoodsRepository;
-use Ramsey\Uuid\Uuid;
 
 class GoodsController extends BaseController
 {
@@ -26,7 +27,9 @@ class GoodsController extends BaseController
         $appends['shop_id'] = $shopId;
         if(!empty($keyword))
         {
+            $userId = auth()->id();
             $goods = Goods::where('shop_id', $shopId)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
+            BusinessSearchLog::dispatch($userId , $keyword , $shopId)->onQueue('helloo_{business_search_log}');
         }elseif (!empty($shopId))
         {
             $goods = Goods::where('shop_id', $shopId)
@@ -54,9 +57,15 @@ class GoodsController extends BaseController
 
     public function show($id)
     {
+        $action = request()->input('action' , '');
         $goods = Goods::where('id' , $id)->firstOrFail();
         $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
+        $goods = $goods->makeVisible('status');
         $goods->likeState = !empty($like);
+        if($action=='view')
+        {
+
+        }
         return new AnonymousCollection($goods);
     }
 
