@@ -54,7 +54,15 @@ class GoodsController extends BaseController
 
     public function show($id)
     {
+        $userId = auth()->id();
         $goods = Goods::where('id' , $id)->firstOrFail();
+        if($goods->user_id==$userId)
+        {
+            $goods->likeState = "self";
+        }else{
+            $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
+            $goods->likeState = !empty($like);
+        }
         return new AnonymousCollection($goods);
     }
 
