@@ -18,6 +18,7 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
 
     public function storeLike(User $user , $goodsId)
     {
+        $now = date('Y-m-d H:i:s');
         $userId = $user->getKey();
         $id = strval($userId).'-'.strval($goodsId);
         $like = DB::table('likes_goods')->where('id' , $id)->first();
@@ -29,9 +30,11 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
                     'id'=>$id,
                     'user_id'=>$userId,
                     'goods_id'=>$goodsId,
-                    'created_at'=>date('Y-m-d H:i:s'),
+                    'created_at'=>$now,
                 ));
-                DB::table('goods')->where('id' , $goodsId)->increment('like');
+                DB::table('goods')->where('id' , $goodsId)->increment('like' , 1 , array(
+                    'liked_at'=>$now
+                ));
                 DB::commit();
             }catch (\Exception $e)
             {
