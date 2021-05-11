@@ -20,7 +20,7 @@ class NotificationController extends BaseController
         }else{
             $goods = collect();
         }
-        $goods->each(function($g){
+        $goods->makeVisible('liked_at')->each(function($g){
             $g->format_liked_at = dateTrans($g->liked_at);
         });
         return AnonymousCollection::collection($goods);
