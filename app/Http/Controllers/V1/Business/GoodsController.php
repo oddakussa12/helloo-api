@@ -60,6 +60,7 @@ class GoodsController extends BaseController
     public function store(Request $request)
     {
         $user = auth()->user();
+        $userId = $user->user_id;
         $shopId = strval($request->input('shop_id' , ''));
         $name = strval($request->input('name' , ''));
         $image = $request->input('image' , '');
@@ -123,6 +124,7 @@ class GoodsController extends BaseController
         $shop = Shop::where('id' , $shopId)->firstOrFail();
         $now = date("Y-m-d H:i:s");
         $data['id'] = app('snowflake')->id();
+        $data['user_id'] = $userId;
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
