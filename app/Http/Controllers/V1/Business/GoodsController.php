@@ -14,6 +14,7 @@ use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
 use App\Repositories\Contracts\GoodsRepository;
+use Ramsey\Uuid\Uuid;
 
 class GoodsController extends BaseController
 {
@@ -123,7 +124,7 @@ class GoodsController extends BaseController
         }
         $shop = Shop::where('id' , $shopId)->firstOrFail();
         $now = date("Y-m-d H:i:s");
-        $data['id'] = app('snowflake')->id();
+        $data['id'] = Uuid::uuid1()->toString();
         $data['user_id'] = $userId;
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
