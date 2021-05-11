@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Jobs\BusinessGoodsLog;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Models\Business\Shop;
@@ -57,14 +58,15 @@ class GoodsController extends BaseController
 
     public function show($id)
     {
+        $userId = auth()->id();
         $action = request()->input('action' , '');
         $goods = Goods::where('id' , $id)->firstOrFail();
         $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
         $goods = $goods->makeVisible('status');
         $goods->likeState = !empty($like);
-        if($action=='view')
+        if($action=='view'&&$goods->user_id!=$userId)
         {
-
+            BusinessGoodsLog::dispatch($userId , $goods->shop_id , $id , $goods->user_id)->onQueue('helloo_{business_goods_logs}');
         }
         return new AnonymousCollection($goods);
     }
