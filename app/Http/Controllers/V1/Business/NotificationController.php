@@ -14,7 +14,7 @@ class NotificationController extends BaseController
         $shopId = strval($request->input('shop_id' , ''));
         if(!empty($shopId))
         {
-            $goods = Goods::where('shop_id', $shopId)->where('like' , '>' , 0)
+            $goods = Goods::where('shop_id', $shopId)->where('like' , '>' , 0)->select('id' , 'name' , 'like' , 'image' , 'liked_at')
                 ->orderByDesc('created_at')
                 ->paginate(10);
         }else{
