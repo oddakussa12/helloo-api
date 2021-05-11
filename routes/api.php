@@ -189,6 +189,7 @@ $api->group($V1Params , function ($api){
         $api->get('shop/{shop}' , 'Business\ShopController@show')->name('shop.show');
         $api->put('shop/{shop}' , 'Business\ShopController@update')->name('shop.update');
         $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
+        $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
         $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
         $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
