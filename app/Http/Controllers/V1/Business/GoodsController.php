@@ -61,7 +61,7 @@ class GoodsController extends BaseController
             $goods->likeState = "self";
         }else{
             $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
-            $goods->likeState = !empty($like);
+            $goods->likeState = intval(!empty($like));
         }
         return new AnonymousCollection($goods);
     }
