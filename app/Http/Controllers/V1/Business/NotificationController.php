@@ -15,7 +15,7 @@ class NotificationController extends BaseController
         if(!empty($shopId))
         {
             $appends['shop_id'] = $shopId;
-            $goods = Goods::where('shop_id', $shopId)->where('like' , '>' , 0)->select('id' , 'name' , 'like' , 'image' , 'liked_at')
+            $goods = Goods::where('shop_id', $shopId)->where('like' , '>' , 0)->select('id' , 'name' , 'like' , 'image' , 'liked_at' , 'status' , 'price' , 'currency')
                 ->orderByDesc('created_at')
                 ->paginate(10);
             $goods = $goods->appends($appends);
