@@ -20,6 +20,8 @@ class GoodsController extends BaseController
     {
         $keyword = escape_like(strval($request->input('keyword' , '')));
         $shopId = strval($request->input('shop_id' , ''));
+        $appends['keyword'] = $keyword;
+        $appends['shop_id'] = $shopId;
         if(!empty($keyword))
         {
             $goods = Goods::where('shop_id', $shopId)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
@@ -28,6 +30,7 @@ class GoodsController extends BaseController
             $goods = Goods::where('shop_id', $shopId)
                 ->orderByDesc('created_at')
                 ->paginate(10);
+            $goods = $goods->appends($appends);
         }else{
             $goods = collect();
         }

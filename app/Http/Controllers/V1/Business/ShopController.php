@@ -21,6 +21,8 @@ class ShopController extends BaseController
     {
         $keyword = escape_like(strval($request->input('keyword' , '')));
         $userId = intval($request->input('user_id' , 0));
+        $appends['keyword'] = $keyword;
+        $appends['user_id'] = $userId;
         if(!empty($keyword))
         {
             $shops = Shop::where('nick_name', 'like', "%{$keyword}%")->limit(10)->get();
@@ -29,6 +31,7 @@ class ShopController extends BaseController
             $shops = Shop::where('user_id', $userId)
                 ->orderByDesc('created_at')
                 ->paginate(10);
+            $shops = $shops->appends($appends);
         }else{
             $shops = collect();
         }
