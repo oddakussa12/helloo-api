@@ -184,6 +184,7 @@ $api->group($V1Params , function ($api){
 
         /*****business start*****/
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
+        $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
         $api->get('shop' , 'Business\ShopController@index')->name('shop.index');
         $api->get('shop/recommendation' , 'Business\ShopController@recommendation')->name('shop.recommendation');
         $api->get('shop/{shop}' , 'Business\ShopController@show')->name('shop.show');

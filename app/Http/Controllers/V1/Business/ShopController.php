@@ -19,7 +19,7 @@ class ShopController extends BaseController
 
     public function index(Request $request)
     {
-        $keyword = strval($request->input('keyword' , ''));
+        $keyword = escape_like(strval($request->input('keyword' , '')));
         $userId = intval($request->input('user_id' , 0));
         if(!empty($keyword))
         {

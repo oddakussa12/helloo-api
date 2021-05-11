@@ -18,7 +18,7 @@ class GoodsController extends BaseController
 {
     public function index(Request $request)
     {
-        $keyword = strval($request->input('keyword' , ''));
+        $keyword = escape_like(strval($request->input('keyword' , '')));
         $shopId = strval($request->input('shop_id' , ''));
         if(!empty($keyword))
         {
