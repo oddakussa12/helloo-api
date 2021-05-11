@@ -183,6 +183,7 @@ $api->group($V1Params , function ($api){
         /*****群 结束*****/
 
         /*****business start*****/
+        $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
         $api->get('shop' , 'Business\ShopController@index')->name('shop.index');
         $api->get('shop/recommendation' , 'Business\ShopController@recommendation')->name('shop.recommendation');
         $api->get('shop/{shop}' , 'Business\ShopController@show')->name('shop.show');
