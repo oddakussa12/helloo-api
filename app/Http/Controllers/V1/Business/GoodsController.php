@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1\Business;
 
 use Illuminate\Http\Request;
+use App\Models\Business\Shop;
 use App\Models\Business\Goods;
 use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
