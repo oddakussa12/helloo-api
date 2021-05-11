@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1\Business;
 use App\Models\UserFriend;
 use Dingo\Api\Http\Response;
 use Illuminate\Http\Request;
+use App\Jobs\BusinessShopLog;
 use App\Models\Business\Shop;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +61,7 @@ class ShopController extends BaseController
     {
         $user = auth()->user();
         $userId = $user->user_id;
+        $action = request()->input('action' , '');
         $shop = Shop::findOrFail($id);
         $shop->user = new UserCollection(app(UserRepository::class)->findByUserId($shop->user_id));
         if ($userId!=$shop->user_id) {
@@ -67,6 +69,10 @@ class ShopController extends BaseController
             $shop->user->put('friendState' , $friend ? 'friend' : false);
         } else {
             $shop->user->put('friendState' , 'self');
+        }
+        if($action=='view'&&$shop->user_id!=$userId)
+        {
+            BusinessShopLog::dispatch($userId , $id , $shop->user_id)->onQueue('helloo_{business_shop_logs}');
         }
         return new AnonymousCollection($shop);
     }
