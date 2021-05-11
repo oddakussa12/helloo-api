@@ -263,10 +263,13 @@ class BackStageController extends BaseController
         if (empty($userInfo->user_shop)) {
             $shop = Shop::where('user_id', $userId)->first();
             if (empty($shop)) {
+                $id = app('snowflake')->id();
                 $shop = new Shop();
-                $shop->id      = app('snowflake')->id();
+                $shop->id      = $id;
                 $shop->user_id = $userId;
                 $shop->save();
+                $userInfo->user_shop = $id;
+                $userInfo->save();
             }
         }
         return $this->response->array([]);
