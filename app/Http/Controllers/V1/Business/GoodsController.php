@@ -22,13 +22,13 @@ class GoodsController extends BaseController
 {
     public function index(Request $request)
     {
+        $userId = auth()->id();
         $keyword = escape_like(strval($request->input('keyword' , '')));
         $shopId = strval($request->input('shop_id' , ''));
         $appends['keyword'] = $keyword;
         $appends['shop_id'] = $shopId;
         if(!empty($keyword))
         {
-            $userId = auth()->id();
             $goods = Goods::where('shop_id', $shopId)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
             BusinessSearchLog::dispatch($userId , $keyword , $shopId)->onQueue('helloo_{business_search_log}');
         }elseif (!empty($shopId))
@@ -40,6 +40,16 @@ class GoodsController extends BaseController
         }else{
             $goods = collect();
         }
+        $goodsIds = $goods->pluck('goods_id')->toArray();
+        if(!empty($goodsIds))
+        {
+            $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+                return (array)$value;
+            }))->pluck('goods_id')->unique()->toArray();
+            $goods->each(function($g) use ($likes){
+                $g->likeState = in_array($g->id , $likes);
+            });
+        }
         return AnonymousCollection::collection($goods);
     }
 
@@ -49,9 +59,20 @@ class GoodsController extends BaseController
      */
     public function recommendation()
     {
+        $userId = auth()->id();
         $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
         if ($goods->isEmpty()) {
             $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
+        }
+        $goodsIds = $goods->pluck('goods_id')->toArray();
+        if(!empty($goodsIds))
+        {
+            $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+                return (array)$value;
+            }))->pluck('goods_id')->unique()->toArray();
+            $goods->each(function($g) use ($likes){
+                $g->likeState = in_array($g->id , $likes);
+            });
         }
         return AnonymousCollection::collection($goods);
     }
