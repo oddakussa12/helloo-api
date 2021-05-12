@@ -29,7 +29,7 @@ class GoodsController extends BaseController
         $appends['shop_id'] = $shopId;
         if(!empty($keyword))
         {
-            $goods = Goods::where('shop_id', $shopId)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
+            $goods = Goods::where('shop_id', $shopId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
             BusinessSearchLog::dispatch($userId , $keyword , $shopId)->onQueue('helloo_{business_search_log}');
         }elseif (!empty($shopId))
         {
@@ -60,9 +60,9 @@ class GoodsController extends BaseController
     public function recommendation()
     {
         $userId = auth()->id();
-        $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
+        $goods = Goods::where('status' , 1)->select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
         if ($goods->isEmpty()) {
-            $goods = Goods::select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
+            $goods = Goods::where('status' , 1)->select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }
         $goodsIds = $goods->pluck('goods_id')->toArray();
         if(!empty($goodsIds))
