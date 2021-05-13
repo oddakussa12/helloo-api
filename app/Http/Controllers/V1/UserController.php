@@ -557,10 +557,16 @@ class UserController extends BaseController
 
     public function agoraToken()
     {
+        $targetId = intval(request()->input('target_id' , 0));
+        if($targetId<=0)
+        {
+            abort(400);
+        }
         $appID = config('agora.app_id');
         $appCertificate = config('agora.app_certificate');;
-        $uidStr = strval(auth()->id());
-        $channelName = strval(app('snowflake')->id()).'-'.$uidStr.'-'.strval(millisecond());
+        $selfUidStr = strval(auth()->id());
+        $targetUidStr = strval($targetId);
+        $channelName = strval(app('snowflake')->id()).'-'.$selfUidStr.'-'.strval(millisecond()).'-'.$targetUidStr;
 //        $uid = 2882341273;
         $role = RtcTokenBuilder::RoleAttendee;
         $expireTimeInSeconds = 3600;
@@ -570,10 +576,12 @@ class UserController extends BaseController
 //        $token = RtcTokenBuilder::buildTokenWithUid($appID, $appCertificate, $channelName, $uid, $role, $privilegeExpiredTs);
 //        echo 'Token with int uid: ' . $token . PHP_EOL;
 
-        $token = RtcTokenBuilder::buildTokenWithUserAccount($appID, $appCertificate, $channelName, $uidStr, $role, $privilegeExpiredTs);
+        $selfToken = RtcTokenBuilder::buildTokenWithUserAccount($appID, $appCertificate, $channelName, $selfUidStr, $role, $privilegeExpiredTs);
+        $targetToken = RtcTokenBuilder::buildTokenWithUserAccount($appID, $appCertificate, $channelName, $targetUidStr, $role, $privilegeExpiredTs);
         return $this->response->array(array('data'=>array(
             'channel'=>$channelName,
-            'token'=>$token,
+            'selfToken'=>$selfToken,
+            'targetToken'=>$targetToken,
         )));
     }
 }
