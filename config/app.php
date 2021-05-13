@@ -179,7 +179,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Jenssegers\Agent\AgentServiceProvider::class,
-        Torann\GeoIP\GeoIPServiceProvider::class,
+        App\Providers\GeoIPServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         App\Providers\QiniuStorageServiceProvider::class,
         Overtrue\LaravelFollow\FollowServiceProvider::class,
