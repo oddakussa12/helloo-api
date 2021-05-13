@@ -49,10 +49,11 @@ class Schema extends Command
             SchemaAs::create('ry_chats_'.$index, function (Blueprint $table) {
                 $table->increments('chat_id')->unsigned()->comment('主键');
                 $table->string('chat_msg_uid' , 64)->charset('utf8')->comment('融云消息ID');
-                $table->integer('chat_from_id' , false , true)->comment('消息发送者ID');
-                $table->integer('chat_to_id' , false , true)->comment('消息接收者ID');
+                $table->bigInteger('chat_from_id' , false , true)->comment('消息发送者ID');
+                $table->bigInteger('chat_to_id' , false , true)->comment('消息接收者ID');
                 $table->string('chat_msg_type' , 128)->charset('utf8')->comment('消息类型');
                 $table->string('chat_time' , 32)->charset('utf8')->comment('消息创建时间');
+                $table->string('chat_channel' , 32)->charset('utf8')->comment('聊天频道');
                 $table->string('chat_source' , 64)->charset('utf8')->comment('消息来源');
                 $table->tinyInteger('chat_extend' , false , true)->default(1)->comment('消息扩展');
                 $table->dateTime('chat_created_at')->comment('日期');
@@ -87,7 +88,7 @@ class Schema extends Command
 
         if(!SchemaAs::hasTable('ry_audio_messages_'.$index))
         {
-            SchemaAs::create('ry_video_messages_'.$index, function (Blueprint $table) {
+            SchemaAs::create('ry_audio_messages_'.$index, function (Blueprint $table) {
                 $table->increments('id')->unsigned()->comment('主键');
                 $table->string('message_id' , 64)->charset('utf8')->comment('融云消息ID');
                 $table->string('audio_url' , 128)->charset('utf8')->comment('语音地址');
@@ -109,6 +110,7 @@ class Schema extends Command
                 $table->string('device_id' , 64)->charset('utf8')->default('')->comment('设备ID');
                 $table->integer('visited_at' ,  false , true)->comment('访问时间');
                 $table->date('created_at')->comment('创建时间');
+                $table->index(array('user_id', 'device_id') , 'user_device');
             });
         }
 
