@@ -116,6 +116,7 @@ class RyChat implements ShouldQueue
                 'chat_from_id'  => $raw['fromUserId'],
                 'chat_to_id'    => $raw['toUserId'],
                 'chat_msg_type' => $raw['objectName'],
+                'chat_channel' => $raw['channelType'],
                 'chat_time'     => $msgTimestamp,
             );
             if(isset($raw['source'])) {

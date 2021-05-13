@@ -40,7 +40,7 @@ class GoodsController extends BaseController
         }else{
             $goods = collect();
         }
-        $goodsIds = $goods->pluck('goods_id')->toArray();
+        $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
         {
             $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
