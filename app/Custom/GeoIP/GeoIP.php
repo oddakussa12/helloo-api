@@ -7,6 +7,7 @@ use Monolog\Logger;
 use Illuminate\Support\Arr;
 use Illuminate\Cache\CacheManager;
 use Monolog\Handler\StreamHandler;
+use App\Custom\DingNotice\DingTalk;
 
 class GeoIP
 {
@@ -107,6 +108,7 @@ class GeoIP
      * @param string $ip
      *
      * @return \Torann\GeoIP\Location
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getLocation($ip = null)
     {
