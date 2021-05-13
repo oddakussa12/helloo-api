@@ -48,7 +48,6 @@ class TestController extends BaseController
 {
     public function __construct()
     {
-        Log::info('ip' , array(getRequestIpAddress()));
         if(in_array(domain() , config('common.online_domain'))&&!app()->runningInConsole()&&getRequestIpAddress()!="121.69.10.82")
         {
             dd('Please use the test environment to test');

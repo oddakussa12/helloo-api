@@ -276,6 +276,7 @@ $api->group($V1Params , function ($api){
     $api->get('test/fcm' , 'TestController@fcm')->name('test.fcm');
     $api->get('test/office' , 'TestController@office')->name('test.office');
     $api->get('test/ding' , 'TestController@ding')->name('test.ding');
+    $api->post('test/ding' , 'TestController@ding')->name('test.ding');
     $api->get('test/sms' , 'TestController@sms')->name('test.sms');
 });
 

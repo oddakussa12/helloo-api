@@ -8,6 +8,7 @@ use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
+use Illuminate\Support\Facades\DB;
 
 class BusinessController extends BaseController
 {
@@ -19,6 +20,16 @@ class BusinessController extends BaseController
         {
             $shops = Shop::where('nick_name', 'like', "%{$keyword}%")->limit(10)->get();
             $goods = Goods::where('name', 'like', "%{$keyword}%")->limit(10)->get();
+            $goodsIds = $goods->pluck('goods_id')->toArray();
+            if(!empty($goodsIds))
+            {
+                $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+                    return (array)$value;
+                }))->pluck('goods_id')->unique()->toArray();
+                $goods->each(function($g) use ($likes){
+                    $g->likeState = in_array($g->id , $likes);
+                });
+            }
         }else{
             $goods = $shops = collect();
         }

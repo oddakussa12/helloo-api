@@ -117,7 +117,7 @@ class GoodsController extends BaseController
                 'bail',
                 'required',
                 'string',
-                'between:6,24'
+                'between:1,24'
             ],
             'image' => [
                 'bail',
