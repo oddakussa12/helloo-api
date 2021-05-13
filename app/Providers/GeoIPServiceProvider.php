@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use Torann\GeoIP\GeoIP;
 use Illuminate\Support\Str;
+use App\Custom\GeoIP\GeoIP;
 use Torann\GeoIP\Console\Clear;
 use Torann\GeoIP\Console\Update;
 use Illuminate\Support\ServiceProvider;

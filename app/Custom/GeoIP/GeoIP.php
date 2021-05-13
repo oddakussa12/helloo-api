@@ -1,6 +1,6 @@
 <?php
 
-namespace Torann\GeoIP;
+namespace App\Custom\GeoIP;
 
 use Exception;
 use Monolog\Logger;
