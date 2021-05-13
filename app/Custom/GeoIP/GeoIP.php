@@ -162,10 +162,10 @@ class GeoIP
             }
             catch (\Exception $e) {
                 if ($this->config('log_failures', true) === true) {
-//                    $log = new Logger('geoip');
-//                    $log->pushHandler(new StreamHandler(storage_path('logs/geoip.log'), Logger::ERROR));
-//                    $log->error($e);
-                    app(DingTalk::class)->with('default')->text((string)$e);
+                    $log = new Logger('geoip');
+                    $log->pushHandler(new StreamHandler(storage_path('logs/geoip.log'), Logger::ERROR));
+                    $log->error($e);
+//                    app(DingTalk::class)->with('default')->text((string)$e);
                 }
             }
         }

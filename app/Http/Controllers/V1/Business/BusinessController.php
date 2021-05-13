@@ -20,7 +20,7 @@ class BusinessController extends BaseController
         {
             $shops = Shop::where('nick_name', 'like', "%{$keyword}%")->limit(10)->get();
             $goods = Goods::where('name', 'like', "%{$keyword}%")->limit(10)->get();
-            $goodsIds = $goods->pluck('goods_id')->toArray();
+            $goodsIds = $goods->pluck('id')->toArray();
             if(!empty($goodsIds))
             {
                 $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){

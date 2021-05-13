@@ -64,7 +64,7 @@ class GoodsController extends BaseController
         if ($goods->isEmpty()) {
             $goods = Goods::where('status' , 1)->select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }
-        $goodsIds = $goods->pluck('goods_id')->toArray();
+        $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
         {
             $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
