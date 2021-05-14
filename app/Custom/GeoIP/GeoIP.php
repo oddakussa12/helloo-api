@@ -1,12 +1,14 @@
 <?php
 
-namespace Torann\GeoIP;
+namespace App\Custom\GeoIP;
 
 use Exception;
 use Monolog\Logger;
+use Torann\GeoIP\Cache;
 use Illuminate\Support\Arr;
 use Illuminate\Cache\CacheManager;
 use Monolog\Handler\StreamHandler;
+use App\Custom\DingNotice\DingTalk;
 
 class GeoIP
 {
@@ -107,6 +109,7 @@ class GeoIP
      * @param string $ip
      *
      * @return \Torann\GeoIP\Location
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function getLocation($ip = null)
     {
@@ -162,7 +165,6 @@ class GeoIP
                     $log = new Logger('geoip');
                     $log->pushHandler(new StreamHandler(storage_path('logs/geoip.log'), Logger::ERROR));
                     $log->error($e);
-                    app(DingTalk::class)->with('default')->text($e->getMessage());
                 }
             }
         }
