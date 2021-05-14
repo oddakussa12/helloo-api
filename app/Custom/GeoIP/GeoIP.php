@@ -165,7 +165,6 @@ class GeoIP
                     $log = new Logger('geoip');
                     $log->pushHandler(new StreamHandler(storage_path('logs/geoip.log'), Logger::ERROR));
                     $log->error($e);
-//                    app(DingTalk::class)->with('default')->text((string)$e);
                 }
             }
         }
