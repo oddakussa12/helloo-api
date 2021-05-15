@@ -244,6 +244,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('app/home' , 'AppController@home')->name('app.home');
 
+    $api->post('app/referrer' , 'AppController@referrer')->name('app.referrer');
+
     $api->get('school/index' , 'SchoolController@index')->name('school.index');
 
     $api->post('ry/push' , 'RySetController@push')->name('ry.push');
