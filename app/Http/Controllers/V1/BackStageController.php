@@ -255,26 +255,36 @@ class BackStageController extends BaseController
         if($userId<=0) {
             return $this->response->errorNotFound();
         }
-        $userInfo = User::find($userId);
+        $userInfo = DB::table('users')->where('user_id', $userId)->first();
         if (empty($userInfo)) {
             return $this->response->errorNotFound();
         }
 
         if (empty($userInfo->user_shop)) {
-            $shop    = Shop::where('user_id', $userId)->first();
+            $shop    = DB::table('shops')->where('user_id', $userId)->first();
             $country = DB::table('users_countries')->where('user_id', $userInfo->user_id)->first();
             if (empty($shop)) {
-                $id = app('snowflake')->id();
-                $shop = new Shop();
-                $shop->id      = $id;
-                $shop->user_id = $userId;
-                $shop->country = !empty($country->country) ? $country->country : '';
-                $shop->save();
-                $userInfo->user_shop = $id;
-                $userInfo->save();
+                try{
+                    DB::beginTransaction();
+                    $id = app('snowflake')->id();
+                    DB::table('shops')->insert([
+                        'id' => $id,
+                        'user_id' => $userId,
+                        'country' => !empty($country->country) ? $country->country : '',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+                    DB::table('users')->where('user_id', $userId)->update([
+                        'user_shop'=>$id,
+                        'user_updated_at'=>date('Y-m-d H:i:s')
+                    ]);
+                    DB::commit();
+                }catch (\Exception $e){
+                    DB::rollBack();
+                    return $this->response->errorNotFound();
+                }
             }
         }
-        return $this->response->array([]);
+        return $this->response->array(['code'=>0]);
     }
 
 
