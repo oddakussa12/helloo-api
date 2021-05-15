@@ -80,14 +80,15 @@ class GoodsController extends BaseController
     public function show($id)
     {
         $userId = auth()->id();
-        $action = request()->input('action' , '');
+        $action = strval(request()->input('action' , ''));
+        $referrer = strval(request()->input('referrer' , ''));
         $goods = Goods::where('id' , $id)->firstOrFail();
         $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
         $goods = $goods->makeVisible('status');
         $goods->likeState = !empty($like);
         if($action=='view'&&$goods->user_id!=$userId)
         {
-            BusinessGoodsLog::dispatch($userId , $goods->shop_id , $id , $goods->user_id)->onQueue('helloo_{business_goods_logs}');
+            BusinessGoodsLog::dispatch($userId , $goods->shop_id , $id , $goods->user_id , $referrer)->onQueue('helloo_{business_goods_logs}');
         }
         return new AnonymousCollection($goods);
     }

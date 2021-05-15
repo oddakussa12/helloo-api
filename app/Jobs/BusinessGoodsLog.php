@@ -20,13 +20,15 @@ class BusinessGoodsLog implements ShouldQueue
     private $goods;
     private $owner;
     private $now;
+    private $referrer;
 
-    public function __construct($user , $shop , $goods , $owner)
+    public function __construct($user , $shop , $goods , $owner , $referrer)
     {
         $this->user = $user;
         $this->shop = $shop;
         $this->goods = $goods;
         $this->owner = $owner;
+        $this->referrer = $referrer;
         $this->now = date('Y-m-d H:i:s');
     }
 
@@ -58,6 +60,7 @@ class BusinessGoodsLog implements ShouldQueue
             'user_id'=>$this->user,
             'shop_id'=>$this->shop,
             'goods_id'=>$this->goods,
+            'referrer'=>$this->referrer,
             'owner'=>$this->owner,
             'created_at'=>$this->now,
         ));

@@ -61,7 +61,8 @@ class ShopController extends BaseController
     {
         $user = auth()->user();
         $userId = $user->user_id;
-        $action = request()->input('action' , '');
+        $action = strval(request()->input('action' , ''));
+        $referrer = strval(request()->input('referrer' , ''));
         $shop = Shop::findOrFail($id);
         $shop->user = new UserCollection(app(UserRepository::class)->findByUserId($shop->user_id));
         if ($userId!=$shop->user_id) {
@@ -72,7 +73,7 @@ class ShopController extends BaseController
         }
         if($action=='view'&&$shop->user_id!=$userId)
         {
-            BusinessShopLog::dispatch($userId , $id , $shop->user_id)->onQueue('helloo_{business_shop_logs}');
+            BusinessShopLog::dispatch($userId , $id , $shop->user_id , $referrer)->onQueue('helloo_{business_shop_logs}');
         }
         return new AnonymousCollection($shop);
     }

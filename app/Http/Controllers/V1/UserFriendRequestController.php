@@ -65,6 +65,7 @@ class UserFriendRequestController extends BaseController
     public function store(StoreUserFriendRequestRequest $request)
     {
         $friendId = intval($request->input('friend_id'));
+        $referrer = strval($request->input('referrer' , ''));
         $user     = auth()->user();
         $userId   = $user->user_id;
         if($friendId==$userId)
