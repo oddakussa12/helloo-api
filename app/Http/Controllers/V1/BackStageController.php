@@ -261,12 +261,14 @@ class BackStageController extends BaseController
         }
 
         if (empty($userInfo->user_shop)) {
-            $shop = Shop::where('user_id', $userId)->first();
+            $shop    = Shop::where('user_id', $userId)->first();
+            $country = DB::table('users_countries')->where('user_id', $userInfo->user_id)->first();
             if (empty($shop)) {
                 $id = app('snowflake')->id();
                 $shop = new Shop();
                 $shop->id      = $id;
                 $shop->user_id = $userId;
+                $shop->country = !empty($country->country) ? $country->country : '';
                 $shop->save();
                 $userInfo->user_shop = $id;
                 $userInfo->save();
