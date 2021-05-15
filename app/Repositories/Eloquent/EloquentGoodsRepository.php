@@ -26,15 +26,23 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
         {
             try{
                 DB::beginTransaction();
-                DB::table('likes_goods')->insert(array(
+                $likeGoodsResult = DB::table('likes_goods')->insert(array(
                     'id'=>$id,
                     'user_id'=>$userId,
                     'goods_id'=>$goodsId,
                     'created_at'=>$now,
                 ));
-                DB::table('goods')->where('id' , $goodsId)->increment('like' , 1 , array(
+                if(!$likeGoodsResult)
+                {
+                    abort(405 , 'goods like failed!');
+                }
+                $goodsResult = DB::table('goods')->where('id' , $goodsId)->increment('like' , 1 , array(
                     'liked_at'=>$now
                 ));
+                if($goodsResult<=0)
+                {
+                    abort(405 , 'goods update like failed!');
+                }
                 DB::commit();
             }catch (\Exception $e)
             {

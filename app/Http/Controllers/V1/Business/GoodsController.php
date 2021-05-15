@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Jobs\BusinessGoodsLog;
+use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Models\Business\Shop;
@@ -166,12 +167,33 @@ class GoodsController extends BaseController
         $data['updated_at'] = $now;
         if($shop->country=='et')
         {
-            $data['currency'] = 'ETB';
+            $data['currency'] = 'BIRR';
         }else
         {
             $data['currency'] = 'USD';
         }
-        DB::table('goods')->insert($data);
+        try{
+            DB::beginTransaction();
+            $goodsResult = DB::table('goods')->insert($data);
+            if(!$goodsResult)
+            {
+                abort(405 , 'goods insert failed!');
+            }
+            $shopResult = DB::table('shops')->where('id' , $shopId)->increment('goods');
+            if($shopResult<=0)
+            {
+                abort(405 , 'shop update failed!');
+            }
+            DB::commit();
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            Log::info('goods_add_fail' , array(
+                'message'=>$e->getMessage(),
+                'user_id'=>$userId,
+                'data'=>$data,
+            ));
+        }
         return $this->response->created();
     }
 
