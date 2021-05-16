@@ -103,7 +103,7 @@ class ShopController extends BaseController
                     {
                         $fail('Store Name already exists!');
                     }
-                    $u = User::where('name', $value)->first();
+                    $u = User::where('user_name', $value)->first();
                     if(!empty($u))
                     {
                         $fail('Store Name already exists!');
