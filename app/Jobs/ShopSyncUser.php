@@ -2,18 +2,18 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
-use App\Repositories\Contracts\UserRepository;
 use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use App\Repositories\Contracts\UserRepository;
 
 class ShopSyncUser implements ShouldQueue
 {
@@ -58,7 +58,7 @@ class ShopSyncUser implements ShouldQueue
             app(UserRepository::class)->update($this->user , $field);
         }
 
-        if(!empty($this->name))
+        if(!empty($this->name)&&$this->user->user_name!=$this->name)
         {
             $key = 'helloo:account:service:account-username-change';
             $username = trim(strval($this->name));
@@ -102,7 +102,14 @@ class ShopSyncUser implements ShouldQueue
                 $validationField = array(
                     'user_name' => $username
                 );
-                Validator::make($validationField, $rules)->validate();
+                if(Validator::make($validationField, $rules)->fails())
+                {
+                    Log::info('user_name_taken_already' , array(
+                        'name'=>$this->name,
+                        'data'=>$data,
+                        'user_id'=>$this->user->getKey()
+                    ));
+                }
                 $key = 'helloo:account:service:account-username-change';
                 $now = Carbon::now();
                 DB::beginTransaction();

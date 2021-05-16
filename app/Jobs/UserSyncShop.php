@@ -77,20 +77,19 @@ class UserSyncShop implements ShouldQueue
                         {
                             $fail('Store Name already exists!');
                         }
-                        $u = User::where('user_name', $value)->first();
-                        if(!empty($u))
-                        {
-                            $fail('Store Name already exists!');
-                        }
                     }
                 ]
             ];
-            try {
-                Validator::make($params, $rules)->validate();
-            } catch (ValidationException $exception) {
-                throw new ValidationException($exception->validator);
+            if(!Validator::make($params, $rules)->fails())
+            {
+                !empty($params)&&Shop::where('id' , $this->user->user_shop)->update($params);
+            }else{
+                Log::info('shop_name_taken_already' , array(
+                    'name'=>$this->name,
+                    'data'=>$data,
+                    'user_id'=>$this->user->getKey()
+                ));
             }
-            !empty($params)&&Shop::where('id' , $this->user->user_shop)->update($params);
         }
 
     }
