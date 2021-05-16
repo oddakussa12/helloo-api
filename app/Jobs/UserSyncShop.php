@@ -50,9 +50,9 @@ class UserSyncShop implements ShouldQueue
         {
             $field['avatar'] = $data['user_avatar'];
         }
-        if(isset($data['user_cover']))
+        if(isset($data['user_bg']))
         {
-            $field['cover'] = $data['user_cover'];
+            $field['cover'] = $data['user_bg'];
         }
         if(!empty($field)&&!empty($this->user->user_shop))
         {

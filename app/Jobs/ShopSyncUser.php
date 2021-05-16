@@ -51,7 +51,7 @@ class ShopSyncUser implements ShouldQueue
         }
         if(isset($data['cover']))
         {
-            $field['user_cover'] = $data['cover'];
+            $field['user_bg'] = $data['cover'];
         }
         if(!empty($field))
         {

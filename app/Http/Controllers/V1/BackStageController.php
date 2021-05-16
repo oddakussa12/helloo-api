@@ -278,7 +278,7 @@ class BackStageController extends BaseController
                         'id' => $id,
                         'user_id' => $userId,
                         'avatar'=>userCover($user->user_avatar),
-                        'cover'=>$user->user_cover,
+                        'cover'=>$user->user_bg,
                         'country' => !empty($country->country) ? $country->country : '',
                         'name'=>empty($user->user_name)?'':$user->user_name,
                         'nick_name'=>empty($user->user_nick_name)?'':$user->user_nick_name,
