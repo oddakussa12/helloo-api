@@ -12,11 +12,16 @@ class Blacklist extends BaseMiddleware
     {
         if(auth()->check())
         {
+            $userId = auth()->id();
             $key      = 'helloo:account:service:block-user';
-            $time = Redis::zscore($key , auth()->id());
+            $time = Redis::zscore($key , $userId);
             if(!empty($time)&&time()-$time<=43200*60)
             {
                 abort('401' , trans('auth.user_banned'));
+            }
+            if(Redis::exists('helloo_account_once_using_Id_'.$userId))
+            {
+                abort('401' , __('Page Expired'));
             }
             $deviceId = (new Agent())->getHttpHeader('deviceId');
             if(!empty($deviceId))

@@ -26,17 +26,26 @@ class GoodsController extends BaseController
         $userId = auth()->id();
         $keyword = escape_like(strval($request->input('keyword' , '')));
         $shopId = strval($request->input('shop_id' , ''));
+        $type = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
         $appends['shop_id'] = $shopId;
+        $appends['$type'] = $type;
         if(!empty($keyword))
         {
             $goods = Goods::where('shop_id', $shopId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
             BusinessSearchLog::dispatch($userId , $keyword , $shopId)->onQueue('helloo_{business_search_log}');
         }elseif (!empty($shopId))
         {
-            $goods = Goods::where('shop_id', $shopId)
-                ->orderByDesc('created_at')
-                ->paginate(10);
+            if($type=='management')
+            {
+                $goods = Goods::where('shop_id', $shopId)
+                    ->orderByDesc('created_at')
+                    ->paginate(10);
+            }else{
+                $goods = Goods::where('shop_id', $shopId)->where('status' , 1)
+                    ->orderByDesc('created_at')
+                    ->paginate(10);
+            }
             $goods = $goods->appends($appends);
         }else{
             $goods = collect();
@@ -119,7 +128,7 @@ class GoodsController extends BaseController
                 'bail',
                 'required',
                 'string',
-                'between:1,24'
+                'between:1,32'
             ],
             'image' => [
                 'bail',

@@ -297,6 +297,8 @@ class BackStageController extends BaseController
                     }
                     DB::commit();
                     Redis::del('helloo:account:service:account:'.$userId);
+                    Redis::set('helloo_account_once_using_Id_'.$userId , 1);
+                    Redis::expire('helloo_account_once_using_Id_'.$userId , 60*60*24);
                 }catch (\Exception $e){
                     DB::rollBack();
                     Log::info('shop_update_failed' , array(

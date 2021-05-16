@@ -97,6 +97,7 @@ class ShopController extends BaseController
                 'filled',
                 'string',
                 'alpha_num' ,
+                'between:1,20',
                 function ($attribute, $value, $fail) use ($user){
                     $shop = Shop::where('name', $value)->where('user_id', '!=', $user->user_id)->first();
                     if(!empty($shop))
@@ -110,7 +111,7 @@ class ShopController extends BaseController
                     }
                 }
              ],
-            'nick_name'   => ['bail', 'filled', 'string', 'alpha_dash'],
+            'nick_name'   => ['bail', 'filled', 'string', 'alpha_dash' , 'between:6,32'],
             'avatar'      => ['bail', 'filled', 'string', 'min:30', 'max:300'],
             'cover'       => ['bail', 'filled', 'string', 'min:30', 'max:300'],
             'address'     => ['bail', 'filled', 'string', 'min:10', 'max:100'],

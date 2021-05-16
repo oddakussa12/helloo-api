@@ -292,6 +292,7 @@ class AuthController extends BaseController
     protected function respondWithToken($token , $extend=true)
     {
         $user = auth()->user();
+        Redis::del('helloo_account_once_using_Id_'.$user->user_id);
         $referer = request()->input('referer' , 'web');
         if($referer!='web')
         {
