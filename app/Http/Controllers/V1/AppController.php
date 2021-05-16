@@ -116,7 +116,7 @@ class AppController extends BaseController
         {
             $data = array(
                 'package_name'=>$package_name,
-                'version'=>$version,
+                'app_version'=>$version,
                 'device_id'=>$deviceId,
                 'ip'=>getRequestIpAddress(),
                 'created_at'=>date('Y-m-d H:i:s'),
