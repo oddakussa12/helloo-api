@@ -155,6 +155,18 @@ class RyChat implements ShouldQueue
             if(isset($content['LikeType'])) { //like
                 $data['chat_extend'] = intval($content['LikeType']);
             }
+            if(isset($content['user']))
+            {
+                $u = $content['user'];
+                if(isset($u['extra']))
+                {
+                    $extra = \json_decode($u['extra'] , true);
+                    if(is_array($extra)&&isset($extra['referrer']))
+                    {
+                        $data['referrer'] = strval($extra['referrer']);
+                    }
+                }
+            }
 
             $data['chat_created_at'] = $this->now;
             DB::table('ry_chats_'.$index)->insert($data);
