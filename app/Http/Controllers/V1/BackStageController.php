@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\V1;
 
 
-use App\Models\BlackUser;
-use App\Models\Business\Shop;
-use App\Models\User;
-use App\Models\UserScore;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\BlackUser;
+use App\Models\UserScore;
 use App\Custom\RedisList;
-use Dingo\Api\Exception\ResourceException;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use App\Models\Business\Shop;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
+use Dingo\Api\Exception\ResourceException;
 
 
 class BackStageController extends BaseController
@@ -247,44 +247,63 @@ class BackStageController extends BaseController
      * @param Request $request
      * 后台开启用户商铺权限，创建店铺
      */
-    public function createShop(Request $request)
+    public function storeShop(Request $request)
     {
-        $userId   = $request->input('user_id' , 0);
+        $userId   = strval($request->input('user_id' , ''));
         Log::info('后台开启商铺权限', $request->all());
-
-        if($userId<=0) {
-            return $this->response->errorNotFound();
+        $rules = [
+            'user_id' => [
+                'bail',
+                'required',
+                'string'
+            ],
+        ];
+        $validationField = array(
+            'user_id' => $userId,
+        );
+        Validator::make($validationField, $rules)->validate();
+        $user = DB::table('users')->where('user_id', $userId)->first();
+        if(empty($user))
+        {
+            abort(404 , 'User does not exist!');
         }
-        $userInfo = DB::table('users')->where('user_id', $userId)->first();
-        if (empty($userInfo)) {
-            return $this->response->errorNotFound();
-        }
-
-        if (empty($userInfo->user_shop)) {
+        if (empty($user->user_shop)) {
             $shop    = DB::table('shops')->where('user_id', $userId)->first();
-            $country = DB::table('users_countries')->where('user_id', $userInfo->user_id)->first();
+            $country = DB::table('users_countries')->where('user_id', $user->user_id)->first();
+            $id = app('snowflake')->id();
             if (empty($shop)) {
                 try{
                     DB::beginTransaction();
-                    $id = app('snowflake')->id();
-                    DB::table('shops')->insert([
+                    $shopResult = DB::table('shops')->insert([
                         'id' => $id,
                         'user_id' => $userId,
                         'country' => !empty($country->country) ? $country->country : '',
+                        'name'=>empty($user->user_name)?'':$user->user_name,
+                        'nick_name'=>empty($user->user_nick_name)?'':$user->user_nick_name,
                         'created_at' => date('Y-m-d H:i:s')
                     ]);
-                    DB::table('users')->where('user_id', $userId)->update([
-                        'user_shop'=>$id,
-                        'user_updated_at'=>date('Y-m-d H:i:s')
+                    if(!$shopResult)
+                    {
+                        abort(405 , 'shop insert failed!');
+                    }
+                    $userResult = DB::table('users')->where('user_id', $userId)->update([
+                        'user_shop'=>$id
                     ]);
+                    if($userResult<=0)
+                    {
+                        abort(405 , 'use shop update failed!');
+                    }
                     DB::commit();
                 }catch (\Exception $e){
                     DB::rollBack();
-                    return $this->response->errorNotFound();
+                    Log::info('shop_update_failed' , array(
+                        'user_id' => $userId,
+                        'message'=>$e->getMessage()
+                    ));
                 }
             }
         }
-        return $this->response->array(['code'=>0]);
+        return $this->response->accepted();
     }
 
 
