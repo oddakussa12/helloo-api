@@ -163,7 +163,7 @@ class RyChat implements ShouldQueue
                     $extra = \json_decode($u['extra'] , true);
                     if(is_array($extra)&&isset($extra['referrer']))
                     {
-                        $data['referrer'] = strval($extra['referrer']);
+                        $data['chat_referrer'] = strval($extra['referrer']);
                     }
                 }
             }
