@@ -167,6 +167,10 @@ class GoodsController extends BaseController
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
+        $image = array_map(function($v){
+            unset($v['path']);
+            return $v;
+        } , $image);
         $shop = Shop::where('id' , $shopId)->firstOrFail();
         $now = date("Y-m-d H:i:s");
         $data['id'] = Uuid::uuid1()->toString();
@@ -262,7 +266,12 @@ class GoodsController extends BaseController
         {
             if(isset($params['image']))
             {
-                $params['image'] = \json_encode($params['image'] , JSON_UNESCAPED_UNICODE);
+                $image = $params['image'];
+                $image = array_map(function($v){
+                    unset($v['path']);
+                    return $v;
+                } , $image);
+                $params['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
             }
             DB::table('goods')->where('id' , $id)->update($params);
         }
