@@ -294,6 +294,7 @@ class BackStageController extends BaseController
                         abort(405 , 'use shop update failed!');
                     }
                     DB::commit();
+                    Redis::del('helloo:account:service:account:'.$userId);
                 }catch (\Exception $e){
                     DB::rollBack();
                     Log::info('shop_update_failed' , array(
