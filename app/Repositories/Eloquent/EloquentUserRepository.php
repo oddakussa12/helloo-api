@@ -8,6 +8,7 @@
 namespace App\Repositories\Eloquent;
 
 
+use App\Jobs\UserSyncShop;
 use Carbon\Carbon;
 use App\Jobs\School;
 use App\Models\User;
@@ -52,6 +53,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         {
             UserUpdate::dispatch($user)->onQueue('helloo_{user_update}');
         }
+        UserSyncShop::dispatch($user , $data)->onQueue('helloo_{shop_sync_user}');
         if(isset($data['user_sl'])||isset($data['user_school']))
         {
             if(isset($data['user_sl']))

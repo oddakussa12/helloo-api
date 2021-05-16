@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Jobs\ShopSyncUser;
+use App\Models\User;
 use App\Models\UserFriend;
 use Dingo\Api\Http\Response;
 use Illuminate\Http\Request;
@@ -94,12 +96,17 @@ class ShopController extends BaseController
                 'bail',
                 'filled',
                 'string',
-                'alpha_dash' ,
+                'alpha_num' ,
                 function ($attribute, $value, $fail) use ($user){
                     $shop = Shop::where('name', $value)->where('user_id', '!=', $user->user_id)->first();
                     if(!empty($shop))
                     {
-                        $fail('Store ID already exists!');
+                        $fail('Store Name already exists!');
+                    }
+                    $u = User::where('name', $value)->first();
+                    if(!empty($u))
+                    {
+                        $fail('Store Name already exists!');
                     }
                 }
              ],
@@ -116,10 +123,16 @@ class ShopController extends BaseController
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
+
         if ($user->user_shop!=$id) {
-            abort(403 , 'Shop does not exist!');
+            abort(404 , 'Shop does not exist!');
         }
-        !empty($params)&&Shop::where('id' , $id)->update($params);
+        if(!empty($params))
+        {
+            $name = $params['name'] ?? '';
+            Shop::where('id' , $id)->update($params);
+            ShopSyncUser::dispatch($user , $params , $name)->onQueue('helloo_{shop_sync_user}');
+        }
         return $this->response->accepted();
     }
 }

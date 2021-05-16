@@ -1,6 +1,7 @@
 <?php
 namespace App\Foundation\Auth\User;
 
+use App\Jobs\UserSyncShop;
 use Carbon\Carbon;
 use App\Jobs\School;
 use App\Models\User;
@@ -394,6 +395,7 @@ trait Update
                 isset($data['user_gender'])&&Redis::zadd($genderSortSetKey , intval($data['user_gender']) , $userId);
                 isset($data['user_birthday'])&&Redis::zadd($ageSortSetKey , intval(age($data['user_birthday'])) , $userId);
                 $flag = true;
+                UserSyncShop::dispatch($user , $data)->onQueue('helloo_{user_sync_shop}');
                 DB::commit();
             }catch (\Exception $e)
             {
@@ -518,6 +520,11 @@ trait Update
                         {
                             $fail(__('Nickname taken already.'));
                         }
+                        $exist = DB::table('shops')->where('name' , $value)->first();
+                        if(!blank($exist))
+                        {
+                            $fail(__('Nickname taken already.'));
+                        }
                     }
                 ],
             );
@@ -546,6 +553,7 @@ trait Update
                     Redis::sadd($usernameKey , strtolower($username));
                     Redis::zadd($key , $now->timestamp , $user->user_id);
                     DB::commit();
+                    UserSyncShop::dispatch($user , array() , $username)->onQueue('helloo_{shop_sync_user}');
                 }else{
                     throw new \Exception('Database update failed');
                 }
