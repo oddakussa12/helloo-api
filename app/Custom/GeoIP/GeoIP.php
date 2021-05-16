@@ -5,6 +5,7 @@ namespace App\Custom\GeoIP;
 use Exception;
 use Monolog\Logger;
 use Torann\GeoIP\Cache;
+use Torann\GeoIP\Location;
 use Illuminate\Support\Arr;
 use Illuminate\Cache\CacheManager;
 use Monolog\Handler\StreamHandler;
