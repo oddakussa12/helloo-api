@@ -539,7 +539,7 @@ class UserCenterController extends BaseController
 
         $userIds = array_keys($members);
         $isExist = array_search($this->userId, $userIds);
-        $users   = User::whereIn('user_id', $userIds)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
+        $users   = User::whereIn('user_id', $userIds)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar' , 'user_shop')->get();
         $friends = UserFriend::where('user_id', $this->userId)->whereIn('friend_id', $userIds)->get();
         $request = UserFriendRequest::where('request_from_id', $this->userId)->whereIn('request_to_id', $userIds)->get();
 
@@ -630,7 +630,7 @@ class UserCenterController extends BaseController
             }
         }
         $ids  = array_merge($finalFriend, $finalSchool, $finalCountry);
-        $users = User::whereIn('user_id', $ids)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar')->get();
+        $users = User::whereIn('user_id', $ids)->select('user_id', 'user_name', 'user_nick_name', 'user_avatar' , 'user_shop')->get();
         foreach ($users as $user) {
             if (in_array($user->user_id, $finalFriend)) {
                 $user->flag = 1;
