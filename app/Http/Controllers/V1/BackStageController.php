@@ -270,12 +270,11 @@ class BackStageController extends BaseController
         if (empty($user->user_shop)) {
             $shop    = DB::table('shops')->where('user_id', $userId)->first();
             $country = DB::table('users_countries')->where('user_id', $user->user_id)->first();
-            $id = app('snowflake')->id();
             if (empty($shop)) {
                 try{
                     DB::beginTransaction();
                     $shopResult = DB::table('shops')->insert([
-                        'id' => $id,
+                        'id' => $userId,
                         'user_id' => $userId,
                         'avatar'=>userCover($user->user_avatar),
                         'cover'=>$user->user_bg,
@@ -289,7 +288,7 @@ class BackStageController extends BaseController
                         abort(405 , 'shop insert failed!');
                     }
                     $userResult = DB::table('users')->where('user_id', $userId)->update([
-                        'user_shop'=>$id
+                        'user_shop'=>$userId
                     ]);
                     if($userResult<=0)
                     {
