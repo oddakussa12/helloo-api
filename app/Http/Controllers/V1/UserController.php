@@ -142,7 +142,6 @@ class UserController extends BaseController
      */
     public function show(Request $request , $id)
     {
-
         $action = $request->input('action' , '');
         $referrer = $request->input('referrer' , '');
         if($id==97623)
@@ -177,7 +176,7 @@ class UserController extends BaseController
         $user->put('privacy', $privacy);
         $user->put('rank', (int)$rank+1);
         $user->put('score', (int)Redis::zscore($memKey, $id));
-        if(!empty($user->user_shop)&&$action=='view')
+        if(!empty($user->user_shop)&&$action=='view'&&$user->user_id!=auth()->id())
         {
             BusinessShopLog::dispatch(auth()->user() , $user , $referrer)->onQueue('helloo_{business_shop_logs}');
         }

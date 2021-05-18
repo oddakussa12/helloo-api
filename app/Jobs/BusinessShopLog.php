@@ -23,7 +23,6 @@ class BusinessShopLog implements ShouldQueue
     public function __construct($user , $owner , $referrer)
     {
         $this->user = $user;
-
         $this->owner = $owner;
         $this->referrer = $referrer;
         $this->now = date('Y-m-d H:i:s');
@@ -37,12 +36,12 @@ class BusinessShopLog implements ShouldQueue
      */
     public function handle()
     {
-        $shop = DB::table('shops_views')->where('shop_id' , $this->shop)->first();
+        $shop = DB::table('shops_views')->where('user_id' , $this->user)->first();
         if(empty($shop))
         {
             DB::table('shops_views')->insert(array(
                 'id'=>Uuid::uuid1()->toString(),
-                'owner'=>$this->owner,
+                'user_id'=>$this->owner,
                 'num'=>1,
                 'created_at'=>$this->now,
                 'updated_at'=>$this->now,
