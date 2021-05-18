@@ -32,7 +32,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/phone/resetPwd' , 'AuthController@resetPwdByPhone')->name('user.phone.reset.pwd');
 
     $api->post('user/phone/signIn' , 'AuthController@signIn')->name('sign.in');
-    $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
+//    $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
     $api->group(['middleware'=>['repeatedSubmit']] , function($api){
         $api->post('user/phone/signUp' , 'AuthController@phoneSignUp')->name('user.phone.sign.up');
         $api->post('user/signUp' , 'AuthController@signUp')->name('user.sign.up');

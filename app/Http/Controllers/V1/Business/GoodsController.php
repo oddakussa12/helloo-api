@@ -197,7 +197,7 @@ class GoodsController extends BaseController
         $user = auth()->user();
         $goods = Goods::where('id' , $id)->firstOrFail();
         $params = $validationField = $request->only(array('name' , 'image' , 'price' , 'status' , 'description'));
-        $validationField['user_id'] = $goods->shop_id;
+        $validationField['user_id'] = $goods->user_id;
         $rules = [
             'user_id' => [
                 'bail',

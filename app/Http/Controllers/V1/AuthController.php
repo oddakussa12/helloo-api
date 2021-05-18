@@ -11,7 +11,6 @@ use App\Events\SignInEvent;
 use Jenssegers\Agent\Agent;
 use App\Jobs\SignUpOrInFail;
 use Illuminate\Http\Request;
-use App\Models\Business\Shop;
 use App\Rules\UserPhoneUnique;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +90,13 @@ class AuthController extends BaseController
         $user = $this->user->find($phone->user_id);
         if(!config('common.is_verification')||password_verify($password, $user->user_pwd))
         {
+            if($user->user_shop==1&&$user->user_verified!=1)
+            {
+                $message = 'Your store’s review failed or is under review!';
+                $errorJob = new SignUpOrInFail($message);
+                $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
+                return $this->response->errorUnauthorized($message);
+            }
             $token = auth()->login($user);
             $addresses = getRequestIpAddress();
             event(new SignInEvent($user , $addresses));
@@ -873,6 +879,7 @@ class AuthController extends BaseController
         $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
         $flag && abort(401 , trans('auth.user_device_banned'));
 
+        $login_type = strval($request->input('login_type' , 'user'));
         $user_name = strval($request->input('user_name' , ''));
         $user_nick_name = strval($request->input('user_nick_name' , ''));
         $password = strval($request->input('password' , ""));
@@ -947,6 +954,7 @@ class AuthController extends BaseController
             'user_activation'=>1,
             'user_pwd'=>bcrypt($password)
         );
+        $login_type=='shop'&&$user_fields['user_shop']=1;
         DB::beginTransaction();
         try{
             DB::table('users')->insert($user_fields);
@@ -979,6 +987,12 @@ class AuthController extends BaseController
         )));
         $token = auth()->login($user);
         $this->activate($user);
+        if($login_type=='shop')
+        {
+            return $this->response->created(null , array(
+                'user_verified'=>-1
+            ));
+        }
         return $this->respondWithToken($token , false);
     }
 
