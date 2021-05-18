@@ -18,16 +18,14 @@ class BusinessGoodsLog implements ShouldQueue
     private $user;
     private $shop;
     private $goods;
-    private $owner;
     private $now;
     private $referrer;
 
-    public function __construct($user , $shop , $goods , $owner , $referrer)
+    public function __construct($user , $shop , $goods , $referrer)
     {
         $this->user = $user;
         $this->shop = $shop;
         $this->goods = $goods;
-        $this->owner = $owner;
         $this->referrer = $referrer;
         $this->now = date('Y-m-d H:i:s');
     }
@@ -45,9 +43,8 @@ class BusinessGoodsLog implements ShouldQueue
         {
             DB::table('goods_views')->insert(array(
                 'id'=>Uuid::uuid1()->toString(),
-                'shop_id'=>$this->shop,
+                'user_id'=>$this->shop,
                 'goods_id'=>$this->goods,
-                'owner'=>$this->owner,
                 'num'=>1,
                 'created_at'=>$this->now,
                 'updated_at'=>$this->now,
@@ -58,10 +55,9 @@ class BusinessGoodsLog implements ShouldQueue
         DB::table('goods_views_logs')->insert(array(
             'id'=>Uuid::uuid1()->toString(),
             'user_id'=>$this->user,
-            'shop_id'=>$this->shop,
+            'owner'=>$this->shop,
             'goods_id'=>$this->goods,
             'referrer'=>$this->referrer,
-            'owner'=>$this->owner,
             'created_at'=>$this->now,
         ));
     }

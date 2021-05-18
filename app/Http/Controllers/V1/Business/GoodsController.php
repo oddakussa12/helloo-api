@@ -22,9 +22,9 @@ class GoodsController extends BaseController
 {
     public function index(Request $request)
     {
-        $userId = auth()->id();
         $keyword = escape_like(strval($request->input('keyword' , '')));
-        $userId = strval($request->input('user_id' , $userId));
+        $auth = auth()->id();
+        $userId = strval($request->input('user_id' , ''));
         $type = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
         $appends['user_id'] = $userId;
@@ -32,7 +32,7 @@ class GoodsController extends BaseController
         if(!empty($keyword))
         {
             $goods = Goods::where('user_id', $userId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
-            BusinessSearchLog::dispatch($userId , $keyword , $userId)->onQueue('helloo_{business_search_log}');
+            BusinessSearchLog::dispatch($auth , $keyword , $userId)->onQueue('helloo_{business_search_logs}');
         }elseif (!empty($userId))
         {
             if($type=='management')
@@ -97,7 +97,7 @@ class GoodsController extends BaseController
         $goods->likeState = !empty($like);
         if($action=='view'&&$goods->user_id!=$userId)
         {
-            BusinessGoodsLog::dispatch($userId , $goods->user_id , $id , $goods->user_id , $referrer)->onQueue('helloo_{business_goods_logs}');
+            BusinessGoodsLog::dispatch($userId , $goods->user_id , $id , $referrer)->onQueue('helloo_{business_goods_logs}');
         }
         return new AnonymousCollection($goods);
     }

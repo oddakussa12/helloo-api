@@ -6,6 +6,7 @@ namespace App\Http\Controllers\V1;
 use Carbon\Carbon;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
+use App\Jobs\BusinessShopLog;
 use App\Resources\TagCollection;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -139,8 +140,11 @@ class UserController extends BaseController
      * @param $id
      * @return UserCollection
      */
-    public function show($id)
+    public function show(Request $request , $id)
     {
+
+        $action = $request->input('action' , '');
+        $referrer = $request->input('referrer' , '');
         if($id==97623)
         {
             return $this->response->noContent();
@@ -173,6 +177,10 @@ class UserController extends BaseController
         $user->put('privacy', $privacy);
         $user->put('rank', (int)$rank+1);
         $user->put('score', (int)Redis::zscore($memKey, $id));
+        if(!empty($user->user_shop)&&$action=='view')
+        {
+            BusinessShopLog::dispatch(auth()->user() , $user , $referrer)->onQueue('helloo_{business_shop_logs}');
+        }
         return new UserCollection($user);
     }
 

@@ -36,7 +36,7 @@ class BusinessSearchLog implements ShouldQueue
     {
         DB::table('business_search_logs')->insert(array(
             'user_id'=>$this->user,
-            'shop_id'=>$this->shop,
+            'owner'=>$this->shop,
             'content'=>$this->content,
             'created_at'=>$this->now
         ));
