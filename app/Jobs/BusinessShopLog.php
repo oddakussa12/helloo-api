@@ -41,7 +41,7 @@ class BusinessShopLog implements ShouldQueue
         {
             DB::table('shops_views')->insert(array(
                 'id'=>Uuid::uuid1()->toString(),
-                'user_id'=>$this->owner,
+                'user_id'=>$this->user,
                 'num'=>1,
                 'created_at'=>$this->now,
                 'updated_at'=>$this->now,
