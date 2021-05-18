@@ -520,11 +520,6 @@ trait Update
                         {
                             $fail(__('Nickname taken already.'));
                         }
-                        $exist = DB::table('shops')->where('name' , $value)->first();
-                        if(!blank($exist))
-                        {
-                            $fail(__('Nickname taken already.'));
-                        }
                     }
                 ],
             );

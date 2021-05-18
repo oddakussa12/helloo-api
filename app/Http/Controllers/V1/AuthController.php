@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use Carbon\Carbon;
 use App\Jobs\Device;
+use Illuminate\Http\Resources\Json\Resource;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
@@ -203,8 +204,18 @@ class AuthController extends BaseController
 
     public function update(Request $request)
     {
-        $fields = array();
         $user = auth()->user();
+        if(empty($user->user_shop))
+        {
+            return $this->updateUser($user , $request);
+        }else{
+            return $this->updateShop($user , $request);
+        }
+    }
+
+    private function updateUser($user , $request)
+    {
+        $fields = array();
         $oldGender = $user->user_gender;
         $genderKey = 'helloo:account:service:account-gender';
 //        $country_code = strtolower(strval($request->input('country_code')));
@@ -241,8 +252,6 @@ class AuthController extends BaseController
         }
         if($user_gender!==null&&in_array($user_gender , array(0 , 1 , '0' , '1')))
         {
-//            $score = Redis::zscore($genderKey , $user->getKey());
-//            $score===null&&$fields['user_gender'] = intval($user_gender);
             $fields['user_gender'] = intval($user_gender);
         }
         if(!blank($user_nick_name))
@@ -285,6 +294,88 @@ class AuthController extends BaseController
             {
                 Redis::zadd($genderKey , time() , $user->getKey());
             }
+        }
+        return new UserCollection($user);
+    }
+
+    private function updateShop($user , $request)
+    {
+        $fields = array();
+        $user_avatar = strval($request->input('user_avatar' , ''));
+        $user_bg = strval($request->input('user_bg' , ''));
+        $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
+        $user_name = mb_substr(strval($request->input('user_name' , '')) , 0 , 64);
+        $user_address = mb_substr(strval($request->input('user_address' , '')) , 0 , 512);
+        $user_contact = mb_substr(strval($request->input('user_contact' , '')) , 0 , 64);
+        $user_about = strval($request->input('user_about' , ''));
+        if(!empty($user_avatar))
+        {
+            $fields['user_avatar'] = $user_avatar;
+        }
+        if(!blank($user_bg))
+        {
+            $fields['user_bg'] = $user_bg;
+        }
+        if(!empty($user_nick_name))
+        {
+            $fields['user_nick_name'] = $user_nick_name;
+        }
+        if(!blank($user_name))
+        {
+            $fields['user_name'] = strval($user_name);
+        }
+        if(!blank($user_address))
+        {
+            $fields['user_address'] = strval($user_address);
+        }
+        if(!blank($user_contact))
+        {
+            $fields['user_contact'] = strval($user_contact);
+        }
+        if(!empty($user_about))
+        {
+            $fields['user_about'] = $user_about;
+        }
+        $fields = array_filter($fields , function($value){
+            return !blank($value);
+        });
+        if(!empty($fields)&&$user->user_activation==1)
+        {
+            $rules = array(
+                'user_name'=>[
+                    'bail',
+                    'filled',
+                    'string',
+                    'min:2',
+                    'max:32',
+                    function ($attribute, $value, $fail) use ($user){
+                        $exist = DB::table('users')->where('user_name' , $value)->first();
+                        if(!blank($exist))
+                        {
+                            $fail(__('Nickname taken already.'));
+                        }
+                    },
+                ],
+                'user_nick_name'=>[
+                    'bail',
+                    'filled',
+                    'string',
+                    'min:2',
+                    'max:32'
+                ],
+                'user_about'=>[
+                    'bail',
+                    'filled',
+                    'string',
+                ],
+                'user_avatar'=>[
+                    'bail',
+                    'filled',
+                    'string'
+                ],
+            );
+            Validator::make($fields, $rules)->validate();
+            $user = $this->user->update($user , $fields);
         }
         return new UserCollection($user);
     }
@@ -612,6 +703,7 @@ class AuthController extends BaseController
      * @param $account
      * @param $type
      * @return \Dingo\Api\Http\Response|void
+     * @throws ValidationException
      */
     public function accountVerification($account , $type)
     {
