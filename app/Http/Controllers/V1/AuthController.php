@@ -451,11 +451,6 @@ class AuthController extends BaseController
 
         $user->userNamePrompted = boolval(app(UserRepository::class)->usernamePrompt($userId));
         $user->makeVisible(array('user_name_changed_at'));
-        if(!empty($user->user_shop))
-        {
-            $shop = Shop::where('id' , $user->user_shop)->first();
-            $user->shop = new AnonymousCollection($shop);
-        }
         return new UserCollection($user);
     }
 
