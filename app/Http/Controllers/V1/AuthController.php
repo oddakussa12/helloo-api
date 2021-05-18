@@ -4,7 +4,6 @@ namespace App\Http\Controllers\V1;
 
 use Carbon\Carbon;
 use App\Jobs\Device;
-use Illuminate\Http\Resources\Json\Resource;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
@@ -218,7 +217,6 @@ class AuthController extends BaseController
         $fields = array();
         $oldGender = $user->user_gender;
         $genderKey = 'helloo:account:service:account-gender';
-//        $country_code = strtolower(strval($request->input('country_code')));
         $user_birthday = strval($request->input('user_birthday' , ''));
         $user_about = strval($request->input('user_about' , ''));
         $user_avatar = strval($request->input('user_avatar' , ''));
@@ -304,35 +302,35 @@ class AuthController extends BaseController
         $user_avatar = strval($request->input('user_avatar' , ''));
         $user_bg = strval($request->input('user_bg' , ''));
         $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
-        $user_name = mb_substr(strval($request->input('user_name' , '')) , 0 , 64);
+        $user_name = mb_substr(strval($request->input('user_name' , '')) , 0 , 24);
         $user_address = mb_substr(strval($request->input('user_address' , '')) , 0 , 512);
         $user_contact = mb_substr(strval($request->input('user_contact' , '')) , 0 , 64);
         $user_about = strval($request->input('user_about' , ''));
-        if(!empty($user_avatar))
+        if(!empty($user_avatar)&&$user->user_avatar!=$user_avatar)
         {
             $fields['user_avatar'] = $user_avatar;
         }
-        if(!blank($user_bg))
+        if(!blank($user_bg)&&$user->user_bg!=$user_bg)
         {
             $fields['user_bg'] = $user_bg;
         }
-        if(!empty($user_nick_name))
+        if(!empty($user_nick_name)&&$user->user_nick_name!=$user_nick_name)
         {
             $fields['user_nick_name'] = $user_nick_name;
         }
-        if(!blank($user_name))
+        if(!blank($user_name)&&strtolower($user->user_name)!=strtolower($user_name))
         {
-            $fields['user_name'] = strval($user_name);
+            $fields['user_name'] = $user_name;
         }
-        if(!blank($user_address))
+        if(!blank($user_address)&&$user->user_address!=$user_address)
         {
-            $fields['user_address'] = strval($user_address);
+            $fields['user_address'] = $user_address;
         }
-        if(!blank($user_contact))
+        if(!blank($user_contact)&&$user->user_contact!=$user_contact)
         {
-            $fields['user_contact'] = strval($user_contact);
+            $fields['user_contact'] = $user_contact;
         }
-        if(!empty($user_about))
+        if(!empty($user_about)&&$user->user_about!=$user_about)
         {
             $fields['user_about'] = $user_about;
         }
@@ -342,19 +340,19 @@ class AuthController extends BaseController
         if(!empty($fields)&&$user->user_activation==1)
         {
             $rules = array(
-                'user_name'=>[
+                'user_avatar'=>[
                     'bail',
                     'filled',
                     'string',
-                    'min:2',
-                    'max:32',
-                    function ($attribute, $value, $fail) use ($user){
-                        $exist = DB::table('users')->where('user_name' , $value)->first();
-                        if(!blank($exist))
-                        {
-                            $fail(__('Nickname taken already.'));
-                        }
-                    },
+                    'min:30',
+                    'max:300'
+                ],
+                'user_bg'=>[
+                    'bail',
+                    'filled',
+                    'string',
+                    'min:30',
+                    'max:300'
                 ],
                 'user_nick_name'=>[
                     'bail',
@@ -363,15 +361,46 @@ class AuthController extends BaseController
                     'min:2',
                     'max:32'
                 ],
-                'user_about'=>[
+                'user_name'=>[
                     'bail',
                     'filled',
                     'string',
+                    'min:3',
+                    'max:24',
+                    function ($attribute, $value, $fail) use ($user){
+                        $index = ($user->user_id)%2;
+                        $usernameKey = 'helloo:account:service:account-username-'.$index;
+                        if(Redis::sismember($usernameKey , strtolower($value)))
+                        {
+                            $fail(__('Nickname taken already.'));
+                        }
+                        $exist = DB::table('users')->where('user_name' , $value)->first();
+                        if(!blank($exist))
+                        {
+                            $fail(__('Nickname taken already.'));
+                        }
+                    },
                 ],
-                'user_avatar'=>[
+                'user_address'=>[
                     'bail',
                     'filled',
-                    'string'
+                    'string',
+                    'min:10',
+                    'max:100',
+                ],
+
+                'user_contact'=>[
+                    'bail',
+                    'filled',
+                    'string',
+                    'min:5',
+                    'max:64'
+                ],
+                'user_about' => [
+                    'bail',
+                    'filled',
+                    'string',
+                    'max:300'
                 ],
             );
             Validator::make($fields, $rules)->validate();
@@ -383,7 +412,6 @@ class AuthController extends BaseController
     protected function respondWithToken($token , $extend=true)
     {
         $user = auth()->user();
-        Redis::del('helloo_account_once_using_Id_'.$user->user_id);
         $referer = request()->input('referer' , 'web');
         if($referer!='web')
         {
@@ -414,7 +442,6 @@ class AuthController extends BaseController
     {
         $user_fields = $request->only($this->username(), 'password');
         $credentials['password'] = $user_fields['password'];
-        //$this->user->isDeletedUser($user_fields[$this->username()]);
         $supportFields = array($this->user->getDefaultEmailField() , $this->user->getDefaultNameField());
         foreach ($supportFields as $field) {
             if (empty($user_fields[$field])) {

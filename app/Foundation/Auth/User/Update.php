@@ -475,33 +475,7 @@ trait Update
                     'required',
                     'string',
                     'alpha_num',
-                    'between:1,20',
-//                    function ($attribute, $value, $fail) use ($user , $key){
-//                        $len = strlen($value);
-//                        $mbLen = mb_strlen($value);
-//                        if($mbLen!==$len)
-//                        {
-//                            Log::info('special_characters' , array(
-//                                'user_id'=>$user->user_id,
-//                                'name'=>$value,
-//                            ));
-//                            $fail('The username must contain letters or numbers.');
-//                        }
-//                    },
-//                    function ($attribute, $value, $fail) use ($user , $key){
-//                        if(preg_match("/^\d*$/",$value)||preg_match("/^[a-z]*$/i",$value))
-//                        {
-//                            $fail('The username must contain letters and numbers.');
-//                        }
-//                    },
-//                    function ($attribute, $value, $fail) use ($user , $key){
-//                        $score = Redis::zscore($key , $user->user_id);
-////                        if($score!==null&&Carbon::createFromTimestamp($score)->diffInYears()<1)
-//                        if($score!==null)
-//                        {
-//                            $fail('You can only change your username once within a year!');
-//                        }
-//                    },
+                    'between:1,24',
                     function ($attribute, $value, $fail) use ($user , $key){
                         $score = Redis::zscore($key , $user->user_id);
 //                        if($score!==null&&Carbon::createFromTimestamp($score)->diffInYears()<1)

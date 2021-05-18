@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Jobs\ShopSyncUser;
 use App\Models\User;
+use App\Jobs\ShopSyncUser;
 use App\Models\UserFriend;
 use Dingo\Api\Http\Response;
 use Illuminate\Http\Request;

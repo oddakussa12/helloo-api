@@ -186,10 +186,6 @@ $api->group($V1Params , function ($api){
         $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('user.agora.token');
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
-        $api->get('shop' , 'Business\ShopController@index')->name('shop.index');
-        $api->get('shop/recommendation' , 'Business\ShopController@recommendation')->name('shop.recommendation');
-        $api->get('shop/{shop}' , 'Business\ShopController@show')->name('shop.show');
-        $api->put('shop/{shop}' , 'Business\ShopController@update')->name('shop.update');
         $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
         $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
@@ -263,7 +259,6 @@ $api->group($V1Params , function ($api){
     $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backStage.last.online');
     $api->get('backstage/score' , 'BackStageController@score')->name('backStage.score');
     $api->post('backstage/score' , 'BackStageController@storeScore')->name('backStage.storeScore');
-    $api->post('backstage/storeShop' , 'BackStageController@storeShop')->name('backStage.store.shop');
 
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');

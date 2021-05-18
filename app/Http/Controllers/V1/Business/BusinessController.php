@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Business\Shop;
 use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
+use Illuminate\Support\Facades\DB;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
-use Illuminate\Support\Facades\DB;
 
 class BusinessController extends BaseController
 {
@@ -18,7 +18,7 @@ class BusinessController extends BaseController
         $keyword = escape_like(strval($request->input('keyword' , '')));
         if(!empty($keyword))
         {
-            $shops = Shop::where('nick_name', 'like', "%{$keyword}%")->limit(10)->get();
+            $users = User::where('user_shop' , 1)->where('nick_name', 'like', "%{$keyword}%")->limit(10)->get();
             $goods = Goods::where('name', 'like', "%{$keyword}%")->limit(10)->get();
             $goodsIds = $goods->pluck('id')->toArray();
             if(!empty($goodsIds))
@@ -31,12 +31,12 @@ class BusinessController extends BaseController
                 });
             }
         }else{
-            $goods = $shops = collect();
+            $goods = $users = collect();
         }
         BusinessSearchLog::dispatch($userId , $keyword)->onQueue('helloo_{business_search_log}');
         return $this->response->array(array(
             'data'=>array(
-                'shop'=>AnonymousCollection::collection($shops),
+                'user'=>AnonymousCollection::collection($users),
                 'goods'=>AnonymousCollection::collection($goods)
             )
         ));

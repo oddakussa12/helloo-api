@@ -43,10 +43,6 @@ class OperationLog extends BaseMiddleware
             }
             $key = 'helloo:account:service:account-au'.$now;
             $user_id = (int) auth()->id();
-            if(Redis::exists('helloo_account_once_using_Id_'.$user_id))
-            {
-                abort('401' , __('Page Expired'));
-            }
             $route = $request->route()->getName();
             $data = array(
                 'visited_at'=>$time,

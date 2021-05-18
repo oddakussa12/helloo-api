@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\V1;
 
 
-use App\Models\Business\Shop;
 use Carbon\Carbon;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
@@ -164,7 +163,7 @@ class UserController extends BaseController
         $rank   = Redis::zrevrank($memKey , $id);
         $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
 
-        $likeState = auth()->check()?!blank(DB::table('likes')->where('user_id' , auth()->id())->where('liked_id' , $id)->first()):false;
+        $likeState = auth()->check() && !blank(DB::table('likes')->where('user_id', auth()->id())->where('liked_id', $id)->first());
         $friend = auth()->check()?DB::table('users_friends')->where('user_id' , auth()->id())->where('friend_id' , $id)->first():null;
         $likedKey = 'helloo:account:service:account-liked-num';
         $user->put('likedCount' , intval(Redis::zscore($likedKey , $id)));
@@ -174,12 +173,6 @@ class UserController extends BaseController
         $user->put('privacy', $privacy);
         $user->put('rank', (int)$rank+1);
         $user->put('score', (int)Redis::zscore($memKey, $id));
-
-        if(!empty($user->get('user_shop')))
-        {
-            $shop = Shop::where('id' , $user->get('user_shop'))->first();
-            $user->put('shop' , new AnonymousCollection($shop));
-        }
         return new UserCollection($user);
     }
 
@@ -516,21 +509,28 @@ class UserController extends BaseController
         $school = $user->user_sl;
         $grade = $user->user_grade;
         $users = collect();
-        if(!blank($school)&&$school!='Others')
+        $type = request()->input('type' , 'user');
+        if($type=='user')
         {
-            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_sl' , $school);
-//            if(!blank($grade))
-//            {
-////                $users = $users->where('user_grade' , $grade)->inRandomOrder();
-//            }
-            $users = $users->inRandomOrder()->select(array(
-                'user_id',
-                'user_name',
-                'user_nick_name',
-                'user_avatar',
-            ))->limit(8)->get();
-            if(blank($users))
+            if(!blank($school)&&$school!='Others')
             {
+                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_sl' , $school);
+                $users = $users->inRandomOrder()->select(array(
+                    'user_id',
+                    'user_name',
+                    'user_nick_name',
+                    'user_avatar',
+                ))->limit(8)->get();
+                if(blank($users))
+                {
+                    $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
+                        'user_id',
+                        'user_name',
+                        'user_nick_name',
+                        'user_avatar',
+                    ))->limit(6)->get();
+                }
+            }else{
                 $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
                     'user_id',
                     'user_name',
@@ -538,20 +538,15 @@ class UserController extends BaseController
                     'user_avatar',
                 ))->limit(6)->get();
             }
+            $userIds = $users->pluck('user_id')->toArray();
+            $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $user->user_id)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
+            array_push($friendIds , $user->user_id);
+            $users = $users->reject(function ($u) use ($friendIds){
+                return in_array($u->user_id , $friendIds);
+            })->splice(0 , 3);
         }else{
-            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
-                'user_id',
-                'user_name',
-                'user_nick_name',
-                'user_avatar',
-            ))->limit(6)->get();
+            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->limit(10)->get();
         }
-        $userIds = $users->pluck('user_id')->toArray();
-        $friendIds = !blank($userIds)?DB::table('users_friends')->where('user_id' , $user->user_id)->whereIn('friend_id' , $userIds)->get()->pluck('friend_id')->toArray():$userIds;
-        array_push($friendIds , $user->user_id);
-        $users = $users->reject(function ($u) use ($friendIds){
-            return in_array($u->user_id , $friendIds);
-        })->splice(0 , 3);
         return UserCollection::collection($users);
     }
 

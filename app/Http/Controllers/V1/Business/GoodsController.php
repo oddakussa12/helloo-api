@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Jobs\BusinessGoodsLog;
-use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
-use App\Models\Business\Shop;
+use App\Jobs\BusinessGoodsLog;
 use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
 use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Resources\AnonymousCollection;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\V1\BaseController;
@@ -25,24 +24,24 @@ class GoodsController extends BaseController
     {
         $userId = auth()->id();
         $keyword = escape_like(strval($request->input('keyword' , '')));
-        $shopId = strval($request->input('shop_id' , ''));
+        $userId = strval($request->input('user_id' , $userId));
         $type = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
-        $appends['shop_id'] = $shopId;
-        $appends['$type'] = $type;
+        $appends['user_id'] = $userId;
+        $appends['type'] = $type;
         if(!empty($keyword))
         {
-            $goods = Goods::where('shop_id', $shopId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
-            BusinessSearchLog::dispatch($userId , $keyword , $shopId)->onQueue('helloo_{business_search_log}');
-        }elseif (!empty($shopId))
+            $goods = Goods::where('user_id', $userId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
+            BusinessSearchLog::dispatch($userId , $keyword , $userId)->onQueue('helloo_{business_search_log}');
+        }elseif (!empty($userId))
         {
             if($type=='management')
             {
-                $goods = Goods::where('shop_id', $shopId)
+                $goods = Goods::where('user_id', $userId)
                     ->orderByDesc('created_at')
                     ->paginate(10);
             }else{
-                $goods = Goods::where('shop_id', $shopId)->where('status' , 1)
+                $goods = Goods::where('user_id', $userId)->where('status' , 1)
                     ->orderByDesc('created_at')
                     ->paginate(10);
             }
@@ -70,9 +69,9 @@ class GoodsController extends BaseController
     public function recommendation()
     {
         $userId = auth()->id();
-        $goods = Goods::where('status' , 1)->select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
+        $goods = Goods::where('status' , 1)->select('id', 'user_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
         if ($goods->isEmpty()) {
-            $goods = Goods::where('status' , 1)->select('id', 'shop_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
+            $goods = Goods::where('status' , 1)->select('id', 'user_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }
         $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
@@ -98,7 +97,7 @@ class GoodsController extends BaseController
         $goods->likeState = !empty($like);
         if($action=='view'&&$goods->user_id!=$userId)
         {
-            BusinessGoodsLog::dispatch($userId , $goods->shop_id , $id , $goods->user_id , $referrer)->onQueue('helloo_{business_goods_logs}');
+            BusinessGoodsLog::dispatch($userId , $goods->user_id , $id , $goods->user_id , $referrer)->onQueue('helloo_{business_goods_logs}');
         }
         return new AnonymousCollection($goods);
     }
@@ -107,23 +106,12 @@ class GoodsController extends BaseController
     {
         $user = auth()->user();
         $userId = $user->user_id;
-        $shopId = strval($request->input('shop_id' , ''));
         $name = strval($request->input('name' , ''));
         $image = $request->input('image' , '');
         $price = $request->input('price');
         $status = $request->input('status');
         $description = strval($request->input('description' , ''));
         $rules = [
-            'shop_id' => [
-                'bail',
-                'filled',
-                function ($attribute, $value, $fail) use ($user){
-                    if(empty($value)||$user->user_shop!=$value)
-                    {
-                        $fail('Shop does not exist!');
-                    }
-                }
-            ],
             'name' => [
                 'bail',
                 'required',
@@ -155,7 +143,7 @@ class GoodsController extends BaseController
             ],
         ];
         $data = $validationField = array(
-            'shop_id'=>$shopId,
+            'user_id'=>$userId,
             'name'=>$name,
             'image'=>$image,
             'price'=>$price,
@@ -171,14 +159,13 @@ class GoodsController extends BaseController
             unset($v['path']);
             return $v;
         } , $image);
-        $shop = Shop::where('id' , $shopId)->firstOrFail();
         $now = date("Y-m-d H:i:s");
         $data['id'] = Uuid::uuid1()->toString();
         $data['user_id'] = $userId;
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
-        if($shop->country=='et')
+        if($user->user_country=='et')
         {
             $data['currency'] = 'BIRR';
         }else
@@ -191,11 +178,6 @@ class GoodsController extends BaseController
             if(!$goodsResult)
             {
                 abort(405 , 'goods insert failed!');
-            }
-            $shopResult = DB::table('shops')->where('id' , $shopId)->increment('goods');
-            if($shopResult<=0)
-            {
-                abort(405 , 'shop update failed!');
             }
             DB::commit();
         }catch (\Exception $e)
@@ -221,7 +203,7 @@ class GoodsController extends BaseController
                 'bail',
                 'filled',
                 function ($attribute, $value, $fail) use ($user , $goods){
-                    if($user->user_shop!=$value||$goods->user_id!=$user->user_id)
+                    if($goods->user_id!=$user->user_id)
                     {
                         $fail('Shop does not exist!');
                     }

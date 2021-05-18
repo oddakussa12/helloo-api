@@ -19,10 +19,6 @@ class Blacklist extends BaseMiddleware
             {
                 abort('401' , trans('auth.user_banned'));
             }
-            if(Redis::exists('helloo_account_once_using_Id_'.$userId))
-            {
-                abort('401' , __('Page Expired'));
-            }
             $deviceId = (new Agent())->getHttpHeader('deviceId');
             if(!empty($deviceId))
             {
