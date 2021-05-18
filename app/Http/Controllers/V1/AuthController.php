@@ -873,6 +873,7 @@ class AuthController extends BaseController
         $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
         $flag && abort(401 , trans('auth.user_device_banned'));
 
+        $user_name = strval($request->input('user_name' , ''));
         $user_nick_name = strval($request->input('user_nick_name' , ''));
         $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
@@ -890,6 +891,7 @@ class AuthController extends BaseController
             'password'=> $password,
             'user_nick_name'=> $user_nick_name,
         );
+        !empty($user_name)&&$validationField['user_name'] = $user_name;
         $rule = [
             'user_phone' => [
                 'bail',
@@ -899,6 +901,7 @@ class AuthController extends BaseController
             ],
             'password' => 'bail|required|string|min:6|max:16',
             'user_nick_name' => 'bail|required|string|min:1|max:64',
+            'user_name' => 'bail|filled|string|alpha_num|min:1|max:24',
         ];
         try{
             Validator::make($validationField, $rule)->validate();
@@ -929,7 +932,8 @@ class AuthController extends BaseController
             $src = 'unknown';
         }
         $password = empty($password)?Uuid::uuid1()->toString():$password;
-        $username = $uuid = $this->generateUniqueName();
+        $uuid = $this->generateUniqueName();
+        $username = empty($user_name)?$uuid:$user_name;
         $userId = $this->generateUserId();
         $user_fields = array(
             'user_id'=>$userId,
