@@ -18,7 +18,7 @@ class BusinessController extends BaseController
         $keyword = escape_like(strval($request->input('keyword' , '')));
         if(!empty($keyword))
         {
-            $users = User::where('user_shop' , 1)->where('nick_name', 'like', "%{$keyword}%")->limit(10)->get();
+            $users = User::where('user_shop' , 1)->where('user_nick_name', 'like', "%{$keyword}%")->limit(10)->get();
             $goods = Goods::where('name', 'like', "%{$keyword}%")->limit(10)->get();
             $goodsIds = $goods->pluck('id')->toArray();
             if(!empty($goodsIds))
