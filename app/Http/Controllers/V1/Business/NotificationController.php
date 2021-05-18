@@ -11,11 +11,11 @@ class NotificationController extends BaseController
 {
     public function activities(Request $request)
     {
-        $shopId = strval($request->input('shop_id' , ''));
-        if(!empty($shopId))
+        $user_id = strval($request->input('user_id' , ''));
+        if(!empty($user_id))
         {
-            $appends['shop_id'] = $shopId;
-            $goods = Goods::where('shop_id', $shopId)->where('like' , '>' , 0)->select('id' , 'name' , 'like' , 'image' , 'liked_at' , 'status' , 'price' , 'currency')
+            $appends['user_id'] = $user_id;
+            $goods = Goods::where('user_id', $user_id)->where('like' , '>' , 0)->select('id' , 'name' , 'like' , 'image' , 'liked_at' , 'status' , 'price' , 'currency')
                 ->orderByDesc('liked_at')
                 ->paginate(10);
             $goods = $goods->appends($appends);
