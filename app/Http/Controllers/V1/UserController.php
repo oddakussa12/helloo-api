@@ -545,7 +545,7 @@ class UserController extends BaseController
                 return in_array($u->user_id , $friendIds);
             })->splice(0 , 3);
         }else{
-            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->limit(10)->get();
+            $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->inRandomOrder()->limit(10)->get();
         }
         return UserCollection::collection($users);
     }
