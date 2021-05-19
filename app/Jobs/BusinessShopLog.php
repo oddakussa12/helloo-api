@@ -36,12 +36,12 @@ class BusinessShopLog implements ShouldQueue
      */
     public function handle()
     {
-        $shop = DB::table('shops_views')->where('user_id' , $this->user)->first();
+        $shop = DB::table('shops_views')->where('owner' , $this->owner)->first();
         if(empty($shop))
         {
             DB::table('shops_views')->insert(array(
                 'id'=>Uuid::uuid1()->toString(),
-                'user_id'=>$this->user,
+                'owner'=>$this->owner,
                 'num'=>1,
                 'created_at'=>$this->now,
                 'updated_at'=>$this->now,

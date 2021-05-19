@@ -528,6 +528,7 @@ class UserController extends BaseController
                     'user_name',
                     'user_nick_name',
                     'user_avatar',
+                    'user_shop',
                 ))->limit(8)->get();
                 if(blank($users))
                 {
@@ -536,6 +537,7 @@ class UserController extends BaseController
                         'user_name',
                         'user_nick_name',
                         'user_avatar',
+                        'user_shop',
                     ))->limit(6)->get();
                 }
             }else{
@@ -544,6 +546,7 @@ class UserController extends BaseController
                     'user_name',
                     'user_nick_name',
                     'user_avatar',
+                    'user_shop',
                 ))->limit(6)->get();
             }
             $userIds = $users->pluck('user_id')->toArray();

@@ -64,7 +64,7 @@ class Test extends Command
      */
     public function handle()
     {
-
+        $this->deleteCache();
         die;
         $schools = array(
             "Sekolah Menengah Atas Negri 10",
@@ -494,6 +494,17 @@ DOC;
                     $signup_info['signup_continent'] = strval($geo->continent);
                     DB::table('signup_infos')->where('signup_id' , $user->signup_id)->update($signup_info);
                 }
+            }
+        });
+    }
+
+    public function deleteCache()
+    {
+        DB::table('users')->orderByDesc('user_id')->chunk(1000 , function ($users){
+            foreach ($users as $user)
+            {
+                $key = "helloo:account:service:account:".$user->user_id;
+                Redis::del($key);
             }
         });
     }

@@ -52,7 +52,7 @@ class GoodsController extends BaseController
         $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
         {
-            $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+            $likes = collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
                 return (array)$value;
             }))->pluck('goods_id')->unique()->toArray();
             $goods->each(function($g) use ($likes){
