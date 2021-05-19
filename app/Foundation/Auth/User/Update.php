@@ -499,6 +499,7 @@ trait Update
             );
             Validator::make($validationField, $rules)->validate();
             $key = 'helloo:account:service:account-username-change';
+            $changed = Redis::zscore($key , $user->user_id);
             $now = Carbon::now();
             DB::beginTransaction();
             try {
@@ -522,7 +523,7 @@ trait Update
                 }else{
                     throw new \Exception('Database update failed');
                 }
-                substr($user->user_name , 0 , 3)=='lb_' && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
+                $changed===null && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
             }catch (\Exception $e)
             {
                 DB::rollBack();

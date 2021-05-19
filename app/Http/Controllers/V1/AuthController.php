@@ -327,6 +327,8 @@ class AuthController extends BaseController
         if(!blank($user_name)&&strtolower($user->user_name)!=strtolower($user_name))
         {
             $fields['user_name'] = $user_name;
+            $fields['user_name_change'] = "user_name_change+1";
+            $fields['user_name_changed_at'] = date('Y-m-d H:i:s');
         }
         if(!blank($user_address)&&$user->user_address!=$user_address)
         {
@@ -954,7 +956,13 @@ class AuthController extends BaseController
             'user_activation'=>1,
             'user_pwd'=>bcrypt($password)
         );
-        $login_type=='shop'&&$user_fields['user_shop']=1;
+        if($login_type=='shop')
+        {
+            $user_fields['user_shop']=1;
+        }else{
+            $user_fields['user_verified']=1;
+            $user_fields['user_verified_at']=$now;
+        }
         DB::beginTransaction();
         try{
             DB::table('users')->insert($user_fields);

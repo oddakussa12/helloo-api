@@ -52,6 +52,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         {
             UserUpdate::dispatch($user)->onQueue('helloo_{user_update}');
         }
+        $now = Carbon::now()->toDateTimeString();
         if(isset($data['user_sl'])||isset($data['user_school']))
         {
             if(isset($data['user_sl']))
@@ -68,7 +69,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             }
             if(!blank($school))
             {
-                $now = Carbon::now()->toDateTimeString();
                 $logData = array(
                     'id'=>app('snowflake')->id(),
                     'user_id'=>$model->getKey(),
@@ -97,6 +97,38 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         if(isset($data['user_about'])&& blank($original['user_about']))
         {
             OneTimeUserScoreUpdate::dispatch($user , 'fillAbout')->onQueue('helloo_{one_time_user_score_update}');
+        }
+        if(isset($data['user_name']))
+        {
+            $key = 'helloo:account:service:account-username-change';
+            $changed = Redis::zscore($key , $user->user_id);
+            $index = ($user->user_id)%2;
+            $usernameKey = 'helloo:account:service:account-username-'.$index;
+            try{
+                DB::beginTransaction();
+                $nameLogResult = DB::table('users_names_logs')->insert(array(
+                    'user_id'=>$user->user_id,
+                    'user_name'=>$original['user_name'],
+                    'created_at'=>$now,
+                ));
+                if(!$nameLogResult)
+                {
+                    abort(405 , 'user name log insert failed!');
+                }
+                DB::commit();
+                Redis::sadd($usernameKey , strtolower($data['user_name']));
+                Redis::zadd($key , strtotime($now) , $user->user_id);
+                $changed===null && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('username_update_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'user_id'=>$model->getKey(),
+                    'user_name'=>$original['user_name'],
+                    'username'=>$data['user_name']
+                ));
+            }
         }
         return $user;
     }
