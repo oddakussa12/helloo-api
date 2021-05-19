@@ -224,10 +224,10 @@ class AuthController extends BaseController
         $oldGender = $user->user_gender;
         $genderKey = 'helloo:account:service:account-gender';
         $user_birthday = strval($request->input('user_birthday' , ''));
-        $user_about = strval($request->input('user_about' , ''));
+        $user_about = mb_substr(strval($request->input('user_about' , '')) , 0 , 100);
         $user_avatar = strval($request->input('user_avatar' , ''));
         $user_gender = $request->input('user_gender');
-        $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
+        $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 32);
         $user_school = strval($request->input('user_school' , ''));
         $school = strval($request->input('school' , ''));
         $user_grade = strval($request->input('user_grade' , ''));
@@ -373,6 +373,7 @@ class AuthController extends BaseController
                     'bail',
                     'filled',
                     'string',
+                    'alpha_num',
                     'min:3',
                     'max:24',
                     function ($attribute, $value, $fail) use ($user){
@@ -400,15 +401,15 @@ class AuthController extends BaseController
                 'user_contact'=>[
                     'bail',
                     'filled',
-                    'string',
-                    'min:5',
-                    'max:64'
+                    'numeric',
+                    'min:10',
+                    'max:20'
                 ],
                 'user_about' => [
                     'bail',
                     'filled',
                     'string',
-                    'max:300'
+                    'max:100'
                 ],
             );
             Validator::make($fields, $rules)->validate();

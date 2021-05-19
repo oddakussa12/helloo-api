@@ -473,7 +473,7 @@ trait Update
                     'required',
                     'string',
                     'alpha_num',
-                    'between:1,24',
+                    'between:3,24',
                     function ($attribute, $value, $fail) use ($user , $key){
                         $score = Redis::zscore($key , $user->user_id);
                         if($score!==null)
