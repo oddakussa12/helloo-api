@@ -14,7 +14,6 @@ use libphonenumber\PhoneNumberUtil;
 use Illuminate\Support\Facades\Log;
 use App\Custom\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Redis;
-use App\Resources\AnonymousCollection;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;

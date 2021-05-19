@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Jobs\FriendSynchronization;
-use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Models\UserFriend;
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\FriendSynchronization;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
+use App\Jobs\MoreTimeUserScoreUpdate;
 use App\Resources\UserFriendCollection;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\UserFriendRepository;
-use Illuminate\Support\Facades\Redis;
 
 class UserFriendController extends BaseController
 {

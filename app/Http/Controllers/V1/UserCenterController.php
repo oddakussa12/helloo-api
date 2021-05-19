@@ -2,25 +2,24 @@
 
 namespace App\Http\Controllers\V1;
 
-use App\Jobs\MoreTimeUserScoreUpdate;
-use App\Models\Country;
-use App\Models\LikePhoto;
-use App\Models\LikeVideo;
-use App\Models\Photo;
-use App\Models\UserKpiCount;
 use App\Models\User;
-use App\Models\UserFriend;
-use App\Models\UserFriendRequest;
 use App\Models\Video;
-use App\Repositories\Contracts\UserFriendRepository;
-use Illuminate\Validation\Rule;
-use App\Repositories\Contracts\UserRepository;
-use App\Resources\UserCollection;
+use App\Models\Photo;
+use App\Models\LikeVideo;
+use App\Models\LikePhoto;
+use App\Models\UserFriend;
+use App\Models\UserKpiCount;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Resources\UserCollection;
+use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use App\Jobs\MoreTimeUserScoreUpdate;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\Contracts\UserRepository;
+use App\Repositories\Contracts\UserFriendRepository;
 
 class UserCenterController extends BaseController
 {
