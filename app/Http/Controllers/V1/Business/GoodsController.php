@@ -165,7 +165,8 @@ class GoodsController extends BaseController
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
-        if($user->user_country=='et')
+        $phone = DB::table('users_phones')->where('user_id' , $user->user_id)->first();
+        if(!empty($phone)&&$phone->user_phone_country=='251')
         {
             $data['currency'] = 'BIRR';
         }else
