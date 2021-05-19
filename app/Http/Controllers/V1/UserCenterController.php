@@ -665,7 +665,7 @@ class UserCenterController extends BaseController
             return [];
         }
 
-        $users = Country::where('user_country', $country)->pluck('user_id')->toArray();
+        $users = DB::table('users_countries')->where('country', $country)->pluck('user_id')->toArray();
         return $this->diff($num, $all, $users);
     }
 
