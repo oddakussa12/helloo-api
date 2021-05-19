@@ -665,7 +665,7 @@ class UserCenterController extends BaseController
             return [];
         }
 
-        $users = DB::table('users_countries')->where('country', $country)->pluck('user_id')->toArray();
+        $users = DB::table('users_countries')->where('country', $country)->orderByDesc(DB::raw('rand()'))->limit($num)->pluck('user_id')->toArray();
         return $this->diff($num, $all, $users);
     }
 
@@ -683,7 +683,7 @@ class UserCenterController extends BaseController
             return [];
         }
 
-        $school = User::where('user_sl', $school)->pluck('user_id')->toArray();
+        $school = User::where('user_sl', $school)->orderByDesc(DB::raw('rand()'))->limit($num)->pluck('user_id')->toArray();
         return $this->diff($num, $all, $school);
     }
 
