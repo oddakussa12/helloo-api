@@ -68,7 +68,8 @@ class RyChat implements ShouldQueue
                     'RC:VCRinging',
                     'Helloo:VideoMsg',
                     'Yooul:VideoLike',
-                    'Helloo:VoiceMsg'
+                    'Helloo:VoiceMsg',
+                    'Helloo:GoodsMsg'
                 ]),
             ],
             'content' => [
@@ -145,6 +146,9 @@ class RyChat implements ShouldQueue
             if(isset($content['uri'])) { //audio message
                 $messageContent['message_content'] = $content['uri'];
             }
+            if(isset($content['goodsId'])) { //goods message
+                $messageContent['message_content'] = $content['goodsId'];
+            }
 
             if(isset($content['reason'])) { //video call or audio call reason
                 $data['chat_extend'] = $content['reason'];
@@ -196,17 +200,17 @@ class RyChat implements ShouldQueue
                     $extra = array();
                 }
                 $messageId = $raw['msgUID'];
-                $videoUrl = isset($content['videoUrl'])?$content['videoUrl']:'';
+                $videoUrl = $content['videoUrl'] ?? '';
                 $isRecord = isset($extra['isRecord'])?intval($extra['isRecord']):0;
-                $voiceName = isset($extra['changeVoiceName'])?$extra['changeVoiceName']:'';
+                $voiceName = $extra['changeVoiceName'] ?? '';
                 $bundleName = isset($content['bundleName'])&&$content['bundleName']!='none'?$content['bundleName']:'';
                 $this->handleVideo($raw['fromUserId'] , $raw['toUserId'] , $messageId , $videoUrl , $isRecord , $voiceName , $bundleName);
             }
 
             if($messageContent['message_type']=='Helloo:VoiceMsg')
             {
-                $audioUrl = isset($content['uri'])?$content['uri']:'';
-                $duration = isset($content['duration'])?$content['duration']:0;
+                $audioUrl = $content['uri'] ?? '';
+                $duration = $content['duration'] ?? 0;
                 $this->handleAudio($raw['fromUserId'] , $raw['toUserId'] , $raw['msgUID'] , $audioUrl , $duration);
             }
 

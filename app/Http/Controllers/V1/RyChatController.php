@@ -41,7 +41,7 @@ class RyChatController extends BaseController
             RyChatFailed::create($data);
         }else{
             $objectName = $request->input('objectName' , '');
-            if (in_array($objectName, array('RC:TxtMsg', 'RC:ImgMsg', 'RC:VcMsg' , 'RC:VCHangup' , 'RC:VCAccept' , 'RC:VCInvite' , 'RC:VCRinging' , 'Helloo:VideoMsg' , 'Yooul:VideoLike' , 'Helloo:VoiceMsg'))) {
+            if (in_array($objectName, array('RC:TxtMsg', 'RC:ImgMsg', 'RC:VcMsg' , 'RC:VCHangup' , 'RC:VCAccept' , 'RC:VCInvite' , 'RC:VCRinging' , 'Helloo:VideoMsg' , 'Yooul:VideoLike' , 'Helloo:VoiceMsg' , "Helloo:GoodsMsg"))) {
                 $msgUID   = $request->input('msgUID', '');
                 $lock_key = 'ry_room_chat_'.$msgUID;
                 if(Redis::set($lock_key, 1, "nx", "ex", 15))
