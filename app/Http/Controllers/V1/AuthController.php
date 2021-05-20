@@ -952,6 +952,10 @@ class AuthController extends BaseController
                 'alpha_num',
                 'between:3,24',
                 function ($attribute, $value, $fail){
+                    if(!preg_match('/^[a-z0-9]+$/iu', $value))
+                    {
+                        $fail('The username can only contain numbers and letters.');
+                    }
                     $exist = DB::table('users')->where('user_name' , $value)->first();
                     if(!blank($exist))
                     {

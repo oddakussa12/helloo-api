@@ -475,6 +475,10 @@ trait Update
                     'alpha_num',
                     'between:3,24',
                     function ($attribute, $value, $fail) use ($user , $key){
+                        if(!preg_match('/^[a-z0-9]+$/iu', $value))
+                        {
+                            $fail('The username can only contain numbers and letters.');
+                        }
                         $score = Redis::zscore($key , $user->user_id);
                         if($score!==null)
                         {
