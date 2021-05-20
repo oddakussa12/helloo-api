@@ -4,14 +4,15 @@ namespace App\Jobs;
 
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use App\Repositories\Contracts\UserRepository;
 
 class RyChat implements ShouldQueue
 {
@@ -112,10 +113,16 @@ class RyChat implements ShouldQueue
             $msgTimestamp = $raw['msgTimestamp'];
             $this->index = $index = Carbon::createFromTimestampMs($msgTimestamp)->format("Ym");
             $this->day = Carbon::createFromTimestampMs($msgTimestamp)->format("Y-m-d");
+            $fromId = $raw['fromUserId'];
+            $toId = $raw['toUserId'];
+            $from = app(UserRepository::class)->findByUserId($fromId);
+            $to = app(UserRepository::class)->findByUserId($toId);
             $data = array(
                 'chat_msg_uid'  => $raw['msgUID'],
                 'chat_from_id'  => $raw['fromUserId'],
+                'chat_from_type'  => $from->get('user_shop' , 0),
                 'chat_to_id'    => $raw['toUserId'],
+                'chat_from_type'  => $to->get('user_shop' , 0),
                 'chat_msg_type' => $raw['objectName'],
                 'chat_channel' => $raw['channelType'],
                 'chat_time'     => $msgTimestamp,

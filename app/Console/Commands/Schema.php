@@ -50,14 +50,18 @@ class Schema extends Command
                 $table->increments('chat_id')->unsigned()->comment('主键');
                 $table->string('chat_msg_uid' , 64)->charset('utf8')->comment('融云消息ID');
                 $table->bigInteger('chat_from_id' , false , true)->comment('消息发送者ID');
+                $table->tinyInteger('chat_from_type' , false , true)->comment('消息发送者类型')->default(0);
                 $table->bigInteger('chat_to_id' , false , true)->comment('消息接收者ID');
+                $table->tinyInteger('chat_to_type' , false , true)->comment('消息接收者类型')->default(0);
                 $table->string('chat_msg_type' , 128)->charset('utf8')->comment('消息类型');
                 $table->string('chat_time' , 32)->charset('utf8')->comment('消息创建时间');
                 $table->string('chat_channel' , 32)->charset('utf8')->comment('聊天频道');
                 $table->string('chat_source' , 64)->charset('utf8')->comment('消息来源');
                 $table->tinyInteger('chat_extend' , false , true)->default(1)->comment('消息扩展');
+                $table->string('chat_referrer' , 64)->charset('utf8mb4')->comment('来源');
                 $table->dateTime('chat_created_at')->comment('日期');
                 $table->index(array('chat_msg_type', 'chat_from_id', 'chat_to_id', 'chat_time') , 'chat_depth');
+                $table->index('chat_msg_uid' , 'chat_msg_uid');
             });
         }
 
@@ -70,6 +74,7 @@ class Schema extends Command
                 $table->string('message_type' , 32)->charset('utf8')->comment('融云消息类型');
                 $table->string('message_time' , 32)->charset('utf8')->comment('融云消息日期');
                 $table->dateTime('created_at')->comment('日期');
+                $table->index('message_id' , 'message_id');
             });
         }
 
@@ -83,6 +88,7 @@ class Schema extends Command
                 $table->string('voice_name' , 32)->charset('utf8')->comment('变声类型');
                 $table->string('bundle_name' , 64)->charset('utf8mb4')->comment('bundle名字');
                 $table->dateTime('created_at')->comment('日期');
+                $table->index('message_id' , 'message_id');
             });
         }
 
@@ -95,6 +101,7 @@ class Schema extends Command
                 $table->tinyInteger('duration')->default(0)->comment('语音时长');
                 $table->string('voice_name' , 32)->charset('utf8')->comment('变声类型');
                 $table->dateTime('created_at')->comment('日期');
+                $table->index('message_id' , 'message_id');
             });
         }
 
