@@ -934,7 +934,6 @@ class AuthController extends BaseController
             'password'=> $password,
             'user_nick_name'=> $user_nick_name,
         );
-        !empty($user_name)&&$validationField['user_name'] = $user_name;
         $rule = [
             'user_phone' => [
                 'bail',
