@@ -1044,9 +1044,7 @@ class AuthController extends BaseController
         $this->activate($user);
         if($registration_type=='shop')
         {
-            return $this->response->created(null , array(
-                'user_verified'=>-1
-            ));
+            return $this->response->errorForbidden('Shop waiting for review!');
         }
         $token = auth()->login($user);
         return $this->respondWithToken($token , false);
