@@ -913,7 +913,7 @@ class AuthController extends BaseController
         $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
         $flag && abort(401 , trans('auth.user_device_banned'));
 
-        $login_type = strval($request->input('login_type' , 'user'));
+        $registration_type = strval($request->input('registration_type' , 'user'));
         $user_name = strval($request->input('user_name' , ''));
         $user_nick_name = strval($request->input('user_nick_name' , ''));
         $password = strval($request->input('password' , ""));
@@ -1004,7 +1004,7 @@ class AuthController extends BaseController
             'user_activation'=>1,
             'user_pwd'=>bcrypt($password)
         );
-        if($login_type=='shop')
+        if($registration_type=='shop')
         {
             $user_fields['user_shop']=1;
         }else{
@@ -1042,7 +1042,7 @@ class AuthController extends BaseController
             'gps'=>$gps,
         )));
         $this->activate($user);
-        if($login_type=='shop')
+        if($registration_type=='shop')
         {
             return $this->response->created(null , array(
                 'user_verified'=>-1
