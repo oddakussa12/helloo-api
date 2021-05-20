@@ -942,8 +942,25 @@ class AuthController extends BaseController
             ],
             'password' => 'bail|required|string|min:6|max:16',
             'user_nick_name' => 'bail|required|string|min:1|max:64',
-            'user_name' => 'bail|filled|string|alpha_num|min:1|max:24',
         ];
+        if(!empty($user_name))
+        {
+            $validationField['user_name'] = $user_name;
+            $rule['user_name'] = [
+                'bail',
+                'required',
+                'string',
+                'alpha_num',
+                'between:3,24',
+                function ($attribute, $value, $fail){
+                    $exist = DB::table('users')->where('user_name' , $value)->first();
+                    if(!blank($exist))
+                    {
+                        $fail(__('Nickname taken already.'));
+                    }
+                }
+            ];
+        }
         try{
             Validator::make($validationField, $rule)->validate();
         }catch (ValidationException $exception)
