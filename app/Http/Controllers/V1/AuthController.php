@@ -1042,7 +1042,6 @@ class AuthController extends BaseController
             'user_phone_country'=>$user_phone_country,
             'gps'=>$gps,
         )));
-        $token = auth()->login($user);
         $this->activate($user);
         if($login_type=='shop')
         {
@@ -1050,6 +1049,7 @@ class AuthController extends BaseController
                 'user_verified'=>-1
             ));
         }
+        $token = auth()->login($user);
         return $this->respondWithToken($token , false);
     }
 
