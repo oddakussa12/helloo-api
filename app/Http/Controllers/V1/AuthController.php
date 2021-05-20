@@ -797,7 +797,6 @@ class AuthController extends BaseController
 
     public function accountNameVerification(Request $request)
     {
-        $response =  $this->response;
         $username = $request->input('user_name' , '');
         $validationField = array(
             'user_name' => $username
@@ -818,14 +817,11 @@ class AuthController extends BaseController
                 }
             ],
         );
-        try{
-            Validator::make($validationField, $rules)->validate();
-        }catch (ValidationException $exception)
+        $validator = Validator::make($validationField, $rules);
+        if($validator->fails())
         {
-            $errors = $exception->errors()->first('user_name');
-            return $response->accepted(null , array(
-                'validation'=>$errors
-            ))->withHeader('validation' , strval($errors));
+            $errors = $validator->errors()->first('user_name');
+            abort(422 , $errors);
         }
         return $this->response->noContent();
     }
