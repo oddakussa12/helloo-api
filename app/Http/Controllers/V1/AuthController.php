@@ -795,6 +795,41 @@ class AuthController extends BaseController
         return $response;
     }
 
+    public function accountNameVerification(Request $request)
+    {
+        $response =  $this->response;
+        $username = $request->input('user_name' , '');
+        $validationField = array(
+            'user_name' => $username
+        );
+        $rules = array(
+            'user_name' => [
+                'bail',
+                'required',
+                'string',
+                'alpha_num',
+                'between:3,24',
+                function ($attribute, $value, $fail){
+                    $exist = DB::table('users')->where('user_name' , $value)->first();
+                    if(!blank($exist))
+                    {
+                        $fail(__('Nickname taken already.'));
+                    }
+                }
+            ],
+        );
+        try{
+            Validator::make($validationField, $rules)->validate();
+        }catch (ValidationException $exception)
+        {
+            $errors = $exception->errors()->first('user_name');
+            return $response->accepted(null , array(
+                'validation'=>$errors
+            ))->withHeader('validation' , strval($errors));
+        }
+        return $this->response->noContent();
+    }
+
     public function resetPwdByPhone(Request $request)
     {
         $this->resetByPhone($request);

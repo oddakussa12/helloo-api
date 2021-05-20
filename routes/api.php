@@ -222,6 +222,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountVerification')->where('type', 'phone|nick_name')->name('user.account.verification');
 
+    $api->get('user/account/verification' , 'AuthController@accountNameVerification')->name('user.account.name.verification');
+
     $api->post('ry/chat' , 'RyChatController@store')->name('user.ry.message.store');
 
     $api->get('set/common' , 'SetController@commonSwitch')->name('set.common.switch');
