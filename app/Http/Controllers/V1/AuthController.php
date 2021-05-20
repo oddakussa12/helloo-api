@@ -95,7 +95,9 @@ class AuthController extends BaseController
                 $message = 'Your store’s review failed or is under review!';
                 $errorJob = new SignUpOrInFail($message);
                 $this->dispatch($errorJob->onQueue('helloo_{sign_up_or_in_error}'));
-                return $this->response->errorUnauthorized($message);
+                return $this->response->accepted(null , array(
+                    'user_verified'=>$user->user_verified
+                ));
             }
             $token = auth()->login($user);
             $addresses = getRequestIpAddress();
