@@ -402,8 +402,7 @@ class AuthController extends BaseController
                     'bail',
                     'filled',
                     'numeric',
-                    'min:10',
-                    'max:20'
+                    'max:99999999999999'
                 ],
                 'user_about' => [
                     'bail',
