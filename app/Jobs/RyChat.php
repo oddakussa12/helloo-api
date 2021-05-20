@@ -122,7 +122,7 @@ class RyChat implements ShouldQueue
                 'chat_from_id'  => $raw['fromUserId'],
                 'chat_from_type'  => $from->get('user_shop' , 0),
                 'chat_to_id'    => $raw['toUserId'],
-                'chat_from_type'  => $to->get('user_shop' , 0),
+                'chat_to_type'  => $to->get('user_shop' , 0),
                 'chat_msg_type' => $raw['objectName'],
                 'chat_channel' => $raw['channelType'],
                 'chat_time'     => $msgTimestamp,
