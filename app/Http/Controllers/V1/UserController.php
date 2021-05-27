@@ -521,7 +521,7 @@ class UserController extends BaseController
         {
             if(!blank($school)&&$school!='Others')
             {
-                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_sl' , $school);
+                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 0)->where('user_sl' , $school);
                 $users = $users->inRandomOrder()->select(array(
                     'user_id',
                     'user_name',
@@ -531,7 +531,7 @@ class UserController extends BaseController
                 ))->limit(8)->get();
                 if(blank($users))
                 {
-                    $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
+                    $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 0)->inRandomOrder()->select(array(
                         'user_id',
                         'user_name',
                         'user_nick_name',
@@ -540,7 +540,7 @@ class UserController extends BaseController
                     ))->limit(6)->get();
                 }
             }else{
-                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->inRandomOrder()->select(array(
+                $users = $this->user->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 0)->inRandomOrder()->select(array(
                     'user_id',
                     'user_name',
                     'user_nick_name',
