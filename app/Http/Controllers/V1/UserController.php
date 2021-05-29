@@ -577,7 +577,7 @@ class UserController extends BaseController
 
     public function shop()
     {
-        $userId = auth()->id();
+        $userId = request()->input('user_id' , auth()->id());
         $keyword = escape_like(strval(request()->input('keyword' , '')));
         if(empty($keyword))
         {
