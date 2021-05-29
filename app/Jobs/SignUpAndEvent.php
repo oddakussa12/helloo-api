@@ -20,10 +20,12 @@ class SignUpAndEvent implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private $user;
+    private $now;
 
     public function __construct(User $user)
     {
         $this->user = $user;
+        $this->now = date('Y-m-d H:i:s');
     }
 
     /**
@@ -33,16 +35,18 @@ class SignUpAndEvent implements ShouldQueue
      */
     public function handle()
     {
-        $result['user_id']    = $this->user->user_id;
-        $result['friend']     = 1;
-        $result['video']      = 1;
-        $result['photo']      = 1;
-        $result['created_at'] = date('Y-m-d H:i:s');
-        DB::table('users_settings')->insert($result);
-        $result = collect($result)->only('friend', 'video', 'photo')->toArray();
-        $mKey   = 'helloo:account:service:account-privacy:'.$this->user->user_id;
-        Redis::set($mKey, json_encode($result));
-        Redis::expire($mKey , 86400*7);
+        $data['user_id']    = $this->user->user_id;
+        $data['friend']     = 1;
+        $data['video']      = 1;
+        $data['photo']      = 1;
+        $data['shop']      = 1;
+        $data['created_at'] = $this->now;
+        $data['updated_at'] = $this->now;
+        DB::table('users_settings')->insert($data);
+        $cache = collect($data)->only('friend', 'video', 'photo' , 'post')->toArray();
+        $key   = 'helloo:account:service:account-personal-privacy:'.$this->user->user_id;
+        Redis::set($key, json_encode($cache));
+        Redis::expire($key , 86400);
         return;
         $now = Carbon::now()->timestamp;
         $activeEvents = app(EventRepository::class)->getActiveEvent();
@@ -90,17 +94,18 @@ class SignUpAndEvent implements ShouldQueue
             }
 
             // 写入隐私表
-            $result['user_id']    = $sender['user_id'];
-            $result['friend']     = 1;
-            $result['video']      = 1;
-            $result['photo']      = 1;
-            $result['created_at'] = date('Y-m-d H:i:s');
-            DB::table('users_settings')->insert($result);
-
-            $result = collect($result)->only('friend', 'video', 'photo')->toArray();
-            $mKey   = 'helloo:account:service:account-privacy:'.$sender['user_id'];
-            Redis::set($mKey, json_encode($result));
-            Redis::expire($mKey , 86400*30);
+            $data['user_id']    = $sender['user_id'];
+            $data['friend']     = 1;
+            $data['video']      = 1;
+            $data['photo']      = 1;
+            $data['shop']      = 1;
+            $data['created_at'] = $this->now;
+            $data['updated_at'] = $this->now;
+            DB::table('users_settings')->insert($data);
+            $cache = collect($data)->only('friend', 'video', 'photo' , 'post')->toArray();
+            $key   = 'helloo:account:service:account-personal-privacy:'.$this->user->user_id;
+            Redis::set($key, json_encode($cache));
+            Redis::expire($key , 86400);
         }
     }
 

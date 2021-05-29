@@ -1340,20 +1340,12 @@ if (! function_exists('fakeLike')) {
         }
     }
 }
-    /**
-     * @param string $value
-     * @param string $type
-     * @return string
-     * 头像拼接URL
-     */
-if (!function_exists('userCover')) {
-    function userCover($value='', $type='avatar') {
-        if ($type=='avatar') {
-            $value = empty($value) ? 'default_avatar.jpg' : $value;
-        } else {
-            $value = empty($value) ? 'default_cover.png' : $value;
-        }
 
+if (!function_exists('splitJointQnImageUrl')) {
+    function splitJointQnImageUrl($value='') {
+        if (empty($value)) {
+            return $value;
+        }
         if (preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$value)) {
             return $value;
         }
@@ -1361,43 +1353,23 @@ if (!function_exists('userCover')) {
     }
 }
 
-
-
-/**
- * @param $agent
- * @param bool $default
- * @return string
- */
-if (!function_exists('userAgent')) {
-    function userAgent($agent, $default=true) {
-        if ($agent->match('YooulAndroid')) {
-            $referer = 'android';
-        } elseif ($agent->match('YoouliOS')) {
-            $referer = 'ios';
+if (!function_exists('formatNumber')) {
+    function formatNumber(int $value=0) {
+        if($value<=999)
+        {
+            return $value;
+        }elseif ($value>999&&$value<1000000)
+        {
+            return strval(round($value/1000 , 1))."K";
+        }elseif ($value>999999&&$value<1000000000)
+        {
+            return strval(round($value/1000000 , 1))."M";
+        }else{
+            return strval(round($value/1000000000, 1))."B";
         }
 
-        if ($default) {
-            $referer = $referer ?? 'web';
-        } else {
-            $referer = $referer ?? '';
-        }
-        return $referer;
     }
 }
-
-/**
- * @param $agent
- * @return string
- */
-if (!function_exists('userAgentMobile')) {
-    function userAgentMobile($agent) {
-        $agent = strtolower($agent);
-        $agent = in_array($agent, ['ios', 'android']) ? $agent : 'mobile';
-        return ucfirst($agent);
-    }
-}
-
-
 
 if (!function_exists('age')) {
     function age($birthday){

@@ -92,6 +92,8 @@ class GoodsController extends BaseController
         $action = strval(request()->input('action' , ''));
         $referrer = strval(request()->input('referrer' , ''));
         $goods = Goods::where('id' , $id)->firstOrFail();
+        $user = app(UserRepository::class)->findByUserId($goods->user_id);
+        $goods->user = new UserCollection($user);
         $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
         $goods = $goods->makeVisible('status');
         $goods->likeState = !empty($like);
@@ -266,6 +268,13 @@ class GoodsController extends BaseController
         $user = auth()->user();
         app(GoodsRepository::class)->storeLike($user , $id);
         return $this->response->accepted();
+    }
+
+    public function destroyLike(Request $request , $id)
+    {
+        $user = auth()->user();
+        app(GoodsRepository::class)->destroyLike($user , $id);
+        return $this->response->noContent();
     }
 
     public function like($id)

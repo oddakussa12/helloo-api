@@ -2,27 +2,21 @@
 
 namespace App\Providers;
 
-use App\Models\Tag;
 use App\Models\User;
 use App\Models\Event;
-use App\Models\UserTag;
 use App\Models\UserFriend;
 use App\Models\Business\Goods;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
-use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\GoodsRepository;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\UserRepository;
-use App\Repositories\Contracts\UserTagRepository;
 use App\Repositories\Contracts\UserFriendRepository;
-use App\Repositories\Eloquent\EloquentTagRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentGoodsRepository;
 use App\Repositories\Eloquent\EloquentEventRepository;
-use App\Repositories\Eloquent\EloquentUserTagRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRepository;
 use App\Repositories\Contracts\UserFriendRequestRepository;
 use App\Custom\Uuid\Snowflake\Resolver\RedisSequenceResolver;
@@ -73,14 +67,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepository::class, function () {
             return new EloquentUserRepository(new User());
         });
-        $this->app->bind(TagRepository::class, function () {
-            return new EloquentTagRepository(new Tag());
-        });
-
-        $this->app->bind(UserTagRepository::class, function () {
-            return new EloquentUserTagRepository(new UserTag());
-        });
-
         $this->app->bind(UserFriendRepository::class, function () {
             return new EloquentUserFriendRepository(new UserFriend());
         });

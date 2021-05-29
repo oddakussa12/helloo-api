@@ -32,7 +32,7 @@ class UserUpdate implements ShouldQueue
         $data = array(
             'id'=>$this->user->getKey(),
             'name'=>$this->user->user_nick_name,
-            'portrait'=>userCover($this->user->user_avatar),
+            'portrait'=>splitJointQnImageUrl($this->user->user_avatar),
         );
         Log::info('user_update_data' , $data);
         $result = app('rcloud')->getUser()->update($data);

@@ -36,12 +36,9 @@ class UserFriendController extends BaseController
      * @param int $userId
      * @return mixed
      */
-    public function index(int $userId)
+    public function index($userId)
     {
-        //个人隐私设置
-        $mKey    = 'helloo:account:service:account-privacy:'.$userId;
-        $privacy = Redis::get($mKey);
-        $privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
+        $privacy = app(UserRepository::class)->findPrivacyByUserId($userId);
         if ($privacy['friend']=='3') {
             return $this->response->array([]);
         }
@@ -67,7 +64,7 @@ class UserFriendController extends BaseController
      * @param int $friendId
      * @return string
      */
-    public function store(int $friendId)
+    public function store($friendId)
     {
         return $this->response->f_friends_request();
     }

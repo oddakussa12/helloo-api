@@ -27,7 +27,6 @@ class UserFriendRequestController extends BaseController
      * @var UserFriendRequestRepository
      */
     private $userFriendRequest;
-    private $agent;
 
 
     /**
@@ -37,7 +36,6 @@ class UserFriendRequestController extends BaseController
     public function __construct(UserFriendRequestRepository $userFriendRequest)
     {
         $this->userFriendRequest = $userFriendRequest;
-        $this->agent = userAgent(new Agent(), false);
     }
 
     /**

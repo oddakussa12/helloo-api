@@ -72,6 +72,8 @@ class User extends Authenticatable implements JWTSubject
         'user_name_change',
         'user_name_changed_at',
         'user_updated_at',
+        'user_name_changed_at',
+        'user_verified_at',
         'user_activated_at',
         'user_answered_at'
     ];
@@ -80,7 +82,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function getUserAvatarLinkAttribute()
     {
-        return userCover($this->user_avatar);
+        return splitJointQnImageUrl($this->user_avatar);
     }
 
 

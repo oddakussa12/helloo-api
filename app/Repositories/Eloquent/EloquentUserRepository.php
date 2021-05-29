@@ -138,6 +138,27 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $this->model->create($data);
     }
 
+    public function findPrivacyByUserId($userId)
+    {
+        $key = 'helloo:account:service:account-personal-privacy:'.$userId;
+        $cache = Redis::get($key);
+        if(!empty($cache))
+        {
+            $privacy = json_decode($cache, true);
+        }else{
+            $userPrivacy = collect(DB::table('users_settings')->where('user_id' , $userId)->first());
+            if(!blank($userPrivacy))
+            {
+                $privacy = $userPrivacy->only('friend' , 'video' , 'photo' , 'shop')->toArray();
+            }else{
+                $privacy = ['friend'=>1, 'video'=>1, 'photo'=>1, 'shop'=>1];
+            }
+            Redis::set($key , \json_encode($privacy));
+            Redis::expire($key , 60*60*24);
+        }
+        return $privacy;
+    }
+
     /**
      * @param $userIds
      * @return array
@@ -1582,5 +1603,66 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
     }
 
+    public function findPointByUserId($userId)
+    {
+        $key = "helloo:account:point:service:account:".$userId;
+        $point = Redis::get($key);
+        if(empty($point))
+        {
+            $shopPoint = collect(DB::table('shop_evaluation_points')->where('user_id' , $userId)->first());
+            if(!blank($shopPoint))
+            {
+                $point_1 = $shopPoint->get('point_1' , 0);
+                $point_2 = $shopPoint->get('point_2' , 0);
+                $point_3 = $shopPoint->get('point_3' , 0);
+                $point_4 = $shopPoint->get('point_4' , 0);
+                $point_5 = $shopPoint->get('point_5' , 0);
+                $pointNum = $point_1+$point_2+$point_3+$point_4+$point_5;
+                $pointSum = $point_1+2*$point_2+3*$point_3+4*$point_4+5*$point_5;
+                $data = collect(array(
+                    'item'=>array(
+                        'point_1'=>$point_1,
+                        'point_2'=>$point_2,
+                        'point_3'=>$point_3,
+                        'point_4'=>$point_4,
+                        'point_5'=>$point_5,
+                    ),
+                    'sum'=>$pointSum,
+                    'num'=>$pointNum
+                ));
+            }else{
+                $data = collect(array(
+                    'item'=>array(
+                        'point_1'=>0,
+                        'point_2'=>0,
+                        'point_3'=>0,
+                        'point_4'=>0,
+                        'point_5'=>0,
+                    ),
+                    'sum'=>0,
+                    'num'=>0
+                ));
+            }
+            $cache = $data->toArray();
+            Redis::set($key , \json_encode($cache));
+            Redis::expire($key , 60*60*24);
+        }else{
+            $data = collect(\json_decode($point , true));
+        }
+        $percentage = array();
+        $item = $data->get('item' , array());
+        $sum = $data->get('sum' , 0);
+        $num = $data->get('num' , 0);
+        foreach ($item as $k=>$i)
+        {
+            $numerator = $num>0?$i/$num*100:0;
+            $percentage[$k] = round($numerator , 1);
+        }
+        return array(
+            'percentage'=>$percentage,
+            'point'=>$num>0?round($sum/$num , 1):0.0,
+            'comment'=>formatNumber($num),
+        );
+    }
 
 }

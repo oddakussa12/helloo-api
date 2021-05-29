@@ -78,7 +78,7 @@ class GroupController extends BaseController
         $avatars = $users->pluck('user_avatar_link' , 'user_id')->toArray();
         $avatars = array($userId=>$user->user_avatar)+$avatars;
         $avatars = collect($avatars)->map(function($avatar , $userId){
-            return userCover($avatar);
+            return splitJointQnImageUrl($avatar);
         })->toArray();
         $avatars   = array_slice($avatars,0, 4 , true);
         $name = is_array($names)?implode(',' , $names):strval($names);

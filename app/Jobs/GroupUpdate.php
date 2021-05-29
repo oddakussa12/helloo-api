@@ -40,7 +40,7 @@ class GroupUpdate implements ShouldQueue
             'user'=> array(
                 'id'=>$senderId,
                 'name'=>$operatorNickname,
-                'portrait'=>userCover($this->user->user_avatar),
+                'portrait'=>splitJointQnImageUrl($this->user->user_avatar),
                 'extra'=>array(
                     'userLevel'=>$this->user->user_level
                 ),

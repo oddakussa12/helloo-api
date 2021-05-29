@@ -56,7 +56,7 @@ class PropsController extends BaseController
     {
         $props = new Props();
         $props = $props->where('is_delete' , 0)->orderBydesc('created_at')->limit(14)->get();
-        $props = $props = $this->paginator($props, collect($props)->count(), 14 , 1, [
+        $props = $this->paginator($props, collect($props)->count(), 14 , 1, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => 'page',
         ]);

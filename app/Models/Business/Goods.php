@@ -17,18 +17,30 @@ class Goods extends Model
         'id' => 'string',
         'shop_id' => 'string',
         'user_id' => 'string',
-        'image'=>'array'
+        'image'=>'array',
+        'price'=>'float',
+        'quality'=>'float',
+        'service'=>'float',
     ];
 
-    protected $appends = ['format_price'];
+    protected $appends = ['format_price' , 'average_point'];
 
     protected $fillable = ['user_id' , 'shop_id' , 'name' , 'image' , 'like' , 'price', 'recommend', 'currency' ,'recommended_at', 'description', 'status' , 'liked_at'];
 
-    protected $hidden = ['updated_at' , 'recommend' , 'recommended_at' , 'liked_at' , 'goods'];
+    protected $hidden = ['updated_at' , 'recommend' , 'recommended_at' , 'liked_at' , 'reply' , 'point' , 'quality' , 'service' , 'comment'];
 
     public function getFormatPriceAttribute()
     {
-        return $this->price.' '. $this->currency;
+        return strval($this->price).' '. $this->currency;
+    }
+
+    public function getAveragePointAttribute()
+    {
+        if(empty($this->comment))
+        {
+            return 0;
+        }
+        return round($this->point/$this->comment , 1);
     }
 
 }

@@ -21,6 +21,31 @@ class UserCollection extends Resource
      */
     public function toArray($request)
     {
-        return $this->resource;
+        $resource = collect($this->resource);
+        if($resource->has('user_id'))
+        {
+            $resource->put('user_id' , strval($resource->get('user_id')));
+        }
+        if($resource->has('user_gender'))
+        {
+            $resource->put('user_gender' , intval($resource->get('user_gender')));
+        }
+        if($resource->has('user_level'))
+        {
+            $resource->put('user_level' , intval($resource->get('user_level')));
+        }
+        if($resource->has('user_shop'))
+        {
+            $resource->put('user_shop' , intval($resource->get('user_shop')));
+        }
+        if($resource->has('user_answer'))
+        {
+            $resource->put('user_answer' , intval($resource->get('user_answer')));
+        }
+        if($resource->has('user_activation'))
+        {
+            $resource->put('user_activation' , intval($resource->get('user_activation')));
+        }
+        return $resource->toArray();
     }
 }

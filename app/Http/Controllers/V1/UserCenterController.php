@@ -54,10 +54,7 @@ class UserCenterController extends BaseController
         $video = $photo = $friend = false;
 
         if (!empty($friendId) && $friendId!=$this->userId) {
-            //个人隐私设置
-            $mKey    = 'helloo:account:service:account-privacy:'.$friendId;
-            $privacy = Redis::get($mKey);
-            $setting = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
+            $setting = app(UserRepository::class)->findPrivacyByUserId($friendId);
             $friends = UserFriend::where('user_id' , $this->userId)->where('friend_id', $friendId)->first();
 
             if ($setting['friend']=='1' || ($setting['friend']=='2' && !empty($friends))) {
@@ -263,36 +260,36 @@ class UserCenterController extends BaseController
             'photo' => [
                 'required',
                 Rule::in($s)
+            ],
+            'shop' => [
+                'filled',
+                Rule::in($s)
             ]
         ];
 
-        $params = $request->only('friend', 'video', 'photo');
-        Validator::make($params, $rules)->validate();
+        $data = $request->only('friend', 'video', 'photo' , 'shop');
+        Validator::make($data, $rules)->validate();
 
-        $params['updated_at'] = date('Y-m-d H:i:s');
+        $now = date('Y-m-d H:i:s');
 
-        // 临时用
-        $select = DB::table('users_settings')->where('user_id', $this->userId)->first();
-        if (empty($select)) {
-            $in = [
-                'user_id' => $this->userId,
-                'friend'  => 1,
-                'video'   => 1,
-                'photo'   => 1,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-           DB::table('users_settings')->insert($in);
+        $set = DB::table('users_settings')->where('user_id', $this->userId)->first();
+
+        if (empty($set)) {
+            $data['user_id'] = $this->userId;
+            $data['created_at'] = $now;
+            $data['updated_at'] = $now;
+            DB::table('users_settings')->insert($data);
+        }else{
+            $data['updated_at'] = $now;
+            DB::table('users_settings')->where('user_id', $this->userId)->update($data);
         }
-
-        $result = DB::table('users_settings')->where('user_id', $this->userId)->update($params);
-        if (!empty($result)) {
-            $mKey = 'helloo:account:service:account-privacy:'.$this->userId;
-            Redis::set($mKey, json_encode($params));
-            Redis::expire($mKey , 86400*7);
-            return $this->response->accepted();
-        } else {
-            return $this->response->errorNotFound();
-        }
+        $setting = DB::table('users_settings')->where('user_id', $this->userId)->first();
+        $cache = collect($setting)->only('post' , 'friend' , 'photo' , 'shop')->toArray();
+        $key = 'helloo:account:service:account-personal-privacy:'.$this->userId;
+        Redis::del($key);
+        Redis::set($key, json_encode($cache));
+        Redis::expire($key , 86400);
+        return $this->response->accepted();
     }
 
     /**
@@ -422,7 +419,7 @@ class UserCenterController extends BaseController
         $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
         $medals['rank']   = (int)$rank+1;
         $medals['score']  = (int)Redis::zscore($memKey, $userId);
-        $medals['avatar'] = userCover($userInfo->user_avatar);
+        $medals['avatar'] = splitJointQnImageUrl($userInfo->user_avatar);
         return $medals;
     }
 

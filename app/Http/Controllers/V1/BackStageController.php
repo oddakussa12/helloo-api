@@ -243,6 +243,229 @@ class BackStageController extends BaseController
 
     }
 
+    public function reviewComment(Request $request)
+    {
+        $id = $request->input('id' ,'');
+        $level = $request->input('level' ,0);
+        $reviewer = $request->input('reviewer' ,0);
+        $comment = DB::table('comments')->where('comment_id' , $id)->first();
+        if(!empty($comment)&&$comment->verified!=1&&$comment->type=='comment')
+        {
+            $point = $comment->point;
+            $quality = $comment->quality;
+            $service = $comment->service;
+            $pointInterval = array(1 , 2 , 3 , 4, 5);
+            $qualityOrServiceInterval = array(-1 , 0.0 , 0.5 , 1.0 , 1.5 ,2.0 , 2.5 , 3.0 , 3.5 , 4.0 , 4.5 , 5.0);
+            if(in_array($point , $pointInterval)&&in_array($quality , $qualityOrServiceInterval)&&in_array($service , $qualityOrServiceInterval))
+            {
+                $goodsEvaluationData  = $goodsInsertEvaluationData = $shopEvaluationData = $shopInsertEvaluationData = array();
+
+                $goodsEvaluationData['point_'.$point] = DB::raw('`point_'.$point."`+1");
+                $goodsInsertEvaluationData['point_'.$point] = 1;
+
+                $shopEvaluationData['point_'.$point] = DB::raw('`point_'.$point."`+1");
+                $shopInsertEvaluationData['point_'.$point] = 1;
+
+                if($quality!=-1)
+                {
+                    $shopEvaluationData['quality'] = DB::raw('`quality`+'.$quality);
+                    $shopInsertEvaluationData['quality'] = $quality;
+                }
+
+                if($service!=-1)
+                {
+                    $shopEvaluationData['service'] = DB::raw('`service`+'.$service);
+                    $shopInsertEvaluationData['service'] = $service;
+                }
+
+                $goodsEvaluation = DB::table('goods_evaluation_points')->where('goods_id' , $comment->goods_id)->first();
+                $shopEvaluation = DB::table('shop_evaluation_points')->where('user_id' , $comment->owner)->first();
+                $now = date('Y-m-d H:i:s');
+                try{
+                    DB::beginTransaction();
+                    $commentResult = DB::table('comments')->where('comment_id' , $id)->update(array(
+                        'verified'=>1,
+                        'level'=>$level,
+                        'reviewer'=>$reviewer,
+                        'verified_at'=>$now,
+                    ));
+                    if($commentResult<1)
+                    {
+                        abort('500' , 'comment update failed!');
+                    }
+                    $goodsResult = DB::table('goods')->where('id' , $comment->goods_id)->update(array(
+                        'comment'=>DB::raw('`comment`+1'),
+                        'point'=>DB::raw('`point`+'.$point),
+                        'quality'=>DB::raw('`quality`+'.$quality),
+                        'service'=>DB::raw('`service`+'.$service)
+                    ));
+                    if($goodsResult<1)
+                    {
+                        abort('500' , 'goods update failed!');
+                    }
+                    $goodsInsertEvaluationData['updated_at'] = $goodsEvaluationData['updated_at'] = $now;
+                    if(empty($goodsEvaluation))
+                    {
+                        $goodsInsertEvaluationData['id'] = app('snowflake')->id();
+                        $goodsInsertEvaluationData['updated_at'] = $now;
+                        $goodsInsertEvaluationData['goods_id'] = $comment->goods_id;
+                        $goodsInsertEvaluationData['owner'] = $comment->owner;
+                        $goodsInsertEvaluationData['created_at'] = $now;
+                        $goodsEvaluationResult = DB::table('goods_evaluation_points')->insert($goodsInsertEvaluationData);
+                    }else{
+                        $goodsEvaluationResult = DB::table('goods_evaluation_points')->where('goods_id' , $comment->goods_id)->update($goodsEvaluationData);
+                    }
+
+                    if(empty($shopEvaluation))
+                    {
+                        $shopInsertEvaluationData['id'] = app('snowflake')->id();
+                        $shopInsertEvaluationData['user_id'] = $comment->owner;
+                        $shopInsertEvaluationData['created_at'] = $now;
+                        $shopInsertEvaluationData['updated_at'] = $now;
+                        $shopEvaluationResult = DB::table('shop_evaluation_points')->insert($shopInsertEvaluationData);
+                    }else{
+                        $shopEvaluationData['updated_at'] = $now;
+                        $shopEvaluationResult = DB::table('shop_evaluation_points')->where('user_id' , $comment->owner)->update($shopEvaluationData);
+                    }
+                    if(empty($goodsEvaluationResult)||empty($shopEvaluationResult))
+                    {
+                        abort('500' , 'shop or goods evaluation failed!');
+                    }
+                    DB::commit();
+                    $key = "helloo:account:point:service:account:".$comment->owner;
+                    Redis::del($key);
+                }catch (\Exception $e)
+                {
+                    DB::rollBack();
+                    $data = array(
+                        'code'    => $e->getCode(),
+                        'data'  => $request->all(),
+                        'message' => $e->getMessage(),
+                    );
+                    Log::info('comment_review_fail' , $data);
+                }
+            }else{
+                abort(500 , 'comment param abnormal!');
+            }
+
+        }
+    }
+
+    public function rejectComment(Request $request)
+    {
+        $id = $request->input('id' ,'');
+        $reviewer = $request->input('reviewer' ,0);
+        $comment = DB::table('comments')->where('comment_id' , $id)->first();
+        if(!empty($comment)&&$comment->verified!=0&&$comment->type=='comment')
+        {
+            $now = date('Y-m-d H:i:s');
+            if($comment->verified==-1)
+            {
+                try{
+                    DB::beginTransaction();
+                    $commentResult = DB::table('comments')->where('comment_id' , $id)->update(array(
+                        'verified'=>0,
+                        'reviewer'=>$reviewer,
+                        'verified_at'=>$now,
+                    ));
+                    if($commentResult<1)
+                    {
+                        abort('500' , 'comment update failed!');
+                    }
+                    DB::commit();
+                }catch (\Exception $e)
+                {
+                    DB::rollBack();
+                    $data = array(
+                        'code'    => $e->getCode(),
+                        'data'  => $request->all(),
+                        'message' => $e->getMessage(),
+                    );
+                    Log::info('comment_reject_fail' , $data);
+                }
+            }elseif($comment->verified==1){
+                $point = $comment->point;
+                $quality = $comment->quality;
+                $service = $comment->service;
+                $pointInterval = array(1 , 2 , 3 , 4, 5);
+                $qualityOrServiceInterval = array(-1 , 0.0 , 0.5 , 1.0 , 1.5 ,2.0 , 2.5 , 3.0 , 3.5 , 4.0 , 4.5 , 5.0);
+                if(in_array($point , $pointInterval)&&in_array($quality , $qualityOrServiceInterval)&&in_array($service , $qualityOrServiceInterval))
+                {
+                    $goodsEvaluationData = $shopEvaluationData = array();
+
+                    $goodsEvaluationData['point_'.$point] = DB::raw('`point_'.$point."`-1");
+
+                    $shopEvaluationData['point_'.$point] = DB::raw('`point_'.$point."`-1");
+
+                    if($quality!=-1)
+                    {
+                        $shopEvaluationData['quality'] = DB::raw('`quality`-'.$quality);
+                    }
+                    if($service!=-1)
+                    {
+                        $shopEvaluationData['service'] = DB::raw('`service`-'.$service);
+                    }
+                    $goodsEvaluation = DB::table('goods_evaluation_points')->where('goods_id' , $comment->goods_id)->first();
+                    $shopEvaluation = DB::table('shop_evaluation_points')->where('user_id' , $comment->owner)->first();
+                    $now = date('Y-m-d H:i:s');
+                    try{
+                        DB::beginTransaction();
+                        $commentResult = DB::table('comments')->where('comment_id' , $id)->update(array(
+                            'verified'=>0,
+                            'reviewer'=>$reviewer,
+                            'verified_at'=>$now,
+                        ));
+                        if($commentResult<1)
+                        {
+                            abort('500' , 'comment update failed!');
+                        }
+                        $goodsResult = DB::table('goods')->where('id' , $comment->goods_id)->update(array(
+                            'comment'=>DB::raw('`comment`-1'),
+                            'point'=>DB::raw('`point`-'.$point),
+                            'quality'=>DB::raw('`quality`-'.$quality),
+                            'service'=>DB::raw('`service`-'.$service)
+                        ));
+                        if($goodsResult<1)
+                        {
+                            abort('500' , 'goods update failed!');
+                        }
+                        $shopEvaluationData['updated_at'] = $goodsEvaluationData['updated_at'] = $now;
+                        if(!empty($goodsEvaluation))
+                        {
+                            $goodsEvaluationResult = DB::table('goods_evaluation_points')->where('goods_id' , $comment->goods_id)->update($goodsEvaluationData);
+                        }
+
+                        if(!empty($shopEvaluation))
+                        {
+                            $shopEvaluationResult = DB::table('shop_evaluation_points')->where('user_id' , $comment->owner)->update($shopEvaluationData);
+                        }
+                        if(empty($goodsEvaluationResult)||empty($shopEvaluationResult))
+                        {
+                            abort('500' , 'shop or goods evaluation failed!');
+                        }
+                        DB::commit();
+                        $key = "helloo:account:point:service:account:".$comment->owner;
+                        Redis::del($key);
+                    }catch (\Exception $e)
+                    {
+                        DB::rollBack();
+                        $data = array(
+                            'code'    => $e->getCode(),
+                            'data'  => $request->all(),
+                            'message' => $e->getMessage(),
+                        );
+                        Log::info('comment_reject_fail' , $data);
+                    }
+                }else{
+                    abort(500 , 'comment param abnormal!');
+                }
+
+            }
+        }
+        return $this->response->accepted();
+    }
+
+
 
 
 

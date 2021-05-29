@@ -355,7 +355,7 @@ DOC;
             'user'=> array(
                 'id'=>$sender['user_id'],
                 'name'=>$sender['user_nick_name'],
-                'portrait'=>userCover($sender['user_avatar']),
+                'portrait'=>splitJointQnImageUrl($sender['user_avatar']),
                 'extra'=>array(
                     'userLevel'=>$sender['user_level']
                 ),
@@ -400,7 +400,7 @@ DOC;
                 'user'=> array(
                     'id'=>$sender['user_id'],
                     'name'=>$sender['user_nick_name'],
-                    'portrait'=>userCover($sender['user_avatar']),
+                    'portrait'=>splitJointQnImageUrl($sender['user_avatar']),
                     'extra'=>array(
                         'userLevel'=>$sender['user_level']
                     ),
@@ -505,6 +505,7 @@ DOC;
             {
                 $key = "helloo:account:service:account:".$user->user_id;
                 Redis::del($key);
+                Redis::del('helloo:account:service:account-personal-privacy:'.$user->user_id);
             }
         });
     }

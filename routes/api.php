@@ -78,7 +78,7 @@ $api->group($V1Params , function ($api){
         $api->get('my/friend' , 'UserFriendController@my')->name('my.friend');//我的好友
 //        $api->post('my/friend' , 'UserFriendController@update')->name('my.friend.update');//好友备注
         $api->delete('my/friend/{friend}' , 'UserFriendController@destroy')->name('my.friend.destroy');//删除我的好友
-        $api->get('user/{userId}/friend' , 'UserFriendController@index')->name('friend.list');//获取用户朋友列表
+        $api->get('user/{user}/friend' , 'UserFriendController@index')->name('user.friend.list');//获取用户朋友列表
         /*****好友 结束*****/
 
         /*****好友请求 开始*****/
@@ -96,9 +96,8 @@ $api->group($V1Params , function ($api){
 
         $api->get('ry/token' , 'RySetController@token')->name('ry.token');
         $api->group(['middleware'=>['repeatedSubmit']] , function ($api){
-            $api->get('tag' , 'TagController@index')->name('tag.index');
-            $api->post('tag' , 'TagController@store')->name('tag.store');
-//            $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
+//            $api->get('tag' , 'TagController@index')->name('tag.index');
+//            $api->post('tag' , 'TagController@store')->name('tag.store');
             $api->put('user/myself' , 'AuthController@update')->name('myself.update');
             $api->patch('user/myself' , 'AuthController@fill')->name('myself.fill');
             $api->patch('user/pwd' , 'AuthController@password')->name('myself.update.password');
@@ -157,6 +156,8 @@ $api->group($V1Params , function ($api){
 
         $api->get('user/recommendation' , 'UserController@recommendation')->name('user.recommendation');
 
+        $api->get('user/shop' , 'UserController@shop')->name('user.shop');
+
         /*****个人中心 开始*****/
         $api->get('user/center/media/{user?}' , 'UserCenterController@media')->name('user.center.media'); // 获取video/photo
         $api->post('user/center/media' , 'UserCenterController@storeMedia')->name('user.center.storeMedia'); // 提交video/photo
@@ -188,18 +189,22 @@ $api->group($V1Params , function ($api){
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
         $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
+        $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
+        $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
         $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
         $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
+        $api->delete('goods/{goods}/like' , 'Business\GoodsController@destroyLike')->name('goods.like.destroy');
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
         $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
         $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
+        $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
         /*****business end*****/
 
     });
 
     $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
 
-    $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
+//    $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
 
     $api->post('user/contacts' , 'UserController@contacts')->name('user.contacts');
 
@@ -252,15 +257,18 @@ $api->group($V1Params , function ($api){
 
     $api->get('question/hot' , 'QuestionController@hot')->name('question.hot');
 
-    $api->patch('backstage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backStage.version.upgrade');
+    $api->patch('backstage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backstage.version.upgrade');
 
-    $api->post('backstage/block/device' , 'BackStageController@blockDevice')->name('backStage.block.device');
+    $api->post('backstage/block/device' , 'BackStageController@blockDevice')->name('backstage.block.device');
 
-    $api->post('backstage/block/user' , 'BackStageController@blockUser')->name('backStage.block.user');
+    $api->post('backstage/block/user' , 'BackStageController@blockUser')->name('backstage.block.user');
 
-    $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backStage.last.online');
-    $api->get('backstage/score' , 'BackStageController@score')->name('backStage.score');
-    $api->post('backstage/score' , 'BackStageController@storeScore')->name('backStage.storeScore');
+    $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backstage.last.online');
+    $api->get('backstage/score' , 'BackStageController@score')->name('backstage.score');
+    $api->post('backstage/score' , 'BackStageController@storeScore')->name('backstage.store,score');
+
+    $api->post('backstage/review/comment' , 'BackStageController@reviewComment')->name('backStage.review.comment');
+    $api->post('backstage/reject/comment' , 'BackStageController@rejectComment')->name('backStage.reject.comment');
 
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');

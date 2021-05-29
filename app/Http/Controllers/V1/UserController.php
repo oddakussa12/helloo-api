@@ -7,7 +7,6 @@ use Carbon\Carbon;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
 use App\Jobs\BusinessShopLog;
-use App\Resources\TagCollection;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use libphonenumber\PhoneNumberUtil;
@@ -15,9 +14,7 @@ use Illuminate\Support\Facades\Log;
 use App\Custom\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
-use App\Repositories\Contracts\TagRepository;
 use App\Repositories\Contracts\UserRepository;
-use App\Repositories\Contracts\UserTagRepository;
 
 class UserController extends BaseController
 {
@@ -136,6 +133,7 @@ class UserController extends BaseController
     /**
      * Display the specified resource.
      *
+     * @param Request $request
      * @param $id
      * @return UserCollection
      */
@@ -143,10 +141,6 @@ class UserController extends BaseController
     {
         $action = $request->input('action' , '');
         $referrer = $request->input('referrer' , '');
-        if($id==97623)
-        {
-            return $this->response->noContent();
-        }
         if ($this->isBlocked($id)) {
             return $this->response->errorNotFound('Sorry, this account does not exist or is blocked!');
         }
@@ -155,12 +149,8 @@ class UserController extends BaseController
         {
             return $this->response->errorNotFound('Sorry, this account does not exist or is blocked!');
         }
-        //个人隐私设置
-        $mKey    = 'helloo:account:service:account-privacy:'.$id;
-        $privacy = Redis::get($mKey);
-        $privacy = !empty($privacy) ? json_decode($privacy, true) : ['friend'=>"1", 'video'=>"1",'photo'=>"1"];
+        $privacy = app(UserRepository::class)->findPrivacyByUserId($id);
 
-        // 积分 排行
         $memKey = 'helloo:account:user-score-rank';
         $rank   = Redis::zrevrank($memKey , $id);
         $rank   = !empty($rank) ? $rank : Redis::zcard($memKey);
@@ -176,9 +166,14 @@ class UserController extends BaseController
         $user->put('rank', (int)$rank+1);
         $user->put('score', (int)Redis::zscore($memKey, $id));
         $userId = auth()->id();
-        if(!empty($user->get('user_shop'))&&$action=='view'&&$user->get('user_id')!=$userId)
+        if(!empty($user->get('user_shop'))&&$action=='view'&&$user->get('user_id')!=$userId&&!empty($userId))
         {
             BusinessShopLog::dispatch($userId , $user->get('user_id') , $referrer)->onQueue('helloo_{business_shop_logs}');
+        }
+        if(!empty($user->get('user_shop'))&&$action=='view')
+        {
+            $point = app(UserRepository::class)->findPointByUserId($id);
+            $user->put('userPoint', $point);
         }
         return new UserCollection($user);
     }
@@ -286,18 +281,9 @@ class UserController extends BaseController
         }
         $users = $this->user->findByMany($data);
         $total = $this->user->onlineUsersCount();
-        $users = UserCollection::collection($users)->additional(array(
+        return UserCollection::collection($users)->additional(array(
             'total'=>intval($total*mt_rand(45 , 56))
         ));
-        return $users;
-    }
-
-    public function tag($userId)
-    {
-        $userTags = app(UserTagRepository::class)->getByUserId($userId);
-        $tagIds = $userTags->pluck('tag_id')->all();
-        $tags = app(TagRepository::class)->findByMany($tagIds);
-        return TagCollection::collection($tags);
     }
 
     public function like($userId)
@@ -471,7 +457,6 @@ class UserController extends BaseController
     {
         $tag = strval($request->input('tag' , ''));
         $color = strval($request->input('color' , '0'));
-        Log::info('all' ,$request->all());
         if(!blank($tag)&&!blank($color))
         {
             $userId = auth()->id();
@@ -568,7 +553,7 @@ class UserController extends BaseController
             abort(400);
         }
         $appID = config('agora.app_id');
-        $appCertificate = config('agora.app_certificate');;
+        $appCertificate = config('agora.app_certificate');
         $selfUidStr = strval(auth()->id());
         $targetUidStr = strval($targetId);
         $channelName = strval(app('snowflake')->id()).'-'.$selfUidStr.'-'.strval(millisecond()).'-'.$targetUidStr;
@@ -588,5 +573,26 @@ class UserController extends BaseController
             'selfToken'=>$selfToken,
             'targetToken'=>$targetToken,
         )));
+    }
+
+    public function shop()
+    {
+        $userId = auth()->id();
+        $keyword = escape_like(strval(request()->input('keyword' , '')));
+        if(empty($keyword))
+        {
+            $shops = DB::table('users_friends')->join('users', function ($join){
+                $join->on('users.user_id', '=', 'users_friends.friend_id')->where('users.user_shop', 1);
+            })->where('users_friends.user_id' , $userId)->select('users.user_id', 'users.user_avatar' , 'users.user_name' , 'users.user_nick_name', 'users.user_about' , 'users.user_gender', 'users.user_school', 'users.user_sl' , 'users.user_birthday' , 'users.user_shop' , 'users.user_level')->paginate(10);
+        }else{
+            $shops = DB::table('users_friends')->join('users', function ($join) use ($keyword) {
+                $join->on('users.user_id', '=', 'users_friends.friend_id')->where('users.user_shop', 1)->where('users.user_nick_name' , 'like' , "%{$keyword}%");
+            })->where('users_friends.user_id' , $userId)->select('users.user_id', 'users.user_avatar' , 'users.user_name' , 'users.user_nick_name', 'users.user_about' , 'users.user_gender', 'users.user_school', 'users.user_sl' , 'users.user_birthday' , 'users.user_shop' , 'users.user_level')->orderByDesc('user_created_at')->limit(10)->get();
+        }
+        $shops->each(function($shop){
+            $shop->user_avatar_link = splitJointQnImageUrl($shop->user_avatar);
+            unset($shop->user_avatar);
+        });
+        return UserCollection::collection($shops);
     }
 }
