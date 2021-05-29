@@ -284,7 +284,7 @@ class UserCenterController extends BaseController
             DB::table('users_settings')->where('user_id', $this->userId)->update($data);
         }
         $setting = DB::table('users_settings')->where('user_id', $this->userId)->first();
-        $cache = collect($setting)->only('post' , 'friend' , 'photo' , 'shop')->toArray();
+        $cache = collect($setting)->only('video' , 'friend' , 'photo' , 'shop')->toArray();
         $key = 'helloo:account:service:account-personal-privacy:'.$this->userId;
         Redis::del($key);
         Redis::set($key, json_encode($cache));
