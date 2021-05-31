@@ -24,7 +24,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Dau::class,
         \App\Console\Commands\Retention::class,
         \App\Console\Commands\RealTimeChatDepth::class,
-        \App\Console\Commands\ActiveUser::class
+        \App\Console\Commands\ActiveUser::class,
+        \App\Console\Commands\FixUserCountry::class
     ];
 
     /**
@@ -122,19 +123,11 @@ class Kernel extends ConsoleKernel
             ->dailyAt('18:00')->when(function(){
                 return config('common.cron_switch');
             });
-//        chatDepth 1
-//        $schedule->command('real:time_chat_depth' , array('yesterday' , null , 1))
-//            ->cron('15 */3 * * *')->when(function(){
-//                return config('common.cron_switch');
-//            });
-//        $schedule->command('real:time_chat_depth' , array('today' , null , 1))
-//            ->hourlyAt(40)->when(function(){
-//                return config('common.cron_switch');
-//            });
-//        $schedule->command('real:time_chat_depth' , array('other' , null , 1))
-//            ->dailyAt('15:00')->when(function(){
-//                return config('common.cron_switch');
-//            });
+
+        $schedule->command('fix:user_country')
+            ->dailyAt('21:00')->when(function(){
+                return config('common.cron_switch');
+            });
 
     }
 

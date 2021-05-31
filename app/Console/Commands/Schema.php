@@ -84,7 +84,7 @@ class Schema extends Command
                 $table->increments('id')->unsigned()->comment('主键');
                 $table->string('message_id' , 64)->charset('utf8')->comment('融云消息ID');
                 $table->string('video_url' , 128)->charset('utf8')->comment('视频地址');
-                $table->tinyInteger('is_record')->default(0)->comment('是否为录制');
+                $table->tinyInteger('is_record' , false , true)->default(0)->comment('是否为录制');
                 $table->string('voice_name' , 32)->charset('utf8')->comment('变声类型');
                 $table->string('bundle_name' , 64)->charset('utf8mb4')->comment('bundle名字');
                 $table->dateTime('created_at')->comment('日期');
@@ -98,7 +98,7 @@ class Schema extends Command
                 $table->increments('id')->unsigned()->comment('主键');
                 $table->string('message_id' , 64)->charset('utf8')->comment('融云消息ID');
                 $table->string('audio_url' , 128)->charset('utf8')->comment('语音地址');
-                $table->tinyInteger('duration')->default(0)->comment('语音时长');
+                $table->integer('duration' , false , true)->default(0)->comment('语音时长');
                 $table->string('voice_name' , 32)->charset('utf8')->comment('变声类型');
                 $table->dateTime('created_at')->comment('日期');
                 $table->index('message_id' , 'message_id');
@@ -125,7 +125,7 @@ class Schema extends Command
         {
             SchemaAs::create('dau_'.$index, function (Blueprint $table) {
                 $table->increments('id')->unsigned()->comment('主键');
-                $table->string('user_id' , 32)->charset('utf8')->comment('用户ID');
+                $table->bigInteger('user_id' , false , true)->comment('用户ID');
                 $table->string('country' , 8)->charset('utf8')->comment('国家');
                 $table->date('date')->comment('日期');
             });
