@@ -7,7 +7,6 @@ use Illuminate\Console\Command;
 
 class FixUserCountry extends Command
 {
-    use CachableUser,Update;
     /**
      * The name and signature of the console command.
      *
