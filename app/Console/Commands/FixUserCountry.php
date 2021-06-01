@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class FixUserCountry extends Command
 {
