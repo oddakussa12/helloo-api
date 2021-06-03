@@ -31,7 +31,7 @@ class Goods extends Model
 
     public function getFormatPriceAttribute()
     {
-        return strval($this->price).' '. $this->currency;
+        return sprintf("%1\$.2f", $this->price).' '. $this->currency;
     }
 
     public function getAveragePointAttribute()
