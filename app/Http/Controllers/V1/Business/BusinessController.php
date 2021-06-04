@@ -35,7 +35,7 @@ class BusinessController extends BaseController
         }else{
             $goods = $users = collect();
         }
-        BusinessSearchLog::dispatch($userId , $keyword)->onQueue('helloo_{business_search_logs}');
+        !empty($keyword)&&BusinessSearchLog::dispatch($userId , $keyword)->onQueue('helloo_{business_search_logs}');
         return $this->response->array(array(
             'data'=>array(
                 'user'=>AnonymousCollection::collection($users),
