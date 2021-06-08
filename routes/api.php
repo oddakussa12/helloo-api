@@ -270,6 +270,7 @@ $api->group($V1Params , function ($api){
     $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backstage.last.online');
     $api->get('backstage/score' , 'BackStageController@score')->name('backstage.score');
     $api->post('backstage/score' , 'BackStageController@storeScore')->name('backstage.store,score');
+    $api->patch('backstage/shop' , 'BackStageController@updateShop')->name('backStage.shop.update');
 
     $api->post('backstage/review/comment' , 'BackStageController@reviewComment')->name('backStage.review.comment');
     $api->post('backstage/reject/comment' , 'BackStageController@rejectComment')->name('backStage.reject.comment');
