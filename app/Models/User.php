@@ -48,6 +48,10 @@ class User extends Authenticatable implements JWTSubject
         'user_activation' ,
         'user_activated_at' ,
         'user_enrollment_at' ,
+
+        'user_online',
+        'user_timezone',
+        'user_business_time',
     ];
 
     public $default_name_field = 'user_name';
