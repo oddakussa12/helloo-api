@@ -79,7 +79,11 @@ class User extends Authenticatable implements JWTSubject
         'user_name_changed_at',
         'user_verified_at',
         'user_activated_at',
-        'user_answered_at'
+        'user_answered_at',
+
+        'user_online',
+        'user_timezone',
+        'user_business_time',
     ];
 
     protected $casts = [

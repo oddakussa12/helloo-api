@@ -46,6 +46,10 @@ class UserCollection extends Resource
         {
             $resource->put('user_activation' , intval($resource->get('user_activation')));
         }
+        if($resource->has('user_delivery'))
+        {
+            $resource->put('user_delivery' , boolval($resource->get('user_delivery')));
+        }
         return $resource->toArray();
     }
 }
