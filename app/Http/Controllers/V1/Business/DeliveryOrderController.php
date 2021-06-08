@@ -5,14 +5,16 @@ namespace App\Http\Controllers\V1\Business;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\V1\BaseController;
+use App\Http\Requests\StoreDeliveryOrderRequest;
 
 class DeliveryOrderController extends BaseController
 {
 
-    public function store(Request $request)
+    public function store(StoreDeliveryOrderRequest $request)
     {
         $userId = auth()->id();
-        $owner = $request->input('user_id' , '');
+        $owner = strval($request->input('user_id' , ''));
         $goodsId = $request->input('goods_id' , '');
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
