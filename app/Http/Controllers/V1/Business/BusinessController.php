@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Models\User;
+use App\Repositories\Contracts\UserRepository;
+use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
@@ -42,5 +44,16 @@ class BusinessController extends BaseController
                 'goods'=>AnonymousCollection::collection($goods)
             )
         ));
+    }
+
+    public function discovery(Request $request)
+    {
+        $deliveryUsers = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 1)->inRandomOrder()->limit(20)->get();
+        $users = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0)->inRandomOrder()->limit(20)->get();
+        $data = array('data'=>array(
+            'live_shop'=>UserCollection::collection($users),
+            'delivery_shop'=>UserCollection::collection($deliveryUsers),
+        ));
+        return $this->response->array($data);
     }
 }

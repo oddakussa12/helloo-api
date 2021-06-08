@@ -187,6 +187,7 @@ $api->group($V1Params , function ($api){
         $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('user.agora.token');
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
+        $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
         $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
         $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
@@ -198,6 +199,9 @@ $api->group($V1Params , function ($api){
         $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
         $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
         $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
+        $api->group(['middleware'=>['repeatedSubmit']] , function($api){
+            $api->post('delivery/order' , 'Business\DeliveryOrderController@store')->name('goods.delivery.order.store');
+        });
         /*****business end*****/
 
     });
