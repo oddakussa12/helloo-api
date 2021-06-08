@@ -82,7 +82,9 @@ class User extends Authenticatable implements JWTSubject
         'user_answered_at'
     ];
 
-
+    protected $casts = [
+        'user_delivery' => 'boolean',
+    ];
 
     public function getUserAvatarLinkAttribute()
     {
