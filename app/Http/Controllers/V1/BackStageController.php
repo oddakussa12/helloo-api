@@ -484,7 +484,7 @@ class BackStageController extends BaseController
         $update       = strval($request->input('update' , ''));
         if ($update) {
             // 仅状态改变
-            $params = $request->only('level', 'user_delivery', 'audit');
+            $params = $request->only('user_level', 'user_delivery', 'user_verified', 'user_verified_at');
             if ($params) {
                 User::where('user_id', $user_id)->update($update);
                 $key = "helloo:account:service:account:".$user_id;
