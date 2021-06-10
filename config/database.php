@@ -106,7 +106,7 @@ return [
 
     'redis' => [
 
-        'client' => 'predis',
+        'client' => env('REDIS_CLIENT', 'predis'),
 
         'cluster'=>true,
 
