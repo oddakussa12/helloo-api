@@ -43,8 +43,8 @@ class GenerateDiscovery extends Command
         $offset = 0;
         $flag = true;
         $key = "helloo:discovery:popular:products";
-        $points = DB::select('select round(`point`/`comment`) as `a_point`,`id` , `created_at` from `t_goods` where `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';');
         do{
+            $points = DB::select('select round(`point`/`comment`) as `a_point`,`id` , `created_at` from `t_goods` where `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';');
             if(blank($points))
             {
                 $flag = false;
