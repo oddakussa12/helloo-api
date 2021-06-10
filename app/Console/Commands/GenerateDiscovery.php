@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class GenerateDiscovery extends Command
 {
@@ -41,13 +42,20 @@ class GenerateDiscovery extends Command
         $limit = 10;
         $offset = 0;
         $flag = true;
+        $key = "helloo:discovery:popular:products";
         $points = DB::select('select round(`point`/`comment`) as `a_point`,`id` , `created_at` from `t_goods` where `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';');
         do{
-            foreach ($points as $point)
+            if(blank($points))
             {
-                dump($point->a_point);
+                $flag = false;
+            }else{
+                $data = array();
+                foreach ($points as $point)
+                {
+                    $data[$point->id] = $point->a_point;
+                }
+                Redis::zadd($key , $data);
             }
-            dd(1);
         }while($flag);
     }
 
