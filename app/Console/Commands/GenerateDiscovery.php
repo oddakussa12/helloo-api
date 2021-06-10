@@ -67,7 +67,6 @@ class GenerateDiscovery extends Command
                 {
                     $data[$view->owner] = $view->num;
                 }
-                dump($data);
                 Redis::zadd($key , $data);
             }
             $page ++;
@@ -115,7 +114,6 @@ class GenerateDiscovery extends Command
                 {
                     $data[$view->goods_id] = $view->num;
                 }
-                dump($data);
                 Redis::zadd($key , $data);
             }
             $page ++;
@@ -142,7 +140,6 @@ class GenerateDiscovery extends Command
                 {
                     $data[$point->id] = $point->a_point;
                 }
-                dump($data);
                 Redis::zadd($key , $data);
             }
             $page ++;
