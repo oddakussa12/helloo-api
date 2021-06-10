@@ -41,9 +41,13 @@ class GenerateDiscovery extends Command
         $limit = 10;
         $offset = 0;
         $flag = true;
-        $goodsPoint = DB::select('select round(`point`/`comment`) as `a_point`,`id` , `created_at` from `t_goods` where `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';');
+        $points = DB::select('select round(`point`/`comment`) as `a_point`,`id` , `created_at` from `t_goods` where `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';');
         do{
-            dd($goodsPoint);
+            foreach ($points as $point)
+            {
+                dump($point->a_point);
+            }
+            dd(1);
         }while($flag);
     }
 

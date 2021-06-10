@@ -389,6 +389,21 @@ class PhpRedisConnection extends Connection
         return call_user_func_array(array(parent::class, 'srem'), array_merge(array($key) , $value));
     }
 
+    public function zadd($key , ...$value)
+    {
+        $reset = reset($value);
+        $set = array();
+        if(is_array($reset))
+        {
+            foreach($reset as $member => $score){
+                array_push($set, $score, $member);
+            }
+            $value = $set;
+        }
+        return call_user_func_array(array(parent::class, 'zadd'), array_merge(array($key) , $value));
+    }
+
+
     /**
      * Pass other method calls down to the underlying client.
      *
