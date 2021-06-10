@@ -53,6 +53,7 @@ class GenerateDiscovery extends Command
         $flag = true;
         $page = 0;
         $key = "helloo:discovery:popular:shops";
+        Redis::del($key);
         do{
             $offset = $page*$limit;
             $sql = 'select `owner`,count(`id`) as `num` from `t_shops_views_logs` where `created_at` >= '.$lastWeek.' group by `owner` order by `num` desc '.$limit.' offset '.$offset.';';
@@ -76,6 +77,7 @@ class GenerateDiscovery extends Command
     private function ratedShops()
     {
         $key = "helloo:discovery:rated:shop";
+        Redis::del($key);
         DB::table('shop_evaluation_points')->orderByDesc('user_id')->chunk(100 , function($shops) use ($key){
             $data = array();
             foreach ($shops as $shop)
@@ -99,6 +101,7 @@ class GenerateDiscovery extends Command
         $flag = true;
         $page = 0;
         $key = "helloo:discovery:popular:products";
+        Redis::del($key);
         do{
             $offset = $page*$limit;
             $sql = 'select `goods_id`,count(`id`) as `num` from `t_goods_views_logs` where `created_at` >= '.$lastWeek.' group by `goods_id` order by `num` desc '.$limit.' offset '.$offset.';';
@@ -125,6 +128,7 @@ class GenerateDiscovery extends Command
         $flag = true;
         $page = 0;
         $key = "helloo:discovery:rated:products";
+        Redis::del($key);
         do{
             $offset = $page*$limit;
             $sql = 'select round(`point`/`comment` , 1) as `a_point`,`id` , `created_at` from `t_goods` where `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';';
