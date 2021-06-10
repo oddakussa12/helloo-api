@@ -75,7 +75,7 @@ class GenerateDiscovery extends Command
 
     private function ratedShops()
     {
-        $key = "helloo:discovery:rated:shop";
+        $key = "helloo:discovery:rated:shops";
         Redis::del($key);
         DB::table('shop_evaluation_points')->orderByDesc('user_id')->chunk(100 , function($shops) use ($key){
             $data = array();
