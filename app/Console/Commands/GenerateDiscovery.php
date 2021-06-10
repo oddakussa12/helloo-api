@@ -104,7 +104,7 @@ class GenerateDiscovery extends Command
         Redis::del($key);
         do{
             $offset = $page*$limit;
-            $sql = 'select `goods_id`,count(`id`) as `num` from `t_goods_views_logs` where `created_at` >= '.$lastWeek.' group by `goods_id` order by `num` desc limit '.$limit.' offset '.$offset.';';
+            $sql = 'select `goods_id`,count(`id`) as `num` from `t_goods_views_logs` where `created_at` >= \''.$lastWeek.'\' group by `goods_id` order by `num` desc limit '.$limit.' offset '.$offset.';';
             $views = DB::select($sql);
             if(blank($views))
             {
