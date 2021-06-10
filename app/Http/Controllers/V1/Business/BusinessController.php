@@ -3,17 +3,23 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Models\User;
-use App\Repositories\Contracts\UserRepository;
-use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
+use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
+use App\Repositories\Contracts\UserRepository;
+use App\Repositories\Contracts\GoodsRepository;
+use Illuminate\Database\Concerns\BuildsQueries;
 
 class BusinessController extends BaseController
 {
+    use BuildsQueries;
+
     public function search(Request $request)
     {
         $userId = auth()->id();
@@ -55,5 +61,68 @@ class BusinessController extends BaseController
             'delivery_shop'=>UserCollection::collection($deliveryUsers),
         ));
         return $this->response->array($data);
+    }
+
+    public function home(Request $request)
+    {
+        $type = $request->input('type' , 'product');
+        $order = $request->input('order' , 'popular');
+        $perPage  = 10;
+        $pageName = 'page';
+        $page     = intval($request->input($pageName, 1));
+        $offset   = ($page-1) * $perPage;
+        if($type=='product')
+        {
+            if($order=='new')
+            {
+                $goods = app(GoodsRepository::class)->allWithBuilder()->orderByDesc('created_at')->paginate($perPage , ['*'] , $pageName , $page);
+            }else{
+                $key = 'helloo:discovery:'.$order.':products';
+                if(Redis::exists($key))
+                {
+                    $total = Redis::zcard($key);
+                    $goodsIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    $goodsIds = array_keys($goodsIds);
+                }else {
+                    $total = 0;
+                    $goodsIds = array();
+                }
+                $goods = app(GoodsRepository::class)->allWithBuilder()->whereIn('id' , $goodsIds)->get();
+                $goods = $this->paginator($goods, $total, $perPage, $page, [
+                    'path'     => Paginator::resolveCurrentPath(),
+                    'pageName' => $pageName,
+                ]);
+            }
+            return AnonymousCollection::collection($goods);
+        }elseif ($type=='shop')
+        {
+            if($order=='new')
+            {
+                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page);
+            }else{
+                $key = 'helloo:discovery:'.$order.':shops';
+                if(Redis::exists($key))
+                {
+                    $total = Redis::zcard($key);
+                    $shopIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    $shopIds = array_keys($shopIds);
+                }else {
+                    $total = 0;
+                    $shopIds = array();
+                }
+                $shops = app(UserRepository::class)->allWithBuilder()->whereIn('user_id' , $shopIds)->get();
+                $shops = $this->paginator($shops, $total, $perPage, $page, [
+                    'path'     => Paginator::resolveCurrentPath(),
+                    'pageName' => $pageName,
+                ]);
+            }
+            return UserCollection::collection($shops);
+        }else{
+            $data = $this->paginator(collect(), 0, $perPage, $page, [
+                'path'     => Paginator::resolveCurrentPath(),
+                'pageName' => $pageName,
+            ]);
+            return AnonymousCollection::collection($data);
+        }
     }
 }
