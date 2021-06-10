@@ -57,9 +57,18 @@ class GenerateUid extends Command
                 }
                 if($i%500==0)
                 {
-                    !blank($data)&&DB::table('unique_usernames')->insert($data);
-                    !blank($data)&&Redis::sadd($key , array_column($data , 'username'));
-                    !blank($data)&&Redis::sadd($foreverKey , array_column($data , 'username'));
+                    if(!blank($data))
+                    {
+                        DB::table('unique_usernames')->insert($data);
+                        $keyUsernames = array_column($data , 'username');
+                        $foreverKeyUsernames = array_column($data , 'username');
+                        $keyParams = array_unshift($keyUsernames , $key);
+                        $foreverKeyParams = array_unshift($foreverKeyUsernames , $foreverKey);
+                        call_user_func_array([Redis::class, 'sadd'], $keyParams);
+                        call_user_func_array([Redis::class, 'sadd'], $foreverKeyParams);
+//                        Redis::sadd($key , array_column($data , 'username'));
+//                        Redis::sadd($foreverKey , array_column($data , 'username'));
+                    }
                     $data = array();
                 }
             }
@@ -81,8 +90,13 @@ class GenerateUid extends Command
                 }
                 if($i%5000==0)
                 {
-                    !blank($data)&&Redis::sadd($idKey , $data);
-                    !blank($data)&&Redis::sadd($foreverIdKey , $data);
+                    if(!blank($data))
+                    {
+                        call_user_func_array([Redis::class, 'sadd'], array_merge(array($idKey) , $data));
+                        call_user_func_array([Redis::class, 'sadd'], array_merge(array($foreverIdKey) , $data));
+//                        Redis::sadd($idKey , $data);
+//                        Redis::sadd($foreverIdKey , $data);
+                    }
                     $data = array();
                 }
             }
