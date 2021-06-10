@@ -65,8 +65,11 @@ class BusinessController extends BaseController
 
     public function home(Request $request)
     {
+        $appends = array();
         $type = $request->input('type' , 'product');
         $order = $request->input('order' , 'popular');
+        $appends['type'] = $type;
+        $appends['order'] = $order;
         $perPage  = 10;
         $pageName = 'page';
         $page     = intval($request->input($pageName, 1));
@@ -75,7 +78,7 @@ class BusinessController extends BaseController
         {
             if($order=='new')
             {
-                $goods = app(GoodsRepository::class)->allWithBuilder()->orderByDesc('created_at')->paginate($perPage , ['*'] , $pageName , $page);
+                $goods = app(GoodsRepository::class)->allWithBuilder()->orderByDesc('created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
             }else{
                 $key = 'helloo:discovery:'.$order.':products';
                 if(Redis::exists($key))
@@ -91,14 +94,14 @@ class BusinessController extends BaseController
                 $goods = $this->paginator($goods, $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
-                ]);
+                ])->appends($appends);
             }
             return AnonymousCollection::collection($goods);
         }elseif ($type=='shop')
         {
             if($order=='new')
             {
-                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page);
+                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
             }else{
                 $key = 'helloo:discovery:'.$order.':shops';
                 if(Redis::exists($key))
@@ -114,7 +117,7 @@ class BusinessController extends BaseController
                 $shops = $this->paginator($shops, $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
-                ]);
+                ])->appends($appends);
             }
             return UserCollection::collection($shops);
         }else{
