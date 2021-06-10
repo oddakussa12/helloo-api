@@ -159,7 +159,7 @@ class RedisList{
 
     public function tryGetLock(String $key, String $requestId="1", int $expireTime=15000) {
         $result = Redis::set($key, $requestId, self::MILLISECONDS_EXPIRE_TIME, $expireTime, self::IF_NOT_EXIST);
-        return self::LOCK_SUCCESS === (string)$result;
+        return self::LOCK_SUCCESS === (string)$result||$result===true;
     }
 
     public function releaseLock(String $key, String $requestId="1") {
