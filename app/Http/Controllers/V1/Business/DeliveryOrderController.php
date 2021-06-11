@@ -47,6 +47,7 @@ class DeliveryOrderController extends BaseController
             if(!empty($goodsId))
             {
                 $goods = app(GoodsRepository::class)->find($goodsId);
+                Log::info('$goods' , collect($goods)->toArray());
                 $orderItem = [$goods->name];
             }
             if(!blank($user))
