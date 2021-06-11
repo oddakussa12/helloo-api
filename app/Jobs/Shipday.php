@@ -64,9 +64,10 @@ class Shipday implements ShouldQueue
             "totalOrderCost" => $this->totalOrderCost,
             "tax" => $this->tax,
             "tips" => "0",
-            "deliveryFee" => "0",
+            "deliveryFee" => "30",
             "deliveryInstruction" => "fast",
-            "additionalId" => ""
+            "additionalId" => "",
+            "paymentMethod"=>'cash'
         ];
         Log::info('shipday_data' , $data);
         $curl = curl_init();
