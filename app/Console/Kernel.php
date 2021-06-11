@@ -25,7 +25,8 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Retention::class,
         \App\Console\Commands\RealTimeChatDepth::class,
         \App\Console\Commands\ActiveUser::class,
-        \App\Console\Commands\FixUserCountry::class
+        \App\Console\Commands\FixUserCountry::class,
+        \App\Console\Commands\GenerateDiscovery::class
     ];
 
     /**
@@ -126,6 +127,15 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('fix:user_country')
             ->dailyAt('21:00')->when(function(){
+                return config('common.cron_switch');
+            });
+
+        $schedule->command('generate:discovery' , array('popular'))
+            ->weekends()->when(function(){
+                return config('common.cron_switch');
+            });
+        $schedule->command('generate:discovery' , array('rated'))
+            ->daily()->when(function(){
                 return config('common.cron_switch');
             });
 

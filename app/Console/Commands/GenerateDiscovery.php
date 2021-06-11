@@ -40,10 +40,15 @@ class GenerateDiscovery extends Command
      */
     public function handle()
     {
-        $this->popularShops();
-        $this->ratedShops();
-        $this->popularProducts();
-        $this->ratedProducts();
+        $type = $this->argument('type');
+        if($type=='popular')
+        {
+            $this->popularShops();
+            $this->popularProducts();
+        }else{
+            $this->ratedShops();
+            $this->ratedProducts();
+        }
     }
 
     private function popularShops()
