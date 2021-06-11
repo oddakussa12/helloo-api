@@ -51,7 +51,6 @@ class Shipday implements ShouldQueue
             "orderNumber" => $this->orderNumber,
             "customerName" => $this->customerName,
             "customerAddress" => $this->customerAddress,
-
             "customerEmail" => "",
             "customerPhoneNumber" => $this->customerPhoneNumber,
             "restaurantName" => $this->restaurantName,
@@ -69,6 +68,7 @@ class Shipday implements ShouldQueue
             "deliveryInstruction" => "fast",
             "additionalId" => ""
         ];
+        Log::info('shipday_data' , $data);
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
