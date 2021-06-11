@@ -193,7 +193,6 @@ $api->group($V1Params , function ($api){
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
         $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
         $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
-        $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
         $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
         $api->delete('goods/{goods}/like' , 'Business\GoodsController@destroyLike')->name('goods.like.destroy');
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
@@ -206,6 +205,8 @@ $api->group($V1Params , function ($api){
         /*****business end*****/
 
     });
+
+    $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
 
     $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
 

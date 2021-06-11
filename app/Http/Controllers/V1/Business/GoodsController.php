@@ -88,13 +88,13 @@ class GoodsController extends BaseController
 
     public function show($id)
     {
-        $userId = auth()->id();
+        $userId = intval(auth()->id());
         $action = strval(request()->input('action' , ''));
         $referrer = strval(request()->input('referrer' , ''));
         $goods = Goods::where('id' , $id)->firstOrFail();
         $user = app(UserRepository::class)->findByUserId($goods->user_id);
         $goods->user = new UserCollection($user);
-        $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
+        $like = auth()->check()&&DB::table('likes_goods')->where('id' , strval($userId)."-".$id)->first();
         $goods = $goods->makeVisible('status');
         $goods->likeState = !empty($like);
         if($action=='view'&&$goods->user_id!=$userId)
