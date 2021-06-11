@@ -48,7 +48,7 @@ class DeliveryOrderController extends BaseController
             if(!empty($goodsId))
             {
                 $goods = app(GoodsRepository::class)->find($goodsId);
-                $orderItem = [$goods->name];
+                $orderItem = \json_encode([["name" => $goods->name, "unitPrice" => $goods->price, "quantity" => 1, "detail" => ""]]);
                 $totalOrderCost = $totalOrderCost+$goods->price;
             }
             if(!blank($user))
