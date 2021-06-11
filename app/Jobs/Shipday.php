@@ -60,7 +60,7 @@ class Shipday implements ShouldQueue
             "pickupLongitude" => 0,
             "deliveryLatitude" => 0,
             "deliveryLongitude" => 0,
-            "orderItem" => [],
+            "orderItem" => $this->orderItem,
             "totalOrderCost" => $this->totalOrderCost,
             "tax" => $this->tax,
             "tips" => "0",

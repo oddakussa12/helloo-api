@@ -43,16 +43,17 @@ class DeliveryOrderController extends BaseController
             ));
         }else{
             $orderItem = [];
+            $totalOrderCost = 0;
             $user = app(UserRepository::class)->findByUserId($owner);
             if(!empty($goodsId))
             {
                 $goods = app(GoodsRepository::class)->find($goodsId);
-                Log::info('$goods' , collect($goods)->toArray());
                 $orderItem = [$goods->name];
+                $totalOrderCost = $totalOrderCost+$goods->price;
             }
             if(!blank($user))
             {
-                Shipday::dispatch($orderId , $userName , $userAddress , $userContact , strval($user->get('user_nick_name' , '')) , strval($user->get('user_address' , '')) , strval($user->get('user_contact' , '')) , $orderItem , 0 , 0)->onQueue('helloo_{delivery_shipday}');
+                Shipday::dispatch($orderId , $userName , $userAddress , $userContact , strval($user->get('user_nick_name' , '')) , strval($user->get('user_address' , '')) , strval($user->get('user_contact' , '')) , $orderItem , $totalOrderCost , 0)->onQueue('helloo_{delivery_shipday}');
             }
         }
         return $this->response->created();
