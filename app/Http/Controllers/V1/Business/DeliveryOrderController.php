@@ -51,7 +51,7 @@ class DeliveryOrderController extends BaseController
             }
             if(!blank($user))
             {
-                Shipday::dispatch($orderId , $userName , $userAddress , $userContact , strval($user->get('user_nick_name')) , strval($user->get('user_address')) , strval($user->get('user_contact')) , $orderItem , 0 , 0)->onQueue('helloo_{delivery_shipday}');
+                Shipday::dispatch($orderId , $userName , $userAddress , $userContact , strval($user->get('user_nick_name' , '')) , strval($user->get('user_address' , '')) , strval($user->get('user_contact' , '')) , $orderItem , 0 , 0)->onQueue('helloo_{delivery_shipday}');
             }
         }
         return $this->response->created();
