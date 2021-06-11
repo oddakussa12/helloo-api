@@ -21,7 +21,7 @@ class BusinessSearchLog implements ShouldQueue
 
     public function __construct($user , $content , $shop='')
     {
-        $this->user = $user;
+        $this->user = intval($user);
         $this->content = $content;
         $this->shop = $shop;
         $this->now = date('Y-m-d H:i:s');

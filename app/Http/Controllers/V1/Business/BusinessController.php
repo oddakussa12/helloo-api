@@ -22,7 +22,7 @@ class BusinessController extends BaseController
 
     public function search(Request $request)
     {
-        $userId = auth()->id();
+        $userId = intval(auth()->id());
         $keyword = escape_like(strval($request->input('keyword' , '')));
         if(!empty($keyword))
         {
@@ -33,9 +33,14 @@ class BusinessController extends BaseController
             $goodsIds = $goods->pluck('id')->toArray();
             if(!empty($goodsIds))
             {
-                $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
-                    return (array)$value;
-                }))->pluck('goods_id')->unique()->toArray();
+                if($userId>0)
+                {
+                    $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+                        return (array)$value;
+                    }))->pluck('goods_id')->unique()->toArray();
+                }else{
+                    $likes = array();
+                }
                 $goods->each(function($g) use ($likes){
                     $g->likeState = in_array($g->id , $likes);
                 });
