@@ -23,29 +23,21 @@ class GoodsController extends BaseController
     public function index(Request $request)
     {
         $keyword = escape_like(strval($request->input('keyword' , '')));
-        $auth = auth()->check() ? auth()->id() : 0;
-        $userId = strval($request->input('user_id' , ''));
-        $type = strval($request->input('type' , ''));
+        $auth    = auth()->check() ? auth()->id() : 0;
+        $userId  = strval($request->input('user_id' , ''));
+        $type    = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
         $appends['user_id'] = $userId;
-        $appends['type'] = $type;
+        $appends['type']    = $type;
         if(!empty($keyword))
         {
             $goods = Goods::where('user_id', $userId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
             BusinessSearchLog::dispatch($auth , $keyword , $userId)->onQueue('helloo_{business_search_logs}');
         }elseif (!empty($userId))
         {
-            if($type=='management')
-            {
-                $goods = Goods::where('user_id', $userId)
-                    ->orderByDesc('created_at')
-                    ->paginate(10);
-            }else{
-                $goods = Goods::where('user_id', $userId)->where('status' , 1)
-                    ->orderByDesc('created_at')
-                    ->paginate(10);
-            }
-            $goods = $goods->appends($appends);
+            $goods = Goods::where('user_id', $userId);
+            $type != 'management' && $goods = $goods->where('status' , 1);
+            $goods = $goods->orderByDesc('created_at')->paginate(10)->appends($appends);
         }else{
             $goods = collect();
         }
