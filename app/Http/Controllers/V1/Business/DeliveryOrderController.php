@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Jobs\OrderSms;
 use App\Jobs\Shipday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class DeliveryOrderController extends BaseController
         $userAddress = $request->input('user_address' , '');
         $createdAt = $updatedAt = date('Y-m-d H:i:s');
         $orderId = app('snowflake')->id();
-        $orderResult = DB::table('delivery_orders')->insert(array(
+        $orderInfo = array(
             'order_id'=>$orderId,
             'user_id'=>$userId,
             'owner'=>$owner,
@@ -34,7 +35,8 @@ class DeliveryOrderController extends BaseController
             'user_address'=>$userAddress,
             'created_at'=>$createdAt,
             'updated_at'=>$updatedAt,
-        ));
+        );
+        $orderResult = DB::table('delivery_orders')->insert($orderInfo);
         if(!$orderResult)
         {
             Log::info('order_create_fail' , array(
@@ -54,6 +56,7 @@ class DeliveryOrderController extends BaseController
             if(!blank($user))
             {
                 Shipday::dispatch($orderId , $userName , $userAddress , $userContact , strval($user->get('user_nick_name' , '')) , strval($user->get('user_address' , '')) , strval($user->get('user_contact' , '')) , $orderItem , $totalOrderCost , 0)->onQueue('helloo_{delivery_shipday}');
+                OrderSms::dispatch($orderInfo)->onQueue('helloo_{delivery_order_sms}');
             }
         }
         return $this->response->created();
