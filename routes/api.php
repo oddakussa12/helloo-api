@@ -225,7 +225,7 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/status' , 'UserController@status')->name('user.status');
 
-    $api->resource('user' , 'UserController' , ['only' => ['show']]);
+//    $api->resource('user' , 'UserController' , ['only' => ['show']]);
 
     $api->get('user' , 'UserController@index')->name('user.index');
 
@@ -301,8 +301,11 @@ $api->group($V1Params , function ($api){
     $api->get('test/sms' , 'TestController@sms')->name('test.sms');
 
     /** 商户 免登陆可访问的接口 start */
-      $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
-     $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
+
+    $api->resource('user' , 'UserController' , ['only' => ['show']]); // 他人个人主页
+    $api->get('goods' , 'Business\GoodsController@index')->name('goods.index'); // 商品搜索页面
+     $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply'); // 二级评论
+
     /** 商户 免登陆可访问的接口 end */
 
 });
