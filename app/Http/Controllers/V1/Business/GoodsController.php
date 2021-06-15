@@ -23,7 +23,7 @@ class GoodsController extends BaseController
     public function index(Request $request)
     {
         $keyword = escape_like(strval($request->input('keyword' , '')));
-        $auth = auth()->id();
+        $auth = auth()->check() ? auth()->id() : 0;
         $userId = strval($request->input('user_id' , ''));
         $type = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
@@ -52,7 +52,7 @@ class GoodsController extends BaseController
         $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
         {
-            $likes = collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+            $likes = empty($auth) ? [] : collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
                 return (array)$value;
             }))->pluck('goods_id')->unique()->toArray();
             $goods->each(function($g) use ($likes){

@@ -188,10 +188,10 @@ $api->group($V1Params , function ($api){
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
 
 
-        $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
+       //  $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
 
-        $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
+        // $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
         $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
         $api->delete('goods/{goods}/like' , 'Business\GoodsController@destroyLike')->name('goods.like.destroy');
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
@@ -299,6 +299,12 @@ $api->group($V1Params , function ($api){
     $api->get('test/ding' , 'TestController@ding')->name('test.ding');
     $api->post('test/ding' , 'TestController@ding')->name('test.ding');
     $api->get('test/sms' , 'TestController@sms')->name('test.sms');
+
+    /** 商户 免登陆可访问的接口 start */
+      $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
+     $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
+    /** 商户 免登陆可访问的接口 end */
+
 });
 
 
