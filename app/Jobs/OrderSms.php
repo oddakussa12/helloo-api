@@ -29,7 +29,7 @@ class OrderSms implements ShouldQueue
      */
     public function handle()
     {
-        $url = 'f9ccf6235cd0.ngrok.io/v1/sms/outbound';
+        $url = 'https://api.notification.beu.chat/';
         $data    = $this->orderInfo;
         $country = DB::table('users_countries')->where('user_id', $data['user_id'])->first();
         if (!empty($data['goods_id'])) {
@@ -37,8 +37,9 @@ class OrderSms implements ShouldQueue
         }
         $params['customerPhone']   = $data['user_contact'];
         $params['customerAddress'] = $data['user_address'];
-        $params['customerOrder']   = !empty($goods) ? $goods->goods_name : '';
-        $params['customerCountry'] = !empty($country) ? $country->country : '';
+        $params['customerOrder']   = !empty($goods) ? $goods->goods_name : null;
+        $params['customerCountry'] = !empty($country) && in_array($country->country, ['et', 'tl']) ? $country->country : null;
+        dump($params);
 
         $curl = curl_init();
 
