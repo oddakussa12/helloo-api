@@ -29,11 +29,16 @@ class OrderSms implements ShouldQueue
      */
     public function handle()
     {
-        $url = 'https://api.shipday.com/orders';
-
+        $url = 'f9ccf6235cd0.ngrok.io/v1/sms/outbound';
         $data    = $this->orderInfo;
         $country = DB::table('users_countries')->where('user_id', $data['user_id'])->first();
-        $data['country'] = !empty($country) ? $country->country : '';
+        if (!empty($data['goods_id'])) {
+            $goods = DB::table('goods')->where('id', $data['goods_id'])->first();
+        }
+        $params['customerPhone']   = $data['user_contact'];
+        $params['customerAddress'] = $data['user_address'];
+        $params['customerOrder']   = !empty($goods) ? $goods->goods_name : '';
+        $params['customerCountry'] = !empty($country) ? $country->country : '';
 
         $curl = curl_init();
 
@@ -46,7 +51,7 @@ class OrderSms implements ShouldQueue
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>\json_encode($data),
+            CURLOPT_POSTFIELDS =>\json_encode($params),
             CURLOPT_HTTPHEADER => array(
                 'Authorization: Basic upquBv2pED.UqKHGwFMNUzpSUxg2oRB',
                 'Content-Type: application/json'
@@ -54,7 +59,7 @@ class OrderSms implements ShouldQueue
         ));
 
         $response = curl_exec($curl);
-
+        dump($response);
         curl_close($curl);
         Log::info(__CLASS__.'_result' , array('$response'=>$response));
     }
