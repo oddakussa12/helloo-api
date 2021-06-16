@@ -182,7 +182,6 @@ return [
         App\Providers\GeoIPServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         App\Providers\QiniuStorageServiceProvider::class,
-        Overtrue\LaravelFollow\FollowServiceProvider::class,
         App\Providers\LaravelLocalizationServiceProvider::class,
         App\Providers\RongCloudServiceProvider::class,
         App\Providers\NotificationServiceProvider::class,
