@@ -49,9 +49,12 @@ class BusinessController extends BaseController
             $goods = $users = collect();
         }
         !empty($keyword)&&BusinessSearchLog::dispatch($userId , $keyword)->onQueue('helloo_{business_search_logs}');
+        $users->each(function($user){
+            $user->userPoint = app(UserRepository::class)->findPointByUserId($user->user_id);
+        });
         return $this->response->array(array(
             'data'=>array(
-                'user'=>AnonymousCollection::collection($users),
+                'user'=>UserCollection::collection($users),
                 'goods'=>AnonymousCollection::collection($goods)
             )
         ));
@@ -61,6 +64,12 @@ class BusinessController extends BaseController
     {
         $deliveryUsers = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 1)->inRandomOrder()->limit(20)->get();
         $users = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0)->inRandomOrder()->limit(20)->get();
+        $users->each(function($user){
+            $user->userPoint = app(UserRepository::class)->findPointByUserId($user->user_id);
+        });
+        $deliveryUsers->each(function($deliveryUser){
+            $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
+        });
         $data = array('data'=>array(
             'live_shop'=>UserCollection::collection($users),
             'delivery_shop'=>UserCollection::collection($deliveryUsers),
@@ -124,6 +133,9 @@ class BusinessController extends BaseController
                     'pageName' => $pageName,
                 ])->appends($appends);
             }
+            $shops->each(function($shop){
+                $shop->userPoint = app(UserRepository::class)->findPointByUserId($shop->user_id);
+            });
             return UserCollection::collection($shops);
         }else{
             $data = $this->paginator(collect(), 0, $perPage, $page, [
