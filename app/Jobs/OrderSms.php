@@ -29,7 +29,7 @@ class OrderSms implements ShouldQueue
      */
     public function handle()
     {
-        $url = 'https://api.notification.beu.chat/';
+        $url = 'https://notification.beu.chat/v1/sms/outbound';
         $data    = $this->orderInfo;
         $country = DB::table('users_countries')->where('user_id', $data['user_id'])->first();
         if (!empty($data['goods_id'])) {
@@ -39,7 +39,6 @@ class OrderSms implements ShouldQueue
         $params['customerAddress'] = $data['user_address'];
         $params['customerOrder']   = !empty($goods) ? $goods->goods_name : null;
         $params['customerCountry'] = !empty($country) && in_array($country->country, ['et', 'tl']) ? $country->country : null;
-        dump($params);
 
         $curl = curl_init();
 
@@ -54,13 +53,12 @@ class OrderSms implements ShouldQueue
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS =>\json_encode($params),
             CURLOPT_HTTPHEADER => array(
-                'Authorization: Basic upquBv2pED.UqKHGwFMNUzpSUxg2oRB',
                 'Content-Type: application/json'
             ),
         ));
 
         $response = curl_exec($curl);
-        dump($response);
+
         curl_close($curl);
         Log::info(__CLASS__.'_result' , array('$response'=>$response));
     }
