@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Models\Goods;
+use App\Models\Order;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\AnonymousCollection;
+use App\Resources\OrderCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -96,5 +98,26 @@ class OrderController extends BaseController
             $shop->put('goods' , AnonymousCollection::collection($shopGoods->get($shop->get('user_id'))));
         });
         return AnonymousCollection::collection($shops);
+    }
+
+    public function my(Request $request)
+    {
+        $appends = array();
+        $userId = auth()->id();
+        $type = $request->input('type' , 'progress');
+        $appends['type'] = $type;
+        if($type=='progress')
+        {
+            $orders = Order::where('user_id' , $userId)->where('status' , 0)->orderByDesc('created_at')->limit(20)->get();
+        }elseif($type=='completed')
+        {
+            $orders = Order::where('user_id' , $userId)->where('status' , 1)->orderByDesc('created_at')->paginate(10)->appends($appends);
+        }elseif($type=='canceled')
+        {
+            $orders = Order::where('user_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10)->appends($appends);
+        }else{
+            $orders = collect();
+        }
+        return OrderCollection::collection($orders);
     }
 }
