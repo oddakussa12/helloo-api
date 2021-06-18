@@ -186,14 +186,9 @@ $api->group($V1Params , function ($api){
         /*****business start*****/
         $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('user.agora.token');
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
-<<<<<<< HEAD
 
-
-       //  $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
-=======
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
         $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
->>>>>>> dev
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
 
         // $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
@@ -311,8 +306,7 @@ $api->group($V1Params , function ($api){
     /** 商户 免登陆可访问的接口 start */
 
     $api->resource('user' , 'UserController' , ['only' => ['show']]); // 他人个人主页
-    $api->get('goods' , 'Business\GoodsController@index')->name('goods.index'); // 商品搜索页面
-     $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply'); // 二级评论
+    $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply'); // 二级评论
 
     /** 商户 免登陆可访问的接口 end */
 
