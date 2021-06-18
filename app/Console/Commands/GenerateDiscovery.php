@@ -14,7 +14,7 @@ class GenerateDiscovery extends Command
      *
      * @var string
      */
-    protected $signature = 'generate:discovery';
+    protected $signature = 'generate:discovery  {type?}';
 
     /**
      * The console command description.
