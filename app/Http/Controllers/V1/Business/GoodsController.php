@@ -23,9 +23,9 @@ class GoodsController extends BaseController
     public function index(Request $request)
     {
         $keyword = escape_like(strval($request->input('keyword' , '')));
-        $auth    = auth()->check() ? auth()->id() : 0;
-        $userId  = strval($request->input('user_id' , ''));
-        $type    = strval($request->input('type' , ''));
+        $auth = intval(auth()->id());
+        $userId = strval($request->input('user_id' , ''));
+        $type = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
         $appends['user_id'] = $userId;
         $appends['type']    = $type;
@@ -44,9 +44,9 @@ class GoodsController extends BaseController
         $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
         {
-            $likes = empty($auth) ? [] : collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+            $likes = $auth>0?collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
                 return (array)$value;
-            }))->pluck('goods_id')->unique()->toArray();
+            }))->pluck('goods_id')->unique()->toArray():array();
             $goods->each(function($g) use ($likes){
                 $g->likeState = in_array($g->id , $likes);
             });
@@ -86,7 +86,7 @@ class GoodsController extends BaseController
         $goods = Goods::where('id' , $id)->firstOrFail();
         $user = app(UserRepository::class)->findByUserId($goods->user_id);
         $goods->user = new UserCollection($user);
-        $like = auth()->check()&&DB::table('likes_goods')->where('id' , strval($userId)."-".$id)->first();
+        $like = !empty($userId)&&DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
         $goods = $goods->makeVisible('status');
         $goods->likeState = !empty($like);
         if($action=='view'&&$goods->user_id!=$userId)

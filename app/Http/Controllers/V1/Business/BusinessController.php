@@ -105,7 +105,7 @@ class BusinessController extends BaseController
                     $goodsIds = array();
                 }
                 $goods = app(GoodsRepository::class)->allWithBuilder()->whereIn('id' , $goodsIds)->get();
-                $goods = $this->paginator($goods, $total, $perPage, $page, [
+                $goods = $this->paginator($goods , $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
                 ])->appends($appends);

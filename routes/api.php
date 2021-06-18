@@ -186,9 +186,14 @@ $api->group($V1Params , function ($api){
         /*****business start*****/
         $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('user.agora.token');
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
+<<<<<<< HEAD
 
 
        //  $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
+=======
+        $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
+        $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
+>>>>>>> dev
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
 
         // $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
@@ -204,6 +209,9 @@ $api->group($V1Params , function ($api){
         /*****business end*****/
 
     });
+    $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
+
+    $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');
 
     $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
 
