@@ -29,7 +29,7 @@ class OperationLog extends BaseMiddleware
             $now = $chinaNow->format('Ymd');
             $version = $agent->getHttpHeader('HellooVersion');
             $deviceId = $agent->getHttpHeader('deviceId');
-            if(version_compare($version , config('common.block_version') , '<='))
+            if(!empty($version)&&version_compare($version , config('common.block_version') , '<='))
             {
                 abort(401 , __('Please update to the latest version from Play Store.'));
             }

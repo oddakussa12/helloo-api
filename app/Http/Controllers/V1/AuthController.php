@@ -40,13 +40,15 @@ class AuthController extends BaseController
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
         $deviceId = $agent->getHttpHeader('deviceId');
-        if(version_compare($version , config('common.block_version') , '<='))
+        if(!empty($version)&&version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
-
-        $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
-        $flag && abort(401 , trans('auth.user_device_banned'));
+        if(!empty($deviceId))
+        {
+            $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
+            $flag && abort(401 , trans('auth.user_device_banned'));
+        }
 
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
@@ -502,12 +504,16 @@ class AuthController extends BaseController
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
         $deviceId = $agent->getHttpHeader('deviceId');
-        if(version_compare($version , config('common.block_version') , '<='))
+        if(!empty($version)&&version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
-        $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
-        $flag && abort(401 , trans('auth.user_device_banned'));
+        if(!empty($deviceId))
+        {
+            $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
+            $flag && abort(401 , trans('auth.user_device_banned'));
+        }
+
         $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
@@ -619,12 +625,16 @@ class AuthController extends BaseController
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
         $deviceId = $agent->getHttpHeader('deviceId');
-        if(version_compare($version , config('common.block_version') , '<='))
+        if(!empty($version)&&version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
-        $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
-        $flag && abort(401 , trans('auth.user_device_banned'));
+        if(!empty($deviceId))
+        {
+            $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
+            $flag && abort(401 , trans('auth.user_device_banned'));
+        }
+
 //        $password = strval($request->input('password' , ""));
         $user_phone = ltrim(ltrim(strval($request->input('user_phone' , "")) , "+") , "0");
         $user_phone_country = ltrim(strval($request->input('user_phone_country' , "86")) , "+");
@@ -907,13 +917,15 @@ class AuthController extends BaseController
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
         $deviceId = $agent->getHttpHeader('deviceId');
-        if(version_compare($version , config('common.block_version') , '<='))
+        if(!empty($deviceId)&&version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
-
-        $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
-        $flag && abort(401 , trans('auth.user_device_banned'));
+        if(!empty($deviceId))
+        {
+            $flag = Redis::sismember('helloo:account:service:block-device' , $deviceId);
+            $flag && abort(401 , trans('auth.user_device_banned'));
+        }
 
         $registration_type = strval($request->input('registration_type' , 'user'));
         $user_name = strval($request->input('user_name' , ''));
