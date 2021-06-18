@@ -23,7 +23,7 @@ class GoodsController extends BaseController
     public function index(Request $request)
     {
         $keyword = escape_like(strval($request->input('keyword' , '')));
-        $auth = auth()->id();
+        $auth = intval(auth()->id());
         $userId = strval($request->input('user_id' , ''));
         $type = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
@@ -52,9 +52,14 @@ class GoodsController extends BaseController
         $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
         {
-            $likes = collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
-                return (array)$value;
-            }))->pluck('goods_id')->unique()->toArray();
+            if($auth>0)
+            {
+                $likes = collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+                    return (array)$value;
+                }))->pluck('goods_id')->unique()->toArray();
+            }else{
+                $likes = array();
+            }
             $goods->each(function($g) use ($likes){
                 $g->likeState = in_array($g->id , $likes);
             });
@@ -88,13 +93,13 @@ class GoodsController extends BaseController
 
     public function show($id)
     {
-        $userId = auth()->id();
+        $userId = intval(auth()->id());
         $action = strval(request()->input('action' , ''));
         $referrer = strval(request()->input('referrer' , ''));
         $goods = Goods::where('id' , $id)->firstOrFail();
         $user = app(UserRepository::class)->findByUserId($goods->user_id);
         $goods->user = new UserCollection($user);
-        $like = DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
+        $like = !empty($userId)&&DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
         $goods = $goods->makeVisible('status');
         $goods->likeState = !empty($like);
         if($action=='view'&&$goods->user_id!=$userId)
