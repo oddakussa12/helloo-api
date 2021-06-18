@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Models\User;
-use App\Repositories\Contracts\UserRepository;
-use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
+use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
+use App\Repositories\Contracts\UserRepository;
 
 class BusinessController extends BaseController
 {
@@ -55,5 +57,74 @@ class BusinessController extends BaseController
             'delivery_shop'=>UserCollection::collection($deliveryUsers),
         ));
         return $this->response->array($data);
+    }
+
+    public function home(Request $request)
+    {
+        $appends = array();
+        $type = $request->input('type' , 'product');
+        $order = $request->input('order' , 'popular');
+        $appends['type'] = $type;
+        $appends['order'] = $order;
+        $perPage  = 10;
+        $pageName = 'page';
+        $page     = intval($request->input($pageName, 1));
+        $offset   = ($page-1) * $perPage;
+        if($type=='product')
+        {
+            if($order=='new')
+            {
+                $goods = app(GoodsRepository::class)->allWithBuilder()->orderByDesc('created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+            }else{
+                $key = 'helloo:discovery:'.$order.':products';
+                if(Redis::exists($key))
+                {
+                    $total = Redis::zcard($key);
+                    $goodsIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    $goodsIds = array_keys($goodsIds);
+                }else {
+                    $total = 0;
+                    $goodsIds = array();
+                }
+                $goods = app(GoodsRepository::class)->allWithBuilder()->whereIn('id' , $goodsIds)->get();
+                $goods = $this->paginator($goods, $total, $perPage, $page, [
+                    'path'     => Paginator::resolveCurrentPath(),
+                    'pageName' => $pageName,
+                ])->appends($appends);
+            }
+            return AnonymousCollection::collection($goods);
+        }elseif ($type=='shop')
+        {
+            if($order=='new')
+            {
+                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+            }else{
+                $key = 'helloo:discovery:'.$order.':shops';
+                if(Redis::exists($key))
+                {
+                    $total = Redis::zcard($key);
+                    $shopIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    $shopIds = array_keys($shopIds);
+                }else {
+                    $total = 0;
+                    $shopIds = array();
+                }
+                $shops = app(UserRepository::class)->allWithBuilder()->whereIn('user_id' , $shopIds)->get();
+                $shops = $this->paginator($shops, $total, $perPage, $page, [
+                    'path'     => Paginator::resolveCurrentPath(),
+                    'pageName' => $pageName,
+                ])->appends($appends);
+            }
+            $shops->each(function($shop){
+                $shop->userPoint = app(UserRepository::class)->findPointByUserId($shop->user_id);
+            });
+            return UserCollection::collection($shops);
+        }else{
+            $data = $this->paginator(collect(), 0, $perPage, $page, [
+                'path'     => Paginator::resolveCurrentPath(),
+                'pageName' => $pageName,
+            ]);
+            return AnonymousCollection::collection($data);
+        }
     }
 }

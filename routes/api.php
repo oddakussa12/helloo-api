@@ -188,6 +188,7 @@ $api->group($V1Params , function ($api){
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
         $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
+        $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');
         $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
         $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
