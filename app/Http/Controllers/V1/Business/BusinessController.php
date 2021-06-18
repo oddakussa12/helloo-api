@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
+use App\Repositories\Contracts\GoodsRepository;
 
 class BusinessController extends BaseController
 {
