@@ -23,7 +23,7 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Message::class,
         \App\Console\Commands\Dau::class,
         \App\Console\Commands\Retention::class,
-        \App\Console\Commands\RealTimeChatDepth::class,
+//        \App\Console\Commands\RealTimeChatDepth::class,
         \App\Console\Commands\ActiveUser::class,
         \App\Console\Commands\FixUserCountry::class,
         \App\Console\Commands\GenerateDiscovery::class
@@ -107,18 +107,18 @@ class Kernel extends ConsoleKernel
             });
 
         //chatDepth 5
-        $schedule->command('real:time_chat_depth' , array('yesterday'))
-            ->cron('45 */3 * * *')->when(function(){
-                return config('common.cron_switch');
-            });
-        $schedule->command('real:time_chat_depth' , array('today'))
-            ->hourlyAt(10)->when(function(){
-                return config('common.cron_switch');
-            });
-        $schedule->command('real:time_chat_depth')
-            ->dailyAt('12:30')->when(function(){
-                return config('common.cron_switch');
-            });
+//        $schedule->command('real:time_chat_depth' , array('yesterday'))
+//            ->cron('45 */3 * * *')->when(function(){
+//                return config('common.cron_switch');
+//            });
+//        $schedule->command('real:time_chat_depth' , array('today'))
+//            ->hourlyAt(10)->when(function(){
+//                return config('common.cron_switch');
+//            });
+//        $schedule->command('real:time_chat_depth')
+//            ->dailyAt('12:30')->when(function(){
+//                return config('common.cron_switch');
+//            });
 
         $schedule->command('active:user')
             ->dailyAt('18:00')->when(function(){
