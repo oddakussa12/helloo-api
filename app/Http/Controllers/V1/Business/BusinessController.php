@@ -14,9 +14,12 @@ use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
 use App\Repositories\Contracts\GoodsRepository;
+use Illuminate\Database\Concerns\BuildsQueries;
 
 class BusinessController extends BaseController
 {
+    use BuildsQueries;
+
     public function search(Request $request)
     {
         $userId = auth()->id();
@@ -88,7 +91,7 @@ class BusinessController extends BaseController
                     $goodsIds = array();
                 }
                 $goods = app(GoodsRepository::class)->allWithBuilder()->whereIn('id' , $goodsIds)->get();
-                $goods = $this->paginator(collect($goods), $total, $perPage, $page, [
+                $goods = $this->paginator($goods , $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
                 ])->appends($appends);
