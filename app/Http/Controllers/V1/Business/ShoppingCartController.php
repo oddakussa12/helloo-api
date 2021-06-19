@@ -43,6 +43,7 @@ class ShoppingCartController extends BaseController
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
             $shop['goods'] = AnonymousCollection::collection(collect($shopGoods->get($shop['user_id'])));
+            $shop['user_currency'] = 'USD';
             $shops[$k] = new UserCollection($shop);
         }
         return AnonymousCollection::collection(collect($shops));
