@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Models\Goods;
 use App\Jobs\ShoppingCart;
-use App\Resources\UserCollection;
 use Illuminate\Http\Request;
+use App\Models\Business\Goods;
+use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
