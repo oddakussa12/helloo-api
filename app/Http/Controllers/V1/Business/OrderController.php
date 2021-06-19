@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Models\Goods;
+use App\Models\Business\Goods;
 use App\Models\Order;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\AnonymousCollection;
@@ -80,31 +80,53 @@ class OrderController extends BaseController
         $userId = $user->user_id;
         $goods = (array)$request->input('goods');
         $key = "helloo:business:shopping_cart:service:account:".$userId;
+        if(empty(array_keys($goods)))
+        {
+            abort(403 , 'Illegal request!');
+        }
         $cache = Redis::hmget($key , array_keys($goods));
-        $cache = array_filter($cache , function ($v, $k){
+        $cache = array_combine(array_keys($goods) , $cache);
+        $filterGoods = array_filter($cache , function ($v, $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
-        $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&$cache[$k]==$v;
-        } , ARRAY_FILTER_USE_BOTH);
-        if($goods!==$filterGoods)
+        if(empty($filterGoods))
         {
-            abort(403 , 'An error occurred in the parameter!');
+            abort(403 , 'There is no goods in the shopping cart!');
         }
-        $gs = Goods::where('id' , array_keys($goods))->get();
+        $gs = Goods::where('id' , array_keys($filterGoods))->get();
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
-        $shopGoods->each(function($g) use ($goods){
-            $g->goodsNumber = $goods[$g->id];
+        $shopGoods->each(function($g) use ($filterGoods){
+            $g->goodsNumber = $filterGoods[$g->id];
         });
         $userIds = $shopGoods->pluck('user_id')->toArray();
+        $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
-        $shops = collect(UserCollection::collection(app(UserRepository::class)->findByUserIds($userIds)));
-        $shops->each(function($shop) use ($shopGoods){
-            $shop->put('goods' , AnonymousCollection::collection($shopGoods->get($shop->get('user_id'))));
-        });
-        return AnonymousCollection::collection($shops);
+        $phone = DB::table('users_phones')->where('user_id' , $user->user_id)->first();
+        if(!empty($phone)&&$phone->user_phone_country=='251')
+        {
+            $currency = 'BIRR';
+        }else
+        {
+            $currency = 'USD';
+        }
+        $returnData = array();
+        foreach ($shops as $shop)
+        {
+            $shopGs = $shopGoods->get($shop['user_id']);
+            $price = collect($shopGs)->sum(function ($shopG) {
+                return $shopG['goodsNumber']*$shopG['price'];
+            });
+            array_push($returnData , array(
+                'user'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')),
+                'goods'=>$shopGoods->get($shop['user_id']),
+                'subTotal'=>$price,
+                'deliveryCoast'=>30,
+                'currency'=>$currency,
+            ));
+        }
+        return AnonymousCollection::collection(collect($returnData));
     }
 
     public function my(Request $request)
