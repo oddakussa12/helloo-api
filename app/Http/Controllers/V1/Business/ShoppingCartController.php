@@ -44,9 +44,9 @@ class ShoppingCartController extends BaseController
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
             $shopGoods = collect($shopGoods->get($shop['user_id']));
             $price = $shopGoods->sum(function($shopG){
-                return $shopG->goodsNumber*$shopG->price;
+                return $shopG['goodsNumber']*$shopG['price'];
             });
-            $shop['goods'] = AnonymousCollection::collection(collect($shopGoods->get($shop['user_id'])));
+            $shop['goods'] = AnonymousCollection::collection($shopGoods);
             $shop['user_currency'] = 'USD';
             $shop['deliveryCoast'] = 30;
             $shop['subTotal'] = $price;
@@ -60,6 +60,10 @@ class ShoppingCartController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $key = "helloo:business:shopping_cart:service:account:".$userId;
+        if(Redis::hlen($key)>19)
+        {
+            abort(422 , 'Up to 20 goods in the shopping cart!');
+        }
         $goodsId = $request->input('goods_id' , '');
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
         if($goods->status==0)
