@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
-use App\Http\Requests\StoreDeliveryOrderRequest;
+use App\Repositories\Contracts\UserRepository;
 
 class ShoppingCartController extends BaseController
 {
@@ -19,7 +19,6 @@ class ShoppingCartController extends BaseController
     {
         $user = auth()->user();
         $userId = $user->user_id;
-        $carts = DB::table('shopping_carts')->where('user_id' , $userId)->get();
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         $cache = Redis::hgetall($key);
         $goods = array_filter($cache , function ($v, $k){
