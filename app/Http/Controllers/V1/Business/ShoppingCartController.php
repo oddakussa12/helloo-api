@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Models\Goods;
 use App\Jobs\ShoppingCart;
 use App\Resources\UserCollection;
 use Illuminate\Http\Request;
