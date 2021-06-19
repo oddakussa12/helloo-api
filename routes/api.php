@@ -198,8 +198,15 @@ $api->group($V1Params , function ($api){
         $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
         $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
         $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
+        $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
+        $api->get('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
+        $api->get('order/my' , 'Business\OrderController@my')->name('business.order.my');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
             $api->post('delivery/order' , 'Business\DeliveryOrderController@store')->name('goods.delivery.order.store');
+            $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
+            $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
+            $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
+            $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
         });
         /*****business end*****/
 

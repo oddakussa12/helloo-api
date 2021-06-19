@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Repositories\Contracts\UserRepository;
 use App\Resources\AnonymousCollection;
 use App\Resources\OrderCollection;
+use App\Resources\UserCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,8 +42,11 @@ class OrderController extends BaseController
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
+        $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
+        $users = app(UserRepository::class)->findByUserIds($userIds);
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
-        $data = array();
+        $orderData = array();
+        $returnData = array();
         $now = date('Y-m-d H:i:s');
         foreach ($shopGoods as $u=>$shopGs)
         {
@@ -50,7 +54,7 @@ class OrderController extends BaseController
             $price = collect($shopGs)->sum(function ($shopG) use ($goods) {
                 return $goods[$shopG['id']]*$shopG['price'];
             });
-            array_push($data , array(
+            $data = array(
                 'order_id'=>$orderId,
                 'user_id'=>$userId,
                 'shop_id'=>$u,
@@ -61,10 +65,13 @@ class OrderController extends BaseController
                 'order_price'=>round($price , 2),
                 'created_at'=>$now,
                 'updated_at'=>$now,
-            ));
+            );
+            array_push($orderData , $data);
+            $data['shop'] = new UserCollection($users->where('user_id' , $u)->first());
+            array_push($returnData , $data);
         }
-        !empty($data)&&DB::table('orders')->insert($data);
-        return $this->response->created();
+        !empty($orderData)&&DB::table('orders')->insert($orderData);
+        return AnonymousCollection::collection($returnData);
     }
 
     public function preview(Request $request)
