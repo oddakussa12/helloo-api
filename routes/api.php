@@ -206,7 +206,7 @@ $api->group($V1Params , function ($api){
             $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
             $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
             $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
-            $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
+            $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
         });
         /*****business end*****/
 
