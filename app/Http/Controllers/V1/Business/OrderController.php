@@ -37,7 +37,7 @@ class OrderController extends BaseController
         {
             abort(403 , 'An error occurred in the parameter!');
         }
-        $gs = Goods::where('id' , array_keys($goods))->get();
+        $gs = Goods::whereIn('id' , array_keys($goods))->get();
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
