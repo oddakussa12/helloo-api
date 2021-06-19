@@ -15,17 +15,21 @@ use App\Repositories\Contracts\UserRepository;
 
 class ShoppingCartController extends BaseController
 {
-    public function my(Request $request)
+    public function index(Request $request)
     {
         $user = auth()->user();
-        $userId = $user->user_id;
-        $key = "helloo:business:shopping_cart:service:account:".$userId;
+        $userId = intval($request->input('user_id' , 0));
+        $key = "helloo:business:shopping_cart:service:account:".$user->user_id;
         $cache = Redis::hgetall($key);
         $goods = array_filter($cache , function ($v, $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
-
-        $gs = Goods::where('id' , array_keys($goods))->get();
+        if($userId>0)
+        {
+            $gs = Goods::where('user_id' , $userId)->whereIn('id' , array_keys($goods))->get();
+        }else{
+            $gs = Goods::whereIn('id' , array_keys($goods))->get();
+        }
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
@@ -34,11 +38,13 @@ class ShoppingCartController extends BaseController
         });
         $userIds = $shopGoods->pluck('user_id')->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
-        $shops = collect(UserCollection::collection(app(UserRepository::class)->findByUserIds($userIds)));
-        $shops->each(function($shop) use ($shopGoods){
-            $shop->put('goods' , AnonymousCollection::collection($shopGoods->get($shop->get('user_id'))));
-        });
-        return AnonymousCollection::collection($shops);
+        $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
+        foreach ($shops as $k=>$shop)
+        {
+            $shop['goods'] = AnonymousCollection::collection(collect($shopGoods->get($shop['user_id'])));
+            $shops[$k] = new UserCollection($shop);
+        }
+        return AnonymousCollection::collection(collect($shops));
     }
     public function store(Request $request)
     {

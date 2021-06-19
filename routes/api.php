@@ -198,7 +198,7 @@ $api->group($V1Params , function ($api){
         $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
         $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
         $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
-        $api->get('shopping_cart/myself' , 'Business\ShoppingCartController@my')->name('business.shopping.cart.my');
+        $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
         $api->get('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
         $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
