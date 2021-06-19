@@ -76,11 +76,11 @@ class ShoppingCartController extends BaseController
                 Redis::hset($key , $goodsId , $number);
             }
         }
+        $goods->goodsNumber = $number;
         ShoppingCart::dispatch($goods , $user , $number)->onQueue('helloo_{business_shopping_cart}');
         return $this->response->created(null , array(
             'data'=>array(
                 'goods' => new AnonymousCollection($goods),
-                'number' =>$number,
             )
         ));
     }
