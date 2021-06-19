@@ -15,7 +15,7 @@ use App\Http\Requests\StoreDeliveryOrderRequest;
 
 class ShoppingCartController extends BaseController
 {
-    public function index(Request $request)
+    public function my(Request $request)
     {
         $user = auth()->user();
         $userId = $user->user_id;
