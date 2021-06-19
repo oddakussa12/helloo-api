@@ -78,8 +78,10 @@ class ShoppingCartController extends BaseController
         }
         ShoppingCart::dispatch($goods , $user , $number)->onQueue('helloo_{business_shopping_cart}');
         return $this->response->created(null , array(
-            'goods' => new AnonymousCollection($goods),
-            'number' =>$number,
+            'data'=>array(
+                'goods' => new AnonymousCollection($goods),
+                'number' =>$number,
+            )
         ));
     }
 
