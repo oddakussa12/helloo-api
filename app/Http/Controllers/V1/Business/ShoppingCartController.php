@@ -42,7 +42,7 @@ class ShoppingCartController extends BaseController
         foreach ($shops as $k=>$shop)
         {
             $shop['goods'] = AnonymousCollection::collection(collect($shopGoods->get($shop['user_id'])));
-            $shops[$k] = new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link'))
+            $shops[$k] = new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link'));
         }
         return AnonymousCollection::collection(collect($shops));
     }
