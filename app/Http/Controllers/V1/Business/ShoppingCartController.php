@@ -20,19 +20,12 @@ class ShoppingCartController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $carts = DB::table('shopping_carts')->where('user_id' , $userId)->get();
-        $goods = $carts->pluck('number' , 'goods_id')->toArray();
         $key = "helloo:business:shopping_cart:service:account:".$userId;
-        $cache = Redis::hmget($key , array_keys($goods));
-        $cache = array_filter($cache , function ($v, $k){
+        $cache = Redis::hgetall($key);
+        $goods = array_filter($cache , function ($v, $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
-        $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&$cache[$k]==$v;
-        } , ARRAY_FILTER_USE_BOTH);
-        if($goods!==$filterGoods)
-        {
-            abort(403 , 'An error occurred in the parameter!');
-        }
+
         $gs = Goods::where('id' , array_keys($goods))->get();
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
