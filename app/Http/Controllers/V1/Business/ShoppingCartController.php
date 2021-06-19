@@ -42,9 +42,14 @@ class ShoppingCartController extends BaseController
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
+            $shopGoods = collect($shopGoods->get($shop['user_id']));
+            $price = $shopGoods->sum(function($shopG){
+                return $shopG->goodsNumber*$shopG->price;
+            });
             $shop['goods'] = AnonymousCollection::collection(collect($shopGoods->get($shop['user_id'])));
             $shop['user_currency'] = 'USD';
             $shop['deliveryCoast'] = 30;
+            $shop['subTotal'] = $price;
             $shops[$k] = new UserCollection($shop);
         }
         return AnonymousCollection::collection(collect($shops));
