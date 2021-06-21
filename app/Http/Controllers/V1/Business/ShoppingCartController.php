@@ -42,11 +42,11 @@ class ShoppingCartController extends BaseController
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
-            $shopGoods = collect($shopGoods->get($shop['user_id']));
-            $price = $shopGoods->sum(function($shopG){
+            $shopGs = collect($shopGoods->get($shop['user_id']));
+            $price = $shopGs->sum(function($shopG){
                 return $shopG['goodsNumber']*$shopG['price'];
             });
-            $shop['goods'] = AnonymousCollection::collection($shopGoods);
+            $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = 'USD';
             $shop['deliveryCoast'] = 30;
             $shop['subTotal'] = $price;
@@ -117,11 +117,11 @@ class ShoppingCartController extends BaseController
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
-            $shopGoods = collect($shopGoods->get($shop['user_id']));
-            $price = $shopGoods->sum(function($shopG){
+            $shopGs = collect($shopGoods->get($shop['user_id']));
+            $price = $shopGs->sum(function($shopG){
                 return $shopG['goodsNumber']*$shopG['price'];
             });
-            $shop['goods'] = AnonymousCollection::collection($shopGoods);
+            $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = $currency;
             $shop['deliveryCoast'] = 30;
             $shop['subTotal'] = $price;
