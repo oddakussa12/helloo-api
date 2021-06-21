@@ -123,7 +123,7 @@ class OrderController extends BaseController
             });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             array_push($returnData , array(
-                'user'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
+                'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
                 'goods'=>$shopGoods->get($shop['user_id']),
                 'subTotal'=>$price,
                 'deliveryCoast'=>30,
@@ -156,6 +156,13 @@ class OrderController extends BaseController
 
     public function show(Request $request , $id)
     {
-
+        $order = Order::where('order_id' , $id)->first();
+        if(empty($order))
+        {
+            abort(404 , 'Sorry, the order does not exist!');
+        }
+        $shop = app(UserRepository::class)->findByUserId($order->shop_id);
+        $order->shop = new UserCollection($shop);
+        return new OrderCollection($order);
     }
 }

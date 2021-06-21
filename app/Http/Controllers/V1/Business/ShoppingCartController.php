@@ -61,10 +61,6 @@ class ShoppingCartController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $key = "helloo:business:shopping_cart:service:account:".$userId;
-//        if(Redis::hlen($key)>19)
-//        {
-//            abort(422 , 'Up to 20 goods in the shopping cart!');
-//        }
         $goodsId = $request->input('goods_id' , '');
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
         if($goods->status==0)
@@ -73,6 +69,13 @@ class ShoppingCartController extends BaseController
         }
         if($type=='store')
         {
+            if(!Redis::hexists($key , $goodsId))
+            {
+                if(Redis::hlen($key)>=20)
+                {
+                    abort(422 , 'Up to 20 goods in the shopping cart!');
+                }
+            }
             $number = Redis::hincrby($key , $goodsId , 1);
         }else{
             $number = intval($request->input('number' , 1));
@@ -84,10 +87,16 @@ class ShoppingCartController extends BaseController
             {
                 Redis::hdel($key , $goodsId);
             }else{
+                if(!Redis::hexists($key , $goodsId))
+                {
+                    if(Redis::hlen($key)>=20)
+                    {
+                        abort(422 , 'Up to 20 goods in the shopping cart!');
+                    }
+                }
                 Redis::hset($key , $goodsId , $number);
             }
         }
-
         $phone = DB::table('users_phones')->where('user_id' , $goods->user_id)->first();
         if(!empty($phone)&&$phone->user_phone_country=='251')
         {
