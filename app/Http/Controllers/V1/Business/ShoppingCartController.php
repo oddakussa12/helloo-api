@@ -77,7 +77,7 @@ class ShoppingCartController extends BaseController
                 }
             }else{
                 $number = Redis::hget($key , $goodsId);
-                if($number>50)
+                if($number>=50)
                 {
                     abort(422 , 'The number of goods is the most right to add 50!');
                 }

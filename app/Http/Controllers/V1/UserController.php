@@ -174,6 +174,7 @@ class UserController extends BaseController
         {
             $point = app(UserRepository::class)->findPointByUserId($id);
             $user->put('userPoint', $point);
+            $user->put('callCenter', '+251977484116');
         }
         return new UserCollection($user);
     }
