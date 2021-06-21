@@ -111,7 +111,7 @@ class OrderController extends BaseController
         });
         $userIds = $shopGoods->pluck('user_id')->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
-        $shopGoods = $shopGoods->groupBy('user_id')->toArray();
+        $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $returnData = array();
         foreach ($shops as $shop)
