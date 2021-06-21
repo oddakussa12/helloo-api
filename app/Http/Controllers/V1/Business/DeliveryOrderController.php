@@ -24,6 +24,11 @@ class DeliveryOrderController extends BaseController
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
         $createdAt = $updatedAt = date('Y-m-d H:i:s');
+        $o = app(UserRepository::class)->findByUserId($owner);
+        if(blank($o))
+        {
+            abort(404 , 'Shop does not exist!');
+        }
         $orderId = app('snowflake')->id();
         $orderInfo = array(
             'order_id'=>$orderId,
