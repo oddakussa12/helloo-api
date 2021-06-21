@@ -60,10 +60,10 @@ class ShoppingCartController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $key = "helloo:business:shopping_cart:service:account:".$userId;
-        if(Redis::hlen($key)>19)
-        {
-            abort(422 , 'Up to 20 goods in the shopping cart!');
-        }
+//        if(Redis::hlen($key)>19)
+//        {
+//            abort(422 , 'Up to 20 goods in the shopping cart!');
+//        }
         $goodsId = $request->input('goods_id' , '');
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
         if($goods->status==0)
@@ -86,13 +86,41 @@ class ShoppingCartController extends BaseController
                 Redis::hset($key , $goodsId , $number);
             }
         }
-        $goods->goodsNumber = $number;
+
+        $phone = DB::table('users_phones')->where('user_id' , $goods->user_id)->first();
+        if(!empty($phone)&&$phone->user_phone_country=='251')
+        {
+            $currency = 'BIRR';
+        }else
+        {
+            $currency = 'USD';
+        }
         ShoppingCart::dispatch($goods , $user , $number)->onQueue('helloo_{business_shopping_cart}');
-        return $this->response->created(null , array(
-            'data'=>array(
-                'goods' => new AnonymousCollection($goods),
-            )
-        ));
+        $cache = Redis::hgetall($key);
+        $goods = array_filter($cache , function ($v, $k){
+            return !empty($v)&&!empty($k);
+        } , ARRAY_FILTER_USE_BOTH);
+        $gs = Goods::whereIn('id' , array_keys($goods))->get();
+        $gs->each(function($g) use ($goods){
+            $g->goodsNumber = $goods[$g->id];
+        });
+        $userIds = $gs->pluck('user_id')->toArray();
+        $shopGoods = collect($gs->groupBy('user_id')->toArray());
+        $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
+        foreach ($shops as $k=>$shop)
+        {
+            $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
+            $shopGoods = collect($shopGoods->get($shop['user_id']));
+            $price = $shopGoods->sum(function($shopG){
+                return $shopG['goodsNumber']*$shopG['price'];
+            });
+            $shop['goods'] = AnonymousCollection::collection($shopGoods);
+            $shop['user_currency'] = $currency;
+            $shop['deliveryCoast'] = 30;
+            $shop['subTotal'] = $price;
+            $shops[$k] = new UserCollection($shop);
+        }
+        return AnonymousCollection::collection(collect($shops));
     }
 
     public function destroy(Request $request)

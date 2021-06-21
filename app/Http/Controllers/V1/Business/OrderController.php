@@ -148,4 +148,9 @@ class OrderController extends BaseController
         }
         return OrderCollection::collection($orders);
     }
+
+    public function show(Request $request , $id)
+    {
+
+    }
 }
