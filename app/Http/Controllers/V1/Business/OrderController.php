@@ -113,7 +113,6 @@ class OrderController extends BaseController
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
-        $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $returnData = array();
         foreach ($shops as $shop)
         {
@@ -124,7 +123,7 @@ class OrderController extends BaseController
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             array_push($returnData , array(
                 'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
-                'goods'=>$shopGoods->get($shop['user_id']),
+                'goods'=>$shopGs,
                 'subTotal'=>$price,
                 'deliveryCoast'=>30,
                 'currency'=>$currency,
@@ -135,22 +134,8 @@ class OrderController extends BaseController
 
     public function my(Request $request)
     {
-        $appends = array();
         $userId = auth()->id();
-        $type = $request->input('type' , 'progress');
-        $appends['type'] = $type;
-        if($type=='progress')
-        {
-            $orders = Order::where('user_id' , $userId)->where('status' , 0)->orderByDesc('created_at')->limit(20)->get();
-        }elseif($type=='completed')
-        {
-            $orders = Order::where('user_id' , $userId)->where('status' , 1)->orderByDesc('created_at')->paginate(10)->appends($appends);
-        }elseif($type=='canceled')
-        {
-            $orders = Order::where('user_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10)->appends($appends);
-        }else{
-            $orders = collect();
-        }
+        $orders = Order::where('user_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10);
         $shopIds = $orders->pluck('shop_id')->unique()->toArray();
         $shops = app(UserRepository::class)->findByUserIds($shopIds);
         $orders->each(function($order) use ($shops){
