@@ -24,6 +24,7 @@ class Order extends Model
         'user_id' => 'string',
         'shop_id' => 'string',
         'detail' => 'array',
+        'order_price' => 'float',
     ];
 
     public function getFormatPriceAttribute()

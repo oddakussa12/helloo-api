@@ -27,6 +27,7 @@ class OrderController extends BaseController
         $userAddress = $request->input('user_address' , '');
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         $cache = Redis::hmget($key , array_keys($goods));
+        $cache = array_combine(array_keys($goods) , $cache);
         $cache = array_filter($cache , function ($v, $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
@@ -41,8 +42,12 @@ class OrderController extends BaseController
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
+        $shopGoods->each(function($g) use ($goods){
+            $g->goodsNumber = $goods[$g->id];
+        });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $users = app(UserRepository::class)->findByUserIds($userIds);
+        $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
@@ -53,24 +58,29 @@ class OrderController extends BaseController
             $price = collect($shopGs)->sum(function ($shopG) use ($goods) {
                 return $goods[$shopG['id']]*$shopG['price'];
             });
+            $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=>$userId,
-                'shop_id'=>$u,
+                'user_id'=>strval($userId),
+                'shop_id'=>strval($u),
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
                 'detail'=>\json_encode($shopGs , JSON_UNESCAPED_UNICODE),
                 'order_price'=>round($price , 2),
+                'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
             array_push($orderData , $data);
-            $data['shop'] = new UserCollection($users->where('user_id' , $u)->first());
+            $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
+            $data['shop'] = new UserCollection($user);
+            $data['detail'] = $shopGs;
+            $data['delivery_coast'] = 30;
             array_push($returnData , $data);
         }
         !empty($orderData)&&DB::table('orders')->insert($orderData);
-        return AnonymousCollection::collection($returnData);
+        return AnonymousCollection::collection(collect($returnData));
     }
 
     public function preview(Request $request)
@@ -100,16 +110,10 @@ class OrderController extends BaseController
             $g->goodsNumber = $filterGoods[$g->id];
         });
         $userIds = $shopGoods->pluck('user_id')->toArray();
+        $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
+        $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
-        $phone = DB::table('users_phones')->where('user_id' , $user->user_id)->first();
-        if(!empty($phone)&&$phone->user_phone_country=='251')
-        {
-            $currency = 'BIRR';
-        }else
-        {
-            $currency = 'USD';
-        }
         $returnData = array();
         foreach ($shops as $shop)
         {
@@ -117,8 +121,9 @@ class OrderController extends BaseController
             $price = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['price'];
             });
+            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             array_push($returnData , array(
-                'user'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')),
+                'user'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
                 'goods'=>$shopGoods->get($shop['user_id']),
                 'subTotal'=>$price,
                 'deliveryCoast'=>30,
