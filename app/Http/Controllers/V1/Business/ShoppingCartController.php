@@ -57,6 +57,7 @@ class ShoppingCartController extends BaseController
     public function store(Request $request)
     {
         $type = $request->input('type' , 'store');
+        $shopId = intval($request->input('user_id' , 0));
         $user = auth()->user();
         $userId = $user->user_id;
         $key = "helloo:business:shopping_cart:service:account:".$userId;
@@ -101,6 +102,12 @@ class ShoppingCartController extends BaseController
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
         $gs = Goods::whereIn('id' , array_keys($goods))->get();
+        if($shopId>0)
+        {
+            $gs = $gs->reject(function ($g) use ($shopId) {
+                return $g->user_id!=$shopId;
+            });
+        }
         $gs->each(function($g) use ($goods){
             $g->goodsNumber = $goods[$g->id];
         });
