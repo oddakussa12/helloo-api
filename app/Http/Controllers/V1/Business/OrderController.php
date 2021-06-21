@@ -43,7 +43,7 @@ class OrderController extends BaseController
             return $g->status==0;
         });
         $shopGoods->each(function($g) use ($goods){
-            $g->goodsNumber = $goods[$g->id];
+            $g->goodsNumber = intval($goods[$g->id]);
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $users = app(UserRepository::class)->findByUserIds($userIds);
@@ -107,7 +107,7 @@ class OrderController extends BaseController
             return $g->status==0;
         });
         $shopGoods->each(function($g) use ($filterGoods){
-            $g->goodsNumber = $filterGoods[$g->id];
+            $g->goodsNumber = intval($filterGoods[$g->id]);
         });
         $userIds = $shopGoods->pluck('user_id')->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();

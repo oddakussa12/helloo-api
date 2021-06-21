@@ -34,7 +34,7 @@ class ShoppingCartController extends BaseController
             return $g->status==0;
         });
         $shopGoods->each(function($g) use ($goods){
-            $g->goodsNumber = $goods[$g->id];
+            $g->goodsNumber = intval($goods[$g->id]);
         });
         $userIds = $shopGoods->pluck('user_id')->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
@@ -118,7 +118,7 @@ class ShoppingCartController extends BaseController
             });
         }
         $gs->each(function($g) use ($goods){
-            $g->goodsNumber = $goods[$g->id];
+            $g->goodsNumber = intval($goods[$g->id]);
         });
         $userIds = $gs->pluck('user_id')->toArray();
         $shopGoods = collect($gs->groupBy('user_id')->toArray());
