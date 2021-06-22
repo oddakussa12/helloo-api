@@ -139,7 +139,7 @@ class OrderController extends BaseController
     public function my(Request $request)
     {
         $userId = auth()->id();
-        $orders = Order::where('user_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10);
+        $orders = Order::where('user_id' , $userId)->orderByDesc('created_at')->paginate(10);
         $shopIds = $orders->pluck('shop_id')->unique()->toArray();
         $shops = app(UserRepository::class)->findByUserIds($shopIds);
         $orders->each(function($order) use ($shops){

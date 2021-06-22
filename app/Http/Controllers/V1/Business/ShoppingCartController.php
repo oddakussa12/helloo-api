@@ -36,9 +36,10 @@ class ShoppingCartController extends BaseController
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = intval($goods[$g->id]);
         });
-        $userIds = $shopGoods->pluck('user_id')->toArray();
+        $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
+        $shoppingCarts = array();
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
@@ -50,10 +51,11 @@ class ShoppingCartController extends BaseController
             $shop['user_currency'] = 'USD';
             $shop['deliveryCoast'] = 30;
             $shop['subTotal'] = $price;
-            $shops[$k] = new UserCollection($shop);
+            $shoppingCarts[$k] = new UserCollection($shop);
         }
-        return AnonymousCollection::collection(collect($shops));
+        return AnonymousCollection::collection(collect($shoppingCarts)->values());
     }
+
     public function store(Request $request)
     {
         $type = $request->input('type' , 'store');
@@ -142,7 +144,7 @@ class ShoppingCartController extends BaseController
             $shop['subTotal'] = $price;
             $shops[$k] = new UserCollection($shop);
         }
-        return AnonymousCollection::collection(collect($shops));
+        return AnonymousCollection::collection(collect($shops)->values());
     }
 
     public function destroy(Request $request)

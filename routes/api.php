@@ -199,7 +199,7 @@ $api->group($V1Params , function ($api){
         $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
         $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
         $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
-        $api->get('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
+        $api->post('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
         $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
         $api->get('order/{order}' , 'Business\OrderController@show')->name('business.order.show');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
