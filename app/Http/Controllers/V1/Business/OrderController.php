@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
 use App\Resources\UserCollection;
+use App\Jobs\OrderSynchronization;
 use App\Resources\OrderCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -83,7 +84,11 @@ class OrderController extends BaseController
             $data['delivery_coast'] = 30;
             array_push($returnData , $data);
         }
-        !empty($orderData)&&DB::table('orders')->insert($orderData);
+        if(!empty($orderData))
+        {
+            DB::table('orders')->insert($orderData);
+            OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
+        }
         return AnonymousCollection::collection(collect($returnData));
     }
 
