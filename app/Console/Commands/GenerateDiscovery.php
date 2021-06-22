@@ -69,8 +69,8 @@ class GenerateDiscovery extends Command
                 $flag = false;
             }else{
                 $data = array();
-                $views = $views->map(function ($value) {return (array)$value;})->toArray();
-                $users = app(UserRepository::class)->findByUserIds($views->pluck('owner')->toArray())->pluck('user_delivery' , 'user_id')->toArray();
+                $views = collect($views)->map(function ($value) {return (array)$value;})->toArray();
+                $users = app(UserRepository::class)->findByUserIds(collect($views)->pluck('owner')->toArray())->pluck('user_delivery' , 'user_id')->toArray();
                 foreach ($views as $view)
                 {
                     if(isset($users[$view['owner']])&&$users[$view['owner']]==1)
