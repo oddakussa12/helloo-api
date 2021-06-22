@@ -38,9 +38,9 @@ class OrderSynchronization implements ShouldQueue
             {
                 array_push($data , array(
                     'id'=>Uuid::uuid1()->toString(),
-                    'user_id'=>$g['user_id'],
-                    'order_id'=>$g['order_id'],
-                    'shop_id'=>$g['shop_id'],
+                    'user_id'=>$r['user_id'],
+                    'order_id'=>$r['order_id'],
+                    'shop_id'=>$r['shop_id'],
                     'goods_id'=>$g['id'],
                     'goods_name'=>$g['name'],
                     'goods_price'=>$g['price'],
