@@ -44,14 +44,13 @@ class OrderSynchronization implements ShouldQueue
                     'goods_id'=>$g['id'],
                     'goods_name'=>$g['name'],
                     'goods_price'=>$g['price'],
-                    'goods_image'=>$g['image'],
+                    'goods_image'=>\json_encode($g['image'] , JSON_UNESCAPED_UNICODE),
                     'goods_currency'=>$g['currency'],
                     'created_at'=>$r['created_at'],
                 ));
             }
         }
-        dump($data);
-//        !empty($data)&&DB::table('orders_goods')->insert($data);
+        !empty($data)&&DB::table('orders_goods')->insert($data);
     }
 
 }
