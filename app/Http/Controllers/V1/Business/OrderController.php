@@ -26,6 +26,10 @@ class OrderController extends BaseController
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
         $key = "helloo:business:shopping_cart:service:account:".$userId;
+        if(empty(array_keys($goods)))
+        {
+            abort(422);
+        }
         $cache = Redis::hmget($key , array_keys($goods));
         $cache = array_combine(array_keys($goods) , $cache);
         $cache = array_filter($cache , function ($v, $k){
