@@ -22,7 +22,7 @@ class BusinessController extends BaseController
 
     public function search(Request $request)
     {
-        $userId = auth()->id();
+        $userId = intval(auth()->id());
         $keyword = escape_like(strval($request->input('keyword' , '')));
         if(!empty($keyword))
         {
@@ -33,9 +33,14 @@ class BusinessController extends BaseController
             $goodsIds = $goods->pluck('id')->toArray();
             if(!empty($goodsIds))
             {
-                $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
-                    return (array)$value;
-                }))->pluck('goods_id')->unique()->toArray();
+                if($userId>0)
+                {
+                    $likes = collect(DB::table('likes_goods')->where('user_id' , $userId)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+                        return (array)$value;
+                    }))->pluck('goods_id')->unique()->toArray();
+                }else{
+                    $likes = array();
+                }
                 $goods->each(function($g) use ($likes){
                     $g->likeState = in_array($g->id , $likes);
                 });
@@ -44,9 +49,12 @@ class BusinessController extends BaseController
             $goods = $users = collect();
         }
         !empty($keyword)&&BusinessSearchLog::dispatch($userId , $keyword)->onQueue('helloo_{business_search_logs}');
+        $users->each(function($user){
+            $user->userPoint = app(UserRepository::class)->findPointByUserId($user->user_id);
+        });
         return $this->response->array(array(
             'data'=>array(
-                'user'=>AnonymousCollection::collection($users),
+                'user'=>UserCollection::collection($users),
                 'goods'=>AnonymousCollection::collection($goods)
             )
         ));
@@ -56,6 +64,12 @@ class BusinessController extends BaseController
     {
         $deliveryUsers = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 1)->inRandomOrder()->limit(20)->get();
         $users = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0)->inRandomOrder()->limit(20)->get();
+        $users->each(function($user){
+            $user->userPoint = app(UserRepository::class)->findPointByUserId($user->user_id);
+        });
+        $deliveryUsers->each(function($deliveryUser){
+            $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
+        });
         $data = array('data'=>array(
             'live_shop'=>UserCollection::collection($users),
             'delivery_shop'=>UserCollection::collection($deliveryUsers),
@@ -101,7 +115,7 @@ class BusinessController extends BaseController
         {
             if($order=='new')
             {
-                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
             }else{
                 $key = 'helloo:discovery:'.$order.':shops';
                 if(Redis::exists($key))

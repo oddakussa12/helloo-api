@@ -28,38 +28,25 @@ class GoodsController extends BaseController
         $type = strval($request->input('type' , ''));
         $appends['keyword'] = $keyword;
         $appends['user_id'] = $userId;
-        $appends['type'] = $type;
+        $appends['type']    = $type;
         if(!empty($keyword))
         {
             $goods = Goods::where('user_id', $userId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
             BusinessSearchLog::dispatch($auth , $keyword , $userId)->onQueue('helloo_{business_search_logs}');
         }elseif (!empty($userId))
         {
-            if($type=='management')
-            {
-                $goods = Goods::where('user_id', $userId)
-                    ->orderByDesc('created_at')
-                    ->paginate(10);
-            }else{
-                $goods = Goods::where('user_id', $userId)->where('status' , 1)
-                    ->orderByDesc('created_at')
-                    ->paginate(10);
-            }
-            $goods = $goods->appends($appends);
+            $goods = Goods::where('user_id', $userId);
+            $type != 'management' && $goods = $goods->where('status' , 1);
+            $goods = $goods->orderByDesc('created_at')->paginate(10)->appends($appends);
         }else{
             $goods = collect();
         }
         $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
         {
-            if($auth>0)
-            {
-                $likes = collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
-                    return (array)$value;
-                }))->pluck('goods_id')->unique()->toArray();
-            }else{
-                $likes = array();
-            }
+            $likes = $auth>0?collect(DB::table('likes_goods')->where('user_id' , $auth)->whereIn('goods_id' , $goodsIds)->get()->map(function ($value){
+                return (array)$value;
+            }))->pluck('goods_id')->unique()->toArray():array();
             $goods->each(function($g) use ($likes){
                 $g->likeState = in_array($g->id , $likes);
             });

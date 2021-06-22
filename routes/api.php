@@ -34,7 +34,7 @@ $api->group($V1Params , function ($api){
     $api->post('user/phone/signIn' , 'AuthController@signIn')->name('sign.in');
 //    $api->post('user/phone/code/signIn' , 'AuthController@handleSignIn')->name('user.phone.sign.in');
     $api->group(['middleware'=>['repeatedSubmit']] , function($api){
-        $api->post('user/phone/signUp' , 'AuthController@phoneSignUp')->name('user.phone.sign.up');
+//        $api->post('user/phone/signUp' , 'AuthController@phoneSignUp')->name('user.phone.sign.up');
         $api->post('user/signUp' , 'AuthController@signUp')->name('user.sign.up');
     });
     $api->group(['middleware'=>['redisThrottle:'.config('common.user_sign_in_phone_code_throttle_num').','.config('common.user_sign_in_phone_code_throttle_expired')]] , function ($api){
@@ -186,20 +186,27 @@ $api->group($V1Params , function ($api){
         /*****business start*****/
         $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('user.agora.token');
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
+
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
         $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
-        $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
-        $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
-        $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
+
+        // $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
         $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
         $api->delete('goods/{goods}/like' , 'Business\GoodsController@destroyLike')->name('goods.like.destroy');
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
         $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
         $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
         $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
+        $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
+        $api->post('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
+        $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
+        $api->get('order/{order}' , 'Business\OrderController@show')->name('business.order.show');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
             $api->post('delivery/order' , 'Business\DeliveryOrderController@store')->name('goods.delivery.order.store');
+            $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
+            $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
+            $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
         });
         /*****business end*****/
 
@@ -207,6 +214,16 @@ $api->group($V1Params , function ($api){
     $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
 
     $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');
+
+    $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
+
+    $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');
+
+    $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
+
+    $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
+
+    $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
 
     $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
 
@@ -218,7 +235,7 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/status' , 'UserController@status')->name('user.status');
 
-    $api->resource('user' , 'UserController' , ['only' => ['show']]);
+//    $api->resource('user' , 'UserController' , ['only' => ['show']]);
 
     $api->get('user' , 'UserController@index')->name('user.index');
 
@@ -292,6 +309,14 @@ $api->group($V1Params , function ($api){
     $api->get('test/ding' , 'TestController@ding')->name('test.ding');
     $api->post('test/ding' , 'TestController@ding')->name('test.ding');
     $api->get('test/sms' , 'TestController@sms')->name('test.sms');
+
+    /** 商户 免登陆可访问的接口 start */
+
+    $api->resource('user' , 'UserController' , ['only' => ['show']]); // 他人个人主页
+    $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply'); // 二级评论
+
+    /** 商户 免登陆可访问的接口 end */
+
 });
 
 

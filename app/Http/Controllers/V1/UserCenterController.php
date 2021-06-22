@@ -41,7 +41,7 @@ class UserCenterController extends BaseController
     {
         $memKey = 'helloo:account:user-score-rank';
         $score  = Redis::zscore($memKey, $this->userId);
-        return $this->response->array(['data'=>['score'=>$score]]);
+        return $this->response->array(['data'=>['score'=>intval($score)]]);
     }
 
     /**
@@ -477,10 +477,10 @@ class UserCenterController extends BaseController
                 $flag = $photo;
                 break;
             case '10txt chats': // 文字战斗机
-                $flag = $tenText;
+                $flag = boolval($tenText);
                 break;
             case '10video chats': // 视频创作者
-                $flag = $tenVideo;
+                $flag = boolval($tenVideo);
                 break;
             case 'BronzeGamer': // 游戏小能手Ⅰ
                 $flag = $statistic->game_score>=300;
@@ -589,7 +589,8 @@ class UserCenterController extends BaseController
             $all = UserFriend::where('user_id', $this->userId)->pluck('friend_id')->toArray(); // 所有的好友
             if(!empty($all))
             {
-                Redis::sadd($this->friendKey.$this->userId, $all);
+                call_user_func_array([Redis::class, 'sadd'], array_merge(array($this->friendKey.$this->userId) , $all));
+//                Redis::sadd($this->friendKey.$this->userId, $all);
                 Redis::expire($this->friendKey.$this->userId, 86400*30);
             }
         }
@@ -702,7 +703,8 @@ class UserCenterController extends BaseController
                 $users = UserFriend::where('user_id', $friends)->pluck('friend_id')->unique()->toArray();
                 if(!empty($users))
                 {
-                    Redis::sadd($this->friendKey.$friend, $users);
+                    call_user_func_array([Redis::class, 'sadd'], array_merge(array($this->friendKey.$friend) , $users));
+//                    Redis::sadd($this->friendKey.$friend, $users);
                     Redis::expire($this->friendKey.$friend, 86400*30);
                 }
             }

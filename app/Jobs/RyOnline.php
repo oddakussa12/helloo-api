@@ -78,12 +78,13 @@ class RyOnline implements ShouldQueue
         $onlineUserIds = $onlineUsers->pluck('userid')->all();
         if(!blank($onlineUserIds))
         {
-            Redis::sadd($key , $onlineUserIds);
+            call_user_func_array([Redis::class, 'sadd'], array_merge(array($key) , $onlineUserIds));
+//            Redis::sadd($key , $onlineUserIds);
             $male = array();
             $female = array();
             array_walk($onlineUserIds , function ($user , $k) use ($genderSortSetKey , &$male , &$female){
                 $gender = Redis::zscore($genderSortSetKey , $user);
-                if($gender!==null)
+                if($gender!==null&&$gender!==false)
                 {
                     if($gender==0)
                     {
@@ -93,8 +94,18 @@ class RyOnline implements ShouldQueue
                     }
                 }
             });
-            !blank($male)&&Redis::sadd($maleKey , $male);
-            !blank($female)&&Redis::sadd($femaleKey , $female);
+            if(!blank($male))
+            {
+                array_unshift($male , $maleKey);
+                call_user_func_array([Redis::class, 'sadd'], $male);
+//                Redis::sadd($maleKey , $male);
+            }
+            if(!blank($female))
+            {
+                array_unshift($female , $femaleKey);
+                call_user_func_array([Redis::class, 'sadd'], $female);
+//                Redis::sadd($femaleKey , $female);
+            }
         }
 
         $setVoiceKey = 'helloo:account:service:account-random-voice-set';

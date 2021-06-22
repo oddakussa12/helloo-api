@@ -174,6 +174,7 @@ class UserController extends BaseController
         {
             $point = app(UserRepository::class)->findPointByUserId($id);
             $user->put('userPoint', $point);
+            $user->put('callCenter', '+251977484116');
         }
         return new UserCollection($user);
     }
@@ -591,6 +592,7 @@ class UserController extends BaseController
         }
         $shops->each(function($shop){
             $shop->user_avatar_link = splitJointQnImageUrl($shop->user_avatar);
+            $shop->userPoint = app(UserRepository::class)->findPointByUserId($shop->user_id);
             unset($shop->user_avatar);
         });
         return UserCollection::collection($shops);

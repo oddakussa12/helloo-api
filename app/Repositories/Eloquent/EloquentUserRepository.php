@@ -118,7 +118,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 DB::commit();
                 Redis::sadd($usernameKey , strtolower($data['user_name']));
                 Redis::zadd($key , strtotime($now) , $user->user_id);
-                $changed===null && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
+                ($changed===null||$changed===false) && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
             }catch (\Exception $e)
             {
                 DB::rollBack();
@@ -437,7 +437,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         $femaleKey = 'helloo:account:service:account-random-female-im-set';
         $genderSortSetKey = 'helloo:account:service:account-gender-sort-set';
         $gender = Redis::zscore($genderSortSetKey , $self);
-        if($gender!==null)
+        if($gender!==null&&$gender!==false)
         {
             if($gender==0)
             {

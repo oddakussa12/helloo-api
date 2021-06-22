@@ -78,7 +78,7 @@ class GameScoreController extends BaseController
                 {
                     throw new \Exception('score store failed!' , 1001);
                 }
-                if($max===null)
+                if($max===null||$max===false)
                 {
                     $result = DB::table('users_games_scores')->insert(
                         array(
@@ -97,7 +97,7 @@ class GameScoreController extends BaseController
                     }
                     Redis::zadd($key , $score , $userId);
                 }else{
-                    if($score>$max)
+                    if($score>intval($max))
                     {
                         $count = DB::table('users_games_scores')->where('user_id' , $userId)->where('game' , $game)->where('country' , $rankCountry)->update(
                             array('score'=>$score , 'updated_at'=>$now)
@@ -194,11 +194,11 @@ class GameScoreController extends BaseController
                     }
                 }
             });
-        if($max===null)
+        if($max===null||$max===false)
         {
             $userScores[$userId] = $score;
         }else{
-            if($max>$score)
+            if(intval($max)>$score)
             {
                 $userScores[$userId] = $max;
             }else{
@@ -226,7 +226,7 @@ class GameScoreController extends BaseController
         }
         $key = "helloo:account:game:score:day:rank:".$game.'-'.$country.'-'.$date;
         $maxScore = Redis::zscore($key , $userId);
-        if($maxScore===null)
+        if($maxScore===null||$maxScore===false)
         {
             Redis::zadd($key ,$score , $userId);
         }else{
@@ -251,11 +251,11 @@ class GameScoreController extends BaseController
         }
         $key = "helloo:account:game:score:week:rank:".$game.'-'.$country.'-'.$date;
         $maxScore = Redis::zscore($key , $userId);
-        if($maxScore===null)
+        if($maxScore===null||$maxScore===false)
         {
             Redis::zadd($key ,$score , $userId);
         }else{
-            if($maxScore<$score)
+            if(intval($maxScore)<$score)
             {
                 Redis::zadd($key ,$score , $userId);
             }

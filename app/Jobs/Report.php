@@ -69,7 +69,7 @@ class Report implements ShouldQueue
                 'result'=>$result,
                 'content'=>$content
             );
-            Log::info(\json_encode($effect , JSON_UNESCAPED_UNICODE));
+            Log::info('user_reported' , $effect);
         }
     }
 

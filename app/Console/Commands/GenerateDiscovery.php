@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
+use App\Repositories\Contracts\UserRepository;
 
 class GenerateDiscovery extends Command
 {
@@ -68,11 +69,16 @@ class GenerateDiscovery extends Command
                 $flag = false;
             }else{
                 $data = array();
+                $views = collect($views)->map(function ($value) {return (array)$value;})->toArray();
+                $users = app(UserRepository::class)->findByUserIds(collect($views)->pluck('owner')->toArray())->pluck('user_delivery' , 'user_id')->toArray();
                 foreach ($views as $view)
                 {
-                    $data[$view->owner] = $view->num;
+                    if(isset($users[$view['owner']])&&$users[$view['owner']]==0)
+                    {
+                        $data[$view['owner']] = $view['num'];
+                    }
                 }
-                Redis::zadd($key , $data);
+                !empty($data)&&Redis::zadd($key , $data);
             }
             $page ++;
         }while($flag);
@@ -84,11 +90,12 @@ class GenerateDiscovery extends Command
         Redis::del($key);
         DB::table('shop_evaluation_points')->orderByDesc('user_id')->chunk(100 , function($shops) use ($key){
             $data = array();
+            $users = app(UserRepository::class)->findByUserIds($shops->pluck('user_id')->toArray())->pluck('user_delivery' , 'user_id')->toArray();
             foreach ($shops as $shop)
             {
                 $point = $shop->point_1+$shop->point_2*2+$shop->point_3*3+$shop->point_4*4+$shop->point_5*5;
                 $num = $shop->point_1+$shop->point_2+$shop->point_3+$shop->point_4+$shop->point_5;
-                if($num>0)
+                if($num>0&&isset($users[$shop->user_id])&&$users[$shop->user_id]==0)
                 {
                     $data[$shop->user_id] = round($point/$num , 1);
                 }
