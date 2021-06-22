@@ -115,7 +115,7 @@ class BusinessController extends BaseController
         {
             if($order=='new')
             {
-                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 1)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
             }else{
                 $key = 'helloo:discovery:'.$order.':shops';
                 if(Redis::exists($key))

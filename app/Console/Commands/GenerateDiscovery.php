@@ -73,7 +73,7 @@ class GenerateDiscovery extends Command
                 $users = app(UserRepository::class)->findByUserIds(collect($views)->pluck('owner')->toArray())->pluck('user_delivery' , 'user_id')->toArray();
                 foreach ($views as $view)
                 {
-                    if(isset($users[$view['owner']])&&$users[$view['owner']]==1)
+                    if(isset($users[$view['owner']])&&$users[$view['owner']]==0)
                     {
                         $data[$view['owner']] = $view['num'];
                     }
@@ -95,7 +95,7 @@ class GenerateDiscovery extends Command
             {
                 $point = $shop->point_1+$shop->point_2*2+$shop->point_3*3+$shop->point_4*4+$shop->point_5*5;
                 $num = $shop->point_1+$shop->point_2+$shop->point_3+$shop->point_4+$shop->point_5;
-                if($num>0&&isset($users[$shop->user_id])&&$users[$shop->user_id]==1)
+                if($num>0&&isset($users[$shop->user_id])&&$users[$shop->user_id]==0)
                 {
                     $data[$shop->user_id] = round($point/$num , 1);
                 }
