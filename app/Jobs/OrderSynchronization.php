@@ -50,7 +50,8 @@ class OrderSynchronization implements ShouldQueue
                 ));
             }
         }
-        !empty($data)&&DB::table('orders_goods')->insert($data);
+        dump($data);
+//        !empty($data)&&DB::table('orders_goods')->insert($data);
     }
 
 }
