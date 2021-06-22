@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
 use App\Resources\UserCollection;
+use App\Jobs\ShoppingCartTransfer;
 use App\Jobs\OrderSynchronization;
 use App\Resources\OrderCollection;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,7 @@ class OrderController extends BaseController
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = intval($goods[$g->id]);
         });
+        $goodsIds = $shopGoods->pluck('id')->toArray();
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $users = app(UserRepository::class)->findByUserIds($userIds);
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -88,6 +90,8 @@ class OrderController extends BaseController
         {
             DB::table('orders')->insert($orderData);
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
+            Redis::hdel($key , $goodsIds);
+            ShoppingCartTransfer::dispatch($userId , $goodsIds)->onQueue('helloo_{shopping_cart_transfer}');
         }
         return AnonymousCollection::collection(collect($returnData));
     }
