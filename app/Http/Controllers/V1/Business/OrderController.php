@@ -106,14 +106,14 @@ class OrderController extends BaseController
         {
             abort(403 , 'There is no goods in the shopping cart!');
         }
-        $gs = Goods::where('id' , array_keys($filterGoods))->get();
+        $gs = Goods::whereIn('id' , array_keys($filterGoods))->get();
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
         $shopGoods->each(function($g) use ($filterGoods){
             $g->goodsNumber = intval($filterGoods[$g->id]);
         });
-        $userIds = $shopGoods->pluck('user_id')->toArray();
+        $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
