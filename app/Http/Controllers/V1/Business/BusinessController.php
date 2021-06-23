@@ -94,7 +94,7 @@ class BusinessController extends BaseController
         {
             if($order=='new')
             {
-                $goods = app(GoodsRepository::class)->allWithBuilder()->orderByDesc('created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                $goods = app(GoodsRepository::class)->allWithBuilder()->where('status' , 1)->orderByDesc('created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
             }else{
                 $key = 'helloo:discovery:'.$order.':products';
                 if(Redis::exists($key))

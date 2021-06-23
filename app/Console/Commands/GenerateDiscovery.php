@@ -122,11 +122,15 @@ class GenerateDiscovery extends Command
                 $flag = false;
             }else{
                 $data = array();
+                $goodsIds = DB::table('goods')->where('status' , 1)->whereIn('id' , $views->pluck('goods_id')->toArray())->get();
                 foreach ($views as $view)
                 {
-                    $data[$view->goods_id] = $view->num;
+                    if(in_array($view->goods_id , $goodsIds))
+                    {
+                        $data[$view->goods_id] = $view->num;
+                    }
                 }
-                Redis::zadd($key , $data);
+                !empty($data)&&Redis::zadd($key , $data);
             }
             $page ++;
         }while($flag);
@@ -141,7 +145,7 @@ class GenerateDiscovery extends Command
         Redis::del($key);
         do{
             $offset = $page*$limit;
-            $sql = 'select round(`point`/`comment` , 1) as `a_point`,`id` , `created_at` from `t_goods` where `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';';
+            $sql = 'select round(`point`/`comment` , 1) as `a_point`,`id` , `created_at` from `t_goods` where `status`=1 and `comment`>0 order by `a_point` desc,`created_at` desc limit '.$limit.' offset '.$offset.';';
             $points = DB::select($sql);
             if(blank($points))
             {
