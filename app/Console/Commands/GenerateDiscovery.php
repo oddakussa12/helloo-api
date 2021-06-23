@@ -122,7 +122,7 @@ class GenerateDiscovery extends Command
                 $flag = false;
             }else{
                 $data = array();
-                $goodsIds = DB::table('goods')->where('status' , 1)->whereIn('id' , $views->pluck('goods_id')->toArray())->get();
+                $goodsIds = DB::table('goods')->where('status' , 1)->whereIn('id' , collect($views)->pluck('goods_id')->toArray())->get();
                 foreach ($views as $view)
                 {
                     if(in_array($view->goods_id , $goodsIds))
