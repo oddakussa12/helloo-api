@@ -61,9 +61,9 @@ class GoodsController extends BaseController
     public function recommendation()
     {
         $userId = auth()->id();
-        $goods = Goods::where('status' , 1)->select('id', 'user_id', 'name' , 'image' , 'like' , 'price' , 'currency')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
+        $goods = Goods::where('status' , 1)->select('id', 'user_id', 'name' , 'image' , 'like' , 'price' , 'currency' , 'point' , 'comment')->where('recommend', 1)->orderByDesc('recommended_at')->limit(10)->get();
         if ($goods->isEmpty()) {
-            $goods = Goods::where('status' , 1)->select('id', 'user_id', 'name' , 'image' , 'like' , 'price' , 'currency')->orderBy(DB::raw('rand()'))->limit(10)->get();
+            $goods = Goods::where('status' , 1)->select('id', 'user_id', 'name' , 'image' , 'like' , 'price' , 'currency' , 'point' , 'comment')->orderBy(DB::raw('rand()'))->limit(10)->get();
         }
         $goodsIds = $goods->pluck('id')->toArray();
         if(!empty($goodsIds))
