@@ -75,7 +75,7 @@ class ShoppingCartController extends BaseController
             {
                 if(Redis::hlen($key)>=20)
                 {
-                    abort(422 , 'Up to 20 goods in the shopping cart!');
+                    abort(422 , trans('shopping_cart.shopping_max'));
                 }
             }else{
                 $number = Redis::hget($key , $goodsId);
@@ -99,7 +99,7 @@ class ShoppingCartController extends BaseController
                 {
                     if(Redis::hlen($key)>=20)
                     {
-                        abort(422 , 'Up to 20 goods in the shopping cart!');
+                        abort(422 , trans('shopping_cart.shopping_max'));
                     }
                 }
                 Redis::hset($key , $goodsId , $number);
