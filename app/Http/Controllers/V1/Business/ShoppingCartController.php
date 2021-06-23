@@ -37,18 +37,20 @@ class ShoppingCartController extends BaseController
             $g->goodsNumber = intval($goods[$g->id]);
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
+        $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $shoppingCarts = array();
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
+            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             $shopGs = collect($shopGoods->get($shop['user_id']));
             $price = $shopGs->sum(function($shopG){
                 return $shopG['goodsNumber']*$shopG['price'];
             });
             $shop['goods'] = AnonymousCollection::collection($shopGs);
-            $shop['user_currency'] = 'USD';
+            $shop['user_currency'] = $currency;
             $shop['deliveryCoast'] = 30;
             $shop['subTotal'] = $price;
             $shoppingCarts[$k] = new UserCollection($shop);
@@ -105,14 +107,6 @@ class ShoppingCartController extends BaseController
                 Redis::hset($key , $goodsId , $number);
             }
         }
-        $phone = DB::table('users_phones')->where('user_id' , $goods->user_id)->first();
-        if(!empty($phone)&&$phone->user_phone_country=='251')
-        {
-            $currency = 'BIRR';
-        }else
-        {
-            $currency = 'USD';
-        }
         ShoppingCart::dispatch($goods , $user , $number)->onQueue('helloo_{business_shopping_cart}');
         $cache = Redis::hgetall($key);
         $goods = array_filter($cache , function ($v, $k){
@@ -129,11 +123,13 @@ class ShoppingCartController extends BaseController
             $g->goodsNumber = intval($goods[$g->id]);
         });
         $userIds = $gs->pluck('user_id')->toArray();
+        $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($gs->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
+            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             $shopGs = collect($shopGoods->get($shop['user_id']));
             $price = $shopGs->sum(function($shopG){
                 return $shopG['goodsNumber']*$shopG['price'];
