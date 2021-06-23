@@ -84,9 +84,11 @@ class BusinessController extends BaseController
         $order = $request->input('order' , 'popular');
         $appends['type'] = $type;
         $appends['order'] = $order;
-        $perPage  = 10;
         $pageName = 'page';
         $page     = intval($request->input($pageName, 1));
+        $perPage  = intval($request->input('per_page', 10));
+        $perPage = $perPage<10?10:$perPage;
+        $perPage = $perPage>50?50:$perPage;
         $offset   = ($page-1) * $perPage;
         if($type=='product')
         {
