@@ -137,26 +137,34 @@ if (!function_exists('getRequestIpAddress')) {
      */
     function getRequestIpAddress()
     {
-        $realip = '0.0.0.0';
+        $realIp = '0.0.0.0';
         if (isset($_SERVER)) {
             if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                $realip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+                $arr = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+
+                foreach ($arr as $ip) {
+                    $ip = trim($ip);
+                    if ($ip != 'unknown') {
+                        $realIp = $ip;
+                        break;
+                    }
+                }
             } else if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-                $realip = $_SERVER['HTTP_CLIENT_IP'];
+                $realIp = $_SERVER['HTTP_CLIENT_IP'];
+            } else if (isset($_SERVER['REMOTE_ADDR'])) {
+                $realIp = $_SERVER['REMOTE_ADDR'];
             } else {
-                $realip = $_SERVER['REMOTE_ADDR'];
+                $realIp = '0.0.0.0';
             }
+        } else if (getenv('HTTP_X_FORWARDED_FOR')) {
+            $realIp = getenv('HTTP_X_FORWARDED_FOR');
+        } else if (getenv('HTTP_CLIENT_IP')) {
+            $realIp = getenv('HTTP_CLIENT_IP');
         } else {
-            if (getenv('HTTP_X_FORWARDED_FOR')) {
-                $realip = getenv('HTTP_X_FORWARDED_FOR');
-            } else if (getenv('HTTP_CLIENT_IP')) {
-                $realip = getenv('HTTP_CLIENT_IP');
-            } else {
-                $realip = getenv('REMOTE_ADDR');
-            }
+            $realIp = getenv('REMOTE_ADDR');
         }
-        $realip = explode(',', $realip);
-        return $realip[0];
+        preg_match('/[\\d\\.]{7,15}/', $realIp, $onlineIp);
+        return (!empty($onlineIp[0]) ? $onlineIp[0] : '0.0.0.0');
     }
 }
 

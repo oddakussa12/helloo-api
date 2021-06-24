@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
         $this->setLocalesConfigurations();
         if(!in_array(domain() , config('common.online_domain')))
         {
-            \Log::info('domain()' , array(domain()));
+            \Log::info('domain()' , array('url'=>url()->current() , 'ip'=>getRequestIpAddress()));
             \DB::listen(function ($query) {
                 $tmp = str_replace('?', '"'.'%s'.'"', $query->sql);
                 $qBindings = [];
