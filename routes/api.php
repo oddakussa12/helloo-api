@@ -227,6 +227,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('promo_code/{promo_code}' , 'Business\PromoCodeController@show')->name('promo.show');
 
+    $api->patch('promo_code/{promo_code}' , 'Business\PromoCodeController@update')->name('promo.update');
+
     $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
 
 //    $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
