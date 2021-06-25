@@ -225,6 +225,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
 
+    $api->get('promo_code/{promo_code}' , 'Business\PromoCodeController@show')->name('promo.show');
+
     $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
 
 //    $api->get('user/{user}/tag' , 'UserController@tag')->name('user.tag');
@@ -279,8 +281,6 @@ $api->group($V1Params , function ($api){
     $api->get('question/index' , 'QuestionController@index')->name('question.index');
 
     $api->get('question/hot' , 'QuestionController@hot')->name('question.hot');
-
-    $api->get('promo_code/{promo_code}' , 'PromoCodeController@show')->name('promo.show');
 
     $api->patch('backstage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backstage.version.upgrade');
 
