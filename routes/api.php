@@ -280,6 +280,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('question/hot' , 'QuestionController@hot')->name('question.hot');
 
+    $api->get('promo_code/{promo_code}' , 'PromoCodeController@show')->name('promo.show');
+
     $api->patch('backstage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backstage.version.upgrade');
 
     $api->post('backstage/block/device' , 'BackStageController@blockDevice')->name('backstage.block.device');
