@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-
+use App\Models\Business\PromoCode;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 
