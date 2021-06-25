@@ -49,6 +49,8 @@ class User extends Authenticatable implements JWTSubject
         'user_activated_at' ,
         'user_enrollment_at' ,
 
+        'user_currency',
+
         'user_online',
         'user_timezone',
         'user_business_time',
@@ -59,7 +61,6 @@ class User extends Authenticatable implements JWTSubject
     public $default_email_field = 'user_email';
 
     public $default_password_field = 'user_pwd';
-
 
 
     /**
@@ -166,9 +167,5 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(SignupInfo::class , 'user_id' , 'user_id');
     }
-
-
-
-
 
 }

@@ -82,8 +82,10 @@ class BusinessController extends BaseController
         $appends = array();
         $type = $request->input('type' , 'product');
         $order = $request->input('order' , 'popular');
+        $tag = $request->input('tag' , '');
         $appends['type'] = $type;
         $appends['order'] = $order;
+        $appends['tag'] = $tag;
         $pageName = 'page';
         $page     = intval($request->input($pageName, 1));
         $perPage  = intval($request->input('per_page', 10));
@@ -117,9 +119,20 @@ class BusinessController extends BaseController
         {
             if($order=='new')
             {
-                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0);
+                if(!empty($tag))
+                {
+                    $shops = $shops->where('tag' , $tag)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                }else{
+                    $shops = $shops->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                }
             }else{
-                $key = 'helloo:discovery:'.$order.':shops';
+                if(empty($tag))
+                {
+                    $key = 'helloo:discovery:'.$order.':shops';
+                }else{
+                    $key = 'helloo:discovery:'.$order.':'.$tag.':shops';
+                }
                 if(Redis::exists($key))
                 {
                     $total = Redis::zcard($key);

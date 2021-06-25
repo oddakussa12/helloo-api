@@ -26,18 +26,26 @@ class GoodsController extends BaseController
         $auth = intval(auth()->id());
         $userId = strval($request->input('user_id' , ''));
         $type = strval($request->input('type' , ''));
+        $version = $request->input('version' , 'v1');
         $appends['keyword'] = $keyword;
         $appends['user_id'] = $userId;
         $appends['type']    = $type;
+        $appends['version']    = $version;
         if(!empty($keyword))
         {
             $goods = Goods::where('user_id', $userId)->where('status' , 1)->where('name', 'like', "%{$keyword}%")->limit(10)->get();
             BusinessSearchLog::dispatch($auth , $keyword , $userId)->onQueue('helloo_{business_search_logs}');
         }elseif (!empty($userId))
         {
-            $goods = Goods::where('user_id', $userId);
-            $type != 'management' && $goods = $goods->where('status' , 1);
-            $goods = $goods->orderByDesc('created_at')->paginate(10)->appends($appends);
+            if($version=='v1')
+            {
+                $goods = Goods::where('user_id', $userId);
+                $type != 'management' && $goods = $goods->where('status' , 1);
+                $goods = $goods->orderByDesc('created_at')->paginate(10)->appends($appends);
+            }else{
+
+            }
+
         }else{
             $goods = collect();
         }
