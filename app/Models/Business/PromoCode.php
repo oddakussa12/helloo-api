@@ -35,6 +35,7 @@ class PromoCode extends Model
 
     protected $casts = [
         'free_delivery' => 'boolean',
+        'reduction' => 'float',
     ];
 
 }
