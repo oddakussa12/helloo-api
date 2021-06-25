@@ -77,12 +77,10 @@ class GoodsCategoryController extends BaseController
             $goodsIds = $goods->pluck('goods_id')->toArray();
         }
         $now = date('Y-m-d H:i:s');
-        !empty($name)&&DB::table('goods_categories')->where('category_id' , $categoryId)->update(array(
-            'name'=>$name
-        ));
+        DB::beginTransaction();
+        DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
         if(!empty($goodsIds))
         {
-            DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
             $categoryGoodsData = array_map(function($v , $k) use ($categoryId , $userId , $now , $numberGoodsIds , $goodsStatus){
                 return array(
                     'category_id'=>$categoryId,
@@ -94,7 +92,15 @@ class GoodsCategoryController extends BaseController
                 );
             } , $goodsIds);
             DB::table('categories_goods')->insert($categoryGoodsData);
+            $goodsCategoryData = array(
+                'goods_num' => count($categoryGoodsData),
+            );
+            !empty($name)&&$goodsCategoryData['name']=$name;
+            DB::table('goods_categories')->where('category_id' , $categoryId)->update(array(
+                'name'=>$name
+            ));
         }
+        DB::commit();
         return $this->response->accepted();
     }
 

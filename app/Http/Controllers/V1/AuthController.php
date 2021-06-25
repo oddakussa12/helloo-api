@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1;
 
 use Carbon\Carbon;
 use App\Jobs\Device;
+use Illuminate\Validation\Rule;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
@@ -314,6 +315,7 @@ class AuthController extends BaseController
         $user_address = mb_substr(strval($request->input('user_address' , '')) , 0 , 512);
         $user_contact = mb_substr(strval($request->input('user_contact' , '')) , 0 , 64);
         $user_about = strval($request->input('user_about' , ''));
+        $user_currency = strval($request->input('user_currency' , ''));
         if(!empty($user_avatar)&&$user->user_avatar!=$user_avatar)
         {
             $fields['user_avatar'] = $user_avatar;
@@ -341,6 +343,10 @@ class AuthController extends BaseController
             $fields['user_contact'] = $user_contact;
         }
         if(!empty($user_about)&&$user->user_about!=$user_about)
+        {
+            $fields['user_about'] = $user_about;
+        }
+        if(!empty($user_currency)&&!empty($user->user_currency))
         {
             $fields['user_about'] = $user_about;
         }
@@ -411,6 +417,12 @@ class AuthController extends BaseController
                     'filled',
                     'string',
                     'max:100'
+                ],
+                'user_currency' => [
+                    'bail',
+                    'filled',
+                    'string',
+                    Rule::in(array('USD' , 'BIRR'))
                 ],
             );
             Validator::make($fields, $rules)->validate();

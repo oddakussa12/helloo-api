@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Models\Business\CategoryGoods;
+use App\Models\Business\GoodsCategory;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Jobs\BusinessGoodsLog;
@@ -43,9 +45,33 @@ class GoodsController extends BaseController
                 $type != 'management' && $goods = $goods->where('status' , 1);
                 $goods = $goods->orderByDesc('created_at')->paginate(10)->appends($appends);
             }else{
-
+                $categoryGoods = CategoryGoods::where('user_id', $userId)->where('status' , 1)->get();
+                $goodsIds = $categoryGoods->plcuk('goods_id')->toArray();
+                $goods = Goods::where('id' , $goodsIds)->get();
+                $categoryIds = $categoryGoods->plcuk('category_id')->unique()->toArray();
+                $categories = GoodsCategory::whereIn('category_id' , $categoryIds)->get();
+                $categoryName = $categories->pluck('name' , 'category_id')->toArray();
+                $categoryGoodsNum = $categories->pluck('goods_num' , 'category_id')->toArray();
+                $data = array();
+                $categoryIds = $categoryGoods->groupBy('category_id')->toArray();
+                foreach ($categoryIds as $categoryId=>$gs)
+                {
+                    if(!empty($categoryGoodsNum[$categoryId])&&!empty($categoryName[$categoryId]))
+                    {
+                        $gIds = collect($gs)->pluck('goods_id')->toArray();
+                        $gData = $goods->whereIn('id' , $gIds)->get();
+                        if(!blank($gData))
+                        {
+                            array_push($data , array(
+                                'category_id'=>$categoryId,
+                                'name'=>$categoryName[$categoryId],
+                                'goods'=>$gData
+                            ));
+                        }
+                    }
+                }
+                return AnonymousCollection::collection(collect($data));
             }
-
         }else{
             $goods = collect();
         }
@@ -167,13 +193,18 @@ class GoodsController extends BaseController
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
         $data['updated_at'] = $now;
-        $phone = DB::table('users_phones')->where('user_id' , $user->user_id)->first();
-        if(!empty($phone)&&$phone->user_phone_country=='251')
+        if(empty($user->user_currency))
         {
-            $data['currency'] = 'BIRR';
-        }else
-        {
-            $data['currency'] = 'USD';
+            $phone = DB::table('users_phones')->where('user_id' , $user->user_id)->first();
+            if(!empty($phone)&&$phone->user_phone_country=='251')
+            {
+                $data['currency'] = 'BIRR';
+            }else
+            {
+                $data['currency'] = 'USD';
+            }
+        }else{
+            $data['currency'] = $user->user_currency;
         }
         try{
             DB::beginTransaction();
