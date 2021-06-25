@@ -10,7 +10,7 @@ class PromoCodeController extends BaseController
 {
     public function show($code)
     {
-        $code = PromoCode::where('promo_code' , $code)->select('description' , 'promo_code')->first();
+        $code = PromoCode::where('promo_code' , $code)->first();
         return new AnonymousCollection($code);
     }
 }
