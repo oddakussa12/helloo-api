@@ -190,7 +190,7 @@ return [
         App\Providers\EasySmsServiceProvider::class,
         App\Providers\NetEaseServiceProvider::class,
         App\Providers\ElasticSearchManagerServiceProvider::class,
-        App\Providers\AwsServiceProvider::class,
+//        App\Providers\AwsServiceProvider::class,
 //        App\Providers\PinpointServiceProvider::class,
         App\Custom\FireBase\FCMServiceProvider::class,
         App\Custom\DingNotice\DingNoticeServiceProvider::class,
