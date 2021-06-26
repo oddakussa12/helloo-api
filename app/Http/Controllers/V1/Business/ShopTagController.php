@@ -27,7 +27,7 @@ class ShopTagController extends BaseController
             });
             $data = $goodsTags->toArray();
             Redis::set($key , \json_encode($data , JSON_UNESCAPED_UNICODE));
-            Redis::expire($key , 60*60*24);
+            Redis::expire($key , 60*60*24*7);
         }
         return AnonymousCollection::collection(collect($data));
     }

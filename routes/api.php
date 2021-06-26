@@ -285,19 +285,30 @@ $api->group($V1Params , function ($api){
 
     $api->get('question/hot' , 'QuestionController@hot')->name('question.hot');
 
-    $api->patch('backstage/version/upgrade' , 'BackStageController@versionUpgrade')->name('backstage.version.upgrade');
+    $api->group(['prefix'=>'backstage'] , function ($api) {
+        $api->post('shop_tag' , 'BackStageController@storeShopTag')->name('backstage.store.shop_tag');
 
-    $api->post('backstage/block/device' , 'BackStageController@blockDevice')->name('backstage.block.device');
+        $api->patch('shop_tag/{shop_tag}' , 'BackStageController@updateShopTag')->name('backstage.update.shop_tag');
 
-    $api->post('backstage/block/user' , 'BackStageController@blockUser')->name('backstage.block.user');
+        $api->patch('version/upgrade' , 'BackStageController@versionUpgrade')->name('backstage.version.upgrade');
 
-    $api->get('backstage/last/online' , 'BackStageController@lastOnline')->name('backstage.last.online');
-    $api->get('backstage/score' , 'BackStageController@score')->name('backstage.score');
-    $api->post('backstage/score' , 'BackStageController@storeScore')->name('backstage.store,score');
-    $api->patch('backstage/shop' , 'BackStageController@updateShop')->name('backStage.shop.update');
+        $api->post('block/device' , 'BackStageController@blockDevice')->name('backstage.block.device');
 
-    $api->post('backstage/review/comment' , 'BackStageController@reviewComment')->name('backStage.review.comment');
-    $api->post('backstage/reject/comment' , 'BackStageController@rejectComment')->name('backStage.reject.comment');
+        $api->post('block/user' , 'BackStageController@blockUser')->name('backstage.block.user');
+
+        $api->get('last/online' , 'BackStageController@lastOnline')->name('backstage.last.online');
+
+        $api->get('score' , 'BackStageController@score')->name('backstage.score');
+
+        $api->post('score' , 'BackStageController@storeScore')->name('backstage.store.score');
+
+        $api->patch('shop' , 'BackStageController@updateShop')->name('backStage.shop.update');
+
+        $api->post('review/comment' , 'BackStageController@reviewComment')->name('backStage.review.comment');
+
+        $api->post('reject/comment' , 'BackStageController@rejectComment')->name('backStage.reject.comment');
+    });
+
 
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');

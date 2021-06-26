@@ -21,12 +21,6 @@ use Dingo\Api\Exception\ResourceException;
 class BackStageController extends BaseController
 {
 
-
-    public function index()
-    {
-
-    }
-
     public function versionUpgrade()
     {
         $lastVersion = 'helloo:app:service:new-version';
@@ -612,11 +606,109 @@ class BackStageController extends BaseController
         return $this->response->array([]);
     }
 
+    public function storeShopTag(Request $request)
+    {
+        $tag = $request->input('tag' , '');
+        $locale = (array)$request->input('locale' , array());
+        $rules = array(
+            'tag'=>[
+                'bail',
+                'required',
+                'string',
+                'min:1',
+                'max:32'
+            ],
+            'locale'=>[
+                'bail',
+                'required',
+                'array'
+            ],
+        );
+        $validationField = array(
+            'tag' => $tag,
+            'locale' => $locale,
+        );
+        Validator::make($validationField, $rules)->validate();
+
+        $id = app('snowflake')->id();
+        $data = array(
+            'id'=>$id,
+            'tag'=>$tag,
+            'created_at'=>date('Y-m-d H:i:s'),
+        );
+        $locale = array_filter($locale , function($v , $k){
+            return !empty($v)&&!empty($k);
+        } , ARRAY_FILTER_USE_BOTH);
+        $translations = array_map(function($v , $k) use ($id){
+            return array(
+              'id'=>app('snowflake')->id(),
+              'tag_id'=>$id,
+              'locale'=>$k,
+              'tag_content'=>$v,
+            );
+        } , $locale);
+        $shopTag = DB::table('shops_tags')->where('tag' , $tag)->first();
+        if(!empty($shopTag))
+        {
+            abort(422 , 'Tag must be unique!');
+        }
+        try{
+            DB::beginTransaction();
+            $tagResult = DB::table('shops_tags')->insert($data);
+            if(!$tagResult)
+            {
+                abort(500 , 'tag insert failed!');
+            }
+            $translationResult = DB::table('shops_tags_translations')->insert($translations);
+            if(!$translationResult)
+            {
+                abort(500 , 'tag translation insert failed!');
+            }
+            DB::commit();
+            Redis::del('helloo:business:service:shop:tags');
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            Log::info('store_shop_tag_fail' , array(
+                'message'=>$e->getMessage(),
+                'data'=>$request->all(),
+            ));
+        }
+        return $this->response->accepted();
+
+    }
 
 
-
-
-
-
+    public function updateShopTag(Request $request , $id)
+    {
+        $content = $request->input('content' , '');
+        $locale = $request->input('locale' , '');
+        $rules = array(
+            'content'=>[
+                'bail',
+                'required',
+                'string',
+                'min:1',
+                'max:32'
+            ],
+            'locale'=>[
+                'bail',
+                'required',
+                'string',
+                'min:2',
+                'max:16'
+            ],
+        );
+        $validationField = array(
+            'content' => $content,
+            'locale' => $locale,
+        );
+        Validator::make($validationField, $rules)->validate();
+        DB::table('shops_tags_translations')->where('tag_id' , $id)->where('locale' , $locale)->update(array(
+            'tag_content'=>$content
+        ));
+        Redis::del('helloo:business:service:shop:tags');
+        return $this->response->accepted();
+    }
 
 }
