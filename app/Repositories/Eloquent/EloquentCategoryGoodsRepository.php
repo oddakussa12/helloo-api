@@ -28,6 +28,7 @@ class EloquentCategoryGoodsRepository extends EloquentBaseRepository implements 
                 return array(
                     'category_id'=>$category->category_id,
                     'name'=>$category->name,
+                    'default'=>boolval($category->default),
                     'goods_ids'=>$categoryGoods->where('category_id' , $category->category_id)->pluck('sort' , 'goods_id')->toArray()
             );
             })->toArray();
