@@ -23,7 +23,7 @@ class EloquentCategoryGoodsRepository extends EloquentBaseRepository implements 
             $categories = \json_decode(Redis::get($key) , true);
         }else{
             $categoryGoods = CategoryGoods::where('user_id', $userId)->where('status' , 1)->get();
-            $categoryIds = $categoryGoods->plcuk('category_id')->unique()->toArray();
+            $categoryIds = $categoryGoods->pluck('category_id')->unique()->toArray();
             $categories = GoodsCategory::whereIn('category_id' , $categoryIds)->get();
             $categories = $categories->map(function($category , $k) use ($categoryGoods){
                 return array(

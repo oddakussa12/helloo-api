@@ -9,6 +9,7 @@ use App\Models\Business\Goods;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
 use Illuminate\Support\Facades\Schema;
+use App\Models\Business\CategoryGoods;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\GoodsRepository;
 use App\Repositories\Contracts\EventRepository;
@@ -79,6 +80,9 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->bind(GoodsRepository::class, function () {
             return new EloquentGoodsRepository(new Goods());
+        });
+        $this->app->bind(CategoryGoodsRepository::class, function () {
+            return new EloquentCategoryGoodsRepository(new CategoryGoods());
         });
         $this->app->singleton('snowflake', function () {
             return (new Snowflake())->setSequenceResolver((new RedisSequenceResolver())->setCachePrefix('helloo:snowflake:{sequence}:'));

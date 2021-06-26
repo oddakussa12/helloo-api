@@ -6,10 +6,10 @@ namespace App\Http\Controllers\V1\Business;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Business\GoodsCategory;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
-use Illuminate\Support\Facades\Log;
 
 class GoodsCategoryController extends BaseController
 {
