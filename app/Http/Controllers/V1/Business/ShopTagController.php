@@ -14,7 +14,7 @@ class ShopTagController extends BaseController
 {
     public function index(Request $request)
     {
-        $key = 'helloo:business:service:tags';
+        $key = 'helloo:business:service:shop:tags';
         if(Redis::exists($key))
         {
             $data = \json_decode(Redis::get($key , true));
