@@ -118,7 +118,32 @@ class OrderController extends BaseController
         }
         if(!empty($orderData))
         {
-            DB::table('orders')->insert($orderData);
+            try{
+                DB::beginTransaction();
+                $orderResult = DB::table('orders')->insert($orderData);
+                if(!$orderResult)
+                {
+                    abort('500' , 'order insert failed!');
+                }
+                if(!empty($code)&&$code->limit>0)
+                {
+                    $codeResult = DB::table('promo_codes')->where('promo_code' , $promoCode)->decrement('limit');
+                    if($codeResult<=0)
+                    {
+                        abort('500' , 'promo code update failed!');
+                    }
+                }
+                DB::commit();
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('order_store_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'user_id'=>$userId,
+                    'data'=>$request->all()
+                ));
+                return $this->response->error('Order creation failed!' , 424);
+            }
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
             Redis::hdel($key , $goodsIds);
             ShoppingCartTransfer::dispatch($userId , $goodsIds)->onQueue('helloo_{shopping_cart_transfer}');
