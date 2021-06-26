@@ -207,7 +207,10 @@ $api->group($V1Params , function ($api){
             $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
             $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
             $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
+            $api->post('follow' , 'Business\FollowController@store')->name('business.follow.store');
+            $api->delete('follow/{follow}' , 'Business\FollowController@destroy')->name('business.follow.destroy');
         });
+        $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
         /*****business end*****/
 
     });
