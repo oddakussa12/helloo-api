@@ -617,7 +617,7 @@ class BackStageController extends BaseController
                 'string',
                 'min:1',
                 'max:32',///^[_0-9a-z]{6,16}$/i
-                'regex:[_a-z]{1,32}$/i'
+                'regex:/^[_a-z]{1,32}$/'
             ],
             'locale'=>[
                 'bail',
