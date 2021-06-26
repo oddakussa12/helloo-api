@@ -608,7 +608,7 @@ class BackStageController extends BaseController
 
     public function storeShopTag(Request $request)
     {
-        $tag = $request->input('tag' , '');
+        $tag = strtolower(strval($request->input('tag' , '')));
         $locale = (array)$request->input('locale' , array());
         $rules = array(
             'tag'=>[
@@ -616,7 +616,8 @@ class BackStageController extends BaseController
                 'required',
                 'string',
                 'min:1',
-                'max:32'
+                'max:32',///^[_0-9a-z]{6,16}$/i
+                'regex:^[_a-z]{1,32}$/i'
             ],
             'locale'=>[
                 'bail',
