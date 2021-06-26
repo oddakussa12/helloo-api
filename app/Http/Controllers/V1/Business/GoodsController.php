@@ -51,8 +51,9 @@ class GoodsController extends BaseController
                 foreach ($categories as $category)
                 {
                     $gData = $goods->whereIn('id' , $category['goods_ids']);
-                    $gData = $gData->each(function ($g) use ($category){
-                        $g->sort = $category[$g->id];
+                    $gIds = $category['goods_ids'];
+                    $gData = $gData->each(function ($g) use ($gIds){
+                        $g->sort = $gIds[$g->id];
                     })->sortByDesc('sort');
                     array_push($data , array(
                         'category_id'=>$category['category_id'],
