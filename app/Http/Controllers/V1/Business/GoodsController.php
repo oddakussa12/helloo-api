@@ -59,6 +59,7 @@ class GoodsController extends BaseController
                         'category_id'=>$category['category_id'],
                         'name'=>$category['name'],
                         'default'=>$category['default'],
+                        'is_default'=>$category['is_default'],
                         'sort'=>$category['sort'],
                         'goods'=>$gData->values()->toArray()
                     ));
