@@ -46,12 +46,12 @@ class GoodsController extends BaseController
             }else{
                 $data = array();
                 $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
-                $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->unique()->toArray();
+                $goodsIds = collect($categories)->pluck('goods_ids')->keys()->unique()->toArray();
                 $goods = Goods::whereIn('id' , $goodsIds)->get();
                 foreach ($categories as $category)
                 {
-                    $gData = $goods->whereIn('id' , $category['goods_ids']);
                     $gIds = $category['goods_ids'];
+                    $gData = $goods->whereIn('id' , array_keys($gIds));
                     $gData = $gData->each(function ($g) use ($gIds){
                         $g->sort = $gIds[$g->id];
                     })->sortByDesc('sort');
@@ -60,10 +60,10 @@ class GoodsController extends BaseController
                         'name'=>$category['name'],
                         'default'=>$category['default'],
                         'sort'=>$category['sort'],
-                        'goods'=>$gData->toArray()
+                        'goods'=>$gData->values()->toArray()
                     ));
                 }
-                return AnonymousCollection::collection(collect($data)->sortByDesc('sort'));
+                return AnonymousCollection::collection(collect($data)->sortByDesc('sort')->sortByDesc('default')->values());
             }
         }else{
             $goods = collect();

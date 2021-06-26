@@ -28,10 +28,11 @@ class EloquentCategoryGoodsRepository extends EloquentBaseRepository implements 
                 return array(
                     'category_id'=>$category->category_id,
                     'name'=>$category->name,
-                    'default'=>boolval($category->default),
+                    'default'=>intval($category->default),
+                    'is_default'=>boolval($category->default),
                     'sort'=>$category->sort,
                     'goods_ids'=>$categoryGoods->where('category_id' , $category->category_id)->pluck('sort' , 'goods_id')->toArray()
-            );
+                );
             })->toArray();
             Redis::set($key , \json_encode($categories,JSON_UNESCAPED_UNICODE));
         }
