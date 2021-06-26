@@ -212,7 +212,7 @@ $api->group($V1Params , function ($api){
         });
         $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
 
-        $api->get('goods_tag' , 'Business\GoodsTagController@index')->name('business.goods.tag');
+        $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');
         /*****business end*****/
 
     });

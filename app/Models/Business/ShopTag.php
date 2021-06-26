@@ -5,9 +5,9 @@ namespace App\Models\Business;
 use Illuminate\Database\Eloquent\Model;
 
 
-class GoodsTag extends Model
+class ShopTag extends Model
 {
-    protected $table = "goods_tags";
+    protected $table = "shops_tags";
 
     protected $primaryKey = "id";
 
