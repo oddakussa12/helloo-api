@@ -18,7 +18,7 @@ class ShopTagController extends BaseController
         $tagIds = $goodsTags->pluck('id')->toArray();
         $goodsTagsTranslations = ShopTagTranslation::whereIn('tag_id' , $tagIds)->whereIn('locale' , array($locale , 'en'))->get();
         $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations){
-            $goodsTag->translation = $goodsTagsTranslations->where('tag_id' , $goodsTag->id);
+            $goodsTag->translations = $goodsTagsTranslations->where('tag_id' , $goodsTag->id);
         });
         return AnonymousCollection::collection($goodsTags);
     }
