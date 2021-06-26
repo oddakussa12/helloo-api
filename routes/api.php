@@ -211,6 +211,8 @@ $api->group($V1Params , function ($api){
             $api->delete('follow/{follow}' , 'Business\FollowController@destroy')->name('business.follow.destroy');
         });
         $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
+
+        $api->get('goods_tag' , 'Business\GoodsTagController@index')->name('business.goods.tag');
         /*****business end*****/
 
     });
