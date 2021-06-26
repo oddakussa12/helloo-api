@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Business\GoodsCategory;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
+use Illuminate\Support\Facades\Log;
 
 class GoodsCategoryController extends BaseController
 {
@@ -34,29 +35,50 @@ class GoodsCategoryController extends BaseController
             $goodsStatus = $goods->pluck('status' , 'id')->toArray();
             $goodsIds = $goods->pluck('goods_id')->toArray();
         }
-        if(!empty($goodsIds))
+        $now = date('Y-m-d H:i:s');
+        $id = app('snowflake')->id();
+        $data = array(
+            'category_id'=>$id,
+            'user_id'=>$userId,
+            'name'=>$name,
+            'goods_num'=>count($goodsIds),
+            'created_at'=>$now,
+        );
+        try{
+            DB::beginTransaction();
+            $goodsCateGoryResult = DB::table('goods_categories')->insert($data);
+            if(!$goodsCateGoryResult)
+            {
+                abort(500 , 'goods category insert failed!');
+            }
+            if(!empty($goodsIds))
+            {
+
+                $categoryGoodsData = array_map(function($v , $k) use ($id , $userId , $now , $numberGoodsIds , $goodsStatus){
+                    return array(
+                        'category_id'=>$id,
+                        'goods_id'=>$v,
+                        'user_id'=>$userId,
+                        'status'=>isset($goodsStatus[$v])&&$goodsStatus[$v]==1,
+                        'sort'=>intval($numberGoodsIds[$v]),
+                        'created_at'=>$now,
+                    );
+                } , $goodsIds);
+                $cateGoryGoodsResult = DB::table('categories_goods')->insert($categoryGoodsData);
+                if(!$cateGoryGoodsResult)
+                {
+                    abort(500 , 'category goods  insert failed!');
+                }
+            }
+            DB::commit();
+        }catch (\Exception $e)
         {
-            $now = date('Y-m-d H:i:s');
-            $id = app('snowflake')->id();
-            $data = array(
-                'category_id'=>$id,
+            DB::rollBack();
+            Log::info('goods_category_store_fail' , array(
+                'message'=>$e->getMessage(),
+                'data'=>$request->all(),
                 'user_id'=>$userId,
-                'name'=>$name,
-                'goods_num'=>count($goodsIds),
-                'created_at'=>$now,
-            );
-            DB::table('goods_categories')->insert($data);
-            $categoryGoodsData = array_map(function($v , $k) use ($id , $userId , $now , $numberGoodsIds , $goodsStatus){
-                return array(
-                    'category_id'=>$id,
-                    'goods_id'=>$v,
-                    'user_id'=>$userId,
-                    'status'=>isset($goodsStatus[$v])&&$goodsStatus[$v]==1,
-                    'sort'=>intval($numberGoodsIds[$v]),
-                    'created_at'=>$now,
-                );
-            } , $goodsIds);
-            DB::table('categories_goods')->insert($categoryGoodsData);
+            ));
         }
         return $this->response->created();
     }
@@ -77,30 +99,48 @@ class GoodsCategoryController extends BaseController
             $goodsIds = $goods->pluck('goods_id')->toArray();
         }
         $now = date('Y-m-d H:i:s');
-        DB::beginTransaction();
-        DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
-        if(!empty($goodsIds))
-        {
-            $categoryGoodsData = array_map(function($v , $k) use ($categoryId , $userId , $now , $numberGoodsIds , $goodsStatus){
-                return array(
-                    'category_id'=>$categoryId,
-                    'goods_id'=>$v,
-                    'user_id'=>$userId,
-                    'status'=>isset($goodsStatus[$v])&&$goodsStatus[$v]==1,
-                    'sort'=>intval($numberGoodsIds[$v]),
-                    'created_at'=>$now,
+        try{
+            DB::beginTransaction();
+            DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
+            if(!empty($goodsIds))
+            {
+                $categoryGoodsData = array_map(function($v) use ($categoryId , $userId , $now , $numberGoodsIds , $goodsStatus){
+                    return array(
+                        'category_id'=>$categoryId,
+                        'goods_id'=>$v,
+                        'user_id'=>$userId,
+                        'status'=>isset($goodsStatus[$v])&&$goodsStatus[$v]==1,
+                        'sort'=>intval($numberGoodsIds[$v]),
+                        'created_at'=>$now,
+                    );
+                } , $goodsIds);
+                $cateGoryGoodsResult = DB::table('categories_goods')->insert($categoryGoodsData);
+                if(!$cateGoryGoodsResult)
+                {
+                    abort(500 , 'category goods  insert failed!');
+                }
+                $goodsCategoryData = array(
+                    'goods_num' => count($categoryGoodsData),
                 );
-            } , $goodsIds);
-            DB::table('categories_goods')->insert($categoryGoodsData);
-            $goodsCategoryData = array(
-                'goods_num' => count($categoryGoodsData),
-            );
-            !empty($name)&&$goodsCategoryData['name']=$name;
-            DB::table('goods_categories')->where('category_id' , $categoryId)->update(array(
-                'name'=>$name
+                !empty($name)&&$goodsCategoryData['name']=$name;
+                $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update(array(
+                    'name'=>$name
+                ));
+                if($goodsCateGoryResult<=0)
+                {
+                    abort(500 , 'goods category update failed!');
+                }
+            }
+            DB::commit();
+        }catch (\Exception $e)
+        {
+            DB::rollBack();
+            Log::info('goods_category_update_fail' , array(
+                'message'=>$e->getMessage(),
+                'data'=>$request->all(),
+                'user_id'=>$userId,
             ));
         }
-        DB::commit();
         return $this->response->accepted();
     }
 

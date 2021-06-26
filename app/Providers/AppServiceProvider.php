@@ -17,9 +17,11 @@ use App\Repositories\Contracts\UserFriendRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
 use App\Repositories\Eloquent\EloquentGoodsRepository;
 use App\Repositories\Eloquent\EloquentEventRepository;
+use App\Repositories\Contracts\CategoryGoodsRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRepository;
 use App\Repositories\Contracts\UserFriendRequestRepository;
 use App\Custom\Uuid\Snowflake\Resolver\RedisSequenceResolver;
+use App\Repositories\Eloquent\EloquentCategoryGoodsRepository;
 use App\Repositories\Eloquent\EloquentUserFriendRequestRepository;
 
 
@@ -32,12 +34,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
         Schema::defaultStringLength(191);
         $this->setLocalesConfigurations();
         if(!in_array(domain() , config('common.online_domain')))
         {
-            \Log::info('domain()' , array('url'=>url()->current() , 'ip'=>getRequestIpAddress()));
             \DB::listen(function ($query) {
                 $tmp = str_replace('?', '"'.'%s'.'"', $query->sql);
                 $qBindings = [];

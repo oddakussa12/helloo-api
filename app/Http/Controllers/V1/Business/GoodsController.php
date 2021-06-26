@@ -53,8 +53,8 @@ class GoodsController extends BaseController
                 $categoryName = $categories->pluck('name' , 'category_id')->toArray();
                 $categoryGoodsNum = $categories->pluck('goods_num' , 'category_id')->toArray();
                 $data = array();
-                $categoryIds = $categoryGoods->groupBy('category_id')->toArray();
-                foreach ($categoryIds as $categoryId=>$gs)
+                $categoryGroupIds = $categoryGoods->groupBy('category_id')->toArray();
+                foreach ($categoryGroupIds as $categoryId=>$gs)
                 {
                     if(!empty($categoryGoodsNum[$categoryId])&&!empty($categoryName[$categoryId]))
                     {
