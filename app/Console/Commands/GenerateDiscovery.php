@@ -85,7 +85,7 @@ class GenerateDiscovery extends Command
                     if(isset($userDelivery[$view['owner']])&&$userDelivery[$view['owner']]==0)
                     {
                         $data[$view['owner']] = $view['num'];
-                        if(!empty($userTag[$shop->user_id]))
+                        if(!empty($userTag[$view['owner']]))
                         {
                             $tag = $userTag[$view['owner']];
                             $tagKey = 'helloo:discovery:popular:'.$tag.':shops';
