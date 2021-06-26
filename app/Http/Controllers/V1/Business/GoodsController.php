@@ -51,13 +51,18 @@ class GoodsController extends BaseController
                 foreach ($categories as $category)
                 {
                     $gData = $goods->whereIn('id' , $category['goods_ids']);
+                    $gData = $gData->each(function ($g) use ($category){
+                        $g->sort = $category[$g->id];
+                    })->sortByDesc('sort');
                     array_push($data , array(
                         'category_id'=>$category['category_id'],
                         'name'=>$category['name'],
+                        'default'=>$category['default'],
+                        'sort'=>$category['sort'],
                         'goods'=>$gData->toArray()
                     ));
                 }
-                return AnonymousCollection::collection(collect($data));
+                return AnonymousCollection::collection(collect($data)->sortByDesc('sort'));
             }
         }else{
             $goods = collect();
