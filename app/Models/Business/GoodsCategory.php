@@ -18,7 +18,7 @@ class GoodsCategory extends Model
 
     const UPDATED_AT = 'updated_at';
 
-    protected $fillable = ['user_id' , 'name' , 'created_at' , 'updated_at'];
+    protected $fillable = ['user_id' , 'name' , 'created_at' , 'updated_at' , 'default'];
 
     protected $hidden = ['created_at' , 'updated_at'];
 
