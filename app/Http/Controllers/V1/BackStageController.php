@@ -640,14 +640,19 @@ class BackStageController extends BaseController
         $locale = array_filter($locale , function($v , $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
-        $translations = array_map(function($v , $k) use ($id){
+        $translations = array_map(function($v) use ($id , $locale){
+            $content = $locale[$v];
+            if(mb_strlen($content)>128)
+            {
+                abort(422 , 'Tag name is too long!');
+            }
             return array(
-              'id'=>app('snowflake')->id(),
-              'tag_id'=>$id,
-              'locale'=>$k,
-              'tag_content'=>$v,
+                'id'=>app('snowflake')->id(),
+                'tag_id'=>$id,
+                'locale'=>$v,
+                'tag_content'=>$locale[$v],
             );
-        } , $locale);
+        } , array_keys($locale));
         $shopTag = DB::table('shops_tags')->where('tag' , $tag)->first();
         if(!empty($shopTag))
         {
