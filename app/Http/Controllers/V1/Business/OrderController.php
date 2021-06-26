@@ -100,7 +100,7 @@ class OrderController extends BaseController
                 $data['discount'] = $code->percentage;
                 if($code->discount_type=='discount')
                 {
-                    $discountedPrice = round($price*$code->percentage+$deliveryCoast , 2);
+                    $discountedPrice = round($price*$code->percentage/100+$deliveryCoast , 2);
                 }else{
                     $discountedPrice = round($price-$code->reduction+$deliveryCoast , 2);
                 }
