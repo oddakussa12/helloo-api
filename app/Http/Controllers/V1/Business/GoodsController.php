@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Models\Business\CategoryGoods;
-use App\Models\Business\GoodsCategory;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Jobs\BusinessGoodsLog;
@@ -19,6 +17,7 @@ use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
 use App\Repositories\Contracts\GoodsRepository;
+use App\Repositories\Contracts\CategoryGoodsRepository;
 
 class GoodsController extends BaseController
 {
@@ -45,30 +44,18 @@ class GoodsController extends BaseController
                 $type != 'management' && $goods = $goods->where('status' , 1);
                 $goods = $goods->orderByDesc('created_at')->paginate(10)->appends($appends);
             }else{
-                $categoryGoods = CategoryGoods::where('user_id', $userId)->where('status' , 1)->get();
-                $goodsIds = $categoryGoods->plcuk('goods_id')->toArray();
-                $goods = Goods::where('id' , $goodsIds)->get();
-                $categoryIds = $categoryGoods->plcuk('category_id')->unique()->toArray();
-                $categories = GoodsCategory::whereIn('category_id' , $categoryIds)->get();
-                $categoryName = $categories->pluck('name' , 'category_id')->toArray();
-                $categoryGoodsNum = $categories->pluck('goods_num' , 'category_id')->toArray();
                 $data = array();
-                $categoryGroupIds = $categoryGoods->groupBy('category_id')->toArray();
-                foreach ($categoryGroupIds as $categoryId=>$gs)
+                $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
+                $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->unique()->toArray();
+                $goods = Goods::whereIn('id' , $goodsIds)->get();
+                foreach ($categories as $category)
                 {
-                    if(!empty($categoryGoodsNum[$categoryId])&&!empty($categoryName[$categoryId]))
-                    {
-                        $gIds = collect($gs)->pluck('goods_id')->toArray();
-                        $gData = $goods->whereIn('id' , $gIds)->get();
-                        if(!blank($gData))
-                        {
-                            array_push($data , array(
-                                'category_id'=>$categoryId,
-                                'name'=>$categoryName[$categoryId],
-                                'goods'=>$gData
-                            ));
-                        }
-                    }
+                    $gData = $goods->whereIn('id' , $category['goods_ids']);
+                    array_push($data , array(
+                        'category_id'=>$category['category_id'],
+                        'name'=>$category['name'],
+                        'goods'=>$gData->toArray()
+                    ));
                 }
                 return AnonymousCollection::collection(collect($data));
             }
