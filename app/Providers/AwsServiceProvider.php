@@ -2,7 +2,7 @@
 
 use Aws\Sdk;
 use Aws\DoctrineCacheAdapter;
-use Doctrine\Common\Cache\ApcuCache;
+use App\Custom\Doctrine\Common\Cache\ApcuCache;
 use Aws\Credentials\CredentialProvider;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;

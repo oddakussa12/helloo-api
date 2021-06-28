@@ -7,7 +7,7 @@ namespace App\Providers;
 use Aws\DoctrineCacheAdapter;
 use Aws\Credentials\Credentials;
 use Aws\Pinpoint\PinpointClient;
-use Doctrine\Common\Cache\ApcuCache;
+use App\Custom\Doctrine\Common\Cache\ApcuCache;
 use Aws\Credentials\CredentialProvider;
 use Illuminate\Support\ServiceProvider;
 

@@ -6,7 +6,7 @@ use Aws\Sqs\SqsClient;
 use Illuminate\Support\Arr;
 use Aws\DoctrineCacheAdapter;
 use Illuminate\Queue\SqsQueue;
-use Doctrine\Common\Cache\ApcuCache;
+use App\Custom\Doctrine\Common\Cache\ApcuCache;
 use Aws\Credentials\CredentialProvider;
 use Illuminate\Queue\Connectors\ConnectorInterface;
 
