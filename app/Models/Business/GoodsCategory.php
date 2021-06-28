@@ -22,4 +22,9 @@ class GoodsCategory extends Model
 
     protected $hidden = ['created_at' , 'updated_at'];
 
+    protected $casts = [
+      "category_id"=>'string',
+      "user_id"=>'string'
+    ];
+
 }
