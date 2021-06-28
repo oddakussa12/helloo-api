@@ -35,6 +35,7 @@ class EloquentCategoryGoodsRepository extends EloquentBaseRepository implements 
                 );
             })->toArray();
             Redis::set($key , \json_encode($categories,JSON_UNESCAPED_UNICODE));
+            Redis::expire($key , 60*60*24*7);
         }
         return $categories;
     }
