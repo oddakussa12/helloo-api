@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Business\GoodsCategory;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
+use Illuminate\Support\Facades\Redis;
 
 class GoodsCategoryController extends BaseController
 {
@@ -79,6 +80,7 @@ class GoodsCategoryController extends BaseController
                 }
             }
             DB::commit();
+            Redis::del("helloo:business:goods:category:service:account:".$userId);
         }catch (\Exception $e)
         {
             DB::rollBack();
@@ -159,6 +161,7 @@ class GoodsCategoryController extends BaseController
                 }
             }
             DB::commit();
+            Redis::del("helloo:business:goods:category:service:account:".$userId);
         }catch (\Exception $e)
         {
             DB::rollBack();
@@ -180,6 +183,7 @@ class GoodsCategoryController extends BaseController
             abort(422 , 'This category cannot be deleted!');
         }
         DB::table('goods_categories')->where('category_id' , $id)->delete();
+        Redis::del("helloo:business:goods:category:service:account:".$userId);
         return $this->response->noContent();
     }
 
