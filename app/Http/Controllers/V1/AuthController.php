@@ -348,7 +348,7 @@ class AuthController extends BaseController
         }
         if(!empty($user_currency)&&!empty($user->user_currency))
         {
-            $fields['user_about'] = $user_about;
+            $fields['user_currency'] = $user_currency;
         }
         $fields = array_filter($fields , function($value){
             return !blank($value);
