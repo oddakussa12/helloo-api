@@ -62,6 +62,7 @@ class GoodsCategoryController extends BaseController
 
                 $categoryGoodsData = array_map(function($v) use ($id , $userId , $now , $numberGoodsIds , $goodsStatus){
                     return array(
+                        'id'=>app('snowflake')->id(),
                         'category_id'=>$id,
                         'goods_id'=>$v,
                         'user_id'=>$userId,
@@ -113,6 +114,7 @@ class GoodsCategoryController extends BaseController
             {
                 $categoryGoodsData = array_map(function($v) use ($categoryId , $userId , $now , $numberGoodsIds , $goodsStatus){
                     return array(
+                        'id'=>app('snowflake')->id(),
                         'category_id'=>$categoryId,
                         'goods_id'=>$v,
                         'user_id'=>$userId,
