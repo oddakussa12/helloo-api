@@ -94,6 +94,7 @@ class GoodsCategoryController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $name = $request->input('name' , '');
+        $sort = intval($request->input('sort' , 0));
         $categoryId = $id;
         $numberGoodsIds = (array)$request->input('goods_id' , array());
         $goodsIds = array_keys($numberGoodsIds);
@@ -102,7 +103,7 @@ class GoodsCategoryController extends BaseController
         {
             $goods = Goods::whereIn('id' , $goodsIds)->get();
             $goodsStatus = $goods->pluck('status' , 'id')->toArray();
-            $goodsIds = $goods->pluck('goods_id')->toArray();
+            $goodsIds = $goods->pluck('id')->toArray();
         }
         $now = date('Y-m-d H:i:s');
         try{
@@ -127,11 +128,11 @@ class GoodsCategoryController extends BaseController
                 }
                 $goodsCategoryData = array(
                     'goods_num' => count($categoryGoodsData),
+                    'sort'=>$sort,
+                    'updated_at'=>$now,
                 );
                 !empty($name)&&$goodsCategoryData['name']=$name;
-                $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update(array(
-                    'name'=>$name
-                ));
+                $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update($goodsCategoryData);
                 if($goodsCateGoryResult<=0)
                 {
                     abort(500 , 'goods category update failed!');
