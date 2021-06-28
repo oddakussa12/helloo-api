@@ -26,12 +26,16 @@ class GoodsCategoryController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $name = $request->input('name' , '');
+        $sort = intval($request->input('sort' , 0));
         $numberGoodsIds = (array)$request->input('goods_id' , array());
         $goodsIds = array_keys($numberGoodsIds);
         $goodsStatus = array();
         if(!empty($goodsIds))
         {
             $goods = Goods::whereIn('id' , $goodsIds)->get();
+            $goods = $goods->reject(function ($g) use ($userId){
+                return $g->user_id!=$userId;
+            });
             $goodsStatus = $goods->pluck('status' , 'id')->toArray();
             $goodsIds = $goods->pluck('goods_id')->toArray();
         }
@@ -41,6 +45,7 @@ class GoodsCategoryController extends BaseController
             'category_id'=>$id,
             'user_id'=>$userId,
             'name'=>$name,
+            'sort'=>$sort,
             'goods_num'=>count($goodsIds),
             'created_at'=>$now,
         );
