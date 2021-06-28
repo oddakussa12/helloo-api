@@ -139,6 +139,18 @@ class GoodsCategoryController extends BaseController
                 {
                     abort(500 , 'goods category update failed!');
                 }
+            }else{
+                $goodsCategoryData = array(
+                    'goods_num' => 0,
+                    'sort'=>$sort,
+                    'updated_at'=>$now,
+                );
+                !empty($name)&&$goodsCategoryData['name']=$name;
+                $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update($goodsCategoryData);
+                if($goodsCateGoryResult<=0)
+                {
+                    abort(500 , 'goods category update failed!');
+                }
             }
             DB::commit();
         }catch (\Exception $e)
