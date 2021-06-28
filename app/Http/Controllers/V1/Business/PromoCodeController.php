@@ -18,7 +18,7 @@ class PromoCodeController extends BaseController
     public function update(Request $request , $code)
     {
         $promo = PromoCode::where('promo_code' , $code)->first();
-        if($promo->limit>0)
+        if(!empty($promo)&&$promo->limit>0)
         {
             PromoCode::where('promo_code' , $code)->decrement('limit');
         }
