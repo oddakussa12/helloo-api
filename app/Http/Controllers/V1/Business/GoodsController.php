@@ -208,6 +208,13 @@ class GoodsController extends BaseController
                 abort(405 , 'goods insert failed!');
             }
             DB::commit();
+            if($data['status']==1)
+            {
+                $price = $data['currency']=="BIRR"?$data['price']*0.023:$data['price'];
+                Redis::zadd("helloo:discovery:price:products" , array(
+                    $data['id']=>$price
+                ));
+            }
         }catch (\Exception $e)
         {
             DB::rollBack();
@@ -284,6 +291,15 @@ class GoodsController extends BaseController
                 $params['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
             }
             DB::table('goods')->where('id' , $id)->update($params);
+            if($params['status']==1)
+            {
+                $price = $goods->currency=="BIRR"?$params['price']*0.023:$params['price'];
+                Redis::zadd("helloo:discovery:price:products" , array(
+                    $id=>$price
+                ));
+            }else{
+                Redis::zrem("helloo:discovery:price:products" , $id);
+            }
         }
         return $this->response->accepted();
     }

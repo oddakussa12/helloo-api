@@ -46,9 +46,11 @@ class GenerateDiscovery extends Command
         {
             $this->popularShops();
             $this->popularProducts();
-        }else{
+        }else if($type=='rated'){
             $this->ratedShops();
             $this->ratedProducts();
+        }else{
+            $this->priceProducts();
         }
     }
 
