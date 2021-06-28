@@ -27,7 +27,7 @@ return [
         'web_test'=>'web.mmantou.cn',
     ],
     'app_dir' => env('APP_DIR', 'api.helloo.mantouhealth.com'),
-
+    'order_sms_domain'=>env('ORDER_SMS_DOMAIN'),
 
     'sign_up_throttle_num' =>env('SIGN_UP_THROTTLE_NUM', 2),
     'sign_up_throttle_expired' =>env('SIGN_UP_THROTTLE_EXPIRED', 60),
