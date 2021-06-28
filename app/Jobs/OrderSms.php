@@ -17,13 +17,13 @@ class OrderSms implements ShouldQueue
 
     private $orderInfo;
     private $type;
-    private $order_sms_domain;
+    private $orderSmsDomain;
 
     public function __construct($orderInfo , $type = 'single')
     {
         $this->orderInfo = $orderInfo;
         $this->type = $type;
-        $this->order_sms_domain = config('common.order_sms_domain');
+        $this->orderSmsDomain = config('common.order_sms_domain');
     }
 
     /**
@@ -78,7 +78,7 @@ class OrderSms implements ShouldQueue
             CURLOPT_POSTFIELDS =>\json_encode($params),
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
-                'hello: '.$this->order_sms_domain
+                'hello: '.$this->orderSmsDomain
             ),
         ));
 
