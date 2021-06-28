@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1\Business;
 
 
+use App\Models\Business\CategoryGoods;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use Illuminate\Support\Facades\DB;
@@ -100,6 +101,11 @@ class GoodsCategoryController extends BaseController
         $numberGoodsIds = (array)$request->input('goods_id' , array());
         $goodsIds = array_keys($numberGoodsIds);
         $goodsStatus = array();
+        $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->first();
+        if(empty($goodsCategory)||$goodsCategory->is_default||$goodsCategory->user_id!=$userId)
+        {
+            abort(422 , 'Category does not exist!');
+        }
         if(!empty($goodsIds))
         {
             $goods = Goods::whereIn('id' , $goodsIds)->get();
@@ -167,10 +173,11 @@ class GoodsCategoryController extends BaseController
 
     public function destroy($id)
     {
-        $goodsCategory = DB::table('goods_categories')->where('category_id' , $id)->first();
-        if($goodsCategory->goods_num>0)
+        $userId = auth()->id();
+        $goodsCategory = GoodsCategory::where('category_id' , $id)->first();
+        if(empty($goodsCategory)||$goodsCategory->goods_num>0||$goodsCategory->is_default||$goodsCategory->user_id!=$userId)
         {
-            abort(422 , 'There are goods in this category!');
+            abort(422 , 'This category cannot be deleted!');
         }
         DB::table('goods_categories')->where('category_id' , $id)->delete();
         return $this->response->noContent();
