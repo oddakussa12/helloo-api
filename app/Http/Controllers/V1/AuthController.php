@@ -346,7 +346,7 @@ class AuthController extends BaseController
         {
             $fields['user_about'] = $user_about;
         }
-        if(!empty($user_currency)&&!empty($user->user_currency))
+        if(!empty($user_currency)&&empty($user->user_currency))
         {
             $fields['user_currency'] = $user_currency;
         }
