@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
 use App\Resources\UserCollection;
+use App\Models\Business\PromoCode;
 use App\Jobs\ShoppingCartTransfer;
 use App\Jobs\OrderSynchronization;
 use App\Resources\OrderCollection;
@@ -28,6 +29,7 @@ class OrderController extends BaseController
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
+        $promoCode = $request->input('promo_code' , '');
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         if(empty(array_keys($goods)))
         {
@@ -49,6 +51,14 @@ class OrderController extends BaseController
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
+        if(!empty($promoCode)&&$shopGoods->count()==1)
+        {
+            $code = PromoCode::where('promo_code' , $promoCode)->first();
+            if(!empty($code)&&$code->limit<=0)
+            {
+                abort(422 , 'The promo code has been used up!');
+            }
+        }
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = intval($goods[$g->id]);
         });
@@ -80,16 +90,60 @@ class OrderController extends BaseController
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
+            if(!empty($code)&&$code->limit>0)
+            {
+                $deliveryCoast = $code->free_delivery?0:30;
+                $data['delivery_coast'] = $deliveryCoast;
+                $data['promo_code'] = $code->promo_code;
+                $data['free_delivery'] = intval($code->free_delivery);
+                $data['reduction'] = $code->reduction;
+                $data['discount'] = $code->percentage;
+                if($code->discount_type=='discount')
+                {
+                    $discountedPrice = round($price*$code->percentage/100+$deliveryCoast , 2);
+                }else{
+                    $discountedPrice = round($price-$code->reduction+$deliveryCoast , 2);
+                }
+                $data['discounted_price'] = $discountedPrice;
+            }else{
+                $deliveryCoast = 30;
+                $data['delivery_coast'] = $deliveryCoast;
+                $data['discounted_price'] = round($price+$deliveryCoast , 2);
+            }
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            $data['delivery_coast'] = 30;
             array_push($returnData , $data);
         }
         if(!empty($orderData))
         {
-            DB::table('orders')->insert($orderData);
+            try{
+                DB::beginTransaction();
+                $orderResult = DB::table('orders')->insert($orderData);
+                if(!$orderResult)
+                {
+                    abort('500' , 'order insert failed!');
+                }
+                if(!empty($code)&&$code->limit>0)
+                {
+                    $codeResult = DB::table('promo_codes')->where('promo_code' , $promoCode)->decrement('limit');
+                    if($codeResult<=0)
+                    {
+                        abort('500' , 'promo code update failed!');
+                    }
+                }
+                DB::commit();
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('order_store_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'user_id'=>$userId,
+                    'data'=>$request->all()
+                ));
+                return $this->response->error('Order creation failed!' , 424);
+            }
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
             Redis::hdel($key , $goodsIds);
             ShoppingCartTransfer::dispatch($userId , $goodsIds)->onQueue('helloo_{shopping_cart_transfer}');

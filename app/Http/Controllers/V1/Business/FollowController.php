@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Repositories\Contracts\UserRepository;
+
 use Illuminate\Http\Request;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
-use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
+use App\Repositories\Contracts\UserRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
 
 class FollowController extends BaseController
@@ -33,7 +32,6 @@ class FollowController extends BaseController
         ]);
         return UserCollection::collection($users);
     }
-
     public function store(Request $request)
     {
         $user = auth()->user();
