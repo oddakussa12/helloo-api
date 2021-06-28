@@ -17,7 +17,7 @@ class GoodsCategoryController extends BaseController
     {
         $user = auth()->user();
         $userId = $user->user_id;
-        $goodsCategories = GoodsCategory::where('user_id' , $userId)->get();
+        $goodsCategories = GoodsCategory::where('user_id' , $userId)->select('Category_id' , 'name' , 'default')->orderByDesc('default')->orderByDesc('sort')->get();
         return AnonymousCollection::collection($goodsCategories);
     }
 

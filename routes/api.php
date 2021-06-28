@@ -209,7 +209,13 @@ $api->group($V1Params , function ($api){
             $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
             $api->post('follow' , 'Business\FollowController@store')->name('business.follow.store');
             $api->delete('follow/{follow}' , 'Business\FollowController@destroy')->name('business.follow.destroy');
+            $api->post('goods_category' , 'Business\GoodsCategoryController@store')->name('business.goods.category.store');
+            $api->patch('goods_category/{goods_category}' , 'Business\GoodsCategoryController@update')->name('business.goods.category.update');
+            $api->delete('goods_category/{goods_category}' , 'Business\GoodsCategoryController@destroy')->name('business.goods.category.destroy');
         });
+
+        $api->get('goods_category' , 'Business\GoodsCategoryController@index')->name('business.goods.category.index');
+
         $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
 
         $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');
