@@ -37,7 +37,7 @@ class GoodsCategoryController extends BaseController
                 return $g->user_id!=$userId;
             });
             $goodsStatus = $goods->pluck('status' , 'id')->toArray();
-            $goodsIds = $goods->pluck('goods_id')->toArray();
+            $goodsIds = $goods->pluck('id')->toArray();
         }
         $now = date('Y-m-d H:i:s');
         $id = app('snowflake')->id();
@@ -48,6 +48,7 @@ class GoodsCategoryController extends BaseController
             'sort'=>$sort,
             'goods_num'=>count($goodsIds),
             'created_at'=>$now,
+            'updated_at'=>$now,
         );
         try{
             DB::beginTransaction();
@@ -59,7 +60,7 @@ class GoodsCategoryController extends BaseController
             if(!empty($goodsIds))
             {
 
-                $categoryGoodsData = array_map(function($v , $k) use ($id , $userId , $now , $numberGoodsIds , $goodsStatus){
+                $categoryGoodsData = array_map(function($v) use ($id , $userId , $now , $numberGoodsIds , $goodsStatus){
                     return array(
                         'category_id'=>$id,
                         'goods_id'=>$v,
