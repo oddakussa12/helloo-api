@@ -122,7 +122,7 @@ class ShoppingCartController extends BaseController
         $gs->each(function($g) use ($goods){
             $g->goodsNumber = intval($goods[$g->id]);
         });
-        $userIds = $gs->pluck('user_id')->toArray();
+        $userIds = $gs->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($gs->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
