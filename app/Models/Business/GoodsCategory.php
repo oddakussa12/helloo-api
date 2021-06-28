@@ -27,4 +27,11 @@ class GoodsCategory extends Model
       "user_id"=>'string'
     ];
 
+    protected $appends = ['is_default'];
+
+    public function getIsDefaultAttribute()
+    {
+        return boolval($this->default);
+    }
+
 }
