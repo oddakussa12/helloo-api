@@ -5,7 +5,7 @@ namespace App\Providers;
 use Aws\Credentials\CredentialProvider;
 use Aws\Credentials\Credentials;
 use Aws\DoctrineCacheAdapter;
-use Doctrine\Common\Cache\ApcuCache;
+use App\Custom\Doctrine\Common\Cache\ApcuCache;
 use Elasticsearch\ClientBuilder;
 use Illuminate\Support\ServiceProvider;
 

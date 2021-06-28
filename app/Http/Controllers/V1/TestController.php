@@ -13,7 +13,7 @@ use App\Custom\NEIm\NEMessage\MessageOptions;
 use App\Custom\NEIm\NEMessage\NeTxtMessage;
 use Aws\Credentials\CredentialProvider;
 use Aws\DoctrineCacheAdapter;
-use Doctrine\Common\Cache\ApcuCache;
+use App\Custom\Doctrine\Common\Cache\ApcuCache;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\User;
 use App\Custom\NEIm\NetEaseIm;

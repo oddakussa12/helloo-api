@@ -5,7 +5,7 @@ namespace App\Jobs;
 use Aws\DoctrineCacheAdapter;
 use Illuminate\Bus\Queueable;
 use Aws\Kinesis\KinesisClient;
-use Doctrine\Common\Cache\ApcuCache;
+use App\Custom\Doctrine\Common\Cache\ApcuCache;
 use Illuminate\Queue\SerializesModels;
 use Aws\Credentials\CredentialProvider;
 use Illuminate\Queue\InteractsWithQueue;
