@@ -199,11 +199,11 @@ class UserFriendRequestController extends BaseController
             $friendSortKey = "helloo:account:friend:game:rank:sort:".$friendId.'-coronation';//暂时一个游戏
             $maxScore = Redis::zscore($key , $userId);
             $friendMaxScore = Redis::zscore($key , $friendId);
-            if($maxScore!==null)
+            if($maxScore!==null&&$maxScore!==false)
             {
                 Redis::exists($friendSortKey)&&Redis::zadd($friendSortKey , $maxScore , $userId);
             }
-            if($friendMaxScore!==null)
+            if($friendMaxScore!==null&&$friendMaxScore!==false)
             {
                 Redis::exists($sortKey)&&Redis::zadd($sortKey , $friendMaxScore , $friendId);
             }

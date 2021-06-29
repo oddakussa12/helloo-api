@@ -413,6 +413,16 @@ class PhpRedisConnection extends Connection
         return call_user_func_array(array(parent::class, 'hdel'), array_merge(array($key) , $value));
     }
 
+    public function rpush($key , ...$value)
+    {
+        $reset = reset($value);
+        if(is_array($reset))
+        {
+            $value = $reset;
+        }
+        return call_user_func_array(array(parent::class, 'rpush'), array_merge(array($key) , $value));
+    }
+
 
     /**
      * Pass other method calls down to the underlying client.

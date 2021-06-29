@@ -205,7 +205,8 @@ class AuthController extends BaseController
         }
         $user = $this->user->find($user->getKey());
         $genderKey = 'helloo:account:service:account-gender';
-        $user->userGenderChanged = Redis::zscore($genderKey , $user->getKey())===null;
+        $userGenderChanged = Redis::zscore($genderKey , $user->getKey());
+        $user->userGenderChanged = $userGenderChanged===null||$userGenderChanged===false;
         return new UserCollection($user);
     }
 
@@ -469,10 +470,11 @@ class AuthController extends BaseController
         $user->likedCount = intval(Redis::zscore($likedKey , $userId));
         $user->friendCount = 0;
         $genderKey = 'helloo:account:service:account-gender';
-        $user->userGenderChanged = Redis::zscore($genderKey , $userId)===null;
+        $userGenderChanged = Redis::zscore($genderKey , $userId);
+        $user->userGenderChanged = $userGenderChanged===null||$userGenderChanged===false;
         $userNameKey = 'helloo:account:service:account-username-change';
         $time = Redis::zscore($userNameKey , $userId);
-        $user->userNameCanChange = $time===null;
+        $user->userNameCanChange = $time===null||$time===false;
 
         $privacy = app(UserRepository::class)->findPrivacyByUserId($userId);
         $user->privacy = $privacy;

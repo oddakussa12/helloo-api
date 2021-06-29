@@ -480,7 +480,7 @@ trait Update
                             $fail('The username can only contain numbers and letters.');
                         }
                         $score = Redis::zscore($key , $user->user_id);
-                        if($score!==null)
+                        if($score!==null&&$score!==false)
                         {
                             $fail('You can only change your username once within a year!');
                         }
@@ -527,7 +527,7 @@ trait Update
                 }else{
                     throw new \Exception('Database update failed');
                 }
-                $changed===null && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
+                $changed===null||$changed===false && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
             }catch (\Exception $e)
             {
                 DB::rollBack();
