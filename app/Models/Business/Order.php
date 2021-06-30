@@ -16,7 +16,7 @@ class Order extends Model
 
     protected $fillable = ['user_id', 'shop_id' , 'user_name' , 'user_contact' , 'user_address' , 'detail' , 'address', 'order_price' , 'currency'];
 
-    protected $hidden = ['schedule' , 'shop_price' , 'comment' , 'order_time' , 'operator' , 'deposit' , 'updated_at'];
+    protected $hidden = ['schedule' , 'shop_price' , 'comment' , 'order_time' , 'operator' , 'deposit' , 'updated_at' , 'brokerage_percentage' , 'brokerage' , 'profit'];
 
     protected $appends = ['format_price'];
 

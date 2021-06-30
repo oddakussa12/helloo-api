@@ -69,6 +69,7 @@ class OrderController extends BaseController
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
+        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         foreach ($shopGoods as $u=>$shopGs)
         {
@@ -98,6 +99,8 @@ class OrderController extends BaseController
                 $data['free_delivery'] = intval($code->free_delivery);
                 $data['reduction'] = $code->reduction;
                 $data['discount'] = $code->percentage;
+                $discount_type = strval($code->discount_type);
+
                 if($code->discount_type=='discount')
                 {
                     $discountedPrice = round($price*$code->percentage/100+$deliveryCoast , 2);
@@ -107,13 +110,20 @@ class OrderController extends BaseController
                 $data['discounted_price'] = $discountedPrice;
             }else{
                 $deliveryCoast = 30;
+                $discount_type = '';
                 $data['delivery_coast'] = $deliveryCoast;
                 $data['discounted_price'] = round($price+$deliveryCoast , 2);
             }
+            $data['discount_type'] = $discount_type;
+            $data['brokerage_percentage'] = $brokerage_percentage;
+            $brokerage = round($brokerage_percentage/100*$price , 2);
+            $data['brokerage'] = $brokerage;
+            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
+            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
             array_push($returnData , $data);
         }
         if(!empty($orderData))

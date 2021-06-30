@@ -121,7 +121,7 @@ class BackStageController extends BaseController
                     continue;
                 }
                 $time = Redis::zscore($lastActivityTime , $id);
-                $users[$id] = $time==null?946656000:intval($time);
+                $users[$id] = ($time===null||$time===false)?946656000:intval($time);
             }
             Log::info('$users' , $users);
             $count = count($users);
