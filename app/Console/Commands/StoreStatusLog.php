@@ -48,13 +48,13 @@ class StoreStatusLog extends Command
         $visitData = array();
         while(true) {
             $data = Redis::Lpop($key);
-            if($data!==null)
+            if($data!==null||$data!==false)
             {
                 $visit = \json_decode($data , true);
                 $visit['created_at'] = $created_at;
                 array_push($visitData , $visit);
             }
-            if($index%100==0||$data===null)
+            if($index%100==0||$data===null||$data===false)
             {
                 !blank($visitData)&&DB::table('status_logs')->insert($visitData);
                 $index = 0;
