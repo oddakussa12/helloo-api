@@ -48,7 +48,7 @@ class User extends Authenticatable implements JWTSubject
         'user_activation' ,
         'user_activated_at' ,
         'user_enrollment_at' ,
-
+        'user_delivery',
         'user_currency',
 
         'user_online',
