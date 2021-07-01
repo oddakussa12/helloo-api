@@ -312,7 +312,7 @@ $api->group($V1Params , function ($api){
 
         $api->post('score' , 'BackStageController@storeScore')->name('backstage.store.score');
 
-        $api->patch('shop' , 'BackStageController@updateShop')->name('backStage.shop.update');
+        $api->patch('shop/{shop}' , 'BackStageController@updateShop')->name('backStage.shop.update');
 
         $api->post('review/comment' , 'BackStageController@reviewComment')->name('backStage.review.comment');
 

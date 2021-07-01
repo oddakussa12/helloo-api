@@ -459,151 +459,26 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
     
-    public function updateShop(Request $request)
+    public function updateShop(Request $request , $id)
     {
         $fields  = array();
-        $user_id = strval($request->input('user_id' , ''));
-        $user    = User::find($user_id);
-
-        $user_phone   = strval($request->input('user_phone' , ''));
-        $user_avatar  = strval($request->input('user_avatar' , ''));
-        $user_bg      = strval($request->input('user_bg' , ''));
-        $user_nick_name = mb_substr(strval($request->input('user_nick_name' , '')) , 0 , 64);
-        $user_name    = mb_substr(strval($request->input('user_name' , '')) , 0 , 24);
-        $verify       = $request->input('user_verified');
-        $virtual      = $request->input('virtual');
-        $user_address = mb_substr(strval($request->input('user_address' , '')) , 0 , 512);
-        $user_contact = mb_substr(strval($request->input('user_contact' , '')) , 0 , 64);
-        $user_about   = strval($request->input('user_about' , ''));
-        $update       = strval($request->input('update' , ''));
-        if ($update) {
-            // 仅状态改变
-            $params = $request->only('user_level', 'user_delivery', 'user_verified', 'user_verified_at');
-            if ($params) {
-                User::where('user_id', $user_id)->update($params);
-                $key = "helloo:account:service:account:".$user_id;
-                Redis::del($key);
-            }
-            return $this->response->array([]);
-        }
-        // 修改手机号码
-        if (!empty($user_phone)) {
-            $phone = DB::table('users_phones')->select('user_phone_country', 'user_phone')->where('user_id', $user_id)->first();
-            if ($phone->user_phone!=$user_phone) {
-                $exist = DB::table('users_phones')->where(['user_phone'=>$user_phone, 'user_phone_country'=>$phone->user_phone_country])->count();
-                !$exist && DB::table('users_phones')->where('user_id', $user_id)->update('user_phone', $user_phone);
-            }
-        }
-        if(!empty($user_avatar)&&$user->user_avatar!=$user_avatar)
+        $user    = User::where('user_id' , $id)->firstOrFail();
+        $user_verified   = strval($request->input('user_verified'));
+        $user_delivery   = strval($request->input('user_delivery'));
+        if($user_verified!==null)
         {
-            $fields['user_avatar'] = $user_avatar;
+            $fields['user_verified'] = $user_verified;
         }
-        if(!blank($user_bg)&&$user->user_bg!=$user_bg)
+        if($user_delivery!==null)
         {
-            $fields['user_bg'] = $user_bg;
+            $fields['user_delivery'] = $user_delivery;
         }
-        if (isset($verify)) {
-            $fields['user_verified'] = $verify;
-            $fields['user_verified_at'] = date('Y-m-d H:i:s');
-        }
-        if (isset($virtual)) {
-            $fields['user_online'] = $virtual;
-        }
-        if(!empty($user_nick_name)&&$user->user_nick_name!=$user_nick_name)
+        if(empty($fields))
         {
-            $fields['user_nick_name'] = $user_nick_name;
+            abort(422 , 'Parameter cannot be empty!');
         }
-        if(!blank($user_name)&&strtolower($user->user_name)!=strtolower($user_name))
-        {
-            $fields['user_name'] = $user_name;
-            $fields['user_name_change'] = "user_name_change+1";
-            $fields['user_name_changed_at'] = date('Y-m-d H:i:s');
-        }
-        if(!blank($user_address)&&$user->user_address!=$user_address)
-        {
-            $fields['user_address'] = $user_address;
-        }
-        if(!blank($user_contact)&&$user->user_contact!=$user_contact)
-        {
-            $fields['user_contact'] = $user_contact;
-        }
-        if(!empty($user_about)&&$user->user_about!=$user_about)
-        {
-            $fields['user_about'] = $user_about;
-        }
-        $fields = array_filter($fields , function($value){
-            return !blank($value);
-        });
-        if(!empty($fields)&&$user->user_activation==1)
-        {
-            $rules = array(
-                'user_avatar'=>[
-                    'bail',
-                    'filled',
-                    'string',
-                    'min:30',
-                    'max:300'
-                ],
-                'user_bg'=>[
-                    'bail',
-                    'filled',
-                    'string',
-                    'min:30',
-                    'max:300'
-                ],
-                'user_nick_name'=>[
-                    'bail',
-                    'filled',
-                    'string',
-                    'min:2',
-                    'max:32'
-                ],
-                'user_name'=>[
-                    'bail',
-                    'filled',
-                    'string',
-                    'alpha_num',
-                    'min:3',
-                    'max:24',
-                    function ($attribute, $value, $fail) use ($user){
-                        $index = ($user->user_id)%2;
-                        $usernameKey = 'helloo:account:service:account-username-'.$index;
-                        if(Redis::sismember($usernameKey , strtolower($value)))
-                        {
-                            $fail(__('Nickname taken already.'));
-                        }
-                        $exist = DB::table('users')->where('user_name' , $value)->first();
-                        if(!blank($exist))
-                        {
-                            $fail(__('Nickname taken already.'));
-                        }
-                    },
-                ],
-                'user_address'=>[
-                    'bail',
-                    'filled',
-                    'string',
-                    'min:10',
-                    'max:100',
-                ],
-
-                'user_contact'=>[
-                    'bail',
-                    'filled',
-                    'numeric',
-                    'max:99999999999999'
-                ],
-                'user_about' => [
-                    'bail',
-                    'filled',
-                    'string',
-                    'max:100'
-                ],
-            );
-            Validator::make($fields, $rules)->validate();
-            $user = $user->update($fields);
-        }
-        return $this->response->array([]);
+        $this->user->update($user , $fields);
+        return $this->response->accepted();
     }
 
     public function storeShopTag(Request $request)
