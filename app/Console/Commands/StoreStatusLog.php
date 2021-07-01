@@ -59,7 +59,7 @@ class StoreStatusLog extends Command
                 !blank($visitData)&&DB::table('status_logs')->insert($visitData);
                 $index = 0;
                 $visitData = array();
-                if($data===null)
+                if($data===null||$data===false)
                 {
                     break;
                 }

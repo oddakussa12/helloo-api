@@ -72,7 +72,7 @@ class StoreVisitLog extends Command
                 $index = 0;
                 $visitData = array();
                 $visitList = array();
-                if($data===null)
+                if($data===null||$data===false)
                 {
                     break;
                 }
