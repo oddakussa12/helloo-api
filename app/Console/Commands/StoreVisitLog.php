@@ -51,7 +51,7 @@ class StoreVisitLog extends Command
         $visitList = array();
         while(true) {
             $data = Redis::Lpop($key);
-            if($data!==null)
+            if($data!==null&&$data!==false)
             {
                 $visit = \json_decode($data , true);
                 if(is_array($visit))
@@ -65,14 +65,14 @@ class StoreVisitLog extends Command
                     }
                 }
             }
-            if($index%100==0||$data===null)
+            if($index%100==0||$data===null||$data===false)
             {
                 !blank($visitData)&&DB::table('visit_logs_'.$suffix)->insert($visitData);
                 !blank($visitList)&&DB::table('visit_logs_'.$suffix)->insert($visitList);
                 $index = 0;
                 $visitData = array();
                 $visitList = array();
-                if($data===null)
+                if($data===null||$data===false)
                 {
                     break;
                 }
