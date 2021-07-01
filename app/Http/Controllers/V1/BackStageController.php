@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 
+use App\Repositories\Contracts\UserRepository;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\BlackUser;
@@ -477,7 +478,7 @@ class BackStageController extends BaseController
         {
             abort(422 , 'Parameter cannot be empty!');
         }
-        $this->user->update($user , $fields);
+        app(UserRepository::class)->update($user , $fields);
         return $this->response->accepted();
     }
 
