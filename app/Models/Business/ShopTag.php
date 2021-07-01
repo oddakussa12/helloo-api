@@ -15,6 +15,8 @@ class ShopTag extends Model
 
     const CREATED_AT = 'created_at';
 
+    const UPDATED_AT = 'updated_at';
+
     protected $fillable = ['tag' , 'created_at'];
 
     protected $hidden = ['id' , 'created_at'];
