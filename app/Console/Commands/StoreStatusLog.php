@@ -48,7 +48,7 @@ class StoreStatusLog extends Command
         $visitData = array();
         while(true) {
             $data = Redis::Lpop($key);
-            if($data!==null||$data!==false)
+            if($data!==null&&$data!==false)
             {
                 $visit = \json_decode($data , true);
                 $visit['created_at'] = $created_at;
