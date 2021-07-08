@@ -15,6 +15,7 @@ class ShopTagController extends BaseController
     public function index(Request $request)
     {
         $key = 'helloo:business:service:shop:tags';
+        $locale = locale();
         if(Redis::exists($key))
         {
             $data = \json_decode(Redis::get($key , true));
@@ -22,8 +23,17 @@ class ShopTagController extends BaseController
             $goodsTags = ShopTag::all();
             $tagIds = $goodsTags->pluck('id')->toArray();
             $goodsTagsTranslations = ShopTagTranslation::whereIn('tag_id' , $tagIds)->get();
-            $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations){
-                $goodsTag->translations = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->values();
+            $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations , $locale){
+                $goodsTagsTranslation = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->where('locale' , $locale)->first();
+                if(blank($goodsTagsTranslation))
+                {
+                    $goodsTagsTranslation = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->where('locale' , 'en')->first();
+                }
+                if(blank($goodsTagsTranslation)){
+                    $goodsTag->translation = '';
+                }else{
+                    $goodsTag->translation = $goodsTagsTranslation->get('tag_content' , 0);
+                }
             });
             $data = $goodsTags->toArray();
             Redis::set($key , \json_encode($data , JSON_UNESCAPED_UNICODE));
