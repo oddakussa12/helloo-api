@@ -11,6 +11,7 @@ use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\V1\BaseController;
