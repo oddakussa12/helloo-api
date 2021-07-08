@@ -48,7 +48,7 @@ class GoodsController extends BaseController
                 $data = array();
                 $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
                 $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->keys()->unique()->toArray();
-                $goods = Goods::whereIn('user_id' , $userId)->where('status' , 1)->limit(100)->get();
+                $goods = Goods::where('user_id' , $userId)->where('status' , 1)->limit(100)->get();
                 $diffGoodsIds = array_diff($goods->pluck('id')->toArray() , $goodsIds);
                 foreach ($categories as $category)
                 {
