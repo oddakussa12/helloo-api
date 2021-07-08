@@ -23,7 +23,7 @@ class ShopTagController extends BaseController
             $tagIds = $goodsTags->pluck('id')->toArray();
             $goodsTagsTranslations = ShopTagTranslation::whereIn('tag_id' , $tagIds)->get();
             $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations){
-                $goodsTag->translations = $goodsTagsTranslations->where('tag_id' , $goodsTag->id);
+                $goodsTag->translations = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->values();
             });
             $data = $goodsTags->toArray();
             Redis::set($key , \json_encode($data , JSON_UNESCAPED_UNICODE));
