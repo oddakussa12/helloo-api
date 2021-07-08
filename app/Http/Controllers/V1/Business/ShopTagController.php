@@ -14,8 +14,8 @@ class ShopTagController extends BaseController
 {
     public function index(Request $request)
     {
-        $key = 'helloo:business:service:shop:tags';
         $locale = locale();
+        $key = 'helloo:business:service:shop:tags';
         if(Redis::exists($key))
         {
             $data = \json_decode(Redis::get($key , true));
@@ -23,23 +23,31 @@ class ShopTagController extends BaseController
             $goodsTags = ShopTag::all();
             $tagIds = $goodsTags->pluck('id')->toArray();
             $goodsTagsTranslations = ShopTagTranslation::whereIn('tag_id' , $tagIds)->get();
-            $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations , $locale){
-                $goodsTagsTranslation = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->where('locale' , $locale)->first();
-                if(blank($goodsTagsTranslation))
-                {
-                    $goodsTagsTranslation = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->where('locale' , 'en')->first();
-                }
-                if(blank($goodsTagsTranslation)){
-                    $goodsTag->translation = '';
-                }else{
-                    $goodsTag->translation = $goodsTagsTranslation->get('tag_content' , 0);
-                }
+            $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations){
+                $goodsTag->translations = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->values();
             });
             $data = $goodsTags->toArray();
             Redis::set($key , \json_encode($data , JSON_UNESCAPED_UNICODE));
             Redis::expire($key , 60*60*24*7);
         }
-        return AnonymousCollection::collection(collect($data));
+        $locales = array();
+        foreach ($data as $d)
+        {
+            $translation = collect($d['translations'])->where('locale' , $locale)->first();
+            if(blank($translation))
+            {
+                $translation = collect($d['translations'])->where('locale' , $locale)->first();
+            }
+            if(blank($translation))
+            {
+                continue;
+            }else{
+                unset($d['translations']);
+                $d['translation'] = $translation->get('tag_content' , '');
+                array_push($locales , $d);
+            }
+        }
+        return AnonymousCollection::collection(collect($locales));
     }
 
 }
