@@ -29,6 +29,7 @@ class GoodsController extends BaseController
         $userId = strval($request->input('user_id' , ''));
         $type = strval($request->input('type' , ''));
         $version = $request->input('version' , 'v1');
+        $categoryId = intval($request->input('category_id' , ''));
         $appends['keyword'] = $keyword;
         $appends['user_id'] = $userId;
         $appends['type']    = $type;
@@ -47,18 +48,11 @@ class GoodsController extends BaseController
             }else{
                 $data = array();
                 $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
-                $categoryId = intval($request->input('category_id' , ''));
-                if(blank($categoryId))
+                if(!empty($categoryId))
                 {
                     $categories = collect($categories)->where('category_id' , $categoryId)->toArray();
                 }
-                if(blank($categories))
-                {
-                    abort(404 , 'Category does not exist!');
-                }
-                $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->keys()->unique()->toArray();
                 $goods = Goods::where('user_id' , $userId)->where('status' , 1)->limit(100)->get();
-                $diffGoodsIds = array_diff($goods->pluck('id')->toArray() , $goodsIds);
                 foreach ($categories as $category)
                 {
                     $gIds = $category['goods_ids'];
@@ -75,16 +69,21 @@ class GoodsController extends BaseController
                         'goods'=>$gData->values()->toArray()
                     ));
                 }
-                if(!empty($diffGoodsIds))
+                if(empty($categoryId))
                 {
-                    array_push($data , array(
-                        'category_id'=>"",
-                        'name'=>'undefined',
-                        'default'=>1,
-                        'is_default'=>true,
-                        'sort'=>9999,
-                        'goods'=>$goods->whereIn('id' , $diffGoodsIds)->values()->toArray()
-                    ));
+                    $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->keys()->unique()->toArray();
+                    $diffGoodsIds = array_diff($goods->pluck('id')->unique()->toArray() , $goodsIds);
+                    if(!empty($diffGoodsIds))
+                    {
+                        array_push($data , array(
+                            'category_id'=>"",
+                            'name'=>'undefined',
+                            'default'=>1,
+                            'is_default'=>true,
+                            'sort'=>9999,
+                            'goods'=>$goods->whereIn('id' , $diffGoodsIds)->values()->toArray()
+                        ));
+                    }
                 }
                 return AnonymousCollection::collection(collect($data)->sortByDesc('sort')->sortByDesc('default')->values());
             }
