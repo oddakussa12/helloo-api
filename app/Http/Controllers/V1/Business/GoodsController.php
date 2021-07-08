@@ -102,7 +102,7 @@ class GoodsController extends BaseController
         $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->keys()->unique()->toArray();
         $goods = Goods::where('user_id' , $userId)->where('status' , 1)->limit(100)->get();
         $diffGoodsIds = array_diff($goods->pluck('id')->toArray() , $goodsIds);
-        $goods = $goods->whereIn('id' , $diffGoodsIds);
+        $goods = $goods->whereIn('id' , $diffGoodsIds)->values();
         return AnonymousCollection::collection($goods);
     }
 
