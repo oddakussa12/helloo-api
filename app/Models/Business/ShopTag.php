@@ -19,6 +19,6 @@ class ShopTag extends Model
 
     protected $fillable = ['tag' , 'created_at'];
 
-    protected $hidden = ['id' , 'created_at'];
+    protected $hidden = ['id' , 'created_at' , 'updated_at'];
 
 }
