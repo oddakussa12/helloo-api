@@ -174,29 +174,37 @@ class GoodsCategoryController extends BaseController
         return $this->response->accepted();
     }
 
-    public function sort(Request $request , $id)
+    public function sort(Request $request)
     {
-        $categoryId = $id;
+        $categoryIds = (array)$request->input('category_id');
         $user = auth()->user();
         $userId = $user->user_id;
-        $sort = intval($request->input('sort' , 0));
-        $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->first();
-        if(empty($goodsCategory)||$goodsCategory->is_default||$goodsCategory->user_id!=$userId)
+        $goodsCategories = GoodsCategory::whereIn('category_id' , array_keys($categoryIds))->get();
+        $goodsCategories->filter(function ($goodsCategory) use ($userId) {
+            return !$goodsCategory->is_default&&$goodsCategory->user_id!=$userId;
+        });
+        if(empty($goodsCategories))
         {
-            abort(422 , 'Category does not exist!');
+            abort(422 , 'Categories does not exist!');
         }
-        $goodsCategoryData = array(
-            'sort'=>$sort,
-            'updated_at'=>date('Y-m-d H:i:s'),
-        );
-        !empty($name)&&$goodsCategoryData['name']=$name;
-        $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update($goodsCategoryData);
-        if($goodsCateGoryResult<=0)
+        $now = date('Y-m-d H:i:s');
+        $data = $goodsCategories->map(function ($goodsCategory, $key) use ($now , $categoryIds) {
+            return array(
+                $goodsCategory->category_id=>array(
+                    'sort'=>intval($categoryIds[$goodsCategory->category_id]),
+                    'updated_at'=>$now,
+                )
+            );
+        });
+        if(!empty($data))
         {
-            abort(500 , 'goods category update failed!');
+            foreach ($data as $id=>$d)
+            {
+                DB::table('goods_categories')->where('category_id' , $id)>update($d);
+            }
+            $key = "helloo:business:goods:category:service:account:".$userId;
+            Redis::del($key);
         }
-        $key = "helloo:business:goods:category:service:account:".$userId;
-        Redis::del($key);
         return $this->response->accepted();
     }
 
