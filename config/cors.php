@@ -14,7 +14,7 @@ return [
    
     'supportsCredentials' => true,
     'allowedOrigins' => ['*'],
-    'allowedOriginsPatterns' => [],
+    'allowedOriginsPatterns' => ['/beu.chat/'],
     'allowedHeaders' => ['*'],
     'allowedMethods' => ['*'],
     'exposedHeaders' => ['*'],
