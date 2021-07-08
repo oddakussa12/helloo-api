@@ -13,7 +13,7 @@ return [
     */
    
     'supportsCredentials' => true,
-    'allowedOrigins' => ['*'],
+    'allowedOrigins' => [],
     'allowedOriginsPatterns' => ['/beu.chat/'],
     'allowedHeaders' => ['*'],
     'allowedMethods' => ['*'],
