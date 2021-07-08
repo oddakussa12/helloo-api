@@ -47,6 +47,15 @@ class GoodsController extends BaseController
             }else{
                 $data = array();
                 $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
+                $categoryId = intval($request->input('category_id' , ''));
+                if(blank($categoryId))
+                {
+                    $categories = collect($categories)->where('category_id' , $categoryId)->toArray();
+                }
+                if(blank($categories))
+                {
+                    abort(404 , 'Category does not exist!');
+                }
                 $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->keys()->unique()->toArray();
                 $goods = Goods::where('user_id' , $userId)->where('status' , 1)->limit(100)->get();
                 $diffGoodsIds = array_diff($goods->pluck('id')->toArray() , $goodsIds);
