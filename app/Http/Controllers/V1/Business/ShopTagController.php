@@ -24,7 +24,7 @@ class ShopTagController extends BaseController
             $tagIds = $goodsTags->pluck('id')->toArray();
             $goodsTagsTranslations = ShopTagTranslation::whereIn('tag_id' , $tagIds)->get();
             $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations){
-                $goodsTag->translations = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->values();
+                $goodsTag->translations = $goodsTagsTranslations->where('tag_id' , $goodsTag->id)->values()->toArray();
             });
             $data = $goodsTags->toArray();
             Redis::set($key , \json_encode($data , JSON_UNESCAPED_UNICODE));
@@ -33,6 +33,7 @@ class ShopTagController extends BaseController
         $locales = array();
         foreach ($data as $d)
         {
+            $d = (array)$d;
             $translation = collect($d['translations'])->where('locale' , $locale)->first();
             if(blank($translation))
             {
@@ -42,8 +43,9 @@ class ShopTagController extends BaseController
             {
                 continue;
             }else{
+                $translation = (array)$translation;
                 unset($d['translations']);
-                $d['translation'] = $translation->get('tag_content' , '');
+                $d['translation'] = $translation['tag_content'];
                 array_push($locales , $d);
             }
         }
