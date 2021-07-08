@@ -69,7 +69,7 @@ class GoodsController extends BaseController
                 if(!empty($diffGoodsIds))
                 {
                     array_push($data , array(
-                        'category_id'=>0,
+                        'category_id'=>"",
                         'name'=>'undefined',
                         'default'=>1,
                         'is_default'=>true,
