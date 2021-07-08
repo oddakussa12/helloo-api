@@ -212,6 +212,7 @@ $api->group($V1Params , function ($api){
             $api->delete('follow/{follow}' , 'Business\FollowController@destroy')->name('business.follow.destroy');
             $api->post('goods_category' , 'Business\GoodsCategoryController@store')->name('business.goods.category.store');
             $api->patch('goods_category/{goods_category}' , 'Business\GoodsCategoryController@update')->name('business.goods.category.update');
+            $api->put('goods_category/{goods_category}/sort' , 'Business\GoodsCategoryController@sort')->name('business.goods.category.sort');
             $api->delete('goods_category/{goods_category}' , 'Business\GoodsCategoryController@destroy')->name('business.goods.category.destroy');
         });
 
@@ -219,10 +220,11 @@ $api->group($V1Params , function ($api){
 
         $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
 
-        $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');
         /*****business end*****/
 
     });
+    $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');
+
     $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
 
     $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');

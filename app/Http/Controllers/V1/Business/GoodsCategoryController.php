@@ -117,9 +117,9 @@ class GoodsCategoryController extends BaseController
         $now = date('Y-m-d H:i:s');
         try{
             DB::beginTransaction();
-            DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
             if(!empty($goodsIds))
             {
+                DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
                 $categoryGoodsData = array_map(function($v) use ($categoryId , $userId , $now , $numberGoodsIds , $goodsStatus){
                     return array(
                         'id'=>app('snowflake')->id(),
@@ -171,6 +171,32 @@ class GoodsCategoryController extends BaseController
                 'user_id'=>$userId,
             ));
         }
+        return $this->response->accepted();
+    }
+
+    public function sort(Request $request , $id)
+    {
+        $categoryId = $id;
+        $user = auth()->user();
+        $userId = $user->user_id;
+        $sort = intval($request->input('sort' , 0));
+        $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->first();
+        if(empty($goodsCategory)||$goodsCategory->is_default||$goodsCategory->user_id!=$userId)
+        {
+            abort(422 , 'Category does not exist!');
+        }
+        $goodsCategoryData = array(
+            'sort'=>$sort,
+            'updated_at'=>date('Y-m-d H:i:s'),
+        );
+        !empty($name)&&$goodsCategoryData['name']=$name;
+        $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update($goodsCategoryData);
+        if($goodsCateGoryResult<=0)
+        {
+            abort(500 , 'goods category update failed!');
+        }
+        $key = "helloo:business:goods:category:service:account:".$userId;
+        Redis::del($key);
         return $this->response->accepted();
     }
 
