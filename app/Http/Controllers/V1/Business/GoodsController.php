@@ -47,8 +47,9 @@ class GoodsController extends BaseController
             }else{
                 $data = array();
                 $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
-                $goodsIds = collect($categories)->pluck('goods_ids')->keys()->unique()->toArray();
-                $goods = Goods::whereIn('id' , $goodsIds)->get();
+                $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->keys()->unique()->toArray();
+                $goods = Goods::whereIn('user_id' , $userId)->where('status' , 1)->limit(100)->get();
+                $diffGoodsIds = array_diff($goods->pluck('id')->toArray() , $goodsIds);
                 foreach ($categories as $category)
                 {
                     $gIds = $category['goods_ids'];
@@ -63,6 +64,17 @@ class GoodsController extends BaseController
                         'is_default'=>$category['is_default'],
                         'sort'=>$category['sort'],
                         'goods'=>$gData->values()->toArray()
+                    ));
+                }
+                if(!empty($diffGoodsIds))
+                {
+                    array_push($data , array(
+                        'category_id'=>0,
+                        'name'=>'undefined',
+                        'default'=>1,
+                        'is_default'=>true,
+                        'sort'=>9999,
+                        'goods'=>$goods->whereIn('id' , $diffGoodsIds)->values()->toArray()
                     ));
                 }
                 return AnonymousCollection::collection(collect($data)->sortByDesc('sort')->sortByDesc('default')->values());
@@ -80,6 +92,17 @@ class GoodsController extends BaseController
                 $g->likeState = in_array($g->id , $likes);
             });
         }
+        return AnonymousCollection::collection($goods);
+    }
+
+    public function uncategorized(Request $request)
+    {
+        $userId = auth()->id();
+        $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
+        $goodsIds = collect($categories)->pluck('goods_ids')->collapse()->keys()->unique()->toArray();
+        $goods = Goods::whereIn('user_id' , $userId)->where('status' , 1)->limit(100)->get();
+        $diffGoodsIds = array_diff($goods->pluck('id')->toArray() , $goodsIds);
+        $goods = $goods->whereIn('id' , $diffGoodsIds);
         return AnonymousCollection::collection($goods);
     }
 
