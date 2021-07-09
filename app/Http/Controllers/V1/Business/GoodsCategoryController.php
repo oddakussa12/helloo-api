@@ -95,7 +95,7 @@ class GoodsCategoryController extends BaseController
         {
             $goods = $goods->each(function ($g) use ($numberGoodsIds){
                 $g->sort = $numberGoodsIds[$g->id];
-            })->sortByDesc('sort');
+            })->values()->sortByDesc('sort');
             $goodsCategory->goods = AnonymousCollection::collection($goods);
         }
         return new AnonymousCollection($goodsCategory);
