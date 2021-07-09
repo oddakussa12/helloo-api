@@ -1535,7 +1535,7 @@ if (! function_exists('batchUpdate')) {
 
         if (empty($where) || empty($needUpdateFields)) return false;
         // 第一个条件数组的值
-        $firstWhere = $where[array_values(array_slice($where , 0 , 1))[0]];
+        $firstWhere = $where[array_keys(array_slice($where , 0 , 1))[0]];
         // 第一个条件数组的值的总数量
         $whereFirstValCount = count($firstWhere);
         // 需要更新的第一个字段的值的总数量
