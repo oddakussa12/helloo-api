@@ -90,7 +90,7 @@ class GoodsCategoryController extends BaseController
             ));
             abort(500 , 'Failed to add goods category!');
         }
-        $goodsCategory = GoodsCategory::where('category_id' , $id)->first();
+        $goodsCategory = GoodsCategory::where('category_id' , $id)->select('category_id' , 'name' , 'default' , 'sort')->first();
         if(!empty($goodsIds))
         {
             $goodsCategory->goods = AnonymousCollection::collection($goods);
