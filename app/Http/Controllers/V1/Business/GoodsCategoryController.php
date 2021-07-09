@@ -93,6 +93,9 @@ class GoodsCategoryController extends BaseController
         $goodsCategory = GoodsCategory::where('category_id' , $id)->select('category_id' , 'name' , 'default' , 'sort')->first();
         if(!empty($goodsIds))
         {
+            $goods = $goods->each(function ($g) use ($numberGoodsIds){
+                $g->sort = $numberGoodsIds[$g->id];
+            })->sortByDesc('sort');
             $goodsCategory->goods = AnonymousCollection::collection($goods);
         }
         return new AnonymousCollection($goodsCategory);
