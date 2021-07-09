@@ -1535,11 +1535,11 @@ if (! function_exists('batchUpdate')) {
 
         if (empty($where) || empty($needUpdateFields)) return false;
         // 第一个条件数组的值
-        $firstWhere = $where[array_key_first($where)];
+        $firstWhere = $where[array_slice($where , 0)];
         // 第一个条件数组的值的总数量
         $whereFirstValCount = count($firstWhere);
         // 需要更新的第一个字段的值的总数量
-        $needUpdateFieldsValCount = count($needUpdateFields[array_key_first($needUpdateFields)]);
+        $needUpdateFieldsValCount = count($needUpdateFields[array_slice($needUpdateFields , 0)]);
         if ($whereFirstValCount !== $needUpdateFieldsValCount) return false;
         // 所有的条件字段数组
         $whereKeys = array_keys($where);
