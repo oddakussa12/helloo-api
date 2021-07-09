@@ -61,7 +61,6 @@ class GoodsCategoryController extends BaseController
             }
             if(!empty($goodsIds))
             {
-
                 $categoryGoodsData = array_map(function($v) use ($id , $userId , $now , $numberGoodsIds , $goodsStatus){
                     return array(
                         'id'=>app('snowflake')->id(),
@@ -89,8 +88,14 @@ class GoodsCategoryController extends BaseController
                 'data'=>$request->all(),
                 'user_id'=>$userId,
             ));
+            abort(500 , 'Failed to add goods category!');
         }
-        return $this->response->created();
+        $goodsCategory = GoodsCategory::where('category_id' , $id)->first();
+        if(!empty($goodsIds))
+        {
+            $goodsCategory->goods = AnonymousCollection::collection($goods);
+        }
+        return new AnonymousCollection($goodsCategory);
     }
 
     public function update(Request $request , $id)
