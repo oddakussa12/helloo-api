@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\V1;
+namespace App\Http\Controllers\V1\Dashboard;
 
 use Carbon\Carbon;
-use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use App\Models\Business\Order;
 use App\Resources\UserCollection;
+use App\Resources\OrderCollection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
+use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
 
 
@@ -50,32 +49,77 @@ class IndexController extends BaseController
         DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->sum('brokerage');
     }
 
-    public function order(Request $request)
+    public function draw(Request $request)
     {
-        $time = $request->input('time' , ' _ ');
-        $time = explode(' - ' , $time);
-        $startTime = array_shift($time);
-        $endTime = array_pop($time);
-        $order = DB::table('orders');
-        if(!empty($startTime)&&!empty($endTime))
+        $time = $request->input('time' , '');
+        if($time=='morning')
         {
-            if(date('H:i' , strtotime($startTime))!=$startTime||date('H:i' , strtotime($endTime))!=$endTime)
-            {
-                return $this->response->noContent();
-            }
-
+            $hours = array(
+                '09',
+                '10',
+                '11',
+                '12',
+                '13',
+            );
+        }elseif ($time=='afternoon')
+        {
+            $hours = array(
+                '14',
+                '15',
+                '16',
+                '17',
+            );
+        }elseif ($time=='afternoon')
+        {
+            $hours = array(
+                '18',
+                '19',
+                '20',
+                '21',
+                '22',
+            );
+        }else{
+            $hours = array();
         }
-        $data = $request->input('date' , ' _ ');
-        $data = explode(' - ' , $data);
-        $startData = array_shift($data);
-        $endDate = array_pop($data);
+        $date = $request->input('date' , date('Y-m-d' , strtotime("-8 day")) . '_'.date('Y-m-d' , strtotime("-1 day")));
+        $date = explode('_' , $date);
+        $startData = array_shift($date);
+        $endDate = array_pop($date);
         if(!empty($startData)&&!empty($endDate))
         {
             if(date('Y-m-d' , strtotime($startData))!=$startData||date('Y-m-d' , strtotime($endDate))!=$endDate)
             {
                 return $this->response->noContent();
             }
+        }else{
+            return $this->response->noContent();
         }
+        if(Carbon::createFromFormat("Y-m-d" , $startData)->diffInMonths($endDate)>=1)
+        {
+            abort(422 , 'Date interval is too long!');
+        }
+        $userId = auth()->id();
+        $sql = <<<DOC
+SELECT count(*) as `total`,DATE_FORMAT(`created_at`, '%Y-%m-%d') as `date` FROM `t_orders` WHERE `user_id`={$userId} AND DATE_FORMAT(`created_at`, '%Y-%m-%d') BETWEEN '{$startData}' AND '{$endDate}'
+DOC;
+        if(!empty($hours))
+        {
+            $sql .= ' AND DATE_FORMAT(`created_at`, "%H") IN ('.trim(implode(',' , $hours) , ',').')';
+        }
+        $sql .= " GROUP BY `date`";
+        $data = collect(DB::select($sql))->pluck('total' , 'date')->toArray();
+        $statistics = array();
+        while ($startData<=$endDate)
+        {
+            if(empty($data[$startData]))
+            {
+                $statistics[$startData] = 0;
+            }else{
+                $statistics[$startData] = $data[$startData];
+            }
+            $startData = date("Y-m-d",strtotime("+1 day",strtotime($startData)));
+        }
+        return $this->response->array(array('data'=>$statistics));
     }
 
 }

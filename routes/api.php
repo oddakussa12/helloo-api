@@ -221,7 +221,15 @@ $api->group($V1Params , function ($api){
 
         $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
 
+        $api->group(['prefix'=>'dashboard' , 'namespace'=>'Dashboard'] , function ($api) {
+            $api->get('index' , 'IndexController@index')->name('dashboard.index');
+            $api->get('statistics' , 'IndexController@statistics')->name('dashboard.statistics');
+            $api->get('draw' , 'IndexController@draw')->name('dashboard.draw');
+        });
+
+
         /*****business end*****/
+
 
     });
     $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');

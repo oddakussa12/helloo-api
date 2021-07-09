@@ -479,6 +479,26 @@ class BackStageController extends BaseController
             abort(422 , 'Parameter cannot be empty!');
         }
         app(UserRepository::class)->update($user , $fields);
+        if(isset($fields['user_verified']) && $fields['user_verified'])
+        {
+            $now = date('Y-m-d H:i:s');
+            $categoryId = app('snowflake')->id();
+            $goodsCategory = DB::connection('lovbee')->table('goods_categories');
+            $goodsCategory = $goodsCategory->where('user_id' , $id)->where('default' , 1)->first();
+            if(empty($goodsCategory))
+            {
+                $data = array(
+                    'category_id'=>$categoryId,
+                    'user_id'=>$id,
+                    'name'=>'default',
+                    'default'=>1,
+                    'created_at'=>$now,
+                    'updated_at'=>$now,
+                );
+                DB::connection('lovbee')->table('goods_categories')->insert($data);
+                Redis::del("helloo:business:goods:category:service:account:".$id);
+            }
+        }
         return $this->response->accepted();
     }
 
