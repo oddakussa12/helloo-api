@@ -193,17 +193,18 @@ $api->group($V1Params , function ($api){
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
 
         // $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
-        $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
-        $api->delete('goods/{goods}/like' , 'Business\GoodsController@destroyLike')->name('goods.like.destroy');
+
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
-        $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
-        $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
-        $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
         $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
         $api->post('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
         $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
         $api->get('order/{order}' , 'Business\OrderController@show')->name('business.order.show');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
+            $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
+            $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
+            $api->delete('goods/{goods}/like' , 'Business\GoodsController@destroyLike')->name('goods.like.destroy');
+            $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
+            $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
             $api->post('delivery/order' , 'Business\DeliveryOrderController@store')->name('goods.delivery.order.store');
             $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
             $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
