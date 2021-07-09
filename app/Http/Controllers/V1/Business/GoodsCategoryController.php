@@ -200,7 +200,7 @@ class GoodsCategoryController extends BaseController
         {
             foreach ($data as $id=>$d)
             {
-                DB::table('goods_categories')->where('category_id' , $id)>update($d);
+                DB::table('goods_categories')->where('category_id' , $id)->update($d);
             }
             $key = "helloo:business:goods:category:service:account:".$userId;
             Redis::del($key);
