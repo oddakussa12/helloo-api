@@ -14,7 +14,7 @@ return [
    
     'supportsCredentials' => true,
     'allowedOrigins' => [],
-    'allowedOriginsPatterns' => ['/beu.chat/','/localhost/','/eatbeu.app/'],
+    'allowedOriginsPatterns' => ['/beu.chat/','/localhost/','/eatbeu.app/','/mantouhealth.com/'],
     'allowedHeaders' => ['*'],
     'allowedMethods' => ['*'],
     'exposedHeaders' => ['*'],
