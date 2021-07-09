@@ -200,7 +200,8 @@ class GoodsCategoryController extends BaseController
             $where = array('category_id'=>collect($data)->pluck('category_id')->toArray());
             $update = array('sort'=>collect($data)->pluck('sort')->toArray(),'updated_at'=>collect($data)->pluck('updated_at')->toArray());
             $condition = batchUpdate('t_goods_categories' , $where , $update);
-            DB::update($condition['sql'] , $condition['building']);
+            $sql = $condition['sql']." WHERE `category_id` in (".trim(implode(',' , $where['category_id']) , ',').")";
+            DB::update($sql , $condition['building']);
             $key = "helloo:business:goods:category:service:account:".$userId;
             Redis::del($key);
         }
