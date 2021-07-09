@@ -308,9 +308,8 @@ $api->group($V1Params , function ($api){
     $api->get('question/hot' , 'QuestionController@hot')->name('question.hot');
 
     $api->group(['prefix'=>'backstage'] , function ($api) {
-        $api->post('shop_tag' , 'BackStageController@storeShopTag')->name('backstage.store.shop_tag');
 
-        $api->patch('shop_tag/{shop_tag}' , 'BackStageController@updateShopTag')->name('backstage.update.shop_tag');
+        $api->patch('shop_tag/refresh' , 'BackStageController@refreshShopTag')->name('backstage.refresh.shop_tag');
 
         $api->patch('version/upgrade' , 'BackStageController@versionUpgrade')->name('backstage.version.upgrade');
 
