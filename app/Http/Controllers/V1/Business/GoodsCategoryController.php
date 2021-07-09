@@ -205,8 +205,8 @@ class GoodsCategoryController extends BaseController
     public function destroy($id)
     {
         $userId = auth()->id();
-        $goodsCategory = GoodsCategory::where('category_id' , $id)->first();
-        if(empty($goodsCategory)||$goodsCategory->goods_num>0||$goodsCategory->is_default||$goodsCategory->user_id!=$userId)
+        $goodsCategory = GoodsCategory::where('category_id' , $id)->firstOrFail();
+        if($goodsCategory->goods_num>0||$goodsCategory->is_default||$goodsCategory->user_id!=$userId)
         {
             abort(422 , 'This category cannot be deleted!');
         }
