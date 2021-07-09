@@ -190,18 +190,17 @@ class GoodsCategoryController extends BaseController
         $now = date('Y-m-d H:i:s');
         $data = $goodsCategories->map(function ($goodsCategory, $key) use ($now , $categoryIds) {
             return array(
-                $goodsCategory->category_id=>array(
-                    'sort'=>intval($categoryIds[$goodsCategory->category_id]),
-                    'updated_at'=>$now,
-                )
+                'category_id'=>$goodsCategory->category_id,
+                'sort'=>intval($categoryIds[$goodsCategory->category_id]),
+                'updated_at'=>$now,
             );
-        });
+        })->toArray();
         if(!empty($data))
         {
-            foreach ($data as $id=>$d)
-            {
-                DB::table('goods_categories')->where('category_id' , $id)->update($d);
-            }
+            $where = array('category_id'=>collect($data)->pluck('category_id')->toArray());
+            $update = array('sort'=>collect($data)->pluck('sort')->toArray(),'updated_at'=>collect($data)->pluck('updated_at')->toArray());
+            $condition = batchUpdate('goods_categories' , $where , $update);
+            DB::update($condition['sql'] , $condition['building']);
             $key = "helloo:business:goods:category:service:account:".$userId;
             Redis::del($key);
         }
