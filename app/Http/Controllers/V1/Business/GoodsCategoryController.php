@@ -104,7 +104,7 @@ class GoodsCategoryController extends BaseController
         $goodsIds = array_keys($numberGoodsIds);
         $goodsStatus = array();
         $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->first();
-        if(empty($goodsCategory)||$goodsCategory->is_default||$goodsCategory->user_id!=$userId)
+        if(empty($goodsCategory)||$goodsCategory->user_id!=$userId)
         {
             abort(422 , 'Category does not exist!');
         }
@@ -117,9 +117,9 @@ class GoodsCategoryController extends BaseController
         $now = date('Y-m-d H:i:s');
         try{
             DB::beginTransaction();
+            DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
             if(!empty($goodsIds))
             {
-                DB::table('categories_goods')->where('category_id' , $categoryId)->delete();
                 $categoryGoodsData = array_map(function($v) use ($categoryId , $userId , $now , $numberGoodsIds , $goodsStatus){
                     return array(
                         'id'=>app('snowflake')->id(),
@@ -141,24 +141,18 @@ class GoodsCategoryController extends BaseController
                     'sort'=>$sort,
                     'updated_at'=>$now,
                 );
-                !empty($name)&&$goodsCategoryData['name']=$name;
-                $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update($goodsCategoryData);
-                if($goodsCateGoryResult<=0)
-                {
-                    abort(500 , 'goods category update failed!');
-                }
             }else{
                 $goodsCategoryData = array(
                     'goods_num' => 0,
                     'sort'=>$sort,
                     'updated_at'=>$now,
                 );
-                !empty($name)&&$goodsCategoryData['name']=$name;
-                $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update($goodsCategoryData);
-                if($goodsCateGoryResult<=0)
-                {
-                    abort(500 , 'goods category update failed!');
-                }
+            }
+            !empty($name)&&!$goodsCategory->is_default&&$goodsCategoryData['name']=$name;
+            $goodsCateGoryResult = DB::table('goods_categories')->where('category_id' , $categoryId)->update($goodsCategoryData);
+            if($goodsCateGoryResult<=0)
+            {
+                abort(500 , 'goods category update failed!');
             }
             DB::commit();
             Redis::del("helloo:business:goods:category:service:account:".$userId);
