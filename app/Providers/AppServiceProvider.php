@@ -8,6 +8,8 @@ use App\Models\UserFriend;
 use App\Models\Business\Goods;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Business\CategoryGoods;
 use Illuminate\Support\ServiceProvider;
@@ -39,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
         $this->setLocalesConfigurations();
         if(!in_array(domain() , config('common.online_domain')))
         {
-            \DB::listen(function ($query) {
+            DB::listen(function ($query) {
                 $tmp = str_replace('?', '"'.'%s'.'"', $query->sql);
                 $qBindings = [];
                 foreach ($query->bindings as $key => $value) {
@@ -49,9 +51,9 @@ class AppServiceProvider extends ServiceProvider
                         $tmp = str_replace(':'.$key, '"'.$value.'"', $tmp);
                     }
                 }
-                $tmp = vsprintf($tmp, $qBindings);
+                !empty($qBindings)&&$tmp = vsprintf($tmp, $qBindings);
                 $tmp = str_replace("\\", "", $tmp);
-                \Log::info(' execution time: '.$query->time.'ms; '.$tmp."\n\n\t");
+                Log::info(' execution time: '.$query->time.'ms; '.$tmp."\n\n\t");
             });
         }
         $request = $this->app['request'];
