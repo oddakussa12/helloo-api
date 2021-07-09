@@ -211,6 +211,7 @@ class GoodsCategoryController extends BaseController
             abort(422 , 'This category cannot be deleted!');
         }
         DB::table('goods_categories')->where('category_id' , $id)->delete();
+        DB::table('categories_goods')->where('category_id' , $id)->delete();
         Redis::del("helloo:business:goods:category:service:account:".$userId);
         return $this->response->noContent();
     }
