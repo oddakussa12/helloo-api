@@ -13,6 +13,11 @@ class OrderCollection extends Resource
      */
     public function toArray($request)
     {
-        return $this->resource;
+        $resource = collect($this->resource);
+        if($resource->has('free_delivery'))
+        {
+            $resource->put('free_delivery' , boolval($resource->get('free_delivery')));
+        }
+        return $resource->toArray();
     }
 }

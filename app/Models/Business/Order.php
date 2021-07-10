@@ -25,6 +25,15 @@ class Order extends Model
         'shop_id' => 'string',
         'detail' => 'array',
         'order_price' => 'float',
+        'shop_price' => 'float',
+        'delivery_coast' => 'float',
+        'reduction' => 'float',
+        'discount' => 'float',
+        'discounted_price' => 'float',
+        'deposit' => 'float',
+        'brokerage_percentage' => 'float',
+        'brokerage' => 'float',
+        'profit' => 'float',
     ];
 
     public function getFormatPriceAttribute()
