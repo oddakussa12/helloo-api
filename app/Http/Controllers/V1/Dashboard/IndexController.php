@@ -14,7 +14,7 @@ use App\Repositories\Contracts\UserRepository;
 
 class IndexController extends BaseController
 {
-    public function index(Request $request)
+    public function order(Request $request)
     {
         $status = $request->input('status' , 'completed');
         $userId = auth()->id();
