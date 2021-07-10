@@ -44,9 +44,32 @@ class IndexController extends BaseController
 
     public function statistics(Request $request)
     {
+        $country = $request->input('country' , 'et');
         $userId = auth()->id();
-        DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->sum('order_price');
-        DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->sum('brokerage');
+        $orderPrice = DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->sum('order_price');
+        if($country=='et')
+        {
+            $lastWeek = DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->whereBetween('created_at' , array(
+                Carbon::now('Africa/Addis_Ababa')->previousWeekday()->startOfWeek()->subHours(3)->toDateTimeString(),Carbon::now('Africa/Addis_Ababa')->previousWeekday()->endOfWeek()->subHours(3)->toDateTimeString()
+            ))->sum('order_price');
+            $nowWeek = DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->whereBetween('created_at' , array(
+                Carbon::now('Africa/Addis_Ababa')->startOfWeek()->subHours(3)->toDateTimeString(),Carbon::now('Africa/Addis_Ababa')->endOfWeek()->subHours(3)->toDateTimeString()
+            ))->sum('order_price');
+        }else{
+            $lastWeek = DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->whereBetween('created_at' , array(
+                Carbon::now()->previousWeekday()->startOfWeek()->toDateTimeString(),Carbon::now('Africa/Addis_Ababa')->previousWeekday()->endOfWeek()->toDateTimeString()
+            ))->sum('order_price');
+            $nowWeek = DB::table('orders')->where('shop_id' , $userId)->where('status' , 1)->whereBetween('created_at' , array(
+                Carbon::now()->startOfWeek()->toDateTimeString(),Carbon::now('Africa/Addis_Ababa')->endOfWeek()->toDateTimeString()
+            ))->sum('order_price');
+        }
+        return $this->response->array(
+            array(
+                'orderPrice'=>$orderPrice,
+                'lastWeek'=>$lastWeek,
+                'nowWeek'=>$nowWeek,
+            )
+        );
     }
 
     public function draw(Request $request)
