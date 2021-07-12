@@ -92,7 +92,7 @@ class IndexController extends BaseController
                 '16',
                 '17',
             );
-        }elseif ($time=='afternoon')
+        }elseif ($time=='evening')
         {
             $hours = array(
                 '18',
