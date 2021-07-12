@@ -135,6 +135,7 @@ return [
                     'password' => env('REDIS_CLUSTER_PASSWORD', null),
                     'port' => env('REDIS_CLUSTER_PORT', 6379),
                     'database' => 0,
+                    'persistent' => env('REDIS_CLUSTER_PERSISTENT', false),
                 ]
             ],
         ]
