@@ -43,6 +43,7 @@ class StoreStatusLog extends Command
         $yesterday = Carbon::yesterday('Asia/Shanghai');
         $date = $yesterday->format('Ymd');
         $created_at =  $yesterday->toDateString();
+        $suffix = $yesterday->format('Ym');
         $key = 'helloo:account:service:account-status-change'.$date.'_list'; //20201206
         $index = 1;
         $visitData = array();
@@ -56,7 +57,7 @@ class StoreStatusLog extends Command
             }
             if($index%100==0||$data===null||$data===false)
             {
-                !blank($visitData)&&DB::table('status_logs')->insert($visitData);
+                !blank($visitData)&&DB::table('status_logs_'.$suffix)->insert($visitData);
                 $index = 0;
                 $visitData = array();
                 if($data===null||$data===false)
