@@ -20,22 +20,22 @@ class IndexController extends BaseController
         $userId = auth()->id();
         if($status=='completed')
         {
-            $orders = Order::where('user_id' , $userId)->where('status' , 1)->orderByDesc('created_at')->paginate(10);
+            $orders = Order::where('shop_id' , $userId)->where('status' , 1)->orderByDesc('created_at')->paginate(10);
         }else if($status=='processing')
         {
-            $orders = Order::where('user_id' , $userId)->where('status' , 0)->orderByDesc('created_at')->paginate(10);
+            $orders = Order::where('shop_id' , $userId)->where('status' , 0)->orderByDesc('created_at')->paginate(10);
         }else if($status=='canceled')
         {
-            $orders = Order::where('user_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10);
+            $orders = Order::where('shop_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10);
         }else{
             $orders = collect();
         }
-        $shopIds = $orders->pluck('shop_id')->unique()->toArray();
-        if(!empty($shopIds))
+        $userIds = $orders->pluck('user_id')->unique()->toArray();
+        if(!empty($userIds))
         {
-            $shops = app(UserRepository::class)->findByUserIds($shopIds);
-            $orders->each(function($order) use ($shops){
-                $order->shop = new UserCollection($shops->where('user_id' , $order->shop_id)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address'));
+            $users = app(UserRepository::class)->findByUserIds($userIds);
+            $orders->each(function($order) use ($users){
+                $order->user = new UserCollection($users->where('user_id' , $order->user_id)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address'));
                 $order->delivery_coast = 30;
             });
         }
@@ -123,7 +123,7 @@ class IndexController extends BaseController
         }
         $userId = auth()->id();
         $sql = <<<DOC
-SELECT count(*) as `total`,DATE_FORMAT(`created_at`, '%Y-%m-%d') as `date` FROM `t_orders` WHERE `user_id`={$userId} AND DATE_FORMAT(`created_at`, '%Y-%m-%d') BETWEEN '{$startData}' AND '{$endDate}'
+SELECT count(*) as `total`,DATE_FORMAT(`created_at`, '%Y-%m-%d') as `date` FROM `t_orders` WHERE `shop_id`={$userId} AND DATE_FORMAT(`created_at`, '%Y-%m-%d') BETWEEN '{$startData}' AND '{$endDate}'
 DOC;
         if(!empty($hours))
         {
