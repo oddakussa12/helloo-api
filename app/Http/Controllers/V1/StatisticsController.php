@@ -7,12 +7,17 @@ use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Repositories\Contracts\UserRepository;
 
 class StatisticsController extends BaseController
 {
-
+    /**
+     * @deprecated
+     * @note RTC统计
+     * @datetime 2021-07-12 19:04
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function duration(Request $request)
     {
         $time = floatval($request->input('time' , 0));
@@ -33,6 +38,13 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @note 下载统计
+     * @datetime 2021-07-12 19:04
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function download(Request $request)
     {
         if($request->has('uuid'))
@@ -44,6 +56,14 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @note 匹配成功统计
+     * @datetime 2021-07-12 19:04
+     * @param Request $request
+     * @param string $type
+     * @return \Dingo\Api\Http\Response
+     */
     public function matchSucceed(Request $request , string $type)
     {
         $userId = auth()->id();
@@ -56,6 +76,14 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @note 匹配失败统计
+     * @datetime 2021-07-12 19:04
+     * @param Request $request
+     * @param string $type
+     * @return \Dingo\Api\Http\Response
+     */
     public function matchFailed(Request $request , string $type)
     {
         $userId = auth()->id();
@@ -67,11 +95,12 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
-    public function event(Request $request)
-    {
-        $event = $request->input('event' , '');
-    }
-
+    /**
+     * @note 邀请统计
+     * @datetime 2021-07-12 19:05
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function invitation(Request $request)
     {
         $beInvited = intval($request->input('user_id' , ''));
@@ -87,6 +116,12 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 上传日志统计
+     * @datetime 2021-07-12 19:05
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function log(Request $request)
     {
         if($request->has('log'))
@@ -107,6 +142,13 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @note 视频播放统计
+     * @datetime 2021-07-12 19:05
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function videoRecord(Request $request)
     {
         $data = $request->input('data' , '');
@@ -130,6 +172,13 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @note 上传失败统计
+     * @datetime 2021-07-12 19:06
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function uploadFail(Request $request)
     {
         $exception = strval($request->input('exception' , ''));
@@ -148,6 +197,12 @@ class StatisticsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 视频录制统计
+     * @datetime 2021-07-12 19:06
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function recordLog(Request $request)
     {
         $bundleName = strval($request->input('bundle_name' , ''));

@@ -14,6 +14,12 @@ use App\Repositories\Contracts\UserRepository;
 
 class IndexController extends BaseController
 {
+    /**
+     * @note Dashboard 订单
+     * @datetime 2021-07-12 18:00
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function order(Request $request)
     {
         $status = $request->input('status' , 'completed');
@@ -42,6 +48,12 @@ class IndexController extends BaseController
         return OrderCollection::collection($orders);
     }
 
+    /**
+     * @note Dashboard 订单统计
+     * @datetime 2021-07-12 18:00
+     * @param Request $request
+     * @return mixed
+     */
     public function statistics(Request $request)
     {
         $country = $request->input('country' , 'et');
@@ -72,6 +84,12 @@ class IndexController extends BaseController
         );
     }
 
+    /**
+     * @note 订单绘画
+     * @datetime 2021-07-12 18:01
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function draw(Request $request)
     {
         $time = $request->input('time' , '');

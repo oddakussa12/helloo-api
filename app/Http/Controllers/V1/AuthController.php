@@ -31,11 +31,22 @@ class AuthController extends BaseController
 
     protected $user;
 
+    /**
+     * AuthController constructor.
+     * @param UserRepository $user
+     */
     public function __construct(UserRepository $user)
     {
         $this->user = $user;
     }
 
+    /**
+     * @note 登录
+     * @datetime 2021-07-12 18:07
+     * @param Request $request
+     * @return void
+     * @throws ValidationException
+     */
     public function signIn(Request $request)
     {
         $agent = new Agent();
@@ -110,6 +121,11 @@ class AuthController extends BaseController
         return $this->response->errorUnauthorized(trans('auth.phone_failed'));
     }
 
+    /**
+     * @note 退出
+     * @datetime 2021-07-12 18:07
+     * @return \Dingo\Api\Http\Response
+     */
     public function signOut()
     {
         if(auth()->check())
@@ -119,6 +135,12 @@ class AuthController extends BaseController
         return $this->response->noContent();
     }
 
+    /**
+     * @note 用户信息填充
+     * @datetime 2021-07-12 18:07
+     * @param Request $request
+     * @return UserCollection
+     */
     public function fill(Request $request)
     {
         $fields = array();
@@ -211,6 +233,12 @@ class AuthController extends BaseController
         return new UserCollection($user);
     }
 
+    /**
+     * @note 用户(商家)信息更新
+     * @datetime 2021-07-12 18:39
+     * @param Request $request
+     * @return UserCollection
+     */
     public function update(Request $request)
     {
         $user = auth()->user();
@@ -222,6 +250,13 @@ class AuthController extends BaseController
         }
     }
 
+    /**
+     * @note 用户信息更新
+     * @datetime 2021-07-12 18:39
+     * @param $user
+     * @param $request
+     * @return UserCollection
+     */
     private function updateUser($user , $request)
     {
         $fields = array();
@@ -306,6 +341,13 @@ class AuthController extends BaseController
         return new UserCollection($user);
     }
 
+    /**
+     * @note 商家信息更新
+     * @datetime 2021-07-12 18:39
+     * @param $user
+     * @param $request
+     * @return UserCollection
+     */
     private function updateShop($user , $request)
     {
         $fields = array();
@@ -432,6 +474,13 @@ class AuthController extends BaseController
         return new UserCollection($user);
     }
 
+    /**
+     * @note token
+     * @datetime 2021-07-12 18:39
+     * @param $token
+     * @param bool $extend
+     * @return mixed
+     */
     protected function respondWithToken($token , $extend=true)
     {
         $user = auth()->user();
@@ -461,6 +510,12 @@ class AuthController extends BaseController
         return $this->response->array($token);
     }
 
+    /**
+     * @note credentials 查询
+     * @datetime 2021-07-12 18:39
+     * @param $request
+     * @return array
+     */
     protected function credentials($request)
     {
         $user_fields = $request->only($this->username(), 'password');
@@ -474,6 +529,11 @@ class AuthController extends BaseController
         return $credentials;
     }
 
+    /**
+     * @note 用户信息
+     * @datetime 2021-07-12 18:40
+     * @return UserCollection
+     */
     public function me()
     {
         $user = auth()->user();
@@ -508,11 +568,23 @@ class AuthController extends BaseController
         return new UserCollection($user);
     }
 
+    /**
+     * @note 用户名
+     * @datetime 2021-07-12 18:40
+     * @return string
+     */
     public function username()
     {
         return 'name';
     }
 
+    /**
+     * @note 手机号注册
+     * @datetime 2021-07-12 18:40
+     * @param Request $request
+     * @return mixed
+     * @throws ValidationException
+     */
     public function phoneSignUp(Request $request)
     {
         $agent = new Agent();
@@ -628,11 +700,11 @@ class AuthController extends BaseController
     }
 
     /**
-     * 2021-01-29 14:30
+     * @note 注册
+     * @datetime 2021-07-12 18:40
      * @param Request $request
      * @return mixed
      * @throws ValidationException
-     * @note deprecated
      */
     public function handleSignIn(Request $request)
     {
@@ -756,7 +828,8 @@ class AuthController extends BaseController
     }
 
     /**
-     * 2021-01-29 14:32
+     * @note 注册验证
+     * @datetime 2021-07-12 18:41
      * @param $account
      * @param $type
      * @return \Dingo\Api\Http\Response|void
@@ -821,6 +894,12 @@ class AuthController extends BaseController
         return $response;
     }
 
+    /**
+     * @note 用户名验证
+     * @datetime 2021-07-12 18:41
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function accountNameVerification(Request $request)
     {
         $username = $request->input('user_name' , '');
@@ -852,36 +931,72 @@ class AuthController extends BaseController
         return $this->response->noContent();
     }
 
+    /**
+     * @note 密码重置
+     * @datetime 2021-07-12 18:41
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function resetPwdByPhone(Request $request)
     {
         $this->resetByPhone($request);
         return $this->response->noContent();
     }
 
+    /**
+     * @note 忘记密码
+     * @datetime 2021-07-12 18:41
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function forgetPwdCode(Request $request)
     {
         $code = $this->sendForgetPwdPhoneCode($request);
         return $this->response->created();
     }
 
+    /**
+     * @note 密码更新
+     * @datetime 2021-07-12 18:41
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function password(Request $request)
     {
         $this->updatePassword($request);
         return $this->response->accepted();
     }
 
+    /**
+     * @note 验证验证码
+     * @datetime 2021-07-12 18:42
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function newPhoneCode(Request $request)
     {
         $code = $this->sendUpdatePhoneCode($request);
         return $this->response->created();
     }
 
+    /**
+     * @note 验证码登录
+     * @datetime 2021-07-12 18:43
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function signInPhoneCode(Request $request)
     {
         $code = $this->sendSignInPhoneCode($request);
         return $this->response->created();
     }
 
+    /**
+     * @note 密码验证
+     * @datetime 2021-07-12 18:43
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function verifyAuthPassword(Request $request)
     {
         $auth = auth()->user();
@@ -907,18 +1022,35 @@ class AuthController extends BaseController
         return $this->response->noContent();
     }
 
+    /**
+     * @note 更新手机号
+     * @datetime 2021-07-12 18:43
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function updateAuth(Request $request)
     {
         $this->updatePhone($request);
         return $this->response->accepted();
     }
 
+    /**
+     * @note 更新用户名
+     * @datetime 2021-07-12 18:43
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function updateName(Request $request)
     {
         $this->updateUserName($request);
         return $this->response->accepted();
     }
 
+    /**
+     * @note 用户名弹窗
+     * @datetime 2021-07-12 18:44
+     * @return \Dingo\Api\Http\Response
+     */
     public function usernamePrompt()
     {
         $userId = auth()->id();
@@ -926,6 +1058,13 @@ class AuthController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 注册
+     * @datetime 2021-07-12 18:44
+     * @param Request $request
+     * @return mixed|void
+     * @throws ValidationException
+     */
     public function signUp(Request $request)
     {
         $agent = new Agent();

@@ -9,6 +9,12 @@ use App\Http\Controllers\V1\BaseController;
 
 class NotificationController extends BaseController
 {
+    /**
+     * @note 通知
+     * @datetime 2021-07-12 17:56
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function activities(Request $request)
     {
         $user_id = strval($request->input('user_id' , ''));

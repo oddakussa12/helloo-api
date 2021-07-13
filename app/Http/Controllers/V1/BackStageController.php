@@ -21,7 +21,11 @@ use Dingo\Api\Exception\ResourceException;
 
 class BackStageController extends BaseController
 {
-
+    /**
+     * @note 清除版本升级缓存
+     * @datetime 2021-07-12 18:47
+     * @return \Dingo\Api\Http\Response
+     */
     public function versionUpgrade()
     {
         $lastVersion = 'helloo:app:service:new-version';
@@ -31,8 +35,9 @@ class BackStageController extends BaseController
     }
 
     /**
+     * @note 获取 score top 100
+     * @datetime 2021-07-12 18:47
      * @return mixed
-     * 获取排行榜100
      */
     public function score()
     {
@@ -42,8 +47,10 @@ class BackStageController extends BaseController
     }
 
     /**
+     * @note 设置 score top 100
+     * @datetime 2021-07-12 18:48
      * @param Request $request
-     * 保存积分
+     * @return void
      */
     public function storeScore(Request $request)
     {
@@ -104,6 +111,12 @@ class BackStageController extends BaseController
         }
     }
 
+    /**
+     * @note 最近上线
+     * @datetime 2021-07-12 18:48
+     * @param Request $request
+     * @return mixed
+     */
     public function lastOnline(Request $request)
     {
         $userId = strval($request->input('user_id' , ''));
@@ -138,6 +151,12 @@ class BackStageController extends BaseController
         return $this->response->array(array('users'=>$users , 'chinaTime'=>$chinaNow , 'count'=>$count , 'perPage'=>$perPage));
     }
 
+    /**
+     * @note 屏蔽设备
+     * @datetime 2021-07-12 18:48
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function blockDevice(Request $request)
     {
         $userId = $request->input('user_id' , '');
@@ -186,6 +205,12 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 屏蔽用户
+     * @datetime 2021-07-12 18:49
+     * @param Request $request
+     * @return void
+     */
     public function blockUser(Request $request)
     {
         $key      = 'helloo:account:service:block-user';
@@ -238,6 +263,11 @@ class BackStageController extends BaseController
 
     }
 
+    /**
+     * @note 评论审核
+     * @datetime 2021-07-12 18:49
+     * @param Request $request
+     */
     public function reviewComment(Request $request)
     {
         $id = $request->input('id' ,'');
@@ -346,6 +376,12 @@ class BackStageController extends BaseController
         }
     }
 
+    /**
+     * @note 评论驳回
+     * @datetime 2021-07-12 18:49
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function rejectComment(Request $request)
     {
         $id = $request->input('id' ,'');
@@ -459,7 +495,14 @@ class BackStageController extends BaseController
         }
         return $this->response->accepted();
     }
-    
+
+    /**
+     * @note 商家更新
+     * @datetime 2021-07-12 18:49
+     * @param Request $request
+     * @param $id
+     * @return \Dingo\Api\Http\Response
+     */
     public function updateShop(Request $request , $id)
     {
         $fields  = array();
@@ -502,6 +545,12 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 刷新商家 Tag 缓存
+     * @datetime 2021-07-12 18:50
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function refreshShopTag(Request $request)
     {
         Redis::del('helloo:business:service:shop:tags');

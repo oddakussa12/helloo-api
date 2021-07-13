@@ -16,6 +16,11 @@ use App\Repositories\Contracts\EventRepository;
 
 class EloquentEventRepository  extends EloquentBaseRepository implements EventRepository
 {
+    /**
+     * @note 获取当前活动
+     * @datetime 2021-07-12 19:12
+     * @return array|mixed
+     */
     public function getActiveEvent()
     {
         $key = 'helloo:event:active:event';
@@ -36,6 +41,11 @@ class EloquentEventRepository  extends EloquentBaseRepository implements EventRe
         return $events;
     }
 
+    /**
+     * @note 更新当前活动
+     * @datetime 2021-07-12 19:12
+     * @return array
+     */
     public function updateActiveEvent()
     {
         $key = 'helloo:event:active:event';

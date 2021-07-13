@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Redis;
 class AppController extends BaseController
 {
 
+    /**
+     * @note App
+     * @datetime 2021-07-12 18:04
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function index(Request $request)
     {
         $agent = new Agent();
@@ -30,6 +36,12 @@ class AppController extends BaseController
         return $this->response->array($platform);
     }
 
+    /**
+     * @note App
+     * @datetime 2021-07-12 18:05
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function home(Request $request)
     {
         $agent = new Agent();
@@ -48,6 +60,11 @@ class AppController extends BaseController
         return $this->response->array(array('data'=>$platform));
     }
 
+    /**
+     * @note App info
+     * @datetime 2021-07-12 18:05
+     * @return array|mixed
+     */
     public function getApp()
     {
         $lastVersion = 'helloo:app:service:new-version';
@@ -66,6 +83,11 @@ class AppController extends BaseController
         return $data;
     }
 
+    /**
+     * @note 当前App版本信息
+     * @datetime 2021-07-12 18:05
+     * @return array|mixed
+     */
     public function getFirstApp()
     {
         $lastVersion = 'helloo:app:service:last-version';
@@ -84,6 +106,13 @@ class AppController extends BaseController
         return $data;
     }
 
+    /**
+     * @deprecated
+     * @note App模式
+     * @datetime 2021-07-12 18:06
+     * @param $model
+     * @return \Dingo\Api\Http\Response
+     */
     public function mode($model)
     {
         $status = $model=='in'?1:0;
@@ -91,6 +120,12 @@ class AppController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note App 来源
+     * @datetime 2021-07-12 18:06
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function referrer(Request $request)
     {
         $package_name = strval($request->input('package_name' , ''));

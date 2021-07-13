@@ -9,13 +9,12 @@ use App\Repositories\Contracts\UserRepository;
 
 class ReportController extends BaseController
 {
-
-
-    public function index()
-    {
-
-    }
-
+    /**
+     * @note 举报
+     * @datetime 2021-07-12 19:00
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function store(Request $request)
     {
         $userId   = strval($request->input('user_id' , ''));

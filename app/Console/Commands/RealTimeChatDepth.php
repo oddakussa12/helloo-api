@@ -2,13 +2,10 @@
 
 namespace App\Console\Commands;
 
-
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-
 
 class RealTimeChatDepth extends Command
 {

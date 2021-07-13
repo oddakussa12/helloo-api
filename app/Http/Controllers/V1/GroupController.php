@@ -12,11 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
-use Dingo\Api\Exception\ResourceException;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
 use Dingo\Api\Exception\StoreResourceFailedException;
@@ -26,11 +24,12 @@ class GroupController extends BaseController
 {
     use BuildsQueries;
 
-    public function index(Request $request)
-    {
-        $userId = intval($request->input('user_id' , 0));
-    }
-
+    /**
+     * @note 我的群
+     * @datetime 2021-07-12 18:54
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function my(Request $request)
     {
         $userId  = auth()->id();
@@ -44,6 +43,12 @@ class GroupController extends BaseController
         return AnonymousCollection::collection($groups);
     }
 
+    /**
+     * @note 群创建
+     * @datetime 2021-07-12 18:55
+     * @param StoreGroupRequest $request
+     * @return AnonymousCollection|void
+     */
     public function store(StoreGroupRequest $request)
     {
         $memberIds = $request->input('user_id' , '');
@@ -120,6 +125,12 @@ class GroupController extends BaseController
         return new AnonymousCollection($group);
     }
 
+    /**
+     * @note 群信息
+     * @datetime 2021-07-12 18:55
+     * @param $id
+     * @return AnonymousCollection|void
+     */
     public function show($id)
     {
         $group = Group::where('id' , $id)->where('is_deleted' , 0)->first();
@@ -130,6 +141,13 @@ class GroupController extends BaseController
         return new AnonymousCollection($group);
     }
 
+    /**
+     * @note 群更新
+     * @datetime 2021-07-12 18:55
+     * @param UpdateGroupRequest $request
+     * @param $id
+     * @return \Dingo\Api\Http\Response|void
+     */
     public function update(UpdateGroupRequest $request , $id)
     {
         $user = auth()->user();
@@ -183,6 +201,12 @@ class GroupController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 群解散
+     * @datetime 2021-07-12 18:55
+     * @param $id
+     * @return \Dingo\Api\Http\Response|void
+     */
     public function destroy($id)
     {
         $user = auth()->user();

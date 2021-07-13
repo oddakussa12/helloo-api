@@ -21,7 +21,6 @@ class UserFriendController extends BaseController
      */
     private $userFriend;
 
-
     /**
      * UserFriendController constructor.
      * @param UserFriendRepository $userFriendRepository
@@ -31,10 +30,11 @@ class UserFriendController extends BaseController
         $this->userFriend = $userFriend;
     }
 
-
     /**
-     * @param int $userId
-     * @return mixed
+     * @note 用户好友统计
+     * @datetime 2021-07-12 19:08
+     * @param $userId
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index($userId)
     {
@@ -61,17 +61,10 @@ class UserFriendController extends BaseController
     }
 
     /**
-     * @param int $friendId
-     * @return string
-     */
-    public function store($friendId)
-    {
-        return $this->response->f_friends_request();
-    }
-
-    /**
+     * @note 我的好友
+     * @datetime 2021-07-12 19:08
      * @param Request $request
-     * @return mixed
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function my(Request $request)
     {
@@ -86,9 +79,10 @@ class UserFriendController extends BaseController
     }
 
     /**
+     * @note 修改好友信息(备注)
+     * @datetime 2021-07-12 19:08
      * @param Request $request
-     * @return \Dingo\Api\Http\Response|void
-     * 修改好友备注名称
+     * @return \Dingo\Api\Http\Response
      */
     public function update(Request $request)
     {
@@ -106,9 +100,10 @@ class UserFriendController extends BaseController
     }
 
     /**
+     * @note 好友删除
+     * @datetime 2021-07-12 19:09
      * @param $friendId
      * @return \Dingo\Api\Http\Response
-     * @note 删除用户及其相关
      */
     public function destroy($friendId)
     {
@@ -175,6 +170,12 @@ class UserFriendController extends BaseController
         return $this->response->noContent();
     }
 
+    /**
+     * @note 好友游戏排行
+     * @datetime 2021-07-12 19:09
+     * @param $game
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function gameRank($game)
     {
         $userId = auth()->id();

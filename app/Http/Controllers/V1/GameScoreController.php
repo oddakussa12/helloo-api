@@ -20,10 +20,10 @@ class GameScoreController extends BaseController
 {
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @note 游戏得分
+     * @datetime 2021-07-12 18:52
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
      */
     public function store(Request $request)
     {
@@ -175,6 +175,15 @@ class GameScoreController extends BaseController
         return $this->response->created(null , $data);
     }
 
+    /**
+     * @note 好友游戏排行
+     * @datetime 2021-07-12 18:53
+     * @param $userId
+     * @param $game
+     * @param $score
+     * @param $max
+     * @param $country
+     */
     public function friendRank($userId , $game , $score , $max , $country)
     {
         $userScores = array();
@@ -212,6 +221,14 @@ class GameScoreController extends BaseController
         }
     }
 
+    /**
+     * @note 设置日排行
+     * @datetime 2021-07-12 18:53
+     * @param $game
+     * @param $userId
+     * @param $country
+     * @param $score
+     */
     public function setDayRank($game , $userId , $country , $score)
     {
         if($country==670){
@@ -237,6 +254,14 @@ class GameScoreController extends BaseController
         }
     }
 
+    /**
+     * @note 设置周排行
+     * @datetime 2021-07-12 18:53
+     * @param $game
+     * @param $userId
+     * @param $country
+     * @param $score
+     */
     public function setWeekRank($game , $userId , $country , $score)
     {
         if($country==670){
@@ -262,6 +287,12 @@ class GameScoreController extends BaseController
         }
     }
 
+    /**
+     * @note 周排行
+     * @datetime 2021-07-12 18:53
+     * @param $game
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function day($game)
     {
         $phone = DB::table('users_phones')->where('user_id' , auth()->id())->first();
@@ -311,6 +342,12 @@ class GameScoreController extends BaseController
         return AnonymousCollection::collection($scores);
     }
 
+    /**
+     * @note 周排行
+     * @datetime 2021-07-12 18:54
+     * @param $game
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function week($game)
     {
         $phone = DB::table('users_phones')->where('user_id' , auth()->id())->first();

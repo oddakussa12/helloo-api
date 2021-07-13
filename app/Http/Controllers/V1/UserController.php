@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1;
 
-
 use Carbon\Carbon;
 use App\Traits\CachableUser;
 use Illuminate\Http\Request;
@@ -10,12 +9,15 @@ use App\Jobs\BusinessShopLog;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use libphonenumber\PhoneNumberUtil;
-use Illuminate\Support\Facades\Log;
 use App\Custom\Agora\RtcTokenBuilder;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\Contracts\UserRepository;
 
+/**
+ * Class UserController
+ * @package App\Http\Controllers\V1
+ */
 class UserController extends BaseController
 {
 
@@ -29,11 +31,21 @@ class UserController extends BaseController
      * @var \Illuminate\Config\Repository|\Illuminate\Foundation\Application|mixed
      */
 
+    /**
+     * UserController constructor.
+     * @param UserRepository $user
+     */
     public function __construct(UserRepository $user)
     {
         $this->user = $user;
     }
 
+    /**
+     * @note 用户查询
+     * @datetime 2021-07-12 17:27
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function index(Request $request)
     {
         $phone = $request->input('phone' , '');
@@ -131,11 +143,11 @@ class UserController extends BaseController
 
 
     /**
-     * Display the specified resource.
-     *
+     * @note 好友查询
+     * @datetime 2021-07-12 17:27
      * @param Request $request
      * @param $id
-     * @return UserCollection
+     * @return UserCollection|void
      */
     public function show(Request $request , $id)
     {
@@ -179,19 +191,39 @@ class UserController extends BaseController
         return new UserCollection($user);
     }
 
-
+    /**
+     * @Deprecated
+     * @note 屏蔽用户
+     * @datetime 2021-07-12 17:09
+     * @param $userId
+     * @return \Dingo\Api\Http\Response
+     */
     public function block($userId)
     {
         $this->user->blockUser($userId);
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @note 取消屏蔽用户
+     * @datetime 2021-07-12 17:19
+     * @param $userId
+     * @return \Dingo\Api\Http\Response
+     */
     public function unblock($userId)
     {
         $this->user->unblockUser($userId);
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @note 视频随机匹配
+     * @datetime 2021-07-12 17:20
+     * @param Request $request
+     * @return mixed
+     */
     public function randomVideo(Request $request)
     {
         $self = auth()->id();
@@ -204,6 +236,13 @@ class UserController extends BaseController
         return $this->response->array($random);
     }
 
+    /**
+     * @deprecated
+     * @note 语音随机匹配
+     * @datetime 2021-07-12 17:20
+     * @param Request $request
+     * @return mixed
+     */
     public function randomVoice(Request $request)
     {
         $self = auth()->id();
@@ -216,19 +255,39 @@ class UserController extends BaseController
         return $this->response->array($random);
     }
 
+    /**
+     * @deprecated
+     * @note 取消视频匹配
+     * @datetime 2021-07-12 17:21
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function removeVideo(Request $request)
     {
         $this->user->removeVideo();
         return $this->response->noContent();
     }
 
+    /**
+     * @deprecated
+     * @note 取消语音匹配
+     * @datetime 2021-07-12 17:21
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function removeVoice(Request $request)
     {
         $this->user->removeVoice();
         return $this->response->noContent();
     }
 
-
+    /**
+     * @deprecated
+     * @note 随机在线用户
+     * @datetime 2021-07-12 17:21
+     * @param Request $request
+     * @return UserCollection|void
+     */
     public function randRyOnlineUser(Request $request)
     {
         $self = auth()->id();
@@ -241,6 +300,13 @@ class UserController extends BaseController
         return new UserCollection($user);
     }
 
+    /**
+     * @deprecated
+     * @note 批量回去用户状态
+     * @datetime 2021-07-12 17:22
+     * @param Request $request
+     * @return mixed
+     */
     public function status(Request $request)
     {
         $userIds = (array)$request->all();
@@ -254,6 +320,13 @@ class UserController extends BaseController
         return $this->response->array($data);
     }
 
+    /**
+     * @deprecated
+     * @note 获取用户状态
+     * @datetime 2021-07-12 17:22
+     * @param $id
+     * @return mixed
+     */
     public function isRyOnline($id)
     {
         return $this->response->array(array(
@@ -261,6 +334,13 @@ class UserController extends BaseController
         ));
     }
 
+    /**
+     * @deprecated
+     * @note 更新用户状态
+     * @datetime 2021-07-12 17:23
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function updateRyUserOnlineState(Request $request)
     {
         $response = $this->response->noContent();
@@ -269,7 +349,12 @@ class UserController extends BaseController
         return $response->setStatusCode(200);
     }
 
-
+    /**
+     * @deprecated
+     * @note 星球
+     * @datetime 2021-07-12 17:23
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function planet()
     {
         $data = $this->user->planet();
@@ -287,6 +372,12 @@ class UserController extends BaseController
         ));
     }
 
+    /**
+     * @note 点赞
+     * @datetime 2021-07-12 17:23
+     * @param $userId
+     * @return \Dingo\Api\Http\Response
+     */
     public function like($userId)
     {
         $authId = auth()->id();
@@ -307,6 +398,14 @@ class UserController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @deprecated
+     * @version 2.0
+     * @note 视频匹配
+     * @datetime 2021-07-12 17:23
+     * @param Request $request
+     * @return mixed
+     */
     public function randomVideoV2(Request $request)
     {
         $self = auth()->id();
@@ -319,6 +418,14 @@ class UserController extends BaseController
         return $this->response->array($random);
     }
 
+    /**
+     * @deprecated
+     * @version 2.0
+     * @note 语音匹配
+     * @datetime 2021-07-12 17:23
+     * @param Request $request
+     * @return mixed
+     */
     public function randomVoiceV2(Request $request)
     {
         $self = auth()->id();
@@ -331,6 +438,13 @@ class UserController extends BaseController
         return $this->response->array($random);
     }
 
+    /**
+     * @version 2.0
+     * @note 通讯录好友
+     * @datetime 2021-07-12 17:24
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function contactsV2(Request $request)
     {
         $userOddPhoneKey = "helloo:account:service:account-phone-{odd}-number";
@@ -401,6 +515,8 @@ class UserController extends BaseController
     }
 
     /**
+     * @note 通讯录好友
+     * @datetime 2021-07-12 17:25
      * @param Request $request
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
@@ -454,6 +570,13 @@ class UserController extends BaseController
         return UserCollection::collection($contacts);
     }
 
+    /**
+     * @deprecated
+     * @note 游戏标签
+     * @datetime 2021-07-12 17:25
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function gameTag(Request $request)
     {
         $tag = strval($request->input('tag' , ''));
@@ -496,6 +619,11 @@ class UserController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 推荐用户
+     * @datetime 2021-07-12 17:25
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function recommendation()
     {
         $user = auth()->user();
@@ -546,6 +674,12 @@ class UserController extends BaseController
         return UserCollection::collection($users);
     }
 
+    /**
+     * @note 声网token
+     * @datetime 2021-07-12 17:26
+     * @return mixed
+     * @throws \Exception
+     */
     public function agoraToken()
     {
         $targetId = intval(request()->input('target_id' , 0));
@@ -576,6 +710,11 @@ class UserController extends BaseController
         )));
     }
 
+    /**
+     * @note 用户好友店铺
+     * @datetime 2021-07-12 17:26
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function shop()
     {
         $userId = request()->input('user_id' , auth()->id());

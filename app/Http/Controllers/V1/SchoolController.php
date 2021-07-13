@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\DB;
 class SchoolController extends BaseController
 {
 
+    /**
+     * @note 学校
+     * @datetime 2021-07-12 19:02
+     * @param Request $request
+     * @return mixed
+     */
     public function index(Request $request)
     {
         $userSchools = array();

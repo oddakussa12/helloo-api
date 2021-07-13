@@ -9,8 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 class AnswerController extends BaseController
 {
-
-
+    /**
+     * @deprecated
+     * @note 问题新增
+     * @datetime 2021-07-12 18:02
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function store(Request $request)
     {
         $user = auth()->user();

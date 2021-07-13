@@ -16,7 +16,12 @@ use Illuminate\Support\Facades\Redis;
 
 class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRepository
 {
-
+    /**
+     * @note 商品点赞
+     * @datetime 2021-07-12 19:16
+     * @param User $user
+     * @param $goodsId
+     */
     public function storeLike(User $user , $goodsId)
     {
         $now = date('Y-m-d H:i:s');
@@ -58,6 +63,12 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
         }
     }
 
+    /**
+     * @note 商品点赞取消
+     * @datetime 2021-07-12 19:16
+     * @param User $user
+     * @param $goodsId
+     */
     public function destroyLike(User $user , $goodsId)
     {
         $userId = $user->getKey();
@@ -94,6 +105,12 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
         }
     }
 
+    /**
+     * @note 商品点赞列表
+     * @datetime 2021-07-12 19:17
+     * @param $goodsId
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
     public function like($goodsId)
     {
         $goodsLikes = DB::table('likes_goods')->where('goods_id' , $goodsId)->orderByDesc('created_at')->select('user_id','goods_id','created_at')->paginate(10);
@@ -103,7 +120,12 @@ class EloquentGoodsRepository extends EloquentBaseRepository implements GoodsRep
         return $goodsLikes;
     }
 
-
+    /**
+     * @note 通过商品ID查询商品评分
+     * @datetime 2021-07-12 19:17
+     * @param $goodsId
+     * @return array
+     */
     public function findPointByGoodsId($goodsId)
     {
         $key = "helloo:business:point:service:goods:".$goodsId;

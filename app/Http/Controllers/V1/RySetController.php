@@ -12,7 +12,11 @@ use libphonenumber\NumberParseException;
 
 class RySetController extends BaseController
 {
-
+    /**
+     * @note 融云token
+     * @datetime 2021-07-12 19:01
+     * @return mixed
+     */
     public function token()
     {
         $response = $this->response;
@@ -69,6 +73,12 @@ class RySetController extends BaseController
 
     }
 
+    /**
+     * @note 融云推送
+     * @datetime 2021-07-12 19:02
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function push(Request $request)
     {
         Log::info('all' , $request->all());
@@ -141,6 +151,5 @@ class RySetController extends BaseController
         Redis::set('helloo:message:service:switch' , 1);
         Redis::expire('helloo:message:service:switch' , 60*60*24);
         return $this->response->created();
-
     }
 }

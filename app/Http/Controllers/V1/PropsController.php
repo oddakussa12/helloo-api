@@ -17,6 +17,12 @@ class PropsController extends BaseController
 {
     use BuildsQueries;
 
+    /**
+     * @note 道具
+     * @datetime 2021-07-12 18:58
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function index(Request $request)
     {
         $agent = new Agent();
@@ -31,11 +37,21 @@ class PropsController extends BaseController
         return PropsCollection::collection($props);
     }
 
+    /**
+     * @note 背景音乐
+     * @datetime 2021-07-12 18:58
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function bgm()
     {
         return AnonymousCollection::collection(Bgm::where('is_delete' , 0)->where('status' , 1)->paginate(50 , ['*']));
     }
 
+    /**
+     * @note 道具推荐
+     * @datetime 2021-07-12 18:58
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function recommendation()
     {
         $props = new Props();
@@ -45,6 +61,11 @@ class PropsController extends BaseController
         return PropsCollection::collection($props);
     }
 
+    /**
+     * @note 道具热门
+     * @datetime 2021-07-12 18:59
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     private function hot()
     {
         $props = new Props();
@@ -52,6 +73,11 @@ class PropsController extends BaseController
         return PropsCollection::collection($props);
     }
 
+    /**
+     * @note 道具最新
+     * @datetime 2021-07-12 18:59
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     private function new()
     {
         $props = new Props();
@@ -63,6 +89,12 @@ class PropsController extends BaseController
         return PropsCollection::collection($props);
     }
 
+    /**
+     * @note 道具首页
+     * @datetime 2021-07-12 18:59
+     * @param $category
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function home($category)
     {
         if($category=='hot'||$category=='new')
@@ -74,6 +106,11 @@ class PropsController extends BaseController
         return PropsCollection::collection($props);
     }
 
+    /**
+     * @note 道具类别
+     * @datetime 2021-07-12 18:59
+     * @return mixed
+     */
     public function category()
     {
         $local = locale();

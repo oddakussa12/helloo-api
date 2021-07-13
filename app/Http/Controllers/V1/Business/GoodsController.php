@@ -22,6 +22,12 @@ use App\Repositories\Contracts\CategoryGoodsRepository;
 
 class GoodsController extends BaseController
 {
+    /**
+     * @note 我的商品
+     * @datetime 2021-07-12 17:53
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function index(Request $request)
     {
         $keyword = escape_like(strval($request->input('keyword' , '')));
@@ -103,6 +109,12 @@ class GoodsController extends BaseController
         return AnonymousCollection::collection($goods);
     }
 
+    /**
+     * @note 未分类商品
+     * @datetime 2021-07-12 17:53
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function uncategorized(Request $request)
     {
         $userId = auth()->id();
@@ -115,8 +127,9 @@ class GoodsController extends BaseController
     }
 
     /**
-     * @return mixed
-     * @note goods recommendation
+     * @note 商品推荐
+     * @datetime 2021-07-12 17:53
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function recommendation()
     {
@@ -138,6 +151,12 @@ class GoodsController extends BaseController
         return AnonymousCollection::collection($goods);
     }
 
+    /**
+     * @note 商品信息
+     * @datetime 2021-07-12 17:54
+     * @param $id
+     * @return AnonymousCollection
+     */
     public function show($id)
     {
         $userId = intval(auth()->id());
@@ -156,6 +175,13 @@ class GoodsController extends BaseController
         return new AnonymousCollection($goods);
     }
 
+    /**
+     * @note 商品增加
+     * @datetime 2021-07-12 17:54
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     * @throws ValidationException
+     */
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -259,6 +285,14 @@ class GoodsController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 商品更新
+     * @datetime 2021-07-12 17:54
+     * @param Request $request
+     * @param $id
+     * @return \Dingo\Api\Http\Response
+     * @throws ValidationException
+     */
     public function update(Request $request , $id)
     {
         $user = auth()->user();
@@ -336,6 +370,13 @@ class GoodsController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 商品点赞
+     * @datetime 2021-07-12 17:55
+     * @param Request $request
+     * @param $id
+     * @return \Dingo\Api\Http\Response
+     */
     public function storeLike(Request $request , $id)
     {
         $user = auth()->user();
@@ -343,6 +384,14 @@ class GoodsController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @deprecated
+     * @note 商品取消点赞
+     * @datetime 2021-07-12 17:55
+     * @param Request $request
+     * @param $id
+     * @return \Dingo\Api\Http\Response
+     */
     public function destroyLike(Request $request , $id)
     {
         $user = auth()->user();
@@ -350,6 +399,12 @@ class GoodsController extends BaseController
         return $this->response->noContent();
     }
 
+    /**
+     * @note 商品的点赞列表
+     * @datetime 2021-07-12 17:55
+     * @param $id
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function like($id)
     {
         $likes = app(GoodsRepository::class)->like($id);

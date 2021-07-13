@@ -10,7 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 class SetController extends BaseController
 {
-
+    /**
+     * @note 通用设置
+     * @datetime 2021-07-12 19:03
+     * @param Request $request
+     * @return mixed
+     */
     public function commonSwitch(Request $request)
     {
         $fieldStr = (string)$request->input('include' , '');
@@ -19,6 +24,11 @@ class SetController extends BaseController
         return $this->response->array($switches);
     }
 
+    /**
+     * @note 学校
+     * @datetime 2021-07-12 19:03
+     * @return mixed
+     */
     public function school()
     {
         $phone = DB::table('users_phones')->where('user_id' , auth()->id())->first();

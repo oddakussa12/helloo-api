@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Redis;
 
 class ShopTagController extends BaseController
 {
+    /**
+     * @note 商家Tag
+     * @datetime 2021-07-12 18:00
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function index(Request $request)
     {
         $locale = locale();

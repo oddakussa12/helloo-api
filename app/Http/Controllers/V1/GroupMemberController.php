@@ -18,6 +18,12 @@ use Dingo\Api\Exception\UpdateResourceFailedException;
 
 class GroupMemberController extends BaseController
 {
+    /**
+     * @note 群成员
+     * @datetime 2021-07-12 18:55
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|void
+     */
     public function index(Request $request)
     {
         $userId = auth()->id();
@@ -36,6 +42,13 @@ class GroupMemberController extends BaseController
         $users = app(UserRepository::class)->findByUserIds($memberIds);
         return UserCollection::collection($users);
     }
+
+    /**
+     * @note 群成员更新
+     * @datetime 2021-07-12 18:56
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function update(Request $request)
     {
         $type = $request->input('type' , '');
@@ -45,6 +58,13 @@ class GroupMemberController extends BaseController
         }
         return $this->response->accepted();
     }
+
+    /**
+     * @note 群成员退出
+     * @datetime 2021-07-12 18:56
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response|void
+     */
     private function exit(Request $request)
     {
         $id = strval($request->input('group_id' , 0));
@@ -135,6 +155,12 @@ class GroupMemberController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 群成员剔出
+     * @datetime 2021-07-12 18:56
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response|void
+     */
     private function kick(Request $request)
     {
         $id = strval($request->input('group_id' , 0));
@@ -210,6 +236,12 @@ class GroupMemberController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 群成员加入
+     * @datetime 2021-07-12 18:56
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response|void
+     */
     public function join(Request $request)
     {
         $type = strval($request->input('type' , 'join'));

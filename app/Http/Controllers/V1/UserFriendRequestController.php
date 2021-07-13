@@ -39,8 +39,10 @@ class UserFriendRequestController extends BaseController
     }
 
     /**
+     * @note 好友请求
+     * @datetime 2021-07-12 19:09
      * @param Request $request
-     * @return mixed
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
     {
@@ -57,8 +59,10 @@ class UserFriendRequestController extends BaseController
     }
 
     /**
+     * @note 好友请求发起
+     * @datetime 2021-07-12 19:10
      * @param StoreUserFriendRequestRequest $request
-     * @return mixed
+     * @return \Dingo\Api\Http\Response
      */
     public function store(StoreUserFriendRequestRequest $request)
     {
@@ -114,6 +118,12 @@ class UserFriendRequestController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 好友请求接受
+     * @datetime 2021-07-12 19:10
+     * @param $requestId
+     * @return \Dingo\Api\Http\Response
+     */
     public function accept($requestId)
     {
         $user   = auth()->user();
@@ -232,6 +242,12 @@ class UserFriendRequestController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 好友请求拒绝
+     * @datetime 2021-07-12 19:10
+     * @param $requestId
+     * @return \Dingo\Api\Http\Response
+     */
     public function refuse($requestId)
     {
         $user   = auth()->user();

@@ -18,12 +18,23 @@ use Aws\CognitoIdentity\CognitoIdentityClient;
 class AwsController extends BaseController
 {
 
+    /**
+     * @deprecated
+     * @note s3 临时凭证
+     * @datetime 2021-07-12 18:46
+     * @param Request $request
+     * @return mixed
+     */
     public function identityToken(Request $request)
     {
         $id = strval(auth()->id());
         return $this->response->array($this->getIdentityToken($id));
     }
 
+    /**
+     * @note s3 临时凭证
+     * @datetime 2021-07-12 18:46
+     */
     public function sts()
     {
         $id = strval(auth()->id());
@@ -41,7 +52,13 @@ class AwsController extends BaseController
         dd($result);
     }
 
-
+    /**
+     * @deprecated
+     * @note s3 upload token
+     * @datetime 2021-07-12 18:45
+     * @param $userId
+     * @return array|mixed
+     */
     public function getIdentityToken($userId)
     {
         $key = "helloo:account:service:account:aws-identity-token:".$userId;
@@ -67,6 +84,12 @@ class AwsController extends BaseController
         return $data;
     }
 
+    /**
+     * @deprecated
+     * @note 预请求
+     * @datetime 2021-07-12 18:45
+     * @param string $key
+     */
     public function preSignedUrl(string $key)
     {
 //        $aws = app('aws');
@@ -83,6 +106,13 @@ class AwsController extends BaseController
 //        return $this->response->created(null , array('preSignedUrl'=>(string)$preSignedRequest->getUri()));
     }
 
+    /**
+     * @note s3 upload params
+     * @datetime 2021-07-12 18:44
+     * @param $type
+     * @return \Dingo\Api\Http\Response
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function form($type)
     {
         $name = request()->input('file' , '');
@@ -261,6 +291,12 @@ class AwsController extends BaseController
         ));
     }
 
+    /**
+     * @note china s3 upload params
+     * @datetime 2021-07-12 18:45
+     * @param $type
+     * @return array|\Dingo\Api\Http\Response
+     */
     private function cnForm($type)
     {
         $name = request()->input('file' , '');

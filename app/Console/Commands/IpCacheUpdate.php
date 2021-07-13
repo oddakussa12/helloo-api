@@ -7,8 +7,6 @@ use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
-
-
 class IpCacheUpdate extends Command
 {
     /**

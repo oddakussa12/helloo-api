@@ -15,15 +15,37 @@ use App\Repositories\Contracts\UserFriendRepository;
 
 class EloquentUserFriendRepository  extends EloquentBaseRepository implements UserFriendRepository
 {
+    /**
+     * @note 通过用户ID查询好友
+     * @datetime 2021-07-12 19:19
+     * @param $userId
+     * @return mixed
+     */
     public function paginateByUser($userId)
     {
         return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->groupBy('friend_id')->paginate(50 , ["*"] , $this->pageName);
     }
+
+    /**
+     * @note
+     * @datetime 2021-07-12 19:19
+     * @param $userId
+     * @param int $perPage
+     * @return mixed
+     */
     public function getAllByUser($userId, $perPage = 15)
     {
         return $this->model->where('user_id' , $userId)->orderBy($this->model->getCreatedAtColumn(), 'DESC')->groupBy('friend_id')->paginate($this->perPage , ['*'] , $this->pageName);
     }
 
+    /**
+     * @note 获取好友排行
+     * @datetime 2021-07-12 19:20
+     * @param $userId
+     * @param $game
+     * @param string $country
+     * @return \Illuminate\Support\Collection
+     */
     public function getFriendRankByUserId($userId , $game , $country='other')
     {
         $userScores = array();

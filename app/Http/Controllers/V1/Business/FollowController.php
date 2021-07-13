@@ -16,6 +16,12 @@ class FollowController extends BaseController
 {
     use BuildsQueries;
 
+    /**
+     * @note 我的关注
+     * @datetime 2021-07-12 17:49
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function my(Request $request)
     {
         $user = auth()->user();
@@ -32,6 +38,13 @@ class FollowController extends BaseController
         ]);
         return UserCollection::collection($users);
     }
+
+    /**
+     * @note 关注
+     * @datetime 2021-07-12 17:50
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -57,6 +70,12 @@ class FollowController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 取消关注
+     * @datetime 2021-07-12 17:50
+     * @param $id
+     * @return \Dingo\Api\Http\Response
+     */
     public function destroy($id)
     {
         $user = auth()->user();

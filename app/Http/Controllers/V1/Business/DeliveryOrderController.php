@@ -15,6 +15,12 @@ use App\Http\Requests\StoreDeliveryOrderRequest;
 class DeliveryOrderController extends BaseController
 {
 
+    /**
+     * @note delivery order 下单
+     * @datetime 2021-07-12 17:49
+     * @param StoreDeliveryOrderRequest $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function store(StoreDeliveryOrderRequest $request)
     {
         $userId = auth()->id();

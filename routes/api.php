@@ -47,20 +47,17 @@ $api->group($V1Params , function ($api){
         $api->post('statistics/upload/fail' , 'StatisticsController@uploadFail')->name('upload.fail');
     });
     $api->group(['middleware'=>['refresh' , 'operationLog']] , function($api){
-        $api->group(['middleware'=>['repeatedSubmit']] , function($api){
-            $api->get('user/im/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
-            $api->get('user/voice/random' , 'UserController@randomVoice')->name('user.voice.random');
-            $api->get('user/video/random' , 'UserController@randomVideo')->name('user.video.random');
-            $api->get('user/video/randomV2' , 'UserController@randomVideoV2')->name('user.video.random.v2');
-            $api->get('user/voice/randomV2' , 'UserController@randomVoiceV2')->name('user.voice.random.v2');
-            $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
-        });
-        $api->delete('user/voice/random' , 'UserController@removeVoice')->name('user.voice.random.delete');
-        $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
+//        $api->group(['middleware'=>['repeatedSubmit']] , function($api){
+//            $api->get('user/im/random' , 'UserController@randRyOnlineUser')->name('user.ry.online.random');
+//            $api->get('user/voice/random' , 'UserController@randomVoice')->name('user.voice.random');
+//            $api->get('user/video/random' , 'UserController@randomVideo')->name('user.video.random');
+//            $api->get('user/video/randomV2' , 'UserController@randomVideoV2')->name('user.video.random.v2');
+//            $api->get('user/voice/randomV2' , 'UserController@randomVoiceV2')->name('user.voice.random.v2');
+//            $api->get('user/{user}/ryStatus' , 'UserController@isRyOnline')->name('user.ry.online.status');
+//        });
+//        $api->delete('user/voice/random' , 'UserController@removeVoice')->name('user.voice.random.delete');
+//        $api->delete('user/video/random' , 'UserController@removeVideo')->name('user.video.random.delete');
 
-        /*****答题 开始*****/
-        $api->resource('answer', 'AnswerController',['only' => ['store']]);
-        /*****答题 结束*****/
 
         /*****道具 开始*****/
         $api->resource('props', 'PropsController',['only' => ['index']]);
@@ -112,13 +109,13 @@ $api->group($V1Params , function ($api){
 
             $api->post('game/score' , 'GameScoreController@store')->name('game.score.store');
         });
-        $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
+//        $api->get('user/ry/planet' , 'UserController@planet')->name('user.ry.online.planet');
 
         $api->post('user/verify/myself' , 'AuthController@verifyAuthPassword')->name('myself.verify');
 
-        $api->post('user/{user}/block', 'UserController@block')->name('user.block');
-
-        $api->post('user/{user}/unblock', 'UserController@unblock')->name('user.unblock');
+//        $api->post('user/{user}/block', 'UserController@block')->name('user.block');
+//
+//        $api->post('user/{user}/unblock', 'UserController@unblock')->name('user.unblock');
 
         $api->put('app/mode/{mode}' , 'AppController@mode')->where('model', 'out|in')->name('app.mode');
         
@@ -146,7 +143,7 @@ $api->group($V1Params , function ($api){
 
 
 
-        $api->post('user/game/tag' , 'UserController@gameTag')->name('user.game.tag.store');
+//        $api->post('user/game/tag' , 'UserController@gameTag')->name('user.game.tag.store');
 
         $api->get('user/friend/game/{game}/rank' , 'UserFriendController@gameRank')->where('game', 'coronation|superZero|trumpAdventures')->name('user.friend.game.rank');
 
@@ -260,7 +257,7 @@ $api->group($V1Params , function ($api){
 
     $api->post('user/contactsV2' , 'UserController@contactsV2')->name('user.contactsV2');
 
-    $api->post('user/status' , 'UserController@status')->name('user.status');
+//    $api->post('user/status' , 'UserController@status')->name('user.status');
 
 //    $api->resource('user' , 'UserController' , ['only' => ['show']]);
 
@@ -302,10 +299,6 @@ $api->group($V1Params , function ($api){
     $api->get('school/index' , 'SchoolController@index')->name('school.index');
 
     $api->post('ry/push' , 'RySetController@push')->name('ry.push');
-
-    $api->get('question/index' , 'QuestionController@index')->name('question.index');
-
-    $api->get('question/hot' , 'QuestionController@hot')->name('question.hot');
 
     $api->group(['prefix'=>'backstage'] , function ($api) {
 
@@ -349,7 +342,7 @@ $api->group($V1Params , function ($api){
 
     /** 商户 免登陆可访问的接口 start */
 
-    $api->resource('user' , 'UserController' , ['only' => ['show']]); // 他人个人主页
+    $api->get('user/{user}' , 'UserController@show')->name('user.show');
     $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply'); // 二级评论
 
     /** 商户 免登陆可访问的接口 end */

@@ -10,15 +10,11 @@ namespace App\Repositories\Eloquent;
 
 use Carbon\Carbon;
 use App\Jobs\School;
-use App\Models\User;
 use App\Jobs\RyOnline;
 use App\Jobs\UserUpdate;
 use App\Custom\RedisList;
 use App\Models\BlockUser;
-use App\Models\BlackUser;
-use App\Models\BlockPost;
 use Jenssegers\Agent\Agent;
-use Godruoyi\Snowflake\Snowflake;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Jobs\OneTimeUserScoreUpdate;
@@ -27,16 +23,16 @@ use Illuminate\Support\Facades\Redis;
 use App\Events\UserProfileRevokeLikeEvent;
 use App\Repositories\EloquentBaseRepository;
 use App\Repositories\Contracts\UserRepository;
-use Dingo\Api\Exception\DeleteResourceFailedException;
 
 class EloquentUserRepository  extends EloquentBaseRepository implements UserRepository
 {
-    public function __construct($model)
-    {
-        parent::__construct($model);
-    }
-
-
+    /**
+     * @note 用户更新
+     * @datetime 2021-07-12 19:27
+     * @param $model
+     * @param array $data
+     * @return mixed
+     */
     public function update($model, $data)
     {
         $original = collect($model)->toArray();
@@ -133,11 +129,23 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $user;
     }
 
+    /**
+     * @note 用户新增
+     * @datetime 2021-07-12 19:27
+     * @param $data
+     * @return mixed
+     */
     public function store($data)
     {
         return $this->model->create($data);
     }
 
+    /**
+     * @note 获取隐私
+     * @datetime 2021-07-12 19:27
+     * @param $userId
+     * @return array|int[]|mixed
+     */
     public function findPrivacyByUserId($userId)
     {
         $key = 'helloo:account:service:account-personal-privacy:'.$userId;
@@ -160,8 +168,10 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     }
 
     /**
+     * @note 批量获取用户信息(cache)
+     * @datetime 2021-07-12 19:27
      * @param $userIds
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
     public function findByUserIds($userIds)
     {
@@ -170,6 +180,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         });
     }
 
+    /**
+     * @note 获取用户信息(cache)
+     * @datetime 2021-07-12 19:28
+     * @param $userId
+     * @return \Illuminate\Support\Collection
+     */
     public function findByUserId($userId)
     {
         $key = "helloo:account:service:account:".$userId;
@@ -190,8 +206,10 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     }
 
     /**
+     * @note 批量获取用户Tag
+     * @datetime 2021-07-12 19:28
      * @param $userIds
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
     public function findTagByUserIds($userIds)
     {
@@ -210,6 +228,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         });
     }
 
+    /**
+     * @note 获取用户Tag
+     * @datetime 2021-07-12 19:28
+     * @param $userId
+     * @return string
+     */
     public function findTagByUserId($userId)
     {
         $key = "helloo:account:service:tag:account:".$userId;
@@ -229,109 +253,16 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $tag;
     }
 
+    /**
+     * @note 获取用户信息
+     * @datetime 2021-07-12 19:28
+     * @param $userId
+     * @return mixed
+     */
     public function findOrFail($userId)
     {
         return $this->model->findOrFail($userId);
     }
-
-    public function findOtherMyFollow($userId)
-    {
-        $followerIds = DB::table('common_follows')->where('user_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['followable_id'], 'follow_page');
-
-        $userIds = $followerIds->pluck('followable_id')->all(); //获取分页user id
-
-        $followers = $this->findByMany($userIds);
-
-        $authFollowers = $this->userFollow($userIds);
-
-        $followerIds->each(function ($item, $key) use ($followers, $authFollowers) {
-            $item->user = $followers->where('user_id', $item->followable_id)->first();
-        });
-
-        $followerIds = $followerIds->filter(function ($item, $key) {
-            return !blank($item->user);
-        });
-
-        $followerIds->each(function ($item, $key) use ($authFollowers) {
-            $item->user->user_follow_state = in_array($item->followable_id, $authFollowers);
-        });
-
-        return $followerIds;
-    }
-
-    public function findOtherFollowMe($userId)
-    {
-        $followerIds = DB::table('common_follows')->where('followable_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['user_id'], 'follow_page');
-
-        $userIds = $followerIds->pluck('user_id')->all(); //获取分页user id
-
-        $followers = $this->findByMany($userIds);
-
-        $followerIds->each(function ($item, $key) use ($followers) {
-            $item->user = $followers->where('user_id', $item->user_id)->first();
-        });
-
-        $followerIds = $followerIds->filter(function ($item, $key) {
-            return !blank($item->user);
-        });
-
-        $followedIds = $this->userFollow($userIds);
-
-        $followerIds->each(function ($item, $key) use ($followedIds) {
-            $item->user->user_follow_state = in_array($item->user_id, $followedIds);
-        });
-        return $followerIds;
-    }
-
-    public function findMyFollow($userId)
-    {
-        $followerIds = DB::table('common_follows')->where('user_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['followable_id'], 'follow_page');
-
-        $userIds = $followerIds->pluck('followable_id')->all(); //获取分页user id
-
-        $followers = $this->findByMany($userIds);
-
-        $followerIds->each(function ($item, $key) use ($followers) {
-            $item->user = $followers->where('user_id', $item->followable_id)->first();
-            $item->user->user_follow_state = true;
-        });
-
-        $followerIds = $followerIds->filter(function ($item, $key) {
-            return !blank($item->user);
-        });
-
-        return $followerIds;
-    }
-
-    public function findFollowMe($userId)
-    {
-        $followerIds = DB::table('common_follows')->where('followable_id', $userId)->where('followable_type', User::class)->where('relation', 'follow')->orderByDesc('id')->paginate(15, ['user_id'], 'follow_page');
-
-        $userIds = $followerIds->pluck('user_id')->all(); //获取分页user id
-
-        $followers = $this->findByMany($userIds);
-
-        $followerIds->each(function ($item, $key) use ($followers) {
-            $item->user = $followers->where('user_id', $item->user_id)->first();
-        });
-
-        $followerIds = $followerIds->filter(function ($item, $key) {
-            return !blank($item->user);
-        });
-
-        $followedIds = $this->userFollow($userIds);//重新获取当前登录用户信息
-
-        $followerIds->each(function ($item, $key) use ($followedIds) {
-            $item->user->user_follow_state = in_array($item->user_id, $followedIds);
-        });
-        return $followerIds;
-    }
-
-    public function findByWhere($where)
-    {
-        return $this->model->where($where)->first();
-    }
-
 
     public function unblockUser($userId)
     {
@@ -410,26 +341,52 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return Redis::sMembers($this->hiddenUsersMemKey($id));
     }
 
-
+    /**
+     * @deprecated
+     * @version 1.0
+     * @note 随机在线用户
+     * @datetime 2021-07-12 19:46
+     * @return mixed
+     */
     protected function randRyOnlineUser()
     {
         $key = 'helloo:account:service:account-random-im-set';
         return Redis::srandmember($key);
     }
 
+    /**
+     * @deprecated
+     * @version 1.0
+     * @note 随机在线语音用户
+     * @datetime 2021-07-12 19:46
+     * @return mixed
+     */
     protected function randRyVoiceUser()
     {
         $setKey = 'helloo:account:service:account-random-voice-set';
         return Redis::spop($setKey);
     }
 
+    /**
+     * @deprecated
+     * @version
+     * @note 随机在线视频用户
+     * @datetime 2021-07-12 19:46
+     * @return mixed
+     */
     protected function randRyVideoUser()
     {
         $setKey = 'helloo:account:service:account-random-video-set';
         return Redis::spop($setKey);
     }
 
-
+    /**
+     * @deprecated
+     * @note 随机在线Im用户
+     * @datetime 2021-07-12 19:47
+     * @param $self
+     * @return int|mixed
+     */
     public function randomIm($self)
     {
         $key = 'helloo:account:service:account-random-im-set';
@@ -675,7 +632,6 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
     }
 
-
     public function randomVoiceV2($self)
     {
         $flag = false;
@@ -831,32 +787,11 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return (bool)intval($statue);
     }
 
-
-    public function isDeletedUser($name)
-    {
-
-    }
-
-    public function isBlackUser($user_id)
-    {
-    }
-
-    public function getDeletedUsers()
-    {
-
-    }
-
-
-    public function findByLikeName($name)
-    {
-        return $this->model->where('user_name', 'like', "%{$name}%")->orderByRaw("REPLACE(user_name,'{$name}','')")->select('user_id', 'user_name', 'user_nick_name', 'user_level', 'user_avatar', 'user_score', 'user_country_id', 'user_is_guest')->limit(5)->get();
-    }
-
-    public function findByLikeNickName($name)
-    {
-        return $this->model->where('user_nick_name', 'like', "%{$name}%")->orderByRaw("REPLACE(user_nick_name,'{$name}','')")->select('user_id', 'user_name', 'user_nick_name', 'user_level', 'user_avatar', 'user_score', 'user_country_id', 'user_is_guest')->limit(5)->get();
-    }
-
+    /**
+     * @note 点赞
+     * @datetime 2021-07-12 19:42
+     * @param $userId
+     */
     public function like($userId)
     {
         $likedKey = 'helloo:account:service:account-liked-num';
@@ -876,6 +811,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
     }
 
+    /**
+     * @deprecated
+     * @note 用户中心页点赞
+     * @datetime 2021-07-12 19:41
+     * @param $id
+     */
     public function profileLike($id)
     {
         $likeUser = auth()->user();
@@ -888,6 +829,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
     }
 
+    /**
+     * @deprecated
+     * @note 用户中心页取消点赞
+     * @datetime 2021-07-12 19:41
+     * @param $id
+     */
     public function profileRevokeLike($id)
     {
         $likeUser = auth()->user();
@@ -901,13 +848,24 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     }
 
 
-
+    /**
+     * @deprecated
+     * @note 在线用户数量
+     * @datetime 2021-07-12 19:40
+     * @return mixed
+     */
     public function onlineUsersCount()
     {
         $key = 'helloo:account:service:account-random-im-set';
         return Redis::scard($key);
     }
 
+    /**
+     * @deprecated
+     * @note 星球
+     * @datetime 2021-07-12 19:40
+     * @return array
+     */
     public function planet()
     {
         $num = intval(request()->input('num', 55));
@@ -980,73 +938,75 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return array_slice($userIds , 0 , 52);
     }
 
-    public function userFollow($userIds)
-    {
-        if (auth()->check() && !empty($userIds)) {
-            return DB::table('common_follows')->where('user_id', auth()->id())->where('followable_type', "App\Models\User")->where('relation', "follow")->whereIn('followable_id', $userIds)->pluck('followable_id')->all();
-        }
-        return array();
-    }
-
-    public function isProhibited(User $user)
-    {
-        $userName = $user->user_name;
-        $userNickName = $user->user_nick_name;
-        $prohibited_operation_user = config('redis-key.user.prohibited_operation_user');
-        $prohibited_operation_user_name = config('redis-key.user.prohibited_operation_user_name');
-        if (Redis::exists($prohibited_operation_user)) {
-            $rank = Redis::zrank($prohibited_operation_user, $user->user_id);
-            if ($rank !== null) {
-                return true;
-            }
-        }
-        if (Redis::exists($prohibited_operation_user_name)) {
-            $limit = 50;
-            $count = Redis::zcard($prohibited_operation_user_name);
-            $total = ceil($count / $limit);
-            for ($i = 1; $i <= $total; $i++) {
-                $offset = ($i - 1) * $limit;
-                $prohibitedUserNames = Redis::zrangebyscore($prohibited_operation_user_name, "+inf", "-inf", array('withScores' => true, 'limit' => array($offset, $limit)));
-                $prohibitedUserNames = array_keys($prohibitedUserNames);
-                if (str_contains(strtolower($userName), $prohibitedUserNames) || str_contains(strtolower($userNickName), $prohibitedUserNames)) {
-                    return true;
-                }
-            }
-
-        }
-        return false;
-    }
-
+    /**
+     * @note 随机获取官方视频(陪聊)
+     * @datetime 2021-07-12 19:38
+     * @return mixed
+     */
     protected function randOfficialRyVideoUser()
     {
         $setKey = 'helloo:account:service:account-random-official-video-set';
         return Redis::spop($setKey);
     }
 
+    /**
+     * @deprecated
+     * @note 随机获取官方语音(陪聊)
+     * @datetime 2021-07-12 19:38
+     * @return mixed
+     */
     protected function randOfficialRyVoiceUser()
     {
         $setKey = 'helloo:account:service:account-random-official-voice-set';
         return Redis::spop($setKey);
     }
 
+    /**
+     * @deprecated
+     * @note 设备屏蔽列表
+     * @datetime 2021-07-12 19:37
+     * @param $deviceId
+     * @return bool
+     */
     public function deviceIdBlacklist($deviceId)
     {
         $key = 'helloo:account:service:device-id-blacklist';
         return boolval(Redis::zrank($key , $deviceId)!==null);
     }
 
+    /**
+     * @deprecated
+     * @note 官方(陪聊)状态
+     * @datetime 2021-07-12 19:37
+     * @param $userId
+     * @return bool
+     */
     public function official($userId)
     {
         $key = 'helloo:account:service:account-official';
         return boolval(Redis::zrank($key , $userId)!==null);
     }
 
+    /**
+     * @deprecated
+     * @note 官方(陪聊)在线
+     * @datetime 2021-07-12 19:36
+     * @param $userId
+     */
     public function officialSet($userId)
     {
         $setKey = 'helloo:account:service:account-random-official-video-set';
         Redis::sadd($setKey , $userId);
     }
 
+    /**
+     * @deprecated
+     * @note 视频匹配(男)
+     * @datetime 2021-07-12 19:36
+     * @param $self
+     * @param $userGender
+     * @return array
+     */
     public function randomMaleVideo($self , $userGender)
     {
         $flag = false;
@@ -1217,6 +1177,14 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $data;
     }
 
+    /**
+     * @deprecated
+     * @note 视频匹配(女)
+     * @datetime 2021-07-12 19:35
+     * @param $self
+     * @param $userGender
+     * @return array
+     */
     public function randomFemaleVideo($self , $userGender)
     {
         $flag = false;
@@ -1388,6 +1356,14 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $data;
     }
 
+    /**
+     * @deprecated
+     * @note 视频匹配
+     * @datetime 2021-07-12 19:32
+     * @param $self
+     * @param $userGender
+     * @return array
+     */
     public function randomMixVideo($self , $userGender)
     {
         $flag = false;
@@ -1563,6 +1539,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         return $data;
     }
 
+    /**
+     * @note 用户名弹窗
+     * @datetime 2021-07-12 19:32
+     * @param $userId
+     * @return int
+     */
     public function usernamePrompt($userId)
     {
 
@@ -1603,6 +1585,12 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         }
     }
 
+    /**
+     * @note 获取商家评分
+     * @datetime 2021-07-12 19:44
+     * @param $userId
+     * @return array
+     */
     public function findPointByUserId($userId)
     {
         $key = "helloo:account:point:service:account:".$userId;

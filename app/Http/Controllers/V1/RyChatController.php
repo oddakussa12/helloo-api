@@ -7,21 +7,15 @@ use App\Jobs\RyChat;
 use App\Models\RyChatFailed;
 use Illuminate\Http\Request;
 use App\Custom\Constant\Constant;
-use App\Resources\UserCollection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use App\Repositories\Contracts\UserRepository;
 
 class RyChatController extends BaseController
 {
-
-
-
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @note 融云消息
+     * @datetime 2021-07-12 19:01
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
      */
     public function store(Request $request)
     {
@@ -61,16 +55,5 @@ class RyChatController extends BaseController
             }
         }
         return $response->setStatusCode(200);
-    }
-
-
-
-    public function user()
-    {
-        $userIds = request()->input('user_ids' , '');
-        $userIds = explode(',' , $userIds);
-        $userIds = array_slice($userIds , 0 , 50);
-        $users = app(UserRepository::class)->findByMany($userIds);
-        return UserCollection::collection($users);
     }
 }

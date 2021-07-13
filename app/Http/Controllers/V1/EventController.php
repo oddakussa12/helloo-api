@@ -14,12 +14,13 @@ use Illuminate\Support\Facades\Validator;
 
 class EventController extends BaseController
 {
-    //
-    public function index()
-    {
-
-    }
-
+    /**
+     * @deprecated
+     * @note 活动详情
+     * @datetime 2021-07-12 18:50
+     * @param $event
+     * @return mixed
+     */
     public function event($event)
     {
         $flag = false;
@@ -37,6 +38,11 @@ class EventController extends BaseController
         )));
     }
 
+    /**
+     * @note 当前活动
+     * @datetime 2021-07-12 18:51
+     * @return mixed
+     */
     public function current()
     {
         $now = Carbon::now()->timestamp;
@@ -47,6 +53,12 @@ class EventController extends BaseController
         );
     }
 
+    /**
+     * @note 活动新增
+     * @datetime 2021-07-12 18:51
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function store(Request $request)
     {
         $now = Carbon::now()->timestamp;
@@ -139,6 +151,13 @@ class EventController extends BaseController
         return $this->response->created();
     }
 
+    /**
+     * @note 活动更新
+     * @datetime 2021-07-12 18:51
+     * @param Request $request
+     * @param $game
+     * @return \Dingo\Api\Http\Response
+     */
     public function update(Request $request , $game)
     {
         $event = app(EventRepository::class)->findByAttributes(array('name'=>$game));

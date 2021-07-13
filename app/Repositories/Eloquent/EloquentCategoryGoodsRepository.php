@@ -15,6 +15,12 @@ use App\Repositories\Contracts\CategoryGoodsRepository;
 
 class EloquentCategoryGoodsRepository extends EloquentBaseRepository implements CategoryGoodsRepository
 {
+    /**
+     * @note 通过商家查询商家商品分类
+     * @datetime 2021-07-12 19:11
+     * @param $userId
+     * @return mixed
+     */
     public function findByUserId($userId)
     {
         $key = "helloo:business:goods:category:service:account:".$userId;

@@ -20,7 +20,12 @@ use App\Repositories\Contracts\UserRepository;
 
 class OrderController extends BaseController
 {
-
+    /**
+     * @note 下单
+     * @datetime 2021-07-12 17:56
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|void
+     */
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -57,6 +62,10 @@ class OrderController extends BaseController
             if(!empty($code)&&$code->limit<=0)
             {
                 abort(422 , 'The promo code has been used up!');
+            }
+            if(!empty($code)&&!empty($code->deadline)&&$code->deadline<date('Y-m-d'))
+            {
+                abort(422 , 'The promo code has expired!');
             }
         }
         $shopGoods->each(function($g) use ($goods){
@@ -162,6 +171,12 @@ class OrderController extends BaseController
         return AnonymousCollection::collection(collect($returnData));
     }
 
+    /**
+     * @note 订单预览
+     * @datetime 2021-07-12 17:57
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function preview(Request $request)
     {
         $user = auth()->user();
@@ -211,6 +226,12 @@ class OrderController extends BaseController
         return AnonymousCollection::collection(collect($returnData));
     }
 
+    /**
+     * @note 我的订单
+     * @datetime 2021-07-12 17:57
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function my(Request $request)
     {
         $userId = auth()->id();
@@ -224,6 +245,13 @@ class OrderController extends BaseController
         return OrderCollection::collection($orders);
     }
 
+    /**
+     * @note 订单详情
+     * @datetime 2021-07-12 17:57
+     * @param Request $request
+     * @param $id
+     * @return OrderCollection
+     */
     public function show(Request $request , $id)
     {
         $order = Order::where('order_id' , $id)->first();

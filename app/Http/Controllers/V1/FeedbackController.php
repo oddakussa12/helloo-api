@@ -12,12 +12,11 @@ use Jenssegers\Agent\Agent;
 
 class FeedbackController extends BaseController
 {
-
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @note 反馈新增
+     * @datetime 2021-07-12 18:52
+     * @param StoreFeedbackRequest $request
+     * @return \Dingo\Api\Http\Response
      */
     public function store(StoreFeedbackRequest $request)
     {
@@ -29,9 +28,10 @@ class FeedbackController extends BaseController
     }
 
     /**
+     * @note 网络反馈
+     * @datetime 2021-07-12 18:52
      * @param NetworkFeedbackRequest $request
      * @return \Dingo\Api\Http\Response
-     * 用户提交网络状态
      */
     public function network(NetworkFeedbackRequest $request)
     {

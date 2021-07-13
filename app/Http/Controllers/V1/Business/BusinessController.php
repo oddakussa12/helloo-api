@@ -20,6 +20,12 @@ class BusinessController extends BaseController
 {
     use BuildsQueries;
 
+    /**
+     * @note 店铺搜索
+     * @datetime 2021-07-12 17:48
+     * @param Request $request
+     * @return mixed
+     */
     public function search(Request $request)
     {
         $userId = intval(auth()->id());
@@ -60,6 +66,13 @@ class BusinessController extends BaseController
         ));
     }
 
+    /**
+     * @version 1.0
+     * @note 店铺发现
+     * @datetime 2021-07-12 17:48
+     * @param Request $request
+     * @return mixed
+     */
     public function discovery(Request $request)
     {
         $deliveryUsers = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 1)->inRandomOrder()->limit(20)->get();
@@ -77,6 +90,13 @@ class BusinessController extends BaseController
         return $this->response->array($data);
     }
 
+    /**
+     * @version 2.0
+     * @note 店铺发现
+     * @datetime 2021-07-12 17:48
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function home(Request $request)
     {
         $appends = array();

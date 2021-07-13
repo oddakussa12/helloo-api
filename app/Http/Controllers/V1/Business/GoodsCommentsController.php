@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\Log;
 
 class GoodsCommentsController extends BaseController
 {
+    /**
+     * @note 商品评论
+     * @datetime 2021-07-12 17:52
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|void
+     */
     public function index(Request $request)
     {
         $appends = array();
@@ -54,6 +60,12 @@ class GoodsCommentsController extends BaseController
         return AnonymousCollection::collection($comments);
     }
 
+    /**
+     * @note 商品评论回复
+     * @datetime 2021-07-12 17:52
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection|void
+     */
     public function reply(Request $request)
     {
         $pId = intval($request->input('p_id' , 0));
@@ -74,6 +86,12 @@ class GoodsCommentsController extends BaseController
         return AnonymousCollection::collection($comments);
     }
 
+    /**
+     * @note 商品评论
+     * @datetime 2021-07-12 17:52
+     * @param StoreGoodsCommentRequest $request
+     * @return AnonymousCollection|void
+     */
     public function store(StoreGoodsCommentRequest $request)
     {
         $user = auth()->user();

@@ -15,6 +15,12 @@ use App\Repositories\Contracts\UserRepository;
 
 class ShoppingCartController extends BaseController
 {
+    /**
+     * @note 我的购物车
+     * @datetime 2021-07-12 17:58
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -58,6 +64,12 @@ class ShoppingCartController extends BaseController
         return AnonymousCollection::collection(collect($shoppingCarts)->values());
     }
 
+    /**
+     * @note 购物车新增
+     * @datetime 2021-07-12 17:58
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function store(Request $request)
     {
         $type = $request->input('type' , 'store');
@@ -143,6 +155,12 @@ class ShoppingCartController extends BaseController
         return AnonymousCollection::collection(collect($shops)->values());
     }
 
+    /**
+     * @note 购物车删除
+     * @datetime 2021-07-12 17:58
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function destroy(Request $request)
     {
         $user = auth()->user();

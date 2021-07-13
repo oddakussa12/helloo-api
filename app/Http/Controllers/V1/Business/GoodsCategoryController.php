@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\Redis;
 
 class GoodsCategoryController extends BaseController
 {
+    /**
+     * @note 商家商品类别
+     * @datetime 2021-07-12 17:50
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -23,6 +29,12 @@ class GoodsCategoryController extends BaseController
         return AnonymousCollection::collection($goodsCategories);
     }
 
+    /**
+     * @note 商家商品类别新增
+     * @datetime 2021-07-12 17:50
+     * @param Request $request
+     * @return AnonymousCollection
+     */
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -101,6 +113,13 @@ class GoodsCategoryController extends BaseController
         return new AnonymousCollection($goodsCategory);
     }
 
+    /**
+     * @note 商家商品类别更新
+     * @datetime 2021-07-12 17:51
+     * @param Request $request
+     * @param $id
+     * @return \Dingo\Api\Http\Response
+     */
     public function update(Request $request , $id)
     {
         $user = auth()->user();
@@ -176,6 +195,12 @@ class GoodsCategoryController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 商家商品类别排序更新
+     * @datetime 2021-07-12 17:51
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function sort(Request $request)
     {
         $categoryIds = (array)$request->input('category_id');
@@ -210,6 +235,12 @@ class GoodsCategoryController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 商家商品类别删除
+     * @datetime 2021-07-12 17:51
+     * @param $id
+     * @return \Dingo\Api\Http\Response
+     */
     public function destroy($id)
     {
         $userId = auth()->id();
