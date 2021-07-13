@@ -93,6 +93,7 @@ class IndexController extends BaseController
     public function draw(Request $request)
     {
         $time = $request->input('time' , '');
+        $goodsId = $request->input('goods_id' , '');
         if($time=='morning')
         {
             $hours = array(
@@ -140,9 +141,22 @@ class IndexController extends BaseController
             abort(422 , 'Date interval is too long!');
         }
         $userId = auth()->id();
-        $sql = <<<DOC
+        if(!empty($goodsId))
+        {
+            $ordersGoods = DB::table('orders_goods')->where('goods_id' , $goodsId)->whereBetween(DB::raw("ATE_FORMAT(`created_at`, '%Y-%m-%d')") , array($startData , $endDate))->select('order_id')->get();
+            $orderIds = $ordersGoods->pluck('order_id')->toArray();
+        }
+        if(empty($orderIds))
+        {
+            $sql = <<<DOC
 SELECT count(*) as `total`,DATE_FORMAT(`created_at`, '%Y-%m-%d') as `date` FROM `t_orders` WHERE `shop_id`={$userId} AND DATE_FORMAT(`created_at`, '%Y-%m-%d') BETWEEN '{$startData}' AND '{$endDate}'
 DOC;
+        }else{
+            $orderIds = trim(implode(',' , $orderIds) , ',');
+            $sql = <<<DOC
+SELECT count(*) as `total`,DATE_FORMAT(`created_at`, '%Y-%m-%d') as `date` FROM `t_orders` WHERE `shop_id`={$userId} AND `order_id` in ({$orderIds}) DATE_FORMAT(`created_at`, '%Y-%m-%d') BETWEEN '{$startData}' AND '{$endDate}'
+DOC;
+        }
         if(!empty($hours))
         {
             $sql .= ' AND DATE_FORMAT(`created_at`, "%H") IN ('.trim(implode(',' , $hours) , ',').')';
