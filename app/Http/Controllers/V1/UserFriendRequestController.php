@@ -67,7 +67,6 @@ class UserFriendRequestController extends BaseController
     public function store(StoreUserFriendRequestRequest $request)
     {
         $friendId = intval($request->input('friend_id'));
-        $referrer = strval($request->input('referrer' , ''));
         $user     = auth()->user();
         $userId   = $user->user_id;
         if($friendId==$userId)
@@ -75,6 +74,10 @@ class UserFriendRequestController extends BaseController
             return $this->response->created();
         }
         $friend = app(UserRepository::class)->findOrFail($friendId);
+        if($friend->user_shop==1||$user->user_shop==1)
+        {
+            return $this->response->errorForbidden('Forbid to add friends!');
+        }
         $userFriend = UserFriend::where('user_id' , $userId)->where('friend_id' , $friendId)->first();
         if(blank($userFriend))
         {

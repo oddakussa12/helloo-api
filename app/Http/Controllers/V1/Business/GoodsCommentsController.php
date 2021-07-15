@@ -122,6 +122,10 @@ class GoodsCommentsController extends BaseController
             {
                 return $this->response->errorForbidden('Sorry, this goods belongs to others!');
             }
+            if($pComment->child_comment>=2)
+            {
+                return $this->response->errorForbidden('Sorry, you can only reply to two comments!');
+            }
             try{
                 DB::beginTransaction();
                 $commentResult = DB::table('comments')->insert(array(
@@ -163,7 +167,7 @@ class GoodsCommentsController extends BaseController
         }else{
             if($goods->user_id==$userId)
             {
-                return $this->response->errorForbidden('Sorry, you cannot comment on your own products!');
+                return $this->response->errorForbidden('Sorry, you cannot comment on your own goods!');
             }
             $media = array_filter($media , function($v){
                 if(isset($v['type']))

@@ -169,10 +169,12 @@ class UserController extends BaseController
 
         $likeState = auth()->check() && !blank(DB::table('likes')->where('user_id', auth()->id())->where('liked_id', $id)->first());
         $friend = auth()->check()?DB::table('users_friends')->where('user_id' , auth()->id())->where('friend_id' , $id)->first():null;
+        $follow = auth()->check()?DB::table('users_follows')->where('user_id' , auth()->id())->where('followed_id' , $id)->first():null;
         $likedKey = 'helloo:account:service:account-liked-num';
         $user->put('likedCount' , intval(Redis::zscore($likedKey , $id)));
         $user->put('friendCount' , 0);
         $user->put('isFriend' , !blank($friend));
+        $user->put('followState' , !blank($follow));
         $user->put('likeState' , $likeState);
         $user->put('privacy', $privacy);
         $user->put('rank', (int)$rank+1);
