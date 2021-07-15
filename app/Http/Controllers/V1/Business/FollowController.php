@@ -49,11 +49,12 @@ class FollowController extends BaseController
     {
         $user = auth()->user();
         $userId = $user->user_id;
-        if($user->user_shop!=1)
+        $followedId = $request->input('followed_id' , '');
+        $followedUser = app(UserRepository::class)->findOrFail($followedId);
+        if($user->user_shop==0&&$followedUser->user_shop==0)
         {
             abort(403 , 'You cannot use this feature!');
         }
-        $followedId = $request->input('followed_id' , '');
         $followed = DB::table('users_follows')->where('user_id' , $userId)->where('followed_id' , $followedId)->first();
         if(empty($followed))
         {
