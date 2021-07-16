@@ -212,7 +212,7 @@ class OrderController extends BaseController
         {
             $shopGs = $shopGoods->get($shop['user_id']);
             $price = collect($shopGs)->sum(function ($shopG) {
-                return $shopG['goodsNumber']*$shopG['discounted_price'];
+                return $shopG['goodsNumber']*$shopG['price'];
             });
             $discountedPrice = collect($shopGs)->sum(function ($shopG) {
                 if($shopG['discounted_price']<0)
