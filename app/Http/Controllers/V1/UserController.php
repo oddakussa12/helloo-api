@@ -180,7 +180,7 @@ class UserController extends BaseController
         $user->put('rank', (int)$rank+1);
         $user->put('score', (int)Redis::zscore($memKey, $id));
         $userId = auth()->id();
-        if(!empty($user->get('user_shop'))&&$action=='view'&&$user->get('user_id')!=$userId&&!empty($userId))
+        if(!empty($user->get('user_shop'))&&$action=='view'&&$user->get('user_id')!=$userId&&!empty($userId)&&!empty($referrer))
         {
             BusinessShopLog::dispatch($userId , $user->get('user_id') , $referrer)->onQueue('helloo_{business_shop_logs}');
         }
