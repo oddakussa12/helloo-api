@@ -243,7 +243,7 @@ class GoodsController extends BaseController
         );
         if(!empty($categoryId))
         {
-            $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->fisrt();
+            $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->first();
             if(empty($goodsCategory)||$goodsCategory->user_id!=$userId)
             {
                 abort(422 , 'Category not available!');
