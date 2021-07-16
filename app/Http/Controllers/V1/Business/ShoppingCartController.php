@@ -146,10 +146,18 @@ class ShoppingCartController extends BaseController
             $price = $shopGs->sum(function($shopG){
                 return $shopG['goodsNumber']*$shopG['price'];
             });
+            $discountedPrice = collect($shopGs)->sum(function ($shopG) {
+                if($shopG['discounted_price']<0)
+                {
+                    return $shopG['goodsNumber']*$shopG['price'];
+                }
+                return $shopG['goodsNumber']*$shopG['discounted_price'];
+            });
             $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = $currency;
             $shop['deliveryCoast'] = 30;
             $shop['subTotal'] = $price;
+            $shop['subDiscountedTotal'] = $discountedPrice;
             $shops[$k] = new UserCollection($shop);
         }
         return AnonymousCollection::collection(collect($shops)->values());
