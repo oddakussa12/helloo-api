@@ -218,6 +218,8 @@ $api->group($V1Params , function ($api){
 
         $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
 
+        $api->get('follow/{user}' , 'Business\FollowController@index')->name('business.follow.index');
+
         $api->group(['prefix'=>'dashboard' , 'namespace'=>'Dashboard'] , function ($api) {
             $api->get('order' , 'IndexController@order')->name('dashboard.order');
             $api->get('statistics' , 'IndexController@statistics')->name('dashboard.statistics');

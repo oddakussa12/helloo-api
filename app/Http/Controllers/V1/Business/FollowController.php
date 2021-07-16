@@ -16,6 +16,21 @@ class FollowController extends BaseController
 {
     use BuildsQueries;
 
+    public function index(Request $request)
+    {
+        $userId = $request->input('user_id' , 0);
+        $perPage  = 10;
+        $pageName = 'page';
+        $page     = intval($request->input($pageName, 1));
+        $follows = DB::table('users_follows')->where('user_id' , $userId)->paginate($perPage , ['*'] , $pageName , $page);
+        $followedIds = $follows->pluck('followed_id')->toArray();
+        $users = app(UserRepository::class)->findByUserIds($followedIds);
+        $users = $this->paginator($users , $follows->total(), $perPage, $page, [
+            'path'     => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+        return UserCollection::collection($users);
+    }
     /**
      * @note 我的关注
      * @datetime 2021-07-12 17:49
