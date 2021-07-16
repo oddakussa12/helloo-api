@@ -51,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
                         $tmp = str_replace(':'.$key, '"'.$value.'"', $tmp);
                     }
                 }
-                !empty($qBindings)&&$tmp = vsprintf($tmp, $qBindings);
+                !empty($qBindings)&&!empty($tmp)&&$tmp = vsprintf($tmp, $qBindings);
                 $tmp = str_replace("\\", "", $tmp);
                 Log::info(' execution time: '.$query->time.'ms; '.$tmp."\n\n\t");
             });

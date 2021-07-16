@@ -212,13 +212,21 @@ class OrderController extends BaseController
         {
             $shopGs = $shopGoods->get($shop['user_id']);
             $price = collect($shopGs)->sum(function ($shopG) {
-                return $shopG['goodsNumber']*$shopG['price'];
+                return $shopG['goodsNumber']*$shopG['discounted_price'];
+            });
+            $discountedPrice = collect($shopGs)->sum(function ($shopG) {
+                if($shopG['discounted_price']<0)
+                {
+                    return $shopG['goodsNumber']*$shopG['price'];
+                }
+                return $shopG['goodsNumber']*$shopG['discounted_price'];
             });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             array_push($returnData , array(
                 'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
                 'goods'=>$shopGs,
                 'subTotal'=>$price,
+                'subDiscountedTotal'=>$discountedPrice,
                 'deliveryCoast'=>30,
                 'currency'=>$currency,
             ));
