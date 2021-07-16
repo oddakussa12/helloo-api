@@ -42,7 +42,8 @@ class AppServiceProvider extends ServiceProvider
         if(!in_array(domain() , config('common.online_domain')))
         {
             DB::listen(function ($query) {
-                $tmp = str_replace('?', '"'.'%s'.'"', $query->sql);
+                $tmp = str_replace('%', '$$', $query->sql);
+                $tmp = str_replace('?', '"'.'%s'.'"', $tmp);
                 $qBindings = [];
                 foreach ($query->bindings as $key => $value) {
                     if (is_numeric($key)) {
@@ -53,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
                 }
                 !empty($qBindings)&&!empty($tmp)&&$tmp = vsprintf($tmp, $qBindings);
                 $tmp = str_replace("\\", "", $tmp);
+                $tmp = str_replace("$$", "%", $tmp);
                 Log::info(' execution time: '.$query->time.'ms; '.$tmp."\n\n\t");
             });
         }

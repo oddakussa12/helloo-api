@@ -154,7 +154,7 @@ DOC;
         }else{
             $orderIds = trim(implode(',' , $orderIds) , ',');
             $sql = <<<DOC
-SELECT count(*) as `total`,DATE_FORMAT(`created_at`, '%Y-%m-%d') as `date` FROM `t_orders` WHERE `shop_id`={$userId} AND `order_id` in ({$orderIds}) DATE_FORMAT(`created_at`, '%Y-%m-%d') BETWEEN '{$startData}' AND '{$endDate}'
+SELECT count(*) as `total`,DATE_FORMAT(`created_at`, '%Y-%m-%d') as `date` FROM `t_orders` WHERE `shop_id`={$userId} AND `order_id` in ({$orderIds}) AND DATE_FORMAT(`created_at`, '%Y-%m-%d') BETWEEN '{$startData}' AND '{$endDate}'
 DOC;
         }
         if(!empty($hours))
