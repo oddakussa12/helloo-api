@@ -143,7 +143,7 @@ class IndexController extends BaseController
         $userId = auth()->id();
         if(!empty($goodsId))
         {
-            $ordersGoods = DB::table('orders_goods')->where('goods_id' , $goodsId)->whereBetween(DB::raw("ATE_FORMAT(`created_at`, '%Y-%m-%d')") , array($startData , $endDate))->select('order_id')->get();
+            $ordersGoods = DB::table('orders_goods')->where('goods_id' , $goodsId)->whereBetween(DB::raw("DATE_FORMAT(`created_at`, '%Y-%m-%d')") , array($startData , $endDate))->select('order_id')->get();
             $orderIds = $ordersGoods->pluck('order_id')->toArray();
         }
         if(empty($orderIds))
