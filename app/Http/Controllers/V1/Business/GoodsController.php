@@ -9,10 +9,13 @@ use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
 use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
+use App\Jobs\GoodsCategoryUpdate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
+use App\Models\Business\CategoryGoods;
 use App\Resources\AnonymousCollection;
+use App\Models\Business\GoodsCategory;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
@@ -190,6 +193,8 @@ class GoodsController extends BaseController
         $image = $request->input('image' , '');
         $price = $request->input('price');
         $status = $request->input('status');
+        $categoryId = $request->input('category_id');
+        $discountedPrice = $request->input('discounted_price');
         $description = strval($request->input('description' , ''));
         $rules = [
             'name' => [
@@ -218,9 +223,15 @@ class GoodsController extends BaseController
             ],
             'status' => [
                 'bail',
-                'filled',
+                'required',
                 Rule::in(array(1 , 0 , '1' , '0'))
             ],
+            'discounted_price' => [
+                'bail',
+                'filled',
+                'numeric',
+                'min:0'
+            ]
         ];
         $data = $validationField = array(
             'user_id'=>$userId,
@@ -230,17 +241,31 @@ class GoodsController extends BaseController
             'description'=>$description,
             'status'=>$status
         );
+        if(!empty($categoryId))
+        {
+            $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->fisrt();
+            if(empty($goodsCategory)||$goodsCategory->user_id!=$userId)
+            {
+                abort(422 , 'Category not available!');
+            }
+            if($discountedPrice!==null&&$goodsCategory->is_default)
+            {
+                $validationField['discounted_price'] = $data['discounted_price'] = round(floatval($discountedPrice) , 2);
+            }
+        }
         try {
             Validator::make($validationField, $rules)->validate();
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
+
         $image = array_map(function($v){
             unset($v['path']);
             return $v;
         } , $image);
         $now = date("Y-m-d H:i:s");
-        $data['id'] = Uuid::uuid1()->toString();
+        $goodsId = Uuid::uuid1()->toString();
+        $data['id'] = $goodsId;
         $data['user_id'] = $userId;
         $data['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
         $data['created_at'] = $now;
@@ -263,7 +288,29 @@ class GoodsController extends BaseController
             $goodsResult = DB::table('goods')->insert($data);
             if(!$goodsResult)
             {
-                abort(405 , 'goods insert failed!');
+                abort(500 , 'goods insert failed!');
+            }
+            if(!empty($goodsCategory))
+            {
+                $categoryGoodsData = array(
+                    'id'=>app('snowflake')->id(),
+                    'category_id'=>$goodsCategory->category_id,
+                    'goods_id'=>$goodsId,
+                    'user_id'=>$userId,
+                    'created_at'=>$now,
+                );
+                $status!==null&&$categoryGoodsData['status'] = $status;
+                $categoryGoodsResult = DB::table('categories_goods')->insert($categoryGoodsData);
+                if(!$categoryGoodsResult)
+                {
+                    abort(500 , 'category goods insert failed!');
+                }
+                $goodsCategoryResult = DB::table('goods_categories')->where('category_id' , $goodsCategory->category_id)->increment('goods_num');
+                if($goodsCategoryResult<=0)
+                {
+                    abort(500 , 'goods category increment failed!');
+                }
+                Redis::del("helloo:business:goods:category:service:account:".$userId);
             }
             DB::commit();
             if($data['status']==1)
@@ -297,6 +344,9 @@ class GoodsController extends BaseController
     {
         $user = auth()->user();
         $goods = Goods::where('id' , $id)->firstOrFail();
+        $sort = intval($request->input('sort' , 0));
+        $categoryId = $request->input('category_id');
+        $discountedPrice = $request->input('discounted_price');
         $params = $validationField = $request->only(array('name' , 'image' , 'price' , 'status' , 'description'));
         $validationField['user_id'] = $goods->user_id;
         $rules = [
@@ -306,7 +356,7 @@ class GoodsController extends BaseController
                 function ($attribute, $value, $fail) use ($user , $goods){
                     if($goods->user_id!=$user->user_id)
                     {
-                        $fail('Shop does not exist!');
+                        $fail('This goods does not exist!');
                     }
                 }
             ],
@@ -339,12 +389,32 @@ class GoodsController extends BaseController
                 'filled',
                 Rule::in(array(1 , 0 , '1' , '0'))
             ],
+            'discounted_price' => [
+                'bail',
+                'filled',
+                'numeric',
+                'min:0'
+            ]
         ];
+        if(!empty($categoryId))
+        {
+            $goodsCategory = GoodsCategory::where('category_id' , $categoryId)->fisrt();
+            if(empty($goodsCategory)||$goodsCategory->user_id!=$user->user_id)
+            {
+                abort(422 , 'Category not available!');
+            }
+            if($discountedPrice!==null&&$goodsCategory->is_default)
+            {
+                $validationField['discounted_price'] = $params['discounted_price'] = round(floatval($discountedPrice) , 2);
+            }
+            $categoryGoods = CategoryGoods::where('goods_id' , $goods->id)->first();
+        }
         try {
             Validator::make($validationField, $rules)->validate();
         } catch (ValidationException $exception) {
             throw new ValidationException($exception->validator);
         }
+        $now = date("Y-m-d H:i:s");
         if(!empty($params))
         {
             if(isset($params['image']))
@@ -356,8 +426,51 @@ class GoodsController extends BaseController
                 } , $image);
                 $params['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
             }
-            DB::table('goods')->where('id' , $id)->update($params);
-            if($params['status']==1)
+            $params['updated_at'] = $now;
+            $goodsResult = DB::table('goods')->where('id' , $id)->update($params);
+            if($goodsResult<=0)
+            {
+                abort(500 , 'goods update failed!');
+            }
+            if(!empty($goodsCategory))
+            {
+                if(!empty($categoryGoods))
+                {
+                    if($categoryGoods->category_id!=$categoryId)
+                    {
+                        $data = array(
+                            'category_id'=>$categoryId,
+                            'sort'=>$sort,
+                        );
+                        isset($params['status'])&&$data['status'] = $params['status'];
+                        $categoryGoodsResult = DB::table('categories_goods')->where('id' , $categoryGoods->id)->update($data);
+                        if($categoryGoodsResult<=0)
+                        {
+                            abort(500 , 'category goods update failed!');
+                        }
+                        Redis::del("helloo:business:goods:category:service:account:".$user->user_id);
+                        GoodsCategoryUpdate::dispatch(array($categoryGoods->category_id , $categoryId) , $user->user_id)->onQueue('helloo_{goods_category_update}');
+                    }
+                }else{
+                    $data = array(
+                        'id'=>app('snowflake')->id(),
+                        'category_id'=>$categoryId,
+                        'goods_id'=>$goods->id,
+                        'sort'=>$sort,
+                        'user_id'=>$user->user_id,
+                        'created_at'=>$now,
+                    );
+                    isset($params['status'])&&$data['status'] = $params['status'];
+                    $categoryGoodsResult = DB::table('categories_goods')->insert($data);
+                    if(!$categoryGoodsResult)
+                    {
+                        abort(500 , 'category goods insert failed!');
+                    }
+                    Redis::del("helloo:business:goods:category:service:account:".$user->user_id);
+                    GoodsCategoryUpdate::dispatch(array($categoryId) , $user->user_id)->onQueue('helloo_{goods_category_update}');
+                }
+            }
+            if(isset($params['status'])&&$params['status']==1)
             {
                 $price = $goods->currency=="BIRR"?$params['price']*0.023:$params['price'];
                 Redis::zadd("helloo:discovery:price:products" , array(
