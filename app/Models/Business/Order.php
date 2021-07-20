@@ -34,11 +34,17 @@ class Order extends Model
         'brokerage_percentage' => 'float',
         'brokerage' => 'float',
         'profit' => 'float',
+        'promo_price' => 'float',
     ];
 
     public function getFormatPriceAttribute()
     {
         return sprintf("%1\$.2f", $this->order_price).' '. $this->currency;
+    }
+
+    public function getFormatPromoPriceAttribute()
+    {
+        return sprintf("%1\$.2f", $this->promo_price).' '. $this->currency;
     }
 
 }

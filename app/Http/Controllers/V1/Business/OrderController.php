@@ -56,6 +56,7 @@ class OrderController extends BaseController
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
+        $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
         if(!empty($promoCode)&&$shopGoods->count()==1)
         {
             $code = PromoCode::where('promo_code' , $promoCode)->first();
@@ -66,6 +67,17 @@ class OrderController extends BaseController
             if(!empty($code)&&!empty($code->deadline)&&$code->deadline<date('Y-m-d'))
             {
                 abort(422 , 'The promo code has expired!');
+            }
+            if(!$discounted&&!empty($code))
+            {
+                $discountedGoods = $gs->reject(function ($g) {
+                    return $g->discounted_price<0;
+                });
+                $discountedGoodsIds = $discountedGoods->pluck('user_id')->unique()->toArray();
+                if(!empty($discountedGoodsIds))
+                {
+                    abort(422 , 'The conditions for using promotional codes are not met!');
+                }
             }
         }
         $shopGoods->each(function($g) use ($goods){
@@ -86,6 +98,13 @@ class OrderController extends BaseController
             $price = collect($shopGs)->sum(function ($shopG) use ($goods) {
                 return $goods[$shopG['id']]*$shopG['price'];
             });
+            $promoPrice = collect($shopGs)->sum(function ($shopG) use ($goods) {
+                if($shopG['discounted_price']<0)
+                {
+                    return $goods[$shopG['id']]*$shopG['discounted_price'];
+                }
+                return $goods[$shopG['id']]*$shopG['price'];
+            });
             $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
@@ -96,11 +115,12 @@ class OrderController extends BaseController
                 'user_address'=>$userAddress,
                 'detail'=>\json_encode($shopGs , JSON_UNESCAPED_UNICODE),
                 'order_price'=>round($price , 2),
+                'promo_price'=>round($promoPrice , 2),
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            if(!empty($code)&&$code->limit>0)
+            if($discounted&&!empty($code)&&$code->limit>0)
             {
                 $deliveryCoast = $code->free_delivery?0:30;
                 $data['delivery_coast'] = $deliveryCoast;
@@ -112,16 +132,16 @@ class OrderController extends BaseController
 
                 if($code->discount_type=='discount')
                 {
-                    $discountedPrice = round($price*$code->percentage/100+$deliveryCoast , 2);
+                    $discountedPrice = round($promoPrice*$code->percentage/100+$deliveryCoast , 2);
                 }else{
-                    $discountedPrice = round($price-$code->reduction+$deliveryCoast , 2);
+                    $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast , 2);
                 }
                 $data['discounted_price'] = $discountedPrice;
             }else{
                 $deliveryCoast = 30;
                 $discount_type = '';
                 $data['delivery_coast'] = $deliveryCoast;
-                $data['discounted_price'] = round($price+$deliveryCoast , 2);
+                $data['discounted_price'] = round($promoPrice+$deliveryCoast , 2);
             }
             $data['discount_type'] = $discount_type;
             $data['brokerage_percentage'] = $brokerage_percentage;
