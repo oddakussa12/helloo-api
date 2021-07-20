@@ -268,7 +268,6 @@ class OrderController extends BaseController
         $shops = app(UserRepository::class)->findByUserIds($shopIds);
         $orders->each(function($order) use ($shops){
             $order->shop = new UserCollection($shops->where('user_id' , $order->shop_id)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address'));
-            $order->delivery_coast = 30;
         });
         return OrderCollection::collection($orders);
     }
@@ -288,7 +287,6 @@ class OrderController extends BaseController
             abort(404 , 'Sorry, the order does not exist!');
         }
         $shop = app(UserRepository::class)->findByUserId($order->shop_id)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
-        $order->delivery_coast = 30;
         $order->shop = new UserCollection($shop);
         return new OrderCollection($order);
     }
