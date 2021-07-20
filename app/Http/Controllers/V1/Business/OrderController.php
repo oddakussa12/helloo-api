@@ -101,9 +101,9 @@ class OrderController extends BaseController
             $promoPrice = collect($shopGs)->sum(function ($shopG) use ($goods) {
                 if($shopG['discounted_price']<0)
                 {
-                    return $goods[$shopG['id']]*$shopG['discounted_price'];
+                    return $goods[$shopG['id']]*$shopG['price'];
                 }
-                return $goods[$shopG['id']]*$shopG['price'];
+                return $goods[$shopG['id']]*$shopG['discounted_price'];
             });
             $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
             $data = array(
