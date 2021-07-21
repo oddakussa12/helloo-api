@@ -217,7 +217,7 @@ class GenerateDiscovery extends Command
                 $data = array();
                 foreach ($goods as $g)
                 {
-                    $price = $g->current=='BIRR'?0.023*$g->price:$g->price;
+                    $price = $g->currency=='BIRR'?0.023*$g->price:$g->price;
                     $data[$g->id] = $price;
                 }
                 Redis::zadd($key , $data);
