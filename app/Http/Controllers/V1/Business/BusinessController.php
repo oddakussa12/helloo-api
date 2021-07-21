@@ -119,11 +119,12 @@ class BusinessController extends BaseController
         $appends = array();
         $type = $request->input('type' , 'product');
         $order = $request->input('order' , 'popular');
-        $tag = $request->input('tag' , 'desc');
-        $sort = strval($request->input('sort' , ''));
+        $tag = $request->input('tag' , '');
+        $sort = strval($request->input('sort' , 'desc'));
         $appends['type'] = $type;
         $appends['order'] = $order;
         $appends['tag'] = $tag;
+        $appends['sort'] = $sort;
         $pageName = 'page';
         $page     = intval($request->input($pageName, 1));
         $perPage  = intval($request->input('per_page', 10));
