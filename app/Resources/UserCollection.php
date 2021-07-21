@@ -50,6 +50,10 @@ class UserCollection extends Resource
         {
             $resource->put('user_delivery' , boolval($resource->get('user_delivery')));
         }
+        if($resource->has('user_tag'))
+        {
+            $resource->forget('user_tag');
+        }
         return $resource->toArray();
     }
 }

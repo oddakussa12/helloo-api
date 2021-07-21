@@ -143,16 +143,30 @@ class BusinessController extends BaseController
                     $total = Redis::zcard($key);
                     if($sort=='desc')
                     {
-                        $goodsIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                        $goodsScoreIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
                     }else{
-                        $goodsIds = Redis::zrangebyscore($key , '-inf' , '+inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                        $goodsScoreIds = Redis::zrangebyscore($key , '-inf' , '+inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
                     }
-                    $goodsIds = array_keys($goodsIds);
+                    $goodsIds = array_keys($goodsScoreIds);
                 }else {
                     $total = 0;
-                    $goodsIds = array();
+                    $goodsIds = $goodsScoreIds = array();
                 }
-                $goods = app(GoodsRepository::class)->allWithBuilder()->whereIn('id' , $goodsIds)->get();
+                if(!empty($goodsIds))
+                {
+                    $goods = app(GoodsRepository::class)->allWithBuilder()->whereIn('id' , $goodsIds)->get();
+                    $goods->each(function($g) use ($goodsScoreIds){
+                        $g->setAttribute('score' , $goodsScoreIds[$g->id]);
+                    });
+                }else{
+                    $goods = collect();
+                }
+                if($sort=='desc')
+                {
+                    $goods = $goods->sortByDesc('score')->values();
+                }else{
+                    $goods = $goods->sortBy('score')->values();
+                }
                 $goods = $this->paginator($goods , $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
@@ -183,16 +197,30 @@ class BusinessController extends BaseController
                     $total = Redis::zcard($key);
                     if($sort=='desc')
                     {
-                        $shopIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                        $shopScoreIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
                     }else{
-                        $shopIds = Redis::zrangebyscore($key , '-inf' , '+inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                        $shopScoreIds = Redis::zrangebyscore($key , '-inf' , '+inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
                     }
-                    $shopIds = array_keys($shopIds);
+                    $shopIds = array_keys($shopScoreIds);
                 }else {
                     $total = 0;
-                    $shopIds = array();
+                    $shopIds = $shopScoreIds = array();
                 }
-                $shops = app(UserRepository::class)->allWithBuilder()->whereIn('user_id' , $shopIds)->get();
+                if(!empty($shopIds))
+                {
+                    $shops = app(UserRepository::class)->allWithBuilder()->whereIn('user_id' , $shopIds)->get();
+                    $shops->each(function($shop) use ($shopScoreIds){
+                        $shop->setAttribute('score' , $shopScoreIds[$shop->user_id]);
+                    });
+                }else{
+                    $shops = collect();
+                }
+                if($sort=='desc')
+                {
+                    $shops = $shops->sortByDesc('score')->values();
+                }else{
+                    $shops = $shops->sortBy('score')->values();
+                }
                 $shops = $this->paginator($shops, $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
