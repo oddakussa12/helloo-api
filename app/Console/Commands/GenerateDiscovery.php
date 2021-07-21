@@ -56,7 +56,7 @@ class GenerateDiscovery extends Command
 
     private function popularShops()
     {
-        $lastWeek = Carbon::now()->subWeek(1)->startOfWeek()->toDateTimeString();
+        $lastWeek = Carbon::now()->subWeek(10)->startOfWeek()->toDateTimeString();
         $limit = 50;
         $flag = true;
         $page = 0;
@@ -92,7 +92,7 @@ class GenerateDiscovery extends Command
                             $tag = $userTag[$view['owner']];
                             $tagKey = 'helloo:discovery:popular:'.$tag.':shops';
                             !empty($tag)&&Redis::zadd($tagKey , array(
-                                $view['owner'] => $tag
+                                $view['owner'] => $view['num']
                             ));
                         }
                     }
@@ -131,7 +131,7 @@ class GenerateDiscovery extends Command
                         $tag = $userTag[$shop->user_id];
                         $tagKey = 'helloo:discovery:rated:'.$tag.':shops';
                         !empty($tag)&&Redis::zadd($tagKey , array(
-                            $shop->user_id => $tag
+                            $shop->user_id => round($point/$num , 1)
                         ));
                     }
 
@@ -144,7 +144,7 @@ class GenerateDiscovery extends Command
 
     private function popularProducts()
     {
-        $lastWeek = Carbon::now()->subWeek(1)->startOfWeek()->toDateTimeString();
+        $lastWeek = Carbon::now()->subWeek(10)->startOfWeek()->toDateTimeString();
         $limit = 50;
         $flag = true;
         $page = 0;
