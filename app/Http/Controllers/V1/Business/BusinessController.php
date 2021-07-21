@@ -119,7 +119,8 @@ class BusinessController extends BaseController
         $appends = array();
         $type = $request->input('type' , 'product');
         $order = $request->input('order' , 'popular');
-        $tag = $request->input('tag' , '');
+        $tag = $request->input('tag' , 'desc');
+        $sort = strval($request->input('sort' , ''));
         $appends['type'] = $type;
         $appends['order'] = $order;
         $appends['tag'] = $tag;
@@ -133,13 +134,19 @@ class BusinessController extends BaseController
         {
             if($order=='new')
             {
-                $goods = app(GoodsRepository::class)->allWithBuilder()->where('status' , 1)->orderByDesc('created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                $orderBy = $sort=='desc'?'orderByDesc':'orderBy';
+                $goods = app(GoodsRepository::class)->allWithBuilder()->where('status' , 1)->$orderBy('created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
             }else{
                 $key = 'helloo:discovery:'.$order.':products';
                 if(Redis::exists($key))
                 {
                     $total = Redis::zcard($key);
-                    $goodsIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    if($sort=='desc')
+                    {
+                        $goodsIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    }else{
+                        $goodsIds = Redis::zrangebyscore($key , '-inf' , '+inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    }
                     $goodsIds = array_keys($goodsIds);
                 }else {
                     $total = 0;
@@ -156,12 +163,13 @@ class BusinessController extends BaseController
         {
             if($order=='new')
             {
+                $orderBy = $sort=='desc'?'orderByDesc':'orderBy';
                 $shops = app(UserRepository::class)->allWithBuilder()->where('user_activation' , 1)->where('user_shop' , 1)->where('user_verified' , 1)->where('user_delivery' , 0);
                 if(!empty($tag))
                 {
-                    $shops = $shops->where('tag' , $tag)->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                    $shops = $shops->where('tag' , $tag)->$orderBy('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
                 }else{
-                    $shops = $shops->orderByDesc('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
+                    $shops = $shops->$orderBy('user_created_at')->paginate($perPage , ['*'] , $pageName , $page)->appends($appends);
                 }
             }else{
                 if(empty($tag))
@@ -173,7 +181,12 @@ class BusinessController extends BaseController
                 if(Redis::exists($key))
                 {
                     $total = Redis::zcard($key);
-                    $shopIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    if($sort=='desc')
+                    {
+                        $shopIds = Redis::zrevrangebyscore($key , '+inf' , '-inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    }else{
+                        $shopIds = Redis::zrangebyscore($key , '-inf' , '+inf' , array('withscores'=>true , 'limit'=>array($offset , $perPage)));
+                    }
                     $shopIds = array_keys($shopIds);
                 }else {
                     $total = 0;
