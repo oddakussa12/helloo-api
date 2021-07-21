@@ -531,7 +531,7 @@ class BackStageController extends BaseController
         {
             $now = date('Y-m-d H:i:s');
             $categoryId = app('snowflake')->id();
-            $goodsCategory = DB::connection('lovbee')->table('goods_categories');
+            $goodsCategory = DB::table('goods_categories');
             $goodsCategory = $goodsCategory->where('user_id' , $id)->where('default' , 1)->first();
             if(empty($goodsCategory))
             {
@@ -543,7 +543,7 @@ class BackStageController extends BaseController
                     'created_at'=>$now,
                     'updated_at'=>$now,
                 );
-                DB::connection('lovbee')->table('goods_categories')->insert($data);
+                DB::table('goods_categories')->insert($data);
                 Redis::del("helloo:business:goods:category:service:account:".$id);
             }
         }
