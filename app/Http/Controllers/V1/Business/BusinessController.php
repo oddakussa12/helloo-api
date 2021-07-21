@@ -67,7 +67,7 @@ class BusinessController extends BaseController
         $keyword = escape_like(strval($request->input('keyword' , '')));
         $tag = escape_like(strval($request->input('tag' , '')));
         $appends['keyword'] = $keyword;
-        $appends['tag'] = tag;
+        $appends['tag'] = $tag;
         if(!empty($keyword)&&!empty($tag))
         {
             $users = User::where('user_tag' , $tag)->where(function ($query) use ($keyword) {
