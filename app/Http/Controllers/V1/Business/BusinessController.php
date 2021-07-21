@@ -167,6 +167,9 @@ class BusinessController extends BaseController
                 }else{
                     $goods = $goods->sortBy('score')->values();
                 }
+                $goods->each(function($g){
+                    $g->addHidden('score');
+                });
                 $goods = $this->paginator($goods , $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
@@ -221,6 +224,9 @@ class BusinessController extends BaseController
                 }else{
                     $shops = $shops->sortBy('score')->values();
                 }
+                $shops->each(function($shop){
+                    $shop->addHidden('score');
+                });
                 $shops = $this->paginator($shops, $total, $perPage, $page, [
                     'path'     => Paginator::resolveCurrentPath(),
                     'pageName' => $pageName,
