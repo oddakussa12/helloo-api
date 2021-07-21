@@ -51,6 +51,7 @@ class User extends Authenticatable implements JWTSubject
         'user_delivery',
         'user_currency',
 
+        'user_tag',
         'user_online',
         'user_timezone',
         'user_business_time',
