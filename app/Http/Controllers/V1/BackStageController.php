@@ -509,6 +509,7 @@ class BackStageController extends BaseController
         $user    = User::where('user_id' , $id)->firstOrFail();
         $user_verified   = $request->input('user_verified');
         $user_delivery   = $request->input('user_delivery');
+        $user_tag   = $request->input('user_tag');
         if($user_verified!==null)
         {
             $fields['user_verified'] = intval($user_verified);
@@ -516,6 +517,10 @@ class BackStageController extends BaseController
         if($user_delivery!==null)
         {
             $fields['user_delivery'] = intval($user_delivery);
+        }
+        if($user_tag!==null)
+        {
+            $fields['user_tag'] = strval($user_tag);
         }
         if(empty($fields))
         {
