@@ -243,6 +243,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
 
+    $api->get('business/searchV2' , 'Business\BusinessController@search_v2')->name('business.search_v2');
+
     $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
 
     $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');

@@ -20,12 +20,6 @@ class BusinessController extends BaseController
 {
     use BuildsQueries;
 
-    /**
-     * @note 店铺搜索
-     * @datetime 2021-07-12 17:48
-     * @param Request $request
-     * @return mixed
-     */
     public function search(Request $request)
     {
         $userId = intval(auth()->id());
@@ -33,9 +27,9 @@ class BusinessController extends BaseController
         if(!empty($keyword))
         {
             $users = User::where('user_shop' , 1)->where('user_verified' , 1)->where(function ($query) use ($keyword) {
-                $query->where('user_nick_name', 'like', "%{$keyword}%")->orWhere('user_name', 'like', "%{$keyword}%");
+                $query->where('user_nick_name', 'like', "{$keyword}%");
             })->limit(10)->get();
-            $goods = Goods::where('name', 'like', "%{$keyword}%")->limit(10)->get();
+            $goods = Goods::where('name', 'like', "{$keyword}%")->limit(10)->get();
             $goodsIds = $goods->pluck('id')->toArray();
             if(!empty($goodsIds))
             {
@@ -64,6 +58,29 @@ class BusinessController extends BaseController
                 'goods'=>AnonymousCollection::collection($goods)
             )
         ));
+    }
+
+    public function searchV2(Request $request)
+    {
+        $appends = array();
+        $userId = intval(auth()->id());
+        $keyword = escape_like(strval($request->input('keyword' , '')));
+        $tag = escape_like(strval($request->input('tag' , '')));
+        $appends['keyword'] = $keyword;
+        $appends['tag'] = tag;
+        if(!empty($keyword)&&!empty($tag))
+        {
+            $users = User::where('user_tag' , $tag)->where(function ($query) use ($keyword) {
+                $query->where('user_nick_name', 'like', "{$keyword}%");
+            })->orderByDesc('user_created_at')->paginate(10)->appends($appends);
+        }else{
+            $users = collect();
+        }
+        !empty($keyword)&&BusinessSearchLog::dispatch($userId , $keyword)->onQueue('helloo_{business_search_logs}');
+        $users->each(function($user){
+            $user->userPoint = app(UserRepository::class)->findPointByUserId($user->user_id);
+        });
+        return UserCollection::collection($users);
     }
 
     /**
