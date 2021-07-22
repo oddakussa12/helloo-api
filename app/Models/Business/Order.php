@@ -18,7 +18,7 @@ class Order extends Model
 
     protected $hidden = ['schedule' , 'shop_price' , 'comment' , 'order_time' , 'operator' , 'deposit' , 'updated_at' , 'brokerage_percentage' , 'brokerage' , 'profit'];
 
-    protected $appends = ['format_price' , 'format_promo_price'];
+    protected $appends = ['format_price' , 'format_promo_price' , 'format_discounted_price' , 'format_total_price'];
 
     protected $casts = [
         'user_id' => 'string',
