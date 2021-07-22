@@ -73,31 +73,31 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 );
                 DB::table('users_schools_logs')->insert($logData);
                 School::dispatch($school)->onQueue('helloo_{user_school}');
-                if (empty($original['user_sl']) || $original['user_sl'] == 'other') {
-                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchool')->onQueue('helloo_{one_time_user_score_update}');
-                }
-                if($original['user_sl']=='other')
-                {
-                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchoolOther')->onQueue('helloo_{one_time_user_score_update}');
-                }
+//                if (empty($original['user_sl']) || $original['user_sl'] == 'other') {
+//                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchool')->onQueue('helloo_{one_time_user_score_update}');
+//                }
+//                if($original['user_sl']=='other')
+//                {
+//                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchoolOther')->onQueue('helloo_{one_time_user_score_update}');
+//                }
             }
         }
-        if(isset($data['user_avatar'])&& stripos($original['user_avatar_link'], 'default_avatar')!==false)
-        {
-            OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
-        }
-        if(isset($data['user_bg'])&&blank($original['user_bg']))
-        {
-            OneTimeUserScoreUpdate::dispatch($user , 'fillCover')->onQueue('helloo_{one_time_user_score_update}');
-        }
-        if(isset($data['user_about'])&& blank($original['user_about']))
-        {
-            OneTimeUserScoreUpdate::dispatch($user , 'fillAbout')->onQueue('helloo_{one_time_user_score_update}');
-        }
+//        if(isset($data['user_avatar'])&& stripos($original['user_avatar_link'], 'default_avatar')!==false)
+//        {
+//            OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
+//        }
+//        if(isset($data['user_bg'])&&blank($original['user_bg']))
+//        {
+//            OneTimeUserScoreUpdate::dispatch($user , 'fillCover')->onQueue('helloo_{one_time_user_score_update}');
+//        }
+//        if(isset($data['user_about'])&& blank($original['user_about']))
+//        {
+//            OneTimeUserScoreUpdate::dispatch($user , 'fillAbout')->onQueue('helloo_{one_time_user_score_update}');
+//        }
         if(isset($data['user_name']))
         {
             $key = 'helloo:account:service:account-username-change';
-            $changed = Redis::zscore($key , $user->user_id);
+//            $changed = Redis::zscore($key , $user->user_id);
             $index = ($user->user_id)%2;
             $usernameKey = 'helloo:account:service:account-username-'.$index;
             try{
@@ -114,7 +114,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
                 DB::commit();
                 Redis::sadd($usernameKey , strtolower($data['user_name']));
                 Redis::zadd($key , strtotime($now) , $user->user_id);
-                ($changed===null||$changed===false) && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
+//                ($changed===null||$changed===false) && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
             }catch (\Exception $e)
             {
                 DB::rollBack();

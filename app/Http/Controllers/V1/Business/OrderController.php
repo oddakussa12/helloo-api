@@ -132,15 +132,19 @@ class OrderController extends BaseController
 
                 if($code->discount_type=='discount')
                 {
+                    $totalPrice = round($promoPrice*$code->percentage/100 , 2);
                     $discountedPrice = round($promoPrice*$code->percentage/100+$deliveryCoast , 2);
                 }else{
+                    $totalPrice = round($promoPrice-$code->reduction , 2);
                     $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast , 2);
                 }
+                $data['total_price'] = $totalPrice;
                 $data['discounted_price'] = $discountedPrice;
             }else{
                 $deliveryCoast = 30;
                 $discount_type = '';
                 $data['delivery_coast'] = $deliveryCoast;
+                $data['total_price'] = round($promoPrice , 2);
                 $data['discounted_price'] = round($promoPrice+$deliveryCoast , 2);
             }
             $data['discount_type'] = $discount_type;

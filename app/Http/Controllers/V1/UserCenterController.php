@@ -191,8 +191,8 @@ class UserCenterController extends BaseController
                 $data['bundle_name'] = $params['mask'] ?? '';
             }
             $model->create($data);
-            $type = $params['type'] == 'video' ? 'videoIncrease' : 'photoIncrease';
-            MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
+//            $type = $params['type'] == 'video' ? 'videoIncrease' : 'photoIncrease';
+//            MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
         }
 
         return $this->response->accepted();
@@ -221,13 +221,13 @@ class UserCenterController extends BaseController
                 DB::table($table."_logs")->insert(collect($result)->toArray());
 
                 // 减积分
-                $params['user_id']    = $this->userId;
-                $params['type']       = 'delMedia';
-                $params['sourceType'] = $type;
-                $params['id']         = $id;
+//                $params['user_id']    = $this->userId;
+//                $params['type']       = 'delMedia';
+//                $params['sourceType'] = $type;
+//                $params['id']         = $id;
 
-                $type = $params['type'] == 'video' ? 'videoDecrease' : 'photoDecrease';
-                MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
+//                $type = $params['type'] == 'video' ? 'videoDecrease' : 'photoDecrease';
+//                MoreTimeUserScoreUpdate::dispatch($this->userId , $type , $id)->onQueue('helloo_{more_time_user_score_update}');
 
                 DB::commit();
                 return $this->response->accepted();
@@ -339,7 +339,7 @@ class UserCenterController extends BaseController
                         'updated_at'=>$time,
                     ));
                 }
-                MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
+//                MoreTimeUserScoreUpdate::dispatch($this->userId , 'likeVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
                 $likedCount = DB::table('users_kpi_counts')->where('user_id' , $model->user_id)->first();
                 if(blank($likedCount))
                 {
@@ -357,7 +357,7 @@ class UserCenterController extends BaseController
                         'updated_at'=>$time,
                     ));
                 }
-                MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
+//                MoreTimeUserScoreUpdate::dispatch($model->user_id , 'likedVideo' , $snowId)->onQueue('helloo_{more_time_user_score_update}');
             }
 
         }

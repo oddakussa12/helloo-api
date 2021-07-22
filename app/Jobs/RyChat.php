@@ -269,7 +269,7 @@ class RyChat implements ShouldQueue
                         'updated_at'=>$this->now,
                     ));
                 }
-                MoreTimeUserScoreUpdate::dispatch($from , 'firstTxtMessage' , $id)->onQueue('helloo_{more_time_user_score_update}');
+//                MoreTimeUserScoreUpdate::dispatch($from , 'firstTxtMessage' , $id)->onQueue('helloo_{more_time_user_score_update}');
             }
         }
         $fc = Redis::hincrby($hashKey , strval($from).'-'.strval($to) , 1);
@@ -288,7 +288,7 @@ class RyChat implements ShouldQueue
                         'time'=>$this->day,
                         'created_at'=>$this->now,
                     ));
-                    MoreTimeUserScoreUpdate::dispatch($from , 'tenVideoMessage')->onQueue('helloo_{more_time_user_score_update}');
+//                    MoreTimeUserScoreUpdate::dispatch($from , 'tenVideoMessage')->onQueue('helloo_{more_time_user_score_update}');
                 }
                 if(!Redis::sismember($setKey , $to))
                 {
@@ -300,7 +300,7 @@ class RyChat implements ShouldQueue
                         'time'=>$this->day,
                         'created_at'=>$this->now,
                     ));
-                    MoreTimeUserScoreUpdate::dispatch($to , 'tenVideoMessage')->onQueue('helloo_{more_time_user_score_update}');
+//                    MoreTimeUserScoreUpdate::dispatch($to , 'tenVideoMessage')->onQueue('helloo_{more_time_user_score_update}');
                 }
             }
         }
@@ -356,7 +356,7 @@ class RyChat implements ShouldQueue
                         'updated_at'=>$this->now,
                     ));
                 }
-                MoreTimeUserScoreUpdate::dispatch($from , 'firstVideoMessage' , $id)->onQueue('helloo_{more_time_user_score_update}');
+//                MoreTimeUserScoreUpdate::dispatch($from , 'firstVideoMessage' , $id)->onQueue('helloo_{more_time_user_score_update}');
             }
         }
         $fc = Redis::hincrby($hashKey , strval($from).'-'.strval($to) , 1);
@@ -375,7 +375,7 @@ class RyChat implements ShouldQueue
                         'time'=>$this->day,
                         'created_at'=>$this->now,
                     ));
-                    MoreTimeUserScoreUpdate::dispatch($from , 'tenVideoMessage' , $to)->onQueue('helloo_{more_time_user_score_update}');
+//                    MoreTimeUserScoreUpdate::dispatch($from , 'tenVideoMessage' , $to)->onQueue('helloo_{more_time_user_score_update}');
                 }
                 if(!Redis::sismember($setKey , $to))
                 {
@@ -387,7 +387,7 @@ class RyChat implements ShouldQueue
                         'time'=>$this->day,
                         'created_at'=>$this->now,
                     ));
-                    MoreTimeUserScoreUpdate::dispatch($to , 'tenVideoMessage' , $from)->onQueue('helloo_{more_time_user_score_update}');
+//                    MoreTimeUserScoreUpdate::dispatch($to , 'tenVideoMessage' , $from)->onQueue('helloo_{more_time_user_score_update}');
                 }
             }
         }
@@ -441,14 +441,14 @@ class RyChat implements ShouldQueue
                     'updated_at'=>$this->now,
                 ));
             }
-            if($count==5&&$counts->props!=5)
-            {
-                OneTimeUserScoreUpdate::dispatch($from , 'fiveMaskVideo')->onQueue('helloo_{one_time_user_score_update}');
-            }
-            if($count==50&&$counts->props!=50)
-            {
-                GreatUserScoreUpdate::dispatch($from , 'maskCollection')->onQueue('helloo_{great_user_score_update}');
-            }
+//            if($count==5&&$counts->props!=5)
+//            {
+//                OneTimeUserScoreUpdate::dispatch($from , 'fiveMaskVideo')->onQueue('helloo_{one_time_user_score_update}');
+//            }
+//            if($count==50&&$counts->props!=50)
+//            {
+//                GreatUserScoreUpdate::dispatch($from , 'maskCollection')->onQueue('helloo_{great_user_score_update}');
+//            }
         }
         $video = array(
             'message_id'=>$messageId,
@@ -628,7 +628,7 @@ class RyChat implements ShouldQueue
                         'updated_at'=>$this->now,
                     ));
                 }
-                MoreTimeUserScoreUpdate::dispatch($from , 'likeVideo' , $likeId)->onQueue('helloo_{more_time_user_score_update}');
+//                MoreTimeUserScoreUpdate::dispatch($from , 'likeVideo' , $likeId)->onQueue('helloo_{more_time_user_score_update}');
                 $likedCount = DB::table('users_kpi_counts')->where('user_id' , $to)->first();
                 if(blank($likedCount))
                 {
@@ -643,7 +643,7 @@ class RyChat implements ShouldQueue
                         'updated_at'=>$this->now,
                     ));
                 }
-                MoreTimeUserScoreUpdate::dispatch($to , 'likedVideo' , $likeId)->onQueue('helloo_{more_time_user_score_update}');
+//                MoreTimeUserScoreUpdate::dispatch($to , 'likedVideo' , $likeId)->onQueue('helloo_{more_time_user_score_update}');
             }
         }
         DB::table('ry_like_messages')->insert(array(

@@ -142,8 +142,8 @@ class UserFriendController extends BaseController
         if($flag)
         {
             FriendSynchronization::dispatch($userId , $friendId)->onQueue('helloo_{friend_synchronization}');
-            MoreTimeUserScoreUpdate::dispatch($userId , 'friendDestroy' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
-            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendDestroyed' , $userId)->onQueue('helloo_{more_time_user_score_update}');
+//            MoreTimeUserScoreUpdate::dispatch($userId , 'friendDestroy' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
+//            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendDestroyed' , $userId)->onQueue('helloo_{more_time_user_score_update}');
             $sortKey = "helloo:account:friend:game:rank:sort:".$userId.'-coronation';//暂时一个游戏
             $friendSortKey = "helloo:account:friend:game:rank:sort:".$friendId.'-coronation';//暂时一个游戏
             Redis::zrem($sortKey , $friendId);

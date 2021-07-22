@@ -85,12 +85,12 @@ class FriendFromDifferentSchool implements ShouldQueue
                             'updated_at'=>$this->now,
                         ));
                     }
-                    if (empty($uCounts) || $uCounts->other_school_friend<1) {
-                        GreatUserScoreUpdate::dispatch($this->user->user_id , 'otherSchoolFriend' , $this->friendId)->onQueue('helloo_{great_user_score_update}');
-                    }
-                    if (empty($fCounts) || $fCounts->other_school_friend<1) {
-                        GreatUserScoreUpdate::dispatch($this->friendId , 'otherSchoolFriend' , $this->user->user_id)->onQueue('helloo_{great_user_score_update}');
-                    }
+//                    if (empty($uCounts) || $uCounts->other_school_friend<1) {
+//                        GreatUserScoreUpdate::dispatch($this->user->user_id , 'otherSchoolFriend' , $this->friendId)->onQueue('helloo_{great_user_score_update}');
+//                    }
+//                    if (empty($fCounts) || $fCounts->other_school_friend<1) {
+//                        GreatUserScoreUpdate::dispatch($this->friendId , 'otherSchoolFriend' , $this->user->user_id)->onQueue('helloo_{great_user_score_update}');
+//                    }
 //                }
             }
             $counts = DB::table('users_kpi_counts')->where('user_id' , $this->user->user_id)->first();

@@ -104,9 +104,9 @@ class AutoFriend implements ShouldQueue
         }
         if($flag)
         {
-            FriendFromDifferentSchool::dispatch($user , $friendId)->onQueue('helloo_{friend_from_different_school}');
-            MoreTimeUserScoreUpdate::dispatch($user->user_id , 'friendAccept' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
-            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendAccepted' , $user->user_id)->onQueue('helloo_{more_time_user_score_update}');
+//            FriendFromDifferentSchool::dispatch($user , $friendId)->onQueue('helloo_{friend_from_different_school}');
+//            MoreTimeUserScoreUpdate::dispatch($user->user_id , 'friendAccept' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
+//            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendAccepted' , $user->user_id)->onQueue('helloo_{more_time_user_score_update}');
             $phone = DB::table('users_phones')->where('user_id' , $userId)->first();
             $country = $phone->user_phone_country;
             if(!in_array($country , array(670 , '670' , '62' , 62 , '251' , 251)))

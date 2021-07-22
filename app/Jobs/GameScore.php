@@ -50,16 +50,16 @@ class GameScore implements ShouldQueue
                 'created_at'=>$this->now,
                 'updated_at'=>$this->now,
             ));
-            if($score>=1500)
-            {
-                GreatUserScoreUpdate::dispatch($userId , 'gameIII' , $snowId)->onQueue('helloo_{great_user_score_update}');
-            }elseif ($score<1500&&$score>=800)
-            {
-                GreatUserScoreUpdate::dispatch($userId , 'gameII' , $snowId)->onQueue('helloo_{great_user_score_update}');
-            }elseif ($score<800&&$score>=300)
-            {
-                GreatUserScoreUpdate::dispatch($userId , 'gameI' , $snowId)->onQueue('helloo_{great_user_score_update}');
-            }
+//            if($score>=1500)
+//            {
+//                GreatUserScoreUpdate::dispatch($userId , 'gameIII' , $snowId)->onQueue('helloo_{great_user_score_update}');
+//            }elseif ($score<1500&&$score>=800)
+//            {
+//                GreatUserScoreUpdate::dispatch($userId , 'gameII' , $snowId)->onQueue('helloo_{great_user_score_update}');
+//            }elseif ($score<800&&$score>=300)
+//            {
+//                GreatUserScoreUpdate::dispatch($userId , 'gameI' , $snowId)->onQueue('helloo_{great_user_score_update}');
+//            }
         }else{
             $id = $counts->id;
             if($score>$counts->game_score)
@@ -68,16 +68,16 @@ class GameScore implements ShouldQueue
                     'game_score'=>$score,
                     'updated_at'=>$this->now,
                 ));
-                if($score>=1500)
-                {
-                    GreatUserScoreUpdate::dispatch($userId , 'gameIII' , $snowId)->onQueue('helloo_{great_user_score_update}');
-                }elseif ($score<1500&&$score>=800)
-                {
-                    GreatUserScoreUpdate::dispatch($userId , 'gameII' , $snowId)->onQueue('helloo_{great_user_score_update}');
-                }elseif ($score<800&&$score>=300)
-                {
-                    GreatUserScoreUpdate::dispatch($userId , 'gameI' , $snowId)->onQueue('helloo_{great_user_score_update}');
-                }
+//                if($score>=1500)
+//                {
+//                    GreatUserScoreUpdate::dispatch($userId , 'gameIII' , $snowId)->onQueue('helloo_{great_user_score_update}');
+//                }elseif ($score<1500&&$score>=800)
+//                {
+//                    GreatUserScoreUpdate::dispatch($userId , 'gameII' , $snowId)->onQueue('helloo_{great_user_score_update}');
+//                }elseif ($score<800&&$score>=300)
+//                {
+//                    GreatUserScoreUpdate::dispatch($userId , 'gameI' , $snowId)->onQueue('helloo_{great_user_score_update}');
+//                }
             }
         }
     }

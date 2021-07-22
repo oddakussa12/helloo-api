@@ -115,8 +115,8 @@ class UserFriendRequestController extends BaseController
             Log::info('request_content' , $content);
             $result = app('rcloud')->getMessage()->System()->send($content);
             Log::info('request_result' , $result);
-            $kol = DB::table('kol_users')->where('user_id' , $friendId)->first();
-            !empty($kol)&&AutoFriend::dispatch($friend , $request_id)->onQueue('helloo_{auto_friend}')->delay(now()->addSeconds(mt_rand(5 , 15)));
+//            $kol = DB::table('kol_users')->where('user_id' , $friendId)->first();
+//            !empty($kol)&&AutoFriend::dispatch($friend , $request_id)->onQueue('helloo_{auto_friend}')->delay(now()->addSeconds(mt_rand(5 , 15)));
         }
         return $this->response->created();
     }
@@ -198,9 +198,9 @@ class UserFriendRequestController extends BaseController
         if($flag)
         {
             FriendSynchronization::dispatch($userId , $friendId)->onQueue('helloo_{friend_synchronization}');
-            FriendFromDifferentSchool::dispatch($user , $friendId)->onQueue('helloo_{friend_from_different_school}');
-            MoreTimeUserScoreUpdate::dispatch($user->user_id , 'friendAccept' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
-            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendAccepted' , $user->user_id)->onQueue('helloo_{more_time_user_score_update}');
+//            FriendFromDifferentSchool::dispatch($user , $friendId)->onQueue('helloo_{friend_from_different_school}');
+//            MoreTimeUserScoreUpdate::dispatch($user->user_id , 'friendAccept' , $friendId)->onQueue('helloo_{more_time_user_score_update}');
+//            MoreTimeUserScoreUpdate::dispatch($friendId , 'friendAccepted' , $user->user_id)->onQueue('helloo_{more_time_user_score_update}');
             $phone = DB::table('users_phones')->where('user_id' , $userId)->first();
             $country = $phone->user_phone_country;
             if(!in_array($country , array(670 , '670' , '62' , 62 , '251' , 251)))

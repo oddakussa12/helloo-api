@@ -427,12 +427,12 @@ trait Update
                 );
                 DB::table('users_schools_logs')->insert($logData);
                 School::dispatch($school)->onQueue('helloo_{user_school}');
-                if(strval($school)!='other')
-                {
-                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchool')->onQueue('helloo_{one_time_user_score_update}');
-                }else{
-                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchoolOther')->onQueue('helloo_{one_time_user_score_update}');
-                }
+//                if(strval($school)!='other')
+//                {
+//                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchool')->onQueue('helloo_{one_time_user_score_update}');
+//                }else{
+//                    OneTimeUserScoreUpdate::dispatch($user , 'fillSchoolOther')->onQueue('helloo_{one_time_user_score_update}');
+//                }
             }
         }else{
             $flag = true;
@@ -440,10 +440,10 @@ trait Update
         if($flag==true)
         {
             UserSynchronization::dispatch($user , 'activation')->onQueue('helloo_{user_synchronization}')->delay(now()->addSeconds(120));
-            if(isset($data['user_avatar'])&&$data['user_avatar']!='default_avatar.jpg')
-            {
-                OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
-            }
+//            if(isset($data['user_avatar'])&&$data['user_avatar']!='default_avatar.jpg')
+//            {
+//                OneTimeUserScoreUpdate::dispatch($user , 'fillAvatar')->onQueue('helloo_{one_time_user_score_update}');
+//            }
         }
         return $flag;
     }
@@ -527,7 +527,7 @@ trait Update
                 }else{
                     throw new \Exception('Database update failed');
                 }
-                $changed===null||$changed===false && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
+//                $changed===null||$changed===false && OneTimeUserScoreUpdate::dispatch($user , 'fillName')->onQueue('helloo_{one_time_user_score_update}');
             }catch (\Exception $e)
             {
                 DB::rollBack();
