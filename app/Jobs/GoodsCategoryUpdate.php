@@ -32,7 +32,7 @@ class GoodsCategoryUpdate implements ShouldQueue
         foreach ($this->categoryIds as $categoryId)
         {
             $count = DB::table('categories_goods')->where('category_id' , $categoryId)->where('status' , 1)->count();
-            DB::table('goods_categories')->where('id' , $categoryId)->update(array(
+            DB::table('goods_categories')->where('category_id' , $categoryId)->update(array(
                 'goods_num'=>$count
             ));
         }
