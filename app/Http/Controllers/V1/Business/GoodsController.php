@@ -175,6 +175,11 @@ class GoodsController extends BaseController
         {
             BusinessGoodsLog::dispatch($userId , $goods->user_id , $id , $referrer)->onQueue('helloo_{business_goods_logs}');
         }
+        $categoryGoods = CategoryGoods::where('goods_id', $id)->first();
+        if(!empty($categoryGoods))
+        {
+            $goods->goodsCategory = new AnonymousCollection(GoodsCategory::where('category_id' , $categoryGoods->category_id)->select('category_id' , 'name' , 'default')->first());
+        }
         return new AnonymousCollection($goods);
     }
 
