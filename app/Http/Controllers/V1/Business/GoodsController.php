@@ -432,48 +432,61 @@ class GoodsController extends BaseController
                 $params['image'] = \json_encode($image , JSON_UNESCAPED_UNICODE);
             }
             $params['updated_at'] = $now;
-            $goodsResult = DB::table('goods')->where('id' , $id)->update($params);
-            if($goodsResult<=0)
-            {
-                abort(500 , 'goods update failed!');
-            }
-            if(!empty($goodsCategory))
-            {
-                if(!empty($categoryGoods))
+            try {
+                DB::beginTransaction();
+                $goodsResult = DB::table('goods')->where('id' , $id)->update($params);
+                if($goodsResult<=0)
                 {
-                    if($categoryGoods->category_id!=$categoryId)
+                    abort(500 , 'goods update failed!');
+                }
+                if(!empty($goodsCategory))
+                {
+                    if(!empty($categoryGoods))
                     {
+                        if($categoryGoods->category_id!=$categoryId)
+                        {
+                            $data = array(
+                                'category_id'=>$categoryId,
+                                'sort'=>$sort,
+                            );
+                            isset($params['status'])&&$data['status'] = $params['status'];
+                            $categoryGoodsResult = DB::table('categories_goods')->where('id' , $categoryGoods->id)->update($data);
+                            if($categoryGoodsResult<=0)
+                            {
+                                abort(500 , 'category goods update failed!');
+                            }
+                            Redis::del("helloo:business:goods:category:service:account:".$user->user_id);
+                            GoodsCategoryUpdate::dispatch(array($categoryGoods->category_id , $categoryId) , $user->user_id)->onQueue('helloo_{goods_category_update}');
+                        }
+                    }else{
                         $data = array(
+                            'id'=>app('snowflake')->id(),
                             'category_id'=>$categoryId,
+                            'goods_id'=>$goods->id,
                             'sort'=>$sort,
+                            'user_id'=>$user->user_id,
+                            'created_at'=>$now,
                         );
                         isset($params['status'])&&$data['status'] = $params['status'];
-                        $categoryGoodsResult = DB::table('categories_goods')->where('id' , $categoryGoods->id)->update($data);
-                        if($categoryGoodsResult<=0)
+                        $categoryGoodsResult = DB::table('categories_goods')->insert($data);
+                        if(!$categoryGoodsResult)
                         {
-                            abort(500 , 'category goods update failed!');
+                            abort(500 , 'category goods insert failed!');
                         }
                         Redis::del("helloo:business:goods:category:service:account:".$user->user_id);
-                        GoodsCategoryUpdate::dispatch(array($categoryGoods->category_id , $categoryId) , $user->user_id)->onQueue('helloo_{goods_category_update}');
+                        GoodsCategoryUpdate::dispatch(array($categoryId) , $user->user_id)->onQueue('helloo_{goods_category_update}');
                     }
-                }else{
-                    $data = array(
-                        'id'=>app('snowflake')->id(),
-                        'category_id'=>$categoryId,
-                        'goods_id'=>$goods->id,
-                        'sort'=>$sort,
-                        'user_id'=>$user->user_id,
-                        'created_at'=>$now,
-                    );
-                    isset($params['status'])&&$data['status'] = $params['status'];
-                    $categoryGoodsResult = DB::table('categories_goods')->insert($data);
-                    if(!$categoryGoodsResult)
-                    {
-                        abort(500 , 'category goods insert failed!');
-                    }
-                    Redis::del("helloo:business:goods:category:service:account:".$user->user_id);
-                    GoodsCategoryUpdate::dispatch(array($categoryId) , $user->user_id)->onQueue('helloo_{goods_category_update}');
                 }
+                DB::commit();
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('goods_update_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'user_id'=>$user->user_id,
+                    'data'=>$request->all(),
+                ));
+                abort(500 , 'Sorry, this goods information update failed!');
             }
             if(isset($params['status'])&&$params['status']==1)
             {
