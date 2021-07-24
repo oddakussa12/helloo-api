@@ -64,7 +64,7 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->deleteCache();
+        $this->fixOrder();
         die;
         $schools = array(
             "Sekolah Menengah Atas Negri 10",
@@ -512,7 +512,17 @@ DOC;
 
     public function fixOrder()
     {
-
+        DB::table('orders')->orderByDesc('created_at')->chunk(100 , function ($orders){
+            foreach ($orders as $order)
+            {
+                $promo_price = $order->order_price;
+                $total_price = $order->discounted_price-$order->delivery_coast;
+                DB::table('orders')->where('order_id' , $order->order_id)->update(array(
+                    'promo_price'=>$promo_price,
+                    'total_price'=>round($total_price , 2),
+                ));
+            }
+        });
     }
 
 }
