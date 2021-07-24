@@ -538,7 +538,7 @@ class BackStageController extends BaseController
                 $data = array(
                     'category_id'=>$categoryId,
                     'user_id'=>$id,
-                    'name'=>'default',
+                    'name'=>'Discount',
                     'default'=>1,
                     'created_at'=>$now,
                     'updated_at'=>$now,
