@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\V1\Business;
 
 
-use App\Models\Business\CategoryGoods;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use App\Models\Business\GoodsCategory;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
-use Illuminate\Support\Facades\Redis;
+use App\Http\Requests\StoreGoodsCategoryRequest;
+use App\Http\Requests\UpdateGoodsCategoryRequest;
 
 class GoodsCategoryController extends BaseController
 {
@@ -32,10 +33,10 @@ class GoodsCategoryController extends BaseController
     /**
      * @note 商家商品类别新增
      * @datetime 2021-07-12 17:50
-     * @param Request $request
+     * @param StoreGoodsCategoryRequest $request
      * @return AnonymousCollection
      */
-    public function store(Request $request)
+    public function store(StoreGoodsCategoryRequest $request)
     {
         $user = auth()->user();
         $userId = $user->user_id;
@@ -116,11 +117,11 @@ class GoodsCategoryController extends BaseController
     /**
      * @note 商家商品类别更新
      * @datetime 2021-07-12 17:51
-     * @param Request $request
+     * @param UpdateGoodsCategoryRequest $request
      * @param $id
      * @return \Dingo\Api\Http\Response
      */
-    public function update(Request $request , $id)
+    public function update(UpdateGoodsCategoryRequest $request , $id)
     {
         $user = auth()->user();
         $userId = $user->user_id;
