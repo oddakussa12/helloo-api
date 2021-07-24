@@ -56,13 +56,14 @@ class GenerateDiscovery extends Command
 
     private function popularShops()
     {
+        Redis::del("helloo:business:service:shop:tags");
         $lastWeek = Carbon::now()->subWeek(10)->startOfWeek()->toDateTimeString();
         $limit = 50;
         $flag = true;
         $page = 0;
         $key = "helloo:discovery:popular:shops";
         Redis::del($key);
-        $tags = DB::table('shops_tags')->select('tag')->distinct()->get()->map(function ($value) {return (array)$value;})->pluck('tag')->toArray();
+        $tags = DB::table('shops_tags')->where('status' , 1)->select('tag')->distinct()->get()->map(function ($value) {return (array)$value;})->pluck('tag')->toArray();
         $keys = array();
         foreach ($tags as $tag)
         {
@@ -105,9 +106,10 @@ class GenerateDiscovery extends Command
 
     private function ratedShops()
     {
+        Redis::del("helloo:business:service:shop:tags");
         $key = "helloo:discovery:rated:shops";
         Redis::del($key);
-        $tags = DB::table('shops_tags')->select('tag')->distinct()->get()->map(function ($value) {return (array)$value;})->pluck('tag')->toArray();
+        $tags = DB::table('shops_tags')->where('status' , 1)->select('tag')->distinct()->get()->map(function ($value) {return (array)$value;})->pluck('tag')->toArray();
         $keys = array();
         foreach ($tags as $tag)
         {
