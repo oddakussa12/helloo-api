@@ -523,6 +523,19 @@ DOC;
                 ));
             }
         });
+        DB::table('users')->orderByDesc('user_id')->chunk(1000 , function ($users){
+            $userIds = $users->pluck('user_id')->toArray();
+            $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get();
+            foreach ($users as $user)
+            {
+                $phone = $phones->where('user_id' , $user->user_id)->first();
+                DB::table('users')->where('user_id' , $user->user_id)->update(
+                    array(
+                        'user_currency'=>empty($phone)||$phone->user_phone_country!='251'?'USD':'BIRR'
+                    )
+                );
+            }
+        });
     }
 
 }
