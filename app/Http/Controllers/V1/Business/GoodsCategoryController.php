@@ -171,13 +171,9 @@ class GoodsCategoryController extends BaseController
                 );
                 if(!$goodsCategory->is_default)
                 {
-                    $goodsResult = DB::table('goods')->whereIn('id' , $goodsIds)->update(
+                    DB::table('goods')->whereIn('id' , $goodsIds)->update(
                         array('discounted_price'=>-1)
                     );
-                    if($goodsResult!=count($goodsIds))
-                    {
-                        abort(500 , 'goods discounted_price  update failed!');
-                    }
                 }
             }else{
                 $goodsCategoryData = array(
