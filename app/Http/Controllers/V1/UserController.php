@@ -728,7 +728,7 @@ class UserController extends BaseController
             })->where('users_friends.user_id' , $userId)->select('users.user_id', 'users.user_avatar' , 'users.user_name' , 'users.user_nick_name', 'users.user_about' , 'users.user_gender', 'users.user_school', 'users.user_sl' , 'users.user_birthday' , 'users.user_shop' , 'users.user_level', 'users.user_bg' , 'users.user_about')->paginate(10);
         }else{
             $shops = DB::table('users_friends')->join('users', function ($join) use ($keyword) {
-                $join->on('users.user_id', '=', 'users_friends.friend_id')->where('users.user_shop', 1)->where('users.user_nick_name' , 'like' , "%{$keyword}%");
+                $join->on('users.user_id', '=', 'users_friends.friend_id')->where('users.user_shop', 1)->where('users.user_nick_name' , 'like' , "{$keyword}%");
             })->where('users_friends.user_id' , $userId)->select('users.user_id', 'users.user_avatar' , 'users.user_name' , 'users.user_nick_name', 'users.user_about' , 'users.user_gender', 'users.user_school', 'users.user_sl' , 'users.user_birthday' , 'users.user_shop' , 'users.user_level', 'users.user_bg' , 'users.user_about')->orderByDesc('user_created_at')->limit(10)->get();
         }
         $shops->each(function($shop){

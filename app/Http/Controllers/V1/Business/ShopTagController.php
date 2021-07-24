@@ -43,7 +43,7 @@ class ShopTagController extends BaseController
             $translation = collect($d['translations'])->where('locale' , $locale)->first();
             if(blank($translation))
             {
-                $translation = collect($d['translations'])->where('locale' , $locale)->first();
+                $translation = collect($d['translations'])->where('locale' , 'en')->first();
             }
             if(blank($translation))
             {
