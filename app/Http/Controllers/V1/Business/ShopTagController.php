@@ -26,7 +26,7 @@ class ShopTagController extends BaseController
         {
             $data = \json_decode(Redis::get($key , true));
         }else{
-            $goodsTags = ShopTag::where('status' , 1)->get();
+            $goodsTags = ShopTag::where('status' , 1)->orderByDesc('created_at')->get();
             $tagIds = $goodsTags->pluck('id')->toArray();
             $goodsTagsTranslations = ShopTagTranslation::whereIn('tag_id' , $tagIds)->get();
             $goodsTags->each(function($goodsTag) use ($goodsTagsTranslations){
