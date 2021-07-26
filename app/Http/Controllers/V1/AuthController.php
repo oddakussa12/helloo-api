@@ -663,6 +663,7 @@ class AuthController extends BaseController
             'user_created_at'=>$now,
             'user_updated_at'=>$now,
             'user_uuid'=>$uuid,
+            'user_currency'=>$user_phone_country=='251'?'BIRR':'USD',
             'user_pwd'=>bcrypt($password)
         );
         DB::beginTransaction();
@@ -1173,6 +1174,7 @@ class AuthController extends BaseController
             'user_activated_at'=>$now,
             'user_uuid'=>$uuid,
             'user_activation'=>1,
+            'user_currency'=>$user_phone_country=='251'?'BIRR':'USD',
             'user_pwd'=>bcrypt($password)
         );
         if($registration_type=='shop')
