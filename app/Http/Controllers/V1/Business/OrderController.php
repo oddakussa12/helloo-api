@@ -206,6 +206,7 @@ class OrderController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $goods = (array)$request->input('goods');
+        $promoCode = strval($request->input('promo_code' , ''));
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         if(empty(array_keys($goods)))
         {
@@ -224,6 +225,26 @@ class OrderController extends BaseController
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
+        $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
+        if(!empty($promoCode)&&$shopGoods->count()==1)
+        {
+            $code = PromoCode::where('promo_code' , $promoCode)->first();
+            if(empty($code)||$code->limit<=0||(!empty($code->deadline)&&$code->deadline<date('Y-m-d')))
+            {
+                abort(422 , 'Sorry this code is invalid!');
+            }
+            if(!$discounted&&!empty($code))
+            {
+                $discountedGoods = $gs->reject(function ($g) {
+                    return $g->discounted_price<0;
+                });
+                $discountedGoodsIds = $discountedGoods->pluck('user_id')->unique()->toArray();
+                if(!empty($discountedGoodsIds))
+                {
+                    abort(422 , 'The conditions for using promotional codes are not met!');
+                }
+            }
+        }
         $shopGoods->each(function($g) use ($filterGoods){
             $g->goodsNumber = intval($filterGoods[$g->id]);
         });
@@ -238,7 +259,7 @@ class OrderController extends BaseController
             $price = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['price'];
             });
-            $discountedPrice = collect($shopGs)->sum(function ($shopG) {
+            $promoPrice = collect($shopGs)->sum(function ($shopG) {
                 if($shopG['discounted_price']<0)
                 {
                     return $shopG['goodsNumber']*$shopG['price'];
@@ -246,16 +267,32 @@ class OrderController extends BaseController
                 return $shopG['goodsNumber']*$shopG['discounted_price'];
             });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
-            array_push($returnData , array(
+            $data['currency'] = $currency;
+            if(!empty($code))
+            {
+                $deliveryCoast = $code->free_delivery?0:100;
+                $data['deliveryCoast'] = $deliveryCoast;
+                if($code->discount_type=='discount')
+                {
+                    $totalPrice = round($promoPrice*$code->percentage/100 , 2);
+                }else{
+                    $totalPrice = round($promoPrice-$code->reduction , 2);
+                }
+            }else{
+                $deliveryCoast = 100;
+                $totalPrice = round($promoPrice , 2);
+            }
+            array_push($returnData , array_merge($data , array(
                 'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
                 'goods'=>$shopGs,
                 'subTotal'=>$price,
-                'subDiscountedTotal'=>$discountedPrice,
-                'deliveryCoast'=>30,
-                'currency'=>$currency,
-            ));
+                'subDiscountedTotal'=>$totalPrice,
+                'deliveryCoast'=>$deliveryCoast,
+            )));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return $this->response->array(
+            array('data'=>AnonymousCollection::collection(collect($returnData)) , 'message'=>'20% off for all products over BIRR300!')
+        );
     }
 
     /**
