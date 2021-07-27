@@ -45,6 +45,7 @@ class OrderSynchronization implements ShouldQueue
                     'goods_name'=>$g['name'],
                     'goods_price'=>$g['price'],
                     'discounted_price'=> $g['discounted_price'] ?? 0,
+                    'packaging_cost'=> $g['packaging_cost'] ?? 0,
                     'goods_number'=>$g['goodsNumber'],
                     'goods_image'=>\json_encode($g['image'] , JSON_UNESCAPED_UNICODE),
                     'goods_currency'=>$g['currency'],

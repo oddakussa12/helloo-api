@@ -105,6 +105,9 @@ class OrderController extends BaseController
                 }
                 return $goods[$shopG['id']]*$shopG['discounted_price'];
             });
+            $packagingCost = collect($shopGs)->sum(function ($shopG) {
+                return $shopG['goodsNumber']*$shopG['packaging_cost'];
+            });
             $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
@@ -116,6 +119,7 @@ class OrderController extends BaseController
                 'detail'=>\json_encode($shopGs , JSON_UNESCAPED_UNICODE),
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
+                'packaging_cost'=>round($packagingCost , 2),
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -266,6 +270,9 @@ class OrderController extends BaseController
                 }
                 return $shopG['goodsNumber']*$shopG['discounted_price'];
             });
+            $packagingCost = collect($shopGs)->sum(function ($shopG) {
+                return $shopG['goodsNumber']*$shopG['packaging_cost'];
+            });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             $data['currency'] = $currency;
             if(!empty($code))
@@ -288,6 +295,7 @@ class OrderController extends BaseController
                 'subTotal'=>$price,
                 'subDiscountedTotal'=>$totalPrice,
                 'deliveryCoast'=>$deliveryCoast,
+                'packagingCost'=>$packagingCost,
             )));
         }
         return $this->response->array(

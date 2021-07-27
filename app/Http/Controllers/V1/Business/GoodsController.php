@@ -201,6 +201,7 @@ class GoodsController extends BaseController
         $categoryId = $request->input('category_id');
         $discountedPrice = $request->input('discounted_price');
         $description = strval($request->input('description' , ''));
+        $packaging_cost = floatval($request->input('packaging_cost' , 0));
         $rules = [
             'name' => [
                 'bail',
@@ -236,6 +237,13 @@ class GoodsController extends BaseController
                 'filled',
                 'numeric',
                 'min:0'
+            ],
+            'packaging_cost' => [
+                'bail',
+                'filled',
+                'numeric',
+                'min:0',
+                'max:9999'
             ]
         ];
         $data = $validationField = array(
@@ -244,7 +252,8 @@ class GoodsController extends BaseController
             'image'=>$image,
             'price'=>$price,
             'description'=>$description,
-            'status'=>$status
+            'status'=>$status,
+            'packaging_cost'=>round($packaging_cost , 2)
         );
         if(!empty($categoryId))
         {
@@ -352,6 +361,7 @@ class GoodsController extends BaseController
         $sort = intval($request->input('sort' , 0));
         $categoryId = $request->input('category_id');
         $discountedPrice = $request->input('discounted_price');
+        $packaging_cost = $request->input('packaging_cost');
         $params = $validationField = $request->only(array('name' , 'image' , 'price' , 'status' , 'description'));
         $validationField['user_id'] = $goods->user_id;
         $rules = [
@@ -413,6 +423,11 @@ class GoodsController extends BaseController
                 $validationField['discounted_price'] = $params['discounted_price'] = round(floatval($discountedPrice) , 2);
             }
             $categoryGoods = CategoryGoods::where('goods_id' , $goods->id)->first();
+        }
+        if($packaging_cost!==null)
+        {
+            $packaging_cost = floatval($packaging_cost);
+            $validationField['packaging_cost'] = $data['packaging_cost'] = $packaging_cost;
         }
         try {
             Validator::make($validationField, $rules)->validate();

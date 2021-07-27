@@ -22,11 +22,12 @@ class Goods extends Model
         'quality'=>'float',
         'service'=>'float',
         'discounted_price'=>'float',
+        'packaging_cost'=>'float',
     ];
 
-    protected $appends = ['format_price' , 'format_discounted_price' , 'average_point'];
+    protected $appends = ['format_price' , 'format_discounted_price' , 'average_point' , 'format_packaging_cost'];
 
-    protected $fillable = ['user_id' , 'shop_id' , 'name' , 'image' , 'like' , 'price', 'recommend', 'currency' ,'recommended_at', 'description', 'status' , 'liked_at' , 'discounted_price'];
+    protected $fillable = ['user_id' , 'shop_id' , 'name' , 'image' , 'like' , 'price', 'recommend', 'currency' ,'recommended_at', 'description', 'status' , 'liked_at' , 'discounted_price' , 'packaging_cost'];
 
     protected $hidden = ['updated_at' , 'recommend' , 'recommended_at' , 'liked_at' , 'reply' , 'point' , 'quality' , 'service' , 'comment'];
 
@@ -47,6 +48,11 @@ class Goods extends Model
             return 0;
         }
         return round($this->point/$this->comment , 1);
+    }
+
+    public function getFormatPackagingCostAttribute()
+    {
+        return sprintf("%1\$.2f", $this->packaging_cost).' '. $this->currency;
     }
 
 }

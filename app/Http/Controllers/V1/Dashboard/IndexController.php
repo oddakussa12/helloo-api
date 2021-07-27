@@ -26,13 +26,13 @@ class IndexController extends BaseController
         $userId = auth()->id();
         if($status=='completed')
         {
-            $orders = Order::where('shop_id' , $userId)->where('status' , 1)->orderByDesc('created_at')->paginate(10);
+            $orders = Order::where('shop_id' , $userId)->where('status' , 1)->orderByDesc('created_at')->paginate(10)->appends(array('status'=>$status));
         }else if($status=='processing')
         {
-            $orders = Order::where('shop_id' , $userId)->where('status' , 0)->orderByDesc('created_at')->paginate(10);
+            $orders = Order::where('shop_id' , $userId)->where('status' , 0)->orderByDesc('created_at')->paginate(10)->appends(array('status'=>$status));
         }else if($status=='canceled')
         {
-            $orders = Order::where('shop_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10);
+            $orders = Order::where('shop_id' , $userId)->where('status' , 2)->orderByDesc('created_at')->paginate(10)->appends(array('status'=>$status));
         }else{
             $orders = collect();
         }
