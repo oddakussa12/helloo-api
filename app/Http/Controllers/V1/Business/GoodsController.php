@@ -51,9 +51,12 @@ class GoodsController extends BaseController
         {
             if($version=='v1')
             {
+                $perPage  = intval($request->input('per_page', 10));
+                $perPage = $perPage<10||$perPage>50?20:$perPage;
+                $appends['per_page'] = $perPage;
                 $goods = Goods::where('user_id', $userId);
                 $type != 'management' && $goods = $goods->where('status' , 1);
-                $goods = $goods->orderByDesc('created_at')->paginate(10)->appends($appends);
+                $goods = $goods->orderByDesc('created_at')->paginate($perPage)->appends($appends);
             }else{
                 $data = array();
                 $categories = app(CategoryGoodsRepository::class)->findByUserId($userId);
