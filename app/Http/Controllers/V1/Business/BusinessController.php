@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Models\User;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
@@ -244,5 +245,35 @@ class BusinessController extends BaseController
             ]);
             return AnonymousCollection::collection($data);
         }
+    }
+
+    public function deliveryCost(Request $request)
+    {
+        $start = (array)$request->input('start' , array());
+        $end = (array)$request->input('end' , array());
+        if(count($start)!=2||count($end)!=2)
+        {
+            abort(422 , 'Parameter error!');
+        }
+        $startPoint = trim(array_reduce($start , function ($v1 , $v2){
+            return $v1 . "," . $v2;
+        }) , ',');
+        $endPoint = trim(array_reduce($end , function ($v1 , $v2){
+            return $v1 . "," . $v2;
+        }) , ',');
+        $client = new Client(['timeout'=>5]);
+        $url = config('common.mapbox_endpoint');
+        $path = "/directions/v5/mapbox/driving/";
+        $path = $path.$startPoint.';'.$endPoint;
+        $data = array(
+            'steps'=>true,
+            'alternatives'=>true,
+            'geometries'=>'geojson',
+            'access_token'=>config('common.mapbox_access_token'),
+        );
+        $params = http_build_query($data);
+        $response = $client->get($url.$path.'?'.$params);
+        $body = (string)$response->getBody();
+        dd($body);
     }
 }

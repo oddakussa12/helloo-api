@@ -57,7 +57,8 @@ class OrderController extends BaseController
             return $g->status==0;
         });
         $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
-        if(!empty($promoCode)&&$shopGoods->count()==1)
+        $goodsCount = $shopGoods->count();
+        if(!empty($promoCode)&&$goodsCount==1)
         {
             $code = PromoCode::where('promo_code' , $promoCode)->first();
             if(!empty($code)&&$code->limit<=0)
@@ -92,13 +93,24 @@ class OrderController extends BaseController
         $returnData = array();
         $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
+        $key = "helloo:business:order:service:first";
+        $first = Redis::sadd($key , $user->user_id);
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
             $price = collect($shopGs)->sum(function ($shopG) use ($goods) {
                 return $goods[$shopG['id']]*$shopG['price'];
             });
-            $promoPrice = collect($shopGs)->sum(function ($shopG) use ($goods) {
+            $promoPrice = collect($shopGs)->sum(function ($shopG) use ($goods , $goodsCount) {
+                if($goodsCount==1)
+                {
+                    $k = "helloo:business:discounted:goods:".$shopG->id;
+                    $s = Redis::get($k);
+                    if($s!==null)
+                    {
+                        return $goods[$shopG['id']]*round(floatval($s) , 2);
+                    }
+                }
                 if($shopG['discounted_price']<0)
                 {
                     return $goods[$shopG['id']]*$shopG['price'];
@@ -230,7 +242,8 @@ class OrderController extends BaseController
             return $g->status==0;
         });
         $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
-        if(!empty($promoCode)&&$shopGoods->count()==1)
+        $goodsCount = $shopGoods->count();
+        if(!empty($promoCode)&&$goodsCount==1)
         {
             $code = PromoCode::where('promo_code' , $promoCode)->first();
             if(empty($code)||$code->limit<=0||(!empty($code->deadline)&&$code->deadline<date('Y-m-d')))
@@ -263,7 +276,16 @@ class OrderController extends BaseController
             $price = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['price'];
             });
-            $promoPrice = collect($shopGs)->sum(function ($shopG) {
+            $promoPrice = collect($shopGs)->sum(function ($shopG) use($goodsCount) {
+                if($goodsCount==1)
+                {
+                    $k = "helloo:business:discounted:goods:".$shopG->id;
+                    $s = Redis::get($k);
+                    if($s!==null)
+                    {
+                        return $shopG['goodsNumber']*round(floatval($s) , 2);
+                    }
+                }
                 if($shopG['discounted_price']<0)
                 {
                     return $shopG['goodsNumber']*$shopG['price'];
