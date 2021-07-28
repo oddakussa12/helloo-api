@@ -195,6 +195,7 @@ $api->group($V1Params , function ($api){
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
         $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
         $api->post('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
+        $api->post('order/special' , 'Business\OrderController@specialOrder')->name('business.order.special');
         $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
         $api->get('order/{order}' , 'Business\OrderController@show')->name('business.order.show');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
