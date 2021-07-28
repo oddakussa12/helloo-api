@@ -10,6 +10,7 @@ use App\Jobs\BusinessSearchLog;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
@@ -249,6 +250,7 @@ class BusinessController extends BaseController
 
     public function deliveryCost(Request $request)
     {
+        $user = auth()->user();
         $start = (array)$request->input('start' , array());
         $end = (array)$request->input('end' , array());
         if(count($start)!=2||count($end)!=2)
@@ -266,14 +268,75 @@ class BusinessController extends BaseController
         $path = "/directions/v5/mapbox/driving/";
         $path = $path.$startPoint.';'.$endPoint;
         $data = array(
-            'steps'=>true,
-            'alternatives'=>true,
+            'steps'=>'false',
+            'alternatives'=>'true',
             'geometries'=>'geojson',
             'access_token'=>config('common.mapbox_access_token'),
         );
         $params = http_build_query($data);
-        $response = $client->get($url.$path.'?'.$params);
-        $body = (string)$response->getBody();
-        dd($body);
+        try{
+            $response = $client->get($url.$path.'?'.$params);
+            $body = (string)$response->getBody();
+            $routes = \json_decode($body , true);
+            if(!isset($routes['routes'][0])||!isset($routes['waypoints']))
+            {
+                abort(500 , 'The result is abnormal!');
+            }
+            $route = $routes['routes'][0];
+            $waypoints = $routes['waypoints'];
+            $distance = $route['distance'];
+            switch ($distance)
+            {
+                case $distance<=3000:
+                    $deliveryCost=45;
+                    break;
+                case $distance>3000&&$distance<=6000:
+                    $deliveryCost=65;
+                    break;
+                case $distance>6000&&$distance<=9000:
+                    $deliveryCost=85;
+                    break;
+                default:
+                    $deliveryCost=100;
+                    break;
+            }
+            $data = array(
+                'start'=>[
+                    'location'=>$start,
+                    'name'=>$waypoints[0]['name']
+                ],
+                'end'=>[
+                    'location'=>$end,
+                    'name'=>$waypoints[1]['name']
+                ],
+                'distance'=>$route['distance'],
+                'duration'=>$route['duration'],
+                'delivery_cost'=>$deliveryCost,
+                'currency'=>$user->user_currency
+            );
+        }catch (\Exception $e)
+        {
+            Log::info('delivery_cost_fail' , array(
+                'data'=>$request->all(),
+                'message'=>$e->getMessage(),
+            ));
+            $data = array(
+                'start'=>[
+                    'location'=>$start,
+                    'name'=>''
+                ],
+                'end'=>[
+                    'location'=>$end,
+                    'name'=>''
+                ],
+                'distance'=>-1,
+                'duration'=>-1,
+                'delivery_cost'=>100,
+                'currency'=>$user->user_currency
+            );
+        }
+        return $this->response->array(array(
+            'data'=>$data
+        ));
     }
 }
