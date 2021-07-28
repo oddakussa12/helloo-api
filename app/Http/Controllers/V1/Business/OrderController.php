@@ -269,18 +269,19 @@ class OrderController extends BaseController
             'created_at'=>$now,
             'updated_at'=>$now,
         );
-        $data['delivery_coast'] = $specialGoods->free_delivery?0:100;
+        $data['delivery_coast'] = empty($specialGoods->free_delivery)?0:100;
         $data['promo_code'] = '';
-        $data['free_delivery'] = 0;
+        $data['free_delivery'] = $specialGoods->free_delivery;
         $data['reduction'] = 0;
         $data['discount'] = 100;
-        $data['discounted_price'] = $price+100;
+        $data['discounted_price'] = $price+$data['delivery_coast'];
         $data['total_price'] = $price;
         $data['brokerage_percentage'] = $brokerage_percentage;
         $brokerage = round($brokerage_percentage/100*$price , 2);
         $data['brokerage'] = $brokerage;
         $data['profit'] = round($data['discounted_price']-$brokerage , 2);
         $returnData = $data;
+        $returnData['free_delivery'] = boolval($specialGoods->free_delivery);
         $returnData['detail'] = new AnonymousCollection($goods);
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
