@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class OrderController extends BaseController
 {
@@ -30,6 +31,9 @@ class OrderController extends BaseController
     {
         $user = auth()->user();
         $userId = $user->user_id;
+        $jti = JWTAuth::getClaim('jti');
+        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $plaintext = opensslDecrypt($deliveryCoast , $jti);
         $goods = (array)$request->input('goods');
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
@@ -129,7 +133,12 @@ class OrderController extends BaseController
             );
             if(!empty($code)&&$code->limit>0)
             {
-                $deliveryCoast = $code->free_delivery?0:30;
+                if($code->free_delivery)
+                {
+                    $deliveryCoast = 0;
+                }else{
+                    $deliveryCoast = $plaintext===false?100:intval($plaintext);
+                }
                 $data['delivery_coast'] = $deliveryCoast;
                 $data['promo_code'] = $code->promo_code;
                 $data['free_delivery'] = intval($code->free_delivery);
@@ -145,7 +154,7 @@ class OrderController extends BaseController
                     $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast , 2);
                 }
             }else{
-                $deliveryCoast = 30;
+                $deliveryCoast = $plaintext===false?100:intval($plaintext);
                 $discount_type = '';
                 $data['delivery_coast'] = $deliveryCoast;
                 $data['promo_code'] = '';
@@ -298,8 +307,11 @@ class OrderController extends BaseController
     public function preview(Request $request)
     {
         $user = auth()->user();
+        $jti = JWTAuth::getClaim('jti');
         $userId = $user->user_id;
         $goods = (array)$request->input('goods');
+        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $plaintext = opensslDecrypt($deliveryCoast , $jti);
         $promoCode = strval($request->input('promo_code' , ''));
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         if(empty(array_keys($goods)))
@@ -369,7 +381,7 @@ class OrderController extends BaseController
             $data['currency'] = $currency;
             if(!empty($code))
             {
-                $deliveryCoast = $code->free_delivery?0:100;
+                $deliveryCoast = $code->free_delivery?0:$plaintext==false?100:intval($plaintext);
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
                 {
@@ -378,7 +390,7 @@ class OrderController extends BaseController
                     $totalPrice = round($promoPrice-$code->reduction , 2);
                 }
             }else{
-                $deliveryCoast = 100;
+                $deliveryCoast = $plaintext==false?100:intval($plaintext);
                 $totalPrice = round($promoPrice , 2);
             }
             if($orderNumber==1)
