@@ -248,7 +248,7 @@ class OrderController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $orderId = app('snowflake')->id();
-        $goods = Goods::where('goods_id' , $goodsId)->firstOrFail();
+        $goods = Goods::where('id' , $goodsId)->firstOrFail();
         $orderPrice = $goods->price;
         $goods->specialPrice = $price;
         $goods->goodsNumber = 1;
