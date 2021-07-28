@@ -255,7 +255,20 @@ class BusinessController extends BaseController
         $end = (array)$request->input('end' , array());
         if(count($start)!=2||count($end)!=2)
         {
-            abort(422 , 'Parameter error!');
+            return array(
+                'start'=>[
+                    'location'=>$start,
+                    'name'=>''
+                ],
+                'end'=>[
+                    'location'=>$end,
+                    'name'=>''
+                ],
+                'distance'=>-1,
+                'duration'=>-1,
+                'delivery_cost'=>100,
+                'currency'=>$user->user_currency
+            );
         }
         $startPoint = trim(array_reduce($start , function ($v1 , $v2){
             return $v1 . "," . $v2;
