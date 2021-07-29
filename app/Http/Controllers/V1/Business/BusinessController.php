@@ -256,8 +256,18 @@ class BusinessController extends BaseController
         $location = array_slice($location , 0 , 3);
         $distances = array();
         $location = array_filter($location , function ($v , $k){
-            return isset($v['shop_id'])&&isset($v['start'])&&isset($v['end'])&&count($v['start'])==2&&count($v['end'])==2;
+            return isset($v['shop_id'])&&isset($v['start'])&&count($v['start'])==2;
         } , ARRAY_FILTER_USE_BOTH);
+        $shopIds = array_column($location , 'shop_id');
+        $addresses = DB::table('t_shops_addresses')->whereIn('shop_id' , $shopIds)->get();
+        $location = array_map(function($v) use ($addresses){
+            $address = $addresses->where('shop_id' , $v['shop_id'])->first();
+            return array(
+                'shop_id'=>$v['shop_id'],
+                'start'=>$v['start'],
+                'end'=>empty($address)?array(0 , 0):array($address->latitude , $address->longitude),
+            );
+        } , $location);
         $url = config('common.mapbox_endpoint');
         $path = "/directions/v5/mapbox/driving/";
         $urls = array_map(function ($v) use ($url , $path){
