@@ -259,7 +259,7 @@ class BusinessController extends BaseController
             return isset($v['shop_id'])&&isset($v['start'])&&count($v['start'])==2;
         } , ARRAY_FILTER_USE_BOTH);
         $shopIds = array_column($location , 'shop_id');
-        $addresses = DB::table('t_shops_addresses')->whereIn('shop_id' , $shopIds)->get();
+        $addresses = DB::table('shops_addresses')->whereIn('shop_id' , $shopIds)->get();
         $location = array_map(function($v) use ($addresses){
             $address = $addresses->where('shop_id' , $v['shop_id'])->first();
             return array(
