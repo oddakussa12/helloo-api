@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Models\User;
+use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
@@ -251,35 +252,25 @@ class BusinessController extends BaseController
     public function deliveryCost(Request $request)
     {
         $user = auth()->user();
-        $start = (array)$request->input('start' , array());
-        $end = (array)$request->input('end' , array());
-        if(count($start)!=2||count($end)!=2)
-        {
-            return array(
-                'start'=>[
-                    'location'=>$start,
-                    'name'=>''
-                ],
-                'end'=>[
-                    'location'=>$end,
-                    'name'=>''
-                ],
-                'distance'=>-1,
-                'duration'=>-1,
-                'delivery_cost'=>100,
-                'currency'=>$user->user_currency
-            );
-        }
-        $startPoint = trim(array_reduce($start , function ($v1 , $v2){
-            return $v1 . "," . $v2;
-        }) , ',');
-        $endPoint = trim(array_reduce($end , function ($v1 , $v2){
-            return $v1 . "," . $v2;
-        }) , ',');
-        $client = new Client(['timeout'=>5]);
+        $location = (array)$request->input('location' , array());
+        $location = array_slice($location , 0 , 3);
+        $distances = array();
+        $location = array_filter($location , function ($v , $k){
+            return isset($v['shop_id'])&&isset($v['start'])&&isset($v['end'])&&count($v['start'])==2&&count($v['end'])==2;
+        } , ARRAY_FILTER_USE_BOTH);
         $url = config('common.mapbox_endpoint');
         $path = "/directions/v5/mapbox/driving/";
-        $path = $path.$startPoint.';'.$endPoint;
+        $urls = array_map(function ($v) use ($url , $path){
+            $startPoint = trim(array_reduce($v['start'] , function ($v1 , $v2){
+                return $v1 . "," . $v2;
+            }) , ',');
+            $endPoint = trim(array_reduce($v['end'] , function ($v1 , $v2){
+                return $v1 . "," . $v2;
+            }) , ',');
+            return $url.$path.$startPoint.';'.$endPoint;
+        } , $location);
+        $total = count($urls);
+        $client = new Client(['timeout'=>5]);
         $data = array(
             'steps'=>'false',
             'alternatives'=>'true',
@@ -288,68 +279,101 @@ class BusinessController extends BaseController
         );
         $params = http_build_query($data);
         try{
-            $response = $client->get($url.$path.'?'.$params);
-            $body = (string)$response->getBody();
-            $routes = \json_decode($body , true);
-            if(!isset($routes['routes'][0])||!isset($routes['waypoints']))
-            {
-                abort(500 , 'The result is abnormal!');
-            }
-            $route = $routes['routes'][0];
-            $waypoints = $routes['waypoints'];
-            $distance = $route['distance'];
-            switch ($distance)
-            {
-                case $distance<=3000:
-                    $deliveryCost=45;
-                    break;
-                case $distance>3000&&$distance<=6000:
-                    $deliveryCost=65;
-                    break;
-                case $distance>6000&&$distance<=9000:
-                    $deliveryCost=85;
-                    break;
-                default:
-                    $deliveryCost=100;
-                    break;
-            }
-            $data = array(
-                'start'=>[
-                    'location'=>$start,
-                    'name'=>$waypoints[0]['name']
-                ],
-                'end'=>[
-                    'location'=>$end,
-                    'name'=>$waypoints[1]['name']
-                ],
-                'distance'=>$route['distance'],
-                'duration'=>$route['duration'],
-                'delivery_cost'=>$deliveryCost,
-                'currency'=>$user->user_currency
-            );
+            $requests = function ($total) use ($client , $urls , $params) {
+                foreach ($urls as $url) {
+                    $uri = $url.'?'.$params;
+                    yield function() use ($client, $uri) {
+                        return $client->getAsync($uri);
+                    };
+                }
+            };
+            $pool = new Pool($client, $requests($total), [
+                'concurrency' => $total,
+                'fulfilled'   => function ($response, $index) use ($location , $user , &$distances){
+                    $routes = json_decode($response->getBody()->getContents() , true);
+                    if(!isset($routes['routes'][0])||!isset($routes['waypoints']))
+                    {
+                        abort(500 , 'The result is abnormal!');
+                    }
+                    $route = $routes['routes'][0];
+                    $waypoints = $routes['waypoints'];
+                    $distance = $route['distance'];
+                    switch ($distance)
+                    {
+                        case $distance<=3000:
+                            $deliveryCost=45;
+                            break;
+                        case $distance>3000&&$distance<=6000:
+                            $deliveryCost=65;
+                            break;
+                        case $distance>6000&&$distance<=9000:
+                            $deliveryCost=85;
+                            break;
+                        default:
+                            $deliveryCost=100;
+                            break;
+                    }
+                    $data = array(
+                        'start'=>[
+                            'location'=>$location[$index]['start'],
+                            'name'=>$waypoints[0]['name']
+                        ],
+                        'end'=>[
+                            'location'=>$location[$index]['end'],
+                            'name'=>$waypoints[1]['name']
+                        ],
+                        'shop_id'=>$location[$index]['shop_id'],
+                        'distance'=>$route['distance'],
+                        'delivery_cost'=>$deliveryCost,
+                        'currency'=>$user->user_currency
+                    );
+                    array_push($distances , $data);
+                },
+                'rejected' => function ($reason, $index) use ($location , $user , &$distances){
+                    $data = array(
+                        'start'=>[
+                            'location'=>$location[$index]['start'],
+                            'name'=>''
+                        ],
+                        'end'=>[
+                            'location'=>$location[$index]['end'],
+                            'name'=>''
+                        ],
+                        'shop_id'=>$location[$index]['shop_id'],
+                        'distance'=>-1,
+                        'delivery_cost'=>100,
+                        'currency'=>$user->user_currency
+                    );
+                    array_push($distances , $data);
+                },
+            ]);
+            $promise = $pool->promise();
+            $promise->wait();
         }catch (\Exception $e)
         {
             Log::info('delivery_cost_fail' , array(
                 'data'=>$request->all(),
                 'message'=>$e->getMessage(),
             ));
-            $data = array(
-                'start'=>[
-                    'location'=>$start,
-                    'name'=>''
-                ],
-                'end'=>[
-                    'location'=>$end,
-                    'name'=>''
-                ],
-                'distance'=>-1,
-                'duration'=>-1,
-                'delivery_cost'=>100,
-                'currency'=>$user->user_currency
-            );
+            foreach ($location as $index=>$v)
+            {
+                $data = array(
+                    'start'=>[
+                        'location'=>$v['start'],
+                        'name'=>''
+                    ],
+                    'end'=>[
+                        'location'=>$v['end'],
+                        'name'=>''
+                    ],
+                    'shop_id'=>$v['shop_id'],
+                    'distance'=>-1,
+                    'delivery_cost'=>100,
+                    'currency'=>$user->user_currency
+                );
+                array_push($distances , $data);
+            }
         }
-        return $this->response->array(array(
-            'data'=>$data
-        ));
+        return $this->response->array(array('data'=>$distances));
     }
 }

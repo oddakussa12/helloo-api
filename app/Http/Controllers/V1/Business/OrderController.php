@@ -10,6 +10,7 @@ use App\Resources\UserCollection;
 use App\Models\Business\PromoCode;
 use App\Jobs\ShoppingCartTransfer;
 use App\Jobs\OrderSynchronization;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Resources\OrderCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +18,6 @@ use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class OrderController extends BaseController
 {
@@ -34,6 +34,7 @@ class OrderController extends BaseController
         $jti = JWTAuth::getClaim('jti');
         $deliveryCoast = strval($request->input('delivery_coast' , ''));
         $plaintext = opensslDecrypt($deliveryCoast , $jti);
+        $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
@@ -90,6 +91,20 @@ class OrderController extends BaseController
         });
         $goodsIds = $shopGoods->pluck('id')->toArray();
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
+        if(count($userIds)>3)
+        {
+            abort(403 , 'At most 3 orders can be placed at the same time!');
+        }
+        if(is_array($deliveryCoasts))
+        {
+            foreach ($deliveryCoasts as $k=>$v)
+            {
+                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_coast'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                {
+                    abort(422 , 'Illegal delivery coast format!');
+                }
+            }
+        }
         $users = app(UserRepository::class)->findByUserIds($userIds);
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
@@ -99,9 +114,23 @@ class OrderController extends BaseController
         $now = date('Y-m-d H:i:s');
         $key = "helloo:business:order:service:first";
         $orderNumber = count($shopGoods);
+        $orderAddresses = array();
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
+            if(is_array($deliveryCoasts))
+            {
+                array_push($orderAddresses , array(
+                    'id'=>app('snowflake')->id(),
+                    'user_id'=>$userId,
+                    'order_id'=>$orderId,
+                    'user_latitude'=>$deliveryCoasts[$u]['start'][0],
+                    'user_longitude'=>$deliveryCoasts[$u]['start'][1],
+                    'shop_latitude'=>$deliveryCoasts[$u]['end'][0],
+                    'shop_longitude'=>$deliveryCoasts[$u]['end'][1],
+                    'created_at'=>$now,
+                ));
+            }
             $price = collect($shopGs)->sum(function ($shopG) use ($goods) {
                 return $goods[$shopG['id']]*$shopG['price'];
             });
@@ -137,7 +166,7 @@ class OrderController extends BaseController
                 {
                     $deliveryCoast = 0;
                 }else{
-                    $deliveryCoast = $plaintext===false?100:intval($plaintext);
+                    $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$u]['delivery_coast']))?round(floatval($deliveryCoasts[$u]['delivery_coast']) , 2):100);
                 }
                 $data['delivery_coast'] = $deliveryCoast;
                 $data['promo_code'] = $code->promo_code;
@@ -154,7 +183,7 @@ class OrderController extends BaseController
                     $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast , 2);
                 }
             }else{
-                $deliveryCoast = $plaintext===false?100:intval($plaintext);
+                $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$u]['delivery_coast']))?round(floatval($deliveryCoasts[$u]['delivery_coast']) , 2):100);
                 $discount_type = '';
                 $data['delivery_coast'] = $deliveryCoast;
                 $data['promo_code'] = '';
@@ -211,6 +240,10 @@ class OrderController extends BaseController
                     {
                         abort('500' , 'promo code update failed!');
                     }
+                }
+                if(!empty($orderAddresses))
+                {
+                    DB::table('orders_addresses')->insert($orderAddresses);
                 }
                 DB::commit();
             }catch (\Exception $e)
@@ -312,6 +345,7 @@ class OrderController extends BaseController
         $goods = (array)$request->input('goods');
         $deliveryCoast = strval($request->input('delivery_coast' , ''));
         $plaintext = opensslDecrypt($deliveryCoast , $jti);
+        $deliveryCoasts = \json_decode($plaintext , true);
         $promoCode = strval($request->input('promo_code' , ''));
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         if(empty(array_keys($goods)))
@@ -331,6 +365,21 @@ class OrderController extends BaseController
         $shopGoods = $gs->reject(function ($g) {
             return $g->status==0;
         });
+        $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
+        if(count($userIds)>3)
+        {
+            abort(403 , 'At most 3 orders can be placed at the same time!');
+        }
+        if(is_array($deliveryCoasts))
+        {
+            foreach ($deliveryCoasts as $k=>$v)
+            {
+                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_coast'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                {
+                    abort(422 , 'Illegal delivery coast format!');
+                }
+            }
+        }
         $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
         $goodsCount = $shopGoods->count();
         if(!empty($promoCode)&&$goodsCount==1)
@@ -381,7 +430,7 @@ class OrderController extends BaseController
             $data['currency'] = $currency;
             if(!empty($code))
             {
-                $deliveryCoast = $code->free_delivery?0:$plaintext==false?100:intval($plaintext);
+                $deliveryCoast = $code->free_delivery?0:$deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_coast']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_coast']) , 2):100);
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
                 {
@@ -390,7 +439,7 @@ class OrderController extends BaseController
                     $totalPrice = round($promoPrice-$code->reduction , 2);
                 }
             }else{
-                $deliveryCoast = $plaintext==false?100:intval($plaintext);
+                $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_coast']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_coast']) , 2):100);
                 $totalPrice = round($promoPrice , 2);
             }
             if($orderNumber==1)
