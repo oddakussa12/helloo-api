@@ -570,15 +570,19 @@ class GoodsController extends BaseController
     public function special(Request $request)
     {
         $pageName = 'page';
-        $page = $request->input($pageName, 1);
+        $page = intval($request->input($pageName, 1));
         $page = $page<0?1:$page;
         $perPage = 10;
-        $specialGoods = DB::table('special_goods')->where('status' , 1)->select('goods_id' , 'special_price')->orderByDesc('updated_at')->paginate($perPage , ['*'] , $page , $pageName);
+        $specialGoods = DB::table('special_goods')->where('status' , 1)->select(['goods_id' , 'special_price'])->orderByDesc('updated_at')->paginate($perPage , ['*'] , $pageName , $page);
         $goodIds = $specialGoods->pluck('goods_id')->unique()->toArray();
         $goods = Goods::where('id', $goodIds)->get();
-        $goods->each(function($g) use ($specialGoods){
+        $shopIds = $goods->pluck('user_id')->unique()->toArray();
+        $shops = app(UserRepository::class)->findByUserIds($shopIds);
+        $goods->each(function($g) use ($specialGoods , $shops){
+            $shop = $shops->where('user_id' , $g->user_id)->first();
             $specialG = $specialGoods->where('goods_id' , $g->id)->first();
-            $g->special_price = $specialG->special_price;
+            $g->specialPrice = $specialG->special_price;
+            $g->user = new UserCollection($shop->only('user_id' , 'user_name' , 'user_nick_name'));
         });
         $goods = $this->paginator($goods , $specialGoods->total(), $perPage, $page, [
             'path'     => Paginator::resolveCurrentPath(),
