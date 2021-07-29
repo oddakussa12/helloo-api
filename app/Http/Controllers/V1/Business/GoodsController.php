@@ -11,6 +11,7 @@ use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
 use App\Jobs\GoodsCategoryUpdate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Models\Business\CategoryGoods;
@@ -21,10 +22,13 @@ use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
 use App\Repositories\Contracts\GoodsRepository;
+use Illuminate\Database\Concerns\BuildsQueries;
 use App\Repositories\Contracts\CategoryGoodsRepository;
 
 class GoodsController extends BaseController
 {
+    use BuildsQueries;
+
     /**
      * @note 我的商品
      * @datetime 2021-07-12 17:53
@@ -561,5 +565,25 @@ class GoodsController extends BaseController
             $like->format_created_at = dateTrans($like->created_at);
         });
         return AnonymousCollection::collection($likes);
+    }
+
+    public function special(Request $request)
+    {
+        $pageName = 'page';
+        $page = $request->input($pageName, 1);
+        $page = $page<0?1:$page;
+        $perPage = 10;
+        $specialGoods = DB::table('special_goods')->where('status' , 1)->select('goods_id' , 'special_price')->orderByDesc('updated_at')->paginate($perPage , ['*'] , $page , $pageName);
+        $goodIds = $specialGoods->pluck('goods_id')->unique()->toArray();
+        $goods = Goods::where('id', $goodIds)->get();
+        $goods->each(function($g) use ($specialGoods){
+            $specialG = $specialGoods->where('goods_id' , $g->id)->first();
+            $g->special_price = $specialG->special_price;
+        });
+        $goods = $this->paginator($goods , $specialGoods->total(), $perPage, $page, [
+            'path'     => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+        return AnonymousCollection::collection($goods);
     }
 }

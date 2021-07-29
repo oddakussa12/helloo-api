@@ -235,6 +235,8 @@ $api->group($V1Params , function ($api){
     });
     $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');
 
+    $api->get('goods/special' , 'Business\GoodsController@special')->name('goods.special');
+
     $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
 
     $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');
@@ -325,6 +327,8 @@ $api->group($V1Params , function ($api){
         $api->post('review/comment' , 'BackStageController@reviewComment')->name('backStage.review.comment');
 
         $api->post('reject/comment' , 'BackStageController@rejectComment')->name('backStage.reject.comment');
+
+        $api->patch('special_goods' , 'BackStageController@updateSpecialGoods')->name('backStage.special_goods.update');
     });
 
 

@@ -275,17 +275,19 @@ class OrderController extends BaseController
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
         $key = "helloo:business:goods:service:special:".$goodsId;
-        $price = Redis::get($key);
-        if($price===null||$price===false)
+        $specialG = Redis::hget($key);
+        if($specialG===null||$specialG===false)
         {
+            DB::table('special_goods')->where('goods_id' , $goodsId)->update(array('status'=>0 , 'updated_at'=>date('Y-m-d H:i:s')));
             abort(403 , 'This goods is not a special offer!');
         }
-        $price = round($price , 2);
         $specialGoods = DB::table('special_goods')->where('goods_id' , $goodsId)->first();
-        if(empty($specialGoods))
+        if(empty($specialGoods)||$specialGoods->status==0)
         {
+            Redis::del($key);
             abort(403 , 'This goods is not a special offer!');
         }
+        $price = round($specialG['special_price'] , 2);
         $brokerage_percentage = 95;
         $user = auth()->user();
         $userId = $user->user_id;
@@ -306,14 +308,14 @@ class OrderController extends BaseController
             'detail'=>\json_encode([$goods->toArray()] , JSON_UNESCAPED_UNICODE),
             'order_price'=>$orderPrice,
             'promo_price'=>$orderPrice,
-            'packaging_cost'=>round($specialGoods->packaging_cost , 2),
+            'packaging_cost'=>round($specialG['packaging_cost'] , 2),
             'currency'=>$goods->currency,
             'created_at'=>$now,
             'updated_at'=>$now,
         );
-        $data['delivery_coast'] = empty($specialGoods->free_delivery)?0:100;
+        $data['delivery_coast'] = empty($specialG['free_delivery'])?0:100;
         $data['promo_code'] = '';
-        $data['free_delivery'] = $specialGoods->free_delivery;
+        $data['free_delivery'] = $specialG['free_delivery'];
         $data['reduction'] = 0;
         $data['discount'] = 100;
         $data['discounted_price'] = $price+$data['delivery_coast'];
@@ -323,7 +325,7 @@ class OrderController extends BaseController
         $data['brokerage'] = $brokerage;
         $data['profit'] = round($data['discounted_price']-$brokerage , 2);
         $returnData = $data;
-        $returnData['free_delivery'] = boolval($specialGoods->free_delivery);
+        $returnData['free_delivery'] = boolval($specialG['free_delivery']);
         $returnData['detail'] = new AnonymousCollection($goods);
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
