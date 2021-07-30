@@ -400,7 +400,7 @@ class OrderController extends BaseController
         }
         $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
         $goodsCount = $shopGoods->count();
-        $flag = $code = 0;
+        $flag = $status = 0;
         $message = '';
         if(!empty($promoCode)&&$goodsCount==1)
         {
@@ -452,7 +452,7 @@ class OrderController extends BaseController
             $data['currency'] = $currency;
             if(!empty($code)&&$flag==0)
             {
-                $code = 200;
+                $status = 200;
                 $message = '20% off for all products over BIRR300!';
                 $deliveryCoast = $code->free_delivery?0:$deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_coast']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_coast']) , 2):100);
                 $data['deliveryCoast'] = $deliveryCoast;
@@ -490,7 +490,7 @@ class OrderController extends BaseController
             )));
         }
         return $this->response->array(
-            array('data'=>AnonymousCollection::collection(collect($returnData)) , 'message'=>$message , 'code'=>$code)
+            array('data'=>AnonymousCollection::collection(collect($returnData)) , 'message'=>$message , 'code'=>$status)
         );
     }
 
