@@ -81,4 +81,6 @@ return [
     'is_verification' =>env('IS_VERIFICATION' , true),
     'global_sms' =>env('GLOBAL_SMS' , 'yunXinCustom'),
     'block_version' =>env('BLOCK_VERSION' , '1.0.9'),
+    'mapbox_endpoint' =>env('MAPBOX_ENDPOINT' , ''),
+    'mapbox_access_token' =>env('MAPBOX_ACCESS_TOKEN' , ''),
 ];

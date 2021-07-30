@@ -196,6 +196,93 @@ class OrderController extends BaseController
     }
 
     /**
+     * @note 特价下单
+     * @datetime 2021-07-30 20:07
+     * @param Request $request
+     * @return AnonymousCollection
+     */
+    public function specialOrder(Request $request)
+    {
+        $goodsId = $request->input('goods_id');
+        $userName = $request->input('user_name' , '');
+        $userContact = $request->input('user_contact' , '');
+        $userAddress = $request->input('user_address' , '');
+        $jti = JWTAuth::getClaim('jti');
+        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $plaintext = opensslDecryptV2($deliveryCoast , $jti);
+        $deliveryCoasts = \json_decode($plaintext , true);
+        $key = "helloo:business:goods:service:special:".$goodsId;
+        $specialG = Redis::hgetall($key);
+        if(empty($specialG))
+        {
+            DB::table('special_goods')->where('goods_id' , $goodsId)->update(array('status'=>0 , 'updated_at'=>date('Y-m-d H:i:s')));
+            abort(403 , 'This goods is not a special offer!');
+        }
+        $specialGoods = DB::table('special_goods')->where('goods_id' , $goodsId)->first();
+        if(empty($specialGoods)||$specialGoods->status==0)
+        {
+            Redis::del($key);
+            abort(403 , 'This goods is not a special offer!');
+        }
+        $price = round($specialG['special_price'] , 2);
+        $brokerage_percentage = 95;
+        $user = auth()->user();
+        $userId = $user->user_id;
+        $orderId = app('snowflake')->id();
+        $goods = Goods::where('id' , $goodsId)->firstOrFail();
+        if(is_array($deliveryCoasts))
+        {
+            foreach ($deliveryCoasts as $k=>$v)
+            {
+                if(!in_array($k , array($goods->user_id))||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                {
+                    abort(422 , 'Illegal delivery cost format!');
+                }
+            }
+        }
+        $orderPrice = $goods->price;
+        $goods->specialPrice = $price;
+        $goods->goodsNumber = 1;
+        $now = date('Y-m-d H:i:s');
+        $data = array(
+            'order_id'=>$orderId,
+            'user_id'=>strval($userId),
+            'shop_id'=>strval($goods->user_id),
+            'user_name'=>$userName,
+            'user_contact'=>$userContact,
+            'user_address'=>$userAddress,
+            'discount_type'=>'special',
+            'detail'=>\json_encode([$goods->toArray()] , JSON_UNESCAPED_UNICODE),
+            'order_price'=>$orderPrice,
+            'promo_price'=>$orderPrice,
+            'packaging_cost'=>round($specialG['packaging_cost'] , 2),
+            'currency'=>$goods->currency,
+            'created_at'=>$now,
+            'updated_at'=>$now,
+        );
+        $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$goods->user_id]['delivery_cost']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_cost']) , 2):100);
+        $data['delivery_coast'] = empty($specialG['free_delivery'])?0:$deliveryCoast;
+        $data['promo_code'] = '';
+        $data['free_delivery'] = $specialG['free_delivery'];
+        $data['reduction'] = 0;
+        $data['discount'] = 100;
+        $data['discounted_price'] = $price+$data['delivery_coast'];
+        $data['total_price'] = $price;
+        $data['brokerage_percentage'] = $brokerage_percentage;
+        $brokerage = round($brokerage_percentage/100*$price , 2);
+        $data['brokerage'] = $brokerage;
+        $data['profit'] = round($data['discounted_price']-$brokerage , 2);
+        $returnData = $data;
+        $returnData['free_delivery'] = boolval($specialG['free_delivery']);
+        $returnData['detail'] = new AnonymousCollection($goods);
+        $returnData['shop'] = new UserCollection($user);
+        DB::table('orders')->insert($data);
+        unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
+        $data['free_delivery'] = boolval($data['free_delivery']);
+        return new AnonymousCollection(collect($returnData));
+    }
+
+    /**
      * @note 订单预览
      * @datetime 2021-07-12 17:57
      * @param Request $request

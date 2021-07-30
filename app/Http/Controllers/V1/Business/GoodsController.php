@@ -11,6 +11,7 @@ use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
 use App\Jobs\GoodsCategoryUpdate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Models\Business\CategoryGoods;
@@ -21,10 +22,13 @@ use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
 use App\Repositories\Contracts\GoodsRepository;
+use Illuminate\Database\Concerns\BuildsQueries;
 use App\Repositories\Contracts\CategoryGoodsRepository;
 
 class GoodsController extends BaseController
 {
+    use BuildsQueries;
+
     /**
      * @note 我的商品
      * @datetime 2021-07-12 17:53
@@ -204,6 +208,7 @@ class GoodsController extends BaseController
         $categoryId = $request->input('category_id');
         $discountedPrice = $request->input('discounted_price');
         $description = strval($request->input('description' , ''));
+        $packaging_cost = floatval($request->input('packaging_cost' , 0));
         $rules = [
             'name' => [
                 'bail',
@@ -239,6 +244,13 @@ class GoodsController extends BaseController
                 'filled',
                 'numeric',
                 'min:0'
+            ],
+            'packaging_cost' => [
+                'bail',
+                'filled',
+                'numeric',
+                'min:0',
+                'max:9999'
             ]
         ];
         $data = $validationField = array(
@@ -247,7 +259,8 @@ class GoodsController extends BaseController
             'image'=>$image,
             'price'=>$price,
             'description'=>$description,
-            'status'=>$status
+            'status'=>$status,
+            'packaging_cost'=>round($packaging_cost , 2)
         );
         if(!empty($categoryId))
         {
@@ -355,6 +368,7 @@ class GoodsController extends BaseController
         $sort = intval($request->input('sort' , 0));
         $categoryId = $request->input('category_id');
         $discountedPrice = $request->input('discounted_price');
+        $packaging_cost = $request->input('packaging_cost');
         $params = $validationField = $request->only(array('name' , 'image' , 'price' , 'status' , 'description'));
         $validationField['user_id'] = $goods->user_id;
         $rules = [
@@ -416,6 +430,11 @@ class GoodsController extends BaseController
                 $validationField['discounted_price'] = $params['discounted_price'] = round(floatval($discountedPrice) , 2);
             }
             $categoryGoods = CategoryGoods::where('goods_id' , $goods->id)->first();
+        }
+        if($packaging_cost!==null)
+        {
+            $packaging_cost = floatval($packaging_cost);
+            $validationField['packaging_cost'] = $data['packaging_cost'] = $packaging_cost;
         }
         try {
             Validator::make($validationField, $rules)->validate();
@@ -549,5 +568,32 @@ class GoodsController extends BaseController
             $like->format_created_at = dateTrans($like->created_at);
         });
         return AnonymousCollection::collection($likes);
+    }
+
+    public function special(Request $request)
+    {
+        $appends = array();
+        $pageName = 'page';
+        $page = intval($request->input($pageName, 1));
+        $page = $page<0?1:$page;
+        $perPage = intval($request->input('per_page' , 10));
+        $perPage = $perPage<10||$perPage>50?20:$perPage;
+        $appends['per_page'] = $perPage;
+        $specialGoods = DB::table('special_goods')->where('status' , 1)->select(['goods_id' , 'special_price'])->orderByDesc('updated_at')->paginate($perPage , ['*'] , $pageName , $page);
+        $goodIds = $specialGoods->pluck('goods_id')->unique()->toArray();
+        $goods = Goods::where('id', $goodIds)->get();
+        $shopIds = $goods->pluck('user_id')->unique()->toArray();
+        $shops = app(UserRepository::class)->findByUserIds($shopIds);
+        $goods->each(function($g) use ($specialGoods , $shops){
+            $shop = $shops->where('user_id' , $g->user_id)->first();
+            $specialG = $specialGoods->where('goods_id' , $g->id)->first();
+            $g->specialPrice = $specialG->special_price;
+            $g->user = new UserCollection($shop->only('user_id' , 'user_name' , 'user_nick_name'));
+        });
+        $goods = $this->paginator($goods , $specialGoods->total(), $perPage, $page, [
+            'path'     => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ])->appends($appends);
+        return AnonymousCollection::collection($goods);
     }
 }

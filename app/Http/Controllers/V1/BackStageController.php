@@ -562,4 +562,30 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    public function updateSpecialGoods(Request $request)
+    {
+        $id = $request->input('id' , '');
+        $goods = DB::table('special_goods')->where('id' , $id)->first();
+        if(empty($goods))
+        {
+            abort(404);
+        }
+        $key = "helloo:business:goods:service:special:".$goods->goods_id;
+        if(strtotime($goods->deadline)<time())
+        {
+            Redis::hmset($key , array(
+                'special_price'=>$goods->special_price,
+                'free_delivery'=>$goods->free_delivery,
+                'packaging_cost'=>$goods->packaging_cost,
+                'deadline'=>$goods->deadline,
+                'status'=>$goods->status,
+            ));
+            Redis::EXPIREAT($key , strtotime($goods->deadline));
+        }else{
+            DB::table('special_goods')->where('id' , $id)->update(array('status'=>0 , 'updated_at'=>date('Y-m-d H:i:s')));
+            Redis::del($key);
+        }
+        return $this->response->accepted();
+    }
+
 }
