@@ -61,7 +61,6 @@ class RemoveSpecialPrice extends Command
             //终止父进程
             exit('parent process');
         }
-        var_dump('sub process');
         //在子进程中创建新的会话
         if (posix_setsid() === -1) {
             die('Could not detach');
