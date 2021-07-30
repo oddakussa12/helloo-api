@@ -185,6 +185,7 @@ $api->group($V1Params , function ($api){
         $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
 
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
+        $api->post('business/delivery_cost' , 'Business\BusinessController@deliveryCost')->name('business.delivery_cost');
         $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
         $api->get('goods/uncategorized' , 'Business\GoodsController@uncategorized')->name('goods.uncategorized');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
@@ -194,6 +195,7 @@ $api->group($V1Params , function ($api){
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
         $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
         $api->post('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
+        $api->post('order/special' , 'Business\OrderController@specialOrder')->name('business.order.special');
         $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
         $api->get('order/{order}' , 'Business\OrderController@show')->name('business.order.show');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
@@ -232,6 +234,8 @@ $api->group($V1Params , function ($api){
 
     });
     $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');
+
+    $api->get('goods/special' , 'Business\GoodsController@special')->name('goods.special');
 
     $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
 
@@ -323,6 +327,8 @@ $api->group($V1Params , function ($api){
         $api->post('review/comment' , 'BackStageController@reviewComment')->name('backStage.review.comment');
 
         $api->post('reject/comment' , 'BackStageController@rejectComment')->name('backStage.reject.comment');
+
+        $api->patch('special_goods' , 'BackStageController@updateSpecialGoods')->name('backStage.special_goods.update');
     });
 
 
