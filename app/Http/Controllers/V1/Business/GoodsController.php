@@ -572,10 +572,13 @@ class GoodsController extends BaseController
 
     public function special(Request $request)
     {
+        $appends = array();
         $pageName = 'page';
         $page = intval($request->input($pageName, 1));
         $page = $page<0?1:$page;
-        $perPage = 10;
+        $perPage = intval($request->input('per_page' , 10));
+        $perPage = $perPage<10||$perPage>50?20:$perPage;
+        $appends['per_page'] = $perPage;
         $specialGoods = DB::table('special_goods')->where('status' , 1)->select(['goods_id' , 'special_price'])->orderByDesc('updated_at')->paginate($perPage , ['*'] , $pageName , $page);
         $goodIds = $specialGoods->pluck('goods_id')->unique()->toArray();
         $goods = Goods::where('id', $goodIds)->get();
@@ -590,7 +593,7 @@ class GoodsController extends BaseController
         $goods = $this->paginator($goods , $specialGoods->total(), $perPage, $page, [
             'path'     => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
-        ]);
+        ])->appends($appends);
         return AnonymousCollection::collection($goods);
     }
 }
