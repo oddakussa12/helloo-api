@@ -99,7 +99,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_coast'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
@@ -301,9 +301,9 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , array($goods->user_id))||!isset($v['distance'])||!isset($v['delivery_coast'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!in_array($k , array($goods->user_id))||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
                 {
-                    abort(422 , 'Illegal delivery coast format!');
+                    abort(422 , 'Illegal delivery cost format!');
                 }
             }
         }
@@ -392,7 +392,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_coast'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
