@@ -66,6 +66,10 @@ class OrderController extends BaseController
         if(!empty($promoCode)&&$goodsCount==1)
         {
             $code = PromoCode::where('promo_code' , $promoCode)->first();
+            if(empty($code))
+            {
+                abort(422 , 'The promo code does not exist!');
+            }
             if(!empty($code)&&$code->limit<=0)
             {
                 abort(422 , 'The promo code has been used up!');
