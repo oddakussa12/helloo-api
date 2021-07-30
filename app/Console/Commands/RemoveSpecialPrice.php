@@ -129,7 +129,7 @@ class RemoveSpecialPrice extends Command
             {
                 $keys = array();
                 $key = "helloo:business:goods:service:special:".$g->goods_id;
-                $specialG = Redis::hget($key);
+                $specialG = Redis::hgetall($key);
                 if($specialG===null||$specialG===false)
                 {
                     array_push($keys , $key);

@@ -279,7 +279,7 @@ class OrderController extends BaseController
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $key = "helloo:business:goods:service:special:".$goodsId;
-        $specialG = Redis::hget($key);
+        $specialG = Redis::hgetall($key);
         if($specialG===null||$specialG===false)
         {
             DB::table('special_goods')->where('goods_id' , $goodsId)->update(array('status'=>0 , 'updated_at'=>date('Y-m-d H:i:s')));

@@ -573,7 +573,7 @@ class BackStageController extends BaseController
         $key = "helloo:business:goods:service:special:".$goods->goods_id;
         if(strtotime($goods->deadline)<time())
         {
-            Redis::hset($key , array(
+            Redis::hmset($key , array(
                 'special_price'=>$goods->special_price,
                 'free_delivery'=>$goods->free_delivery,
                 'packaging_cost'=>$goods->packaging_cost,
