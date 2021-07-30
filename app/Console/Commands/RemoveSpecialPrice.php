@@ -90,9 +90,8 @@ class RemoveSpecialPrice extends Command
         {
             $this->_runWorker();
             $this->_waitWorker();
-            usleep(500);
+            usleep(2000000);
         }
-
     }
 
     private function _runWorker()
