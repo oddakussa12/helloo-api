@@ -139,7 +139,7 @@ class RemoveSpecialPrice extends Command
                 {
                     Redis::del($keys);
                     !empty($goodsIds)&&DB::table('special_goods')->whereIn('goods_id' , $goodsIds)->update(array(
-                        'status'=>1,
+                        'status'=>0,
                         'updated_at'=>date('Y-m-d H:i:s'),
                     ));
                 }
