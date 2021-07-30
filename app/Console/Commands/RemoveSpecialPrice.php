@@ -127,14 +127,22 @@ class RemoveSpecialPrice extends Command
         DB::table('special_goods')->where('status' , 1)->orderByDesc('updated_at')->chunk(100 , function ($goods){
             foreach ($goods as $g)
             {
-                $keys = array();
+                $keys = $goodsIds = array();
                 $key = "helloo:business:goods:service:special:".$g->goods_id;
                 $specialG = Redis::hgetall($key);
                 if($specialG===null||$specialG===false)
                 {
                     array_push($keys , $key);
+                    array_push($goodsIds , $g->goods_id);
                 }
-                !empty($keys)&&Redis::del($keys);
+                if(!empty($keys))
+                {
+                    Redis::del($keys);
+                    DB::table('special_goods')->whereIn('goods_id' , $goodsIds)->update(array(
+                        'status'=>1,
+                        'updated_at'=>date('Y-m-d H:i:s'),
+                    ));
+                }
             }
         });
     }
