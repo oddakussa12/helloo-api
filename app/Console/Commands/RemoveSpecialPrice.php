@@ -28,7 +28,7 @@ class RemoveSpecialPrice extends Command
 
     private $_pids = array();
 
-    private $_pidFile = '/home/wwwroot/api.helloo.mantouhealth.com/storage/app/tmp/daemon.pid';
+    private $_pidFile = '/home/ec2-user/daemon.pid';
 
     /**
      * Create a new command instance.
@@ -42,11 +42,12 @@ class RemoveSpecialPrice extends Command
 
     /**
      * Execute the console command.
-     *
+     *s
      * @return void
      */
     public function handle()
     {
+        $this->_pidFile = storage_path('app/tmp/daemon.pid');
         $max = $this->argument('max');
         $this->max = intval(is_numeric($max)&&$max>0&&$max<3?$max:1);
         if (php_sapi_name() != 'cli') {
