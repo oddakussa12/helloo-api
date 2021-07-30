@@ -28,6 +28,8 @@ class RemoveSpecialPrice extends Command
 
     private $_pids = array();
 
+    private $_pidFile = '/home/wwwroot/api.helloo.mantouhealth.com/storage/ap/tmp/daemon.pid';
+
     /**
      * Create a new command instance.
      *
