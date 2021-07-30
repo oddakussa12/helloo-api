@@ -166,7 +166,7 @@ class OrderController extends BaseController
                 {
                     $deliveryCoast = 0;
                 }else{
-                    $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$u]['delivery_coast']))?round(floatval($deliveryCoasts[$u]['delivery_coast']) , 2):100);
+                    $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100);
                 }
                 $data['delivery_coast'] = $deliveryCoast;
                 $data['promo_code'] = $code->promo_code;
@@ -183,7 +183,7 @@ class OrderController extends BaseController
                     $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast , 2);
                 }
             }else{
-                $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$u]['delivery_coast']))?round(floatval($deliveryCoasts[$u]['delivery_coast']) , 2):100);
+                $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100);
                 $discount_type = '';
                 $data['delivery_coast'] = $deliveryCoast;
                 $data['promo_code'] = '';
@@ -327,7 +327,7 @@ class OrderController extends BaseController
             'created_at'=>$now,
             'updated_at'=>$now,
         );
-        $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$goods->user_id]['delivery_coast']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_coast']) , 2):100);
+        $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$goods->user_id]['delivery_cost']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_cost']) , 2):100);
         $data['delivery_coast'] = empty($specialG['free_delivery'])?0:$deliveryCoast;
         $data['promo_code'] = '';
         $data['free_delivery'] = $specialG['free_delivery'];
@@ -454,7 +454,7 @@ class OrderController extends BaseController
             {
                 $status = 200;
                 $message = '20% off for all products over BIRR300!';
-                $deliveryCoast = $code->free_delivery?0:$deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_coast']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_coast']) , 2):100);
+                $deliveryCoast = $code->free_delivery?0:$deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
                 {
@@ -463,7 +463,7 @@ class OrderController extends BaseController
                     $totalPrice = round($promoPrice-$code->reduction , 2);
                 }
             }else{
-                $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_coast']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_coast']) , 2):100);
+                $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
                 $totalPrice = round($promoPrice , 2);
             }
             if($orderNumber==1)
