@@ -274,6 +274,10 @@ class OrderController extends BaseController
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
+        $jti = JWTAuth::getClaim('jti');
+        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $plaintext = opensslDecryptV2($deliveryCoast , $jti);
+        $deliveryCoasts = \json_decode($plaintext , true);
         $key = "helloo:business:goods:service:special:".$goodsId;
         $specialG = Redis::hget($key);
         if($specialG===null||$specialG===false)
@@ -293,6 +297,16 @@ class OrderController extends BaseController
         $userId = $user->user_id;
         $orderId = app('snowflake')->id();
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
+        if(is_array($deliveryCoasts))
+        {
+            foreach ($deliveryCoasts as $k=>$v)
+            {
+                if(!in_array($k , array($goods->user_id))||!isset($v['distance'])||!isset($v['delivery_coast'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                {
+                    abort(422 , 'Illegal delivery coast format!');
+                }
+            }
+        }
         $orderPrice = $goods->price;
         $goods->specialPrice = $price;
         $goods->goodsNumber = 1;
@@ -313,7 +327,8 @@ class OrderController extends BaseController
             'created_at'=>$now,
             'updated_at'=>$now,
         );
-        $data['delivery_coast'] = empty($specialG['free_delivery'])?0:100;
+        $deliveryCoast = $deliveryCoasts===null?100:((isset($deliveryCoasts[$goods->user_id]['delivery_coast']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_coast']) , 2):100);
+        $data['delivery_coast'] = empty($specialG['free_delivery'])?0:$deliveryCoast;
         $data['promo_code'] = '';
         $data['free_delivery'] = $specialG['free_delivery'];
         $data['reduction'] = 0;
@@ -330,6 +345,7 @@ class OrderController extends BaseController
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
         unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
+        $data['free_delivery'] = boolval($data['free_delivery']);
         return new AnonymousCollection(collect($returnData));
     }
 
