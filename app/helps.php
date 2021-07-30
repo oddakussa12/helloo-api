@@ -1451,7 +1451,7 @@ if (!function_exists('opensslEncrypt')) {
     /**
      * @param $data
      * @param $key
-     * @return void
+     * @return string
      */
     function opensslEncrypt($data , $key)
     {
@@ -1463,7 +1463,7 @@ if (!function_exists('opensslDecrypt')) {
     /**
      * @param $data
      * @param $key
-     * @return void
+     * @return false|string
      */
     function opensslDecrypt($data , $key)
     {
@@ -1471,10 +1471,26 @@ if (!function_exists('opensslDecrypt')) {
     }
 }
 
+if (!function_exists('opensslDecryptV2')) {
+    /**
+     * @param $data
+     * @param $key
+     * @return false|string
+     */
+    function opensslDecryptV2($data , $key)
+    {
+        if(strlen($key)==16)
+        {
+            return openssl_decrypt(base64_decode($data),"AES-128-CBC",$key,OPENSSL_RAW_DATA , $key);
+        }
+        return opensslDecrypt($data , $key);
+    }
+}
+
 if (! function_exists('escape_like')) {
     /**
      * @param $string
-     * @return mixed
+     * @return array|string|string[]
      */
     function escape_like($string)
     {

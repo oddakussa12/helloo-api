@@ -33,7 +33,7 @@ class OrderController extends BaseController
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
         $deliveryCoast = strval($request->input('delivery_coast' , ''));
-        $plaintext = opensslDecrypt($deliveryCoast , $jti);
+        $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
         $userName = $request->input('user_name' , '');
@@ -112,7 +112,7 @@ class OrderController extends BaseController
         $returnData = array();
         $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
-        $key = "helloo:business:order:service:first";
+        $firstKey = "helloo:business:order:service:first";
         $orderNumber = count($shopGoods);
         $orderAddresses = array();
         foreach ($shopGoods as $u=>$shopGs)
@@ -198,7 +198,7 @@ class OrderController extends BaseController
                 $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
                 if($discount>0)
                 {
-                    $r = Redis::sadd($key , $user->user_id);
+                    $r = Redis::sadd($firstKey , $user->user_id);
                     if($r)
                     {
                         $firstTotal = $totalPrice-$discount;
@@ -221,7 +221,7 @@ class OrderController extends BaseController
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
             unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
-            $data['delivery_coast'] = boolval($data['delivery_coast']);
+            $data['free_delivery'] = boolval($data['free_delivery']);
             array_push($returnData , $data);
         }
         if(!empty($orderData))
@@ -251,7 +251,7 @@ class OrderController extends BaseController
                 DB::rollBack();
                 if(isset($r)&&$r)
                 {
-                    Redis::srem($key , $user->user_id);
+                    Redis::srem($firstKey , $user->user_id);
                 }
                 Log::info('order_store_fail' , array(
                     'message'=>$e->getMessage(),
@@ -346,7 +346,7 @@ class OrderController extends BaseController
         $userId = $user->user_id;
         $goods = (array)$request->input('goods');
         $deliveryCoast = strval($request->input('delivery_coast' , ''));
-        $plaintext = opensslDecrypt($deliveryCoast , $jti);
+        $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $promoCode = strval($request->input('promo_code' , ''));
         $key = "helloo:business:shopping_cart:service:account:".$userId;
@@ -449,7 +449,8 @@ class OrderController extends BaseController
                 $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
                 if($discount>0)
                 {
-                    $r = Redis::sismember($key , $user->user_id);
+                    $firstKey = "helloo:business:order:service:first";
+                    $r = Redis::sismember($firstKey , $user->user_id);
                     if($r)
                     {
                         $firstTotal = $totalPrice-$discount;
