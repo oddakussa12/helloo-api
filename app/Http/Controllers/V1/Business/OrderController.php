@@ -400,12 +400,15 @@ class OrderController extends BaseController
         }
         $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
         $goodsCount = $shopGoods->count();
+        $flag = 0;
+        $message = '';
         if(!empty($promoCode)&&$goodsCount==1)
         {
             $code = PromoCode::where('promo_code' , $promoCode)->first();
             if(empty($code)||$code->limit<=0||(!empty($code->deadline)&&$code->deadline<date('Y-m-d')))
             {
-                abort(422 , 'Sorry this code is invalid!');
+                $flag = 1;
+                $message = "Sorry this code is invalid!";
             }
             if(!$discounted&&!empty($code))
             {
@@ -415,7 +418,8 @@ class OrderController extends BaseController
                 $discountedGoodsIds = $discountedGoods->pluck('user_id')->unique()->toArray();
                 if(!empty($discountedGoodsIds))
                 {
-                    abort(422 , 'The conditions for using promotional codes are not met!');
+                    $flag = 2;
+                    $message = "The conditions for using promotional codes are not met!";
                 }
             }
         }
@@ -446,8 +450,9 @@ class OrderController extends BaseController
             });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             $data['currency'] = $currency;
-            if(!empty($code))
+            if(!empty($code)&&$flag==0)
             {
+                $message = '20% off for all products over BIRR300!';
                 $deliveryCoast = $code->free_delivery?0:$deliveryCoasts===null?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_coast']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_coast']) , 2):100);
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
@@ -484,7 +489,7 @@ class OrderController extends BaseController
             )));
         }
         return $this->response->array(
-            array('data'=>AnonymousCollection::collection(collect($returnData)) , 'message'=>'20% off for all products over BIRR300!')
+            array('data'=>AnonymousCollection::collection(collect($returnData)) , 'message'=>$message)
         );
     }
 
