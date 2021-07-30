@@ -280,7 +280,7 @@ class OrderController extends BaseController
         $deliveryCoasts = \json_decode($plaintext , true);
         $key = "helloo:business:goods:service:special:".$goodsId;
         $specialG = Redis::hgetall($key);
-        if($specialG===null||$specialG===false)
+        if(empty($specialG))
         {
             DB::table('special_goods')->where('goods_id' , $goodsId)->update(array('status'=>0 , 'updated_at'=>date('Y-m-d H:i:s')));
             abort(403 , 'This goods is not a special offer!');

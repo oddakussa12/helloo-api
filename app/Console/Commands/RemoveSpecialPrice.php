@@ -130,7 +130,7 @@ class RemoveSpecialPrice extends Command
                 $keys = $goodsIds = array();
                 $key = "helloo:business:goods:service:special:".$g->goods_id;
                 $specialG = Redis::hgetall($key);
-                if($specialG===null||$specialG===false)
+                if(empty($specialG))
                 {
                     array_push($keys , $key);
                     array_push($goodsIds , $g->goods_id);
@@ -138,7 +138,7 @@ class RemoveSpecialPrice extends Command
                 if(!empty($keys))
                 {
                     Redis::del($keys);
-                    DB::table('special_goods')->whereIn('goods_id' , $goodsIds)->update(array(
+                    !empty($goodsIds)&&DB::table('special_goods')->whereIn('goods_id' , $goodsIds)->update(array(
                         'status'=>1,
                         'updated_at'=>date('Y-m-d H:i:s'),
                     ));
