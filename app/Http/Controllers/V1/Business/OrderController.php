@@ -204,6 +204,13 @@ class OrderController extends BaseController
      */
     public function specialOrder(Request $request)
     {
+        $userId = auth()->id();
+        $date = date('Y-m-d');
+        $specialDateKey = "helloo:business:order:service:special:user".$date;
+        if(Redis::SISMEMBER($specialDateKey , $userId))
+        {
+            abort(422 , 'You have already enjoyed the discount today! Thank u!');
+        }
         $goodsId = $request->input('goods_id');
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
@@ -278,6 +285,8 @@ class OrderController extends BaseController
         $returnData['detail'] = $goods->toArray();
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
+        Redis::sadd($specialDateKey , $userId);
+        Redis::expireat($specialDateKey , strtotime("+7 day"));
         unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
         $data['free_delivery'] = boolval($data['free_delivery']);
         OrderSynchronization::dispatch($returnData , 'special')->onQueue('helloo_{order_synchronization}');
