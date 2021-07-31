@@ -39,9 +39,9 @@ class OrderSynchronization implements ShouldQueue
             $detail = $returnData['detail'];
             $data = array(
                 'id'=>Uuid::uuid1()->toString(),
-                'user_id'=>$detail['user_id'],
-                'order_id'=>$detail['order_id'],
-                'shop_id'=>$detail['shop_id'],
+                'user_id'=>$returnData['user_id'],
+                'order_id'=>$returnData['order_id'],
+                'shop_id'=>$returnData['shop_id'],
                 'goods_id'=>$detail['id'],
                 'goods_name'=>$detail['name'],
                 'goods_price'=>$detail['price'],
@@ -49,7 +49,7 @@ class OrderSynchronization implements ShouldQueue
                 'goods_number'=>$detail['goodsNumber'],
                 'goods_image'=>\json_encode($detail['image'] , JSON_UNESCAPED_UNICODE),
                 'goods_currency'=>$detail['currency'],
-                'created_at'=>$detail['created_at'],
+                'created_at'=>$returnData['created_at'],
             );
             DB::table('orders_goods')->insert($data);
         }else{
