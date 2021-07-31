@@ -265,7 +265,7 @@ class BusinessController extends BaseController
             return array(
                 'shop_id'=>$v['shop_id'],
                 'start'=>$v['start'],
-                'end'=>empty($address)?array(0 , 0):array($address->longitude , $address->latitude),
+                'end'=>empty($address)?array(0 , 0):array(floatval($address->longitude) , floatval($address->latitude)),
             );
         } , $location);
         $url = config('common.mapbox_endpoint');
