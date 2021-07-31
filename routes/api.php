@@ -195,7 +195,6 @@ $api->group($V1Params , function ($api){
         $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
         $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
         $api->post('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
-        $api->post('order/special' , 'Business\OrderController@specialOrder')->name('business.order.special');
         $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
         $api->get('order/{order}' , 'Business\OrderController@show')->name('business.order.show');
         $api->group(['middleware'=>['repeatedSubmit']] , function($api){
@@ -207,6 +206,7 @@ $api->group($V1Params , function ($api){
             $api->post('delivery/order' , 'Business\DeliveryOrderController@store')->name('goods.delivery.order.store');
             $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
             $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
+            $api->post('order/special' , 'Business\OrderController@specialOrder')->name('business.order.special');
             $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
             $api->post('follow' , 'Business\FollowController@store')->name('business.follow.store');
             $api->delete('follow/{follow}' , 'Business\FollowController@destroy')->name('business.follow.destroy');
