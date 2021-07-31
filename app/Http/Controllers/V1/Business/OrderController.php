@@ -262,7 +262,7 @@ class OrderController extends BaseController
             'updated_at'=>$now,
         );
         $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$goods->user_id]['delivery_cost']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_cost']) , 2):100);
-        $data['delivery_coast'] = empty($specialG['free_delivery'])?0:$deliveryCoast;
+        $data['delivery_coast'] = !empty(intval($specialG['free_delivery']))?0:$deliveryCoast;
         $data['promo_code'] = '';
         $data['free_delivery'] = $specialG['free_delivery'];
         $data['reduction'] = 0;
