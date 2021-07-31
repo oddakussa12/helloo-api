@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
 use App\Resources\UserCollection;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\Business\PromoCode;
 use App\Jobs\ShoppingCartTransfer;
 use App\Jobs\OrderSynchronization;
