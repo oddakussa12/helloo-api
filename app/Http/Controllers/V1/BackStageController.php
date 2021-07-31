@@ -565,12 +565,18 @@ class BackStageController extends BaseController
     public function updateSpecialGoods(Request $request)
     {
         $id = $request->input('id' , '');
+        $type = $request->input('type' , 'default');
+        $key = "helloo:business:goods:service:special:".$id;
+        if($type=='destroy')
+        {
+            Redis::del($key);
+            return $this->response->accepted();
+        }
         $goods = DB::table('special_goods')->where('id' , $id)->first();
         if(empty($goods))
         {
             abort(404);
         }
-        $key = "helloo:business:goods:service:special:".$goods->goods_id;
         if(strtotime($goods->deadline)>time())
         {
             Redis::hmset($key , array(
