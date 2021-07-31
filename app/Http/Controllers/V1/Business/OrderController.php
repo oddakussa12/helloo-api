@@ -238,6 +238,8 @@ class OrderController extends BaseController
         $userId = $user->user_id;
         $orderId = app('snowflake')->id();
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
+        $orderAddresses = array();
+        $now = date("Y-m-d H:i:s");
         if(is_array($deliveryCoasts))
         {
             foreach ($deliveryCoasts as $k=>$v)
@@ -246,12 +248,22 @@ class OrderController extends BaseController
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
+                array_push($orderAddresses , array(
+                    'id'=>app('snowflake')->id(),
+                    'user_id'=>$userId,
+                    'order_id'=>$orderId,
+                    'user_longitude'=>$v['start'][0],
+                    'user_latitude'=>$v['start'][1],
+                    'shop_longitude'=>$v['end'][0],
+                    'shop_latitude'=>$v['end'][1],
+                    'distance'=>$v['distance'],
+                    'created_at'=>$now,
+                ));
             }
         }
         $orderPrice = $goods->price;
         $goods->specialPrice = $price;
         $goods->goodsNumber = 1;
-        $now = date('Y-m-d H:i:s');
         $data = array(
             'order_id'=>$orderId,
             'user_id'=>strval($userId),
@@ -285,6 +297,10 @@ class OrderController extends BaseController
         $returnData['detail'] = $goods->toArray();
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
+        if(!empty($orderAddresses))
+        {
+            DB::table('orders_addresses')->insert($orderAddresses);
+        }
         Redis::sadd($specialDateKey , $userId);
         Redis::expireat($specialDateKey , strtotime("+7 day"));
         unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
