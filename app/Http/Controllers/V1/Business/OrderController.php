@@ -275,11 +275,13 @@ class OrderController extends BaseController
         $data['profit'] = round($data['discounted_price']-$brokerage , 2);
         $returnData = $data;
         $returnData['free_delivery'] = boolval($specialG['free_delivery']);
-        $returnData['detail'] = new AnonymousCollection($goods);
+        $returnData['detail'] = $goods->toArray();
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
         unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
         $data['free_delivery'] = boolval($data['free_delivery']);
+        OrderSynchronization::dispatch($returnData , 'special')->onQueue('helloo_{order_synchronization}');
+        OrderSms::dispatch(array($data) , 'batch')->onQueue('helloo_{delivery_order_sms}');
         return new AnonymousCollection(collect($returnData));
     }
 
