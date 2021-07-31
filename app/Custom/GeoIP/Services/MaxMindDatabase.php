@@ -13,6 +13,7 @@ class MaxMindDatabase extends Service
      * The "booting" method of the service.
      *
      * @return void
+     * @throws \MaxMind\Db\Reader\InvalidDatabaseException
      */
     public function boot()
     {
@@ -30,14 +31,12 @@ class MaxMindDatabase extends Service
 
         $this->withTemporaryDirectory(function ($directory) {
             $tarFile = sprintf('%s/maxmind.tar.gz', $directory);
-
             file_put_contents($tarFile, fopen($this->config('update_url'), 'r'));
-
-            $handle = popen("tar -xzvf {$tarFile} 2>&1", 'r');
+            $handle = popen("tar -xzvf {$tarFile} -C {$directory} 2>&1", 'r');
             $tmpFile = '';
             while(!feof($handle)) {
                 set_time_limit(3);
-                $buffer = fgets($handle);
+                $buffer = trim(fgets($handle) , "\n");
                 if (pathinfo($buffer, PATHINFO_EXTENSION) === 'mmdb')
                 {
                     $tmpFile = $directory.'/'.$buffer;
