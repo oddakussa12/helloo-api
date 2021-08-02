@@ -280,16 +280,15 @@ class OrderController extends BaseController
      */
     public function specialOrder(Request $request)
     {
-        $userId = auth()->id();
         $date = date('Y-m-d');
+        $userContact = strtr(strval($request->input('user_contact' , '')),array(" "=>"" , '+'=>""));
         $specialDateKey = "helloo:business:order:service:special:user".$date;
-        if(Redis::SISMEMBER($specialDateKey , $userId))
+        if(empty($userContact)||Redis::SISMEMBER($specialDateKey , $userContact))
         {
             abort(422 , 'You have already enjoyed the discount today! Thank u!');
         }
         $goodsId = $request->input('goods_id');
-        $userName = $request->input('user_name' , '');
-        $userContact = $request->input('user_contact' , '');
+        $userName = strval($request->input('user_name' , ''));
         $userAddress = $request->input('user_address' , '');
         $jti = JWTAuth::getClaim('jti');
         $deliveryCoast = strval($request->input('delivery_coast' , ''));
@@ -377,7 +376,7 @@ class OrderController extends BaseController
         {
             DB::table('orders_addresses')->insert($orderAddresses);
         }
-        Redis::sadd($specialDateKey , $userId);
+        Redis::sadd($specialDateKey , $userContact);
         Redis::expireat($specialDateKey , strtotime("+7 day"));
         unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
         $data['free_delivery'] = boolval($data['free_delivery']);
