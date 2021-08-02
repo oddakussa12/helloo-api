@@ -668,7 +668,7 @@ class BackStageController extends BaseController
                     abort(500 , 'special goods log insert failed!');
                 }
                 DB::commit();
-                Redis::EXPIREAT($key , strtotime($goods->deadline));
+                Redis::EXPIREAT($key , strtotime($deadline));
             }catch (\Exception $e)
             {
                 DB::rollBack();
