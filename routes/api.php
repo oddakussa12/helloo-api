@@ -187,6 +187,7 @@ $api->group($V1Params , function ($api){
         $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
         $api->post('business/delivery_cost' , 'Business\BusinessController@deliveryCost')->name('business.delivery_cost');
         $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
+        $api->get('business/discovery/index' , 'Business\BusinessController@discoveryIndex')->name('business.discovery.index');
         $api->get('goods/uncategorized' , 'Business\GoodsController@uncategorized')->name('goods.uncategorized');
         $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
 
