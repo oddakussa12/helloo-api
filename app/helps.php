@@ -1476,6 +1476,7 @@ if (!function_exists('opensslDecryptV2')) {
      * @param $data
      * @param $key
      * @return false|string
+     * @return false|string
      */
     function opensslDecryptV2($data , $key)
     {

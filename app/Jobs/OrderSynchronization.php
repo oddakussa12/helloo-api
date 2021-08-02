@@ -17,9 +17,12 @@ class OrderSynchronization implements ShouldQueue
 
     private $returnData;
 
-    public function __construct($returnData)
+    private $type;
+
+    public function __construct($returnData , $type='default')
     {
         $this->returnData = $returnData;
+        $this->type = $type;
     }
 
     /**
@@ -31,29 +34,48 @@ class OrderSynchronization implements ShouldQueue
     public function handle()
     {
         $returnData = $this->returnData;
-        $data = array();
-        foreach ($returnData as $r)
+        if($this->type=='special')
         {
-            foreach ($r['detail'] as $g)
+            $detail = $returnData['detail'];
+            $data = array(
+                'id'=>Uuid::uuid1()->toString(),
+                'user_id'=>$returnData['user_id'],
+                'order_id'=>$returnData['order_id'],
+                'shop_id'=>$returnData['shop_id'],
+                'goods_id'=>$detail['id'],
+                'goods_name'=>$detail['name'],
+                'goods_price'=>$detail['price'],
+                'discounted_price'=> $detail['discounted_price'] ?? 0,
+                'goods_number'=>$detail['goodsNumber'],
+                'goods_image'=>\json_encode($detail['image'] , JSON_UNESCAPED_UNICODE),
+                'goods_currency'=>$detail['currency'],
+                'created_at'=>$returnData['created_at'],
+            );
+            DB::table('orders_goods')->insert($data);
+        }else{
+            $data = array();
+            foreach ($returnData as $r)
             {
-                array_push($data , array(
-                    'id'=>Uuid::uuid1()->toString(),
-                    'user_id'=>$r['user_id'],
-                    'order_id'=>$r['order_id'],
-                    'shop_id'=>$r['shop_id'],
-                    'goods_id'=>$g['id'],
-                    'goods_name'=>$g['name'],
-                    'goods_price'=>$g['price'],
-                    'discounted_price'=> $g['discounted_price'] ?? 0,
-                    'packaging_cost'=> $g['packaging_cost'] ?? 0,
-                    'goods_number'=>$g['goodsNumber'],
-                    'goods_image'=>\json_encode($g['image'] , JSON_UNESCAPED_UNICODE),
-                    'goods_currency'=>$g['currency'],
-                    'created_at'=>$r['created_at'],
-                ));
+                foreach ($r['detail'] as $g)
+                {
+                    array_push($data , array(
+                        'id'=>Uuid::uuid1()->toString(),
+                        'user_id'=>$r['user_id'],
+                        'order_id'=>$r['order_id'],
+                        'shop_id'=>$r['shop_id'],
+                        'goods_id'=>$g['id'],
+                        'goods_name'=>$g['name'],
+                        'goods_price'=>$g['price'],
+                        'discounted_price'=> $g['discounted_price'] ?? 0,
+                        'goods_number'=>$g['goodsNumber'],
+                        'goods_image'=>\json_encode($g['image'] , JSON_UNESCAPED_UNICODE),
+                        'goods_currency'=>$g['currency'],
+                        'created_at'=>$r['created_at'],
+                    ));
+                }
             }
+            !empty($data)&&DB::table('orders_goods')->insert($data);
         }
-        !empty($data)&&DB::table('orders_goods')->insert($data);
     }
 
 }

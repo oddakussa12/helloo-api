@@ -581,7 +581,7 @@ class GoodsController extends BaseController
         $appends['per_page'] = $perPage;
         $specialGoods = DB::table('special_goods')->where('status' , 1)->select(['goods_id' , 'special_price'])->orderByDesc('updated_at')->paginate($perPage , ['*'] , $pageName , $page);
         $goodIds = $specialGoods->pluck('goods_id')->unique()->toArray();
-        $goods = Goods::where('id', $goodIds)->get();
+        $goods = Goods::whereIn('id', $goodIds)->get();
         $shopIds = $goods->pluck('user_id')->unique()->toArray();
         $shops = app(UserRepository::class)->findByUserIds($shopIds);
         $goods->each(function($g) use ($specialGoods , $shops){

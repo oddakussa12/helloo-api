@@ -207,6 +207,7 @@ $api->group($V1Params , function ($api){
             $api->post('delivery/order' , 'Business\DeliveryOrderController@store')->name('goods.delivery.order.store');
             $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
             $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
+            $api->post('order/special' , 'Business\OrderController@specialOrder')->name('business.order.special');
             $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
             $api->post('follow' , 'Business\FollowController@store')->name('business.follow.store');
             $api->delete('follow/{follow}' , 'Business\FollowController@destroy')->name('business.follow.destroy');

@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
 use App\Resources\UserCollection;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\Business\PromoCode;
 use App\Jobs\ShoppingCartTransfer;
 use App\Jobs\OrderSynchronization;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Resources\OrderCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -272,8 +272,21 @@ class OrderController extends BaseController
         return AnonymousCollection::collection(collect($returnData));
     }
 
+    /**
+     * @note 特价下单
+     * @datetime 2021-07-30 20:07
+     * @param Request $request
+     * @return AnonymousCollection
+     */
     public function specialOrder(Request $request)
     {
+        $userId = auth()->id();
+        $date = date('Y-m-d');
+        $specialDateKey = "helloo:business:order:service:special:user".$date;
+        if(Redis::SISMEMBER($specialDateKey , $userId))
+        {
+            abort(422 , 'You have already enjoyed the discount today! Thank u!');
+        }
         $goodsId = $request->input('goods_id');
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
@@ -301,6 +314,8 @@ class OrderController extends BaseController
         $userId = $user->user_id;
         $orderId = app('snowflake')->id();
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
+        $orderAddresses = array();
+        $now = date("Y-m-d H:i:s");
         if(is_array($deliveryCoasts))
         {
             foreach ($deliveryCoasts as $k=>$v)
@@ -309,12 +324,22 @@ class OrderController extends BaseController
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
+                array_push($orderAddresses , array(
+                    'id'=>app('snowflake')->id(),
+                    'user_id'=>$userId,
+                    'order_id'=>$orderId,
+                    'user_longitude'=>$v['start'][0],
+                    'user_latitude'=>$v['start'][1],
+                    'shop_longitude'=>$v['end'][0],
+                    'shop_latitude'=>$v['end'][1],
+                    'distance'=>$v['distance'],
+                    'created_at'=>$now,
+                ));
             }
         }
         $orderPrice = $goods->price;
         $goods->specialPrice = $price;
         $goods->goodsNumber = 1;
-        $now = date('Y-m-d H:i:s');
         $data = array(
             'order_id'=>$orderId,
             'user_id'=>strval($userId),
@@ -332,7 +357,7 @@ class OrderController extends BaseController
             'updated_at'=>$now,
         );
         $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$goods->user_id]['delivery_cost']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_cost']) , 2):100);
-        $data['delivery_coast'] = empty($specialG['free_delivery'])?0:$deliveryCoast;
+        $data['delivery_coast'] = !empty(intval($specialG['free_delivery']))?0:$deliveryCoast;
         $data['promo_code'] = '';
         $data['free_delivery'] = $specialG['free_delivery'];
         $data['reduction'] = 0;
@@ -345,11 +370,19 @@ class OrderController extends BaseController
         $data['profit'] = round($data['discounted_price']-$brokerage , 2);
         $returnData = $data;
         $returnData['free_delivery'] = boolval($specialG['free_delivery']);
-        $returnData['detail'] = new AnonymousCollection($goods);
+        $returnData['detail'] = $goods->toArray();
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
+        if(!empty($orderAddresses))
+        {
+            DB::table('orders_addresses')->insert($orderAddresses);
+        }
+        Redis::sadd($specialDateKey , $userId);
+        Redis::expireat($specialDateKey , strtotime("+7 day"));
         unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
         $data['free_delivery'] = boolval($data['free_delivery']);
+        OrderSynchronization::dispatch($returnData , 'special')->onQueue('helloo_{order_synchronization}');
+        OrderSms::dispatch(array($data) , 'batch')->onQueue('helloo_{delivery_order_sms}');
         return new AnonymousCollection(collect($returnData));
     }
 
