@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers\V1;
 
-
-use App\Repositories\Contracts\UserRepository;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\BlackUser;
 use App\Models\UserScore;
 use App\Custom\RedisList;
 use Illuminate\Http\Request;
-use App\Models\Business\Shop;
+use App\Models\Business\Goods;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Business\SpecialGoods;
 use Illuminate\Support\Facades\Validator;
-use Dingo\Api\Exception\ResourceException;
+use App\Repositories\Contracts\UserRepository;
 
 
 class BackStageController extends BaseController
@@ -30,7 +29,6 @@ class BackStageController extends BaseController
     {
         $lastVersion = 'helloo:app:service:new-version';
         Redis::del($lastVersion);
-        //backStage/version/upgrade
         return $this->response->noContent();
     }
 
@@ -562,34 +560,160 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 更新/新增/删除特价商品
+     * @datetime 2021-08-02 16:58
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function updateSpecialGoods(Request $request)
     {
-        $id = $request->input('id' , '');
-        $type = $request->input('type' , 'default');
-        $goods = DB::table('special_goods')->where('id' , $id)->first();
-        if(empty($goods))
+        $rules = [
+            'id' => 'bail|required_if:type,update,destroy|string',
+            'goods_id' => 'bail|required_if:type,store|string',
+            'special_price' => 'bail|required_if:type,store,update|numeric|between:0,99999',
+            'free_delivery' => [
+                'bail',
+                'required_if:type,store,update',
+                Rule::in(array(0,1))
+            ],
+            'packaging_cost' => 'bail|required_if:type,store,update|numeric|between:0,100',
+            'deadline' => [
+                'bail',
+                'required_if:type,store,update',
+                'date_format:Y-m-d H:i:s',
+                'after_or_equal:today',
+            ],
+            'type' => [
+                'bail',
+                'required',
+                Rule::in(array('update','store' , 'destroy'))
+            ],
+            'admin_id' => [
+                'bail',
+                'required',
+                'string',
+            ],
+        ];
+        $this->validate($request , $rules);
+        $type = $request->input('type' , '');
+        $adminId = substr($request->input('admin_id' , '') , 0 , 10);
+        $specialPrice = round(floatval($request->input('special_price' , 0)) , 2);
+        $freeDelivery = intval($request->input('free_delivery' , 0));
+        $packagingCost = round(floatval($request->input('packaging_cost' , 0)) , 2);
+        $deadline = strval($request->input('deadline' , ''));
+        $now = date('Y-m-d H:i:s');
+        if(in_array($type , array('store' , 'update'))&&date('Y-m-d H:i:s' , strtotime($deadline))!=$deadline)
         {
-            abort(404);
+            abort(422 , 'deadline format error!');
         }
-        $key = "helloo:business:goods:service:special:".$goods->goods_id;
-        if($type=='destroy')
+        if($type=='store')
         {
-            Redis::del($key);
-            return $this->response->accepted();
-        }
-        if(strtotime($goods->deadline)>time())
-        {
-            Redis::hmset($key , array(
-                'special_price'=>$goods->special_price,
-                'free_delivery'=>$goods->free_delivery,
-                'packaging_cost'=>$goods->packaging_cost,
-                'deadline'=>$goods->deadline,
-                'status'=>$goods->status,
+            $goodsId = $request->input('goods_id' , '');
+            $goods = SpecialGoods::where('goods_id' , $goodsId)->first();
+            if(!empty($goods))
+            {
+                abort(422 , 'Goods already exists!');
+            }
+            $goods = Goods::where('id' , $goodsId)->firstOrFail();
+            $key = "helloo:business:goods:service:special:".$goodsId;
+            $result = DB::table('special_goods')->insert(array(
+                'shop_id'=>$goods->user_id,
+                'goods_id'=>$goodsId,
+                'special_price'=>$specialPrice,
+                'free_delivery'=>$freeDelivery,
+                'packaging_cost'=>$packagingCost,
+                'deadline'=>$deadline,
+                'admin_id'=>$adminId,
+                'created_at'=>$now,
+                'updated_at'=>$now
             ));
-            Redis::EXPIREAT($key , strtotime($goods->deadline));
-        }else{
-            DB::table('special_goods')->where('id' , $id)->update(array('status'=>0 , 'updated_at'=>date('Y-m-d H:i:s')));
-            Redis::del($key);
+            if(!$result)
+            {
+                abort(500 , 'special goods insert failed!');
+            }
+            Redis::hmset($key , array(
+                'special_price'=>$specialPrice,
+                'free_delivery'=>$freeDelivery,
+                'packaging_cost'=>$packagingCost,
+                'deadline'=>$deadline,
+                'status'=>1,
+            ));
+            Redis::EXPIREAT($key , strtotime($deadline));
+        }elseif ($type=='update')
+        {
+            $id = $request->input('id' , '');
+            $goods = SpecialGoods::where('id' , $id)->firstOrFail();
+            $goods = $goods->makeVisible(array('admin_id'));
+            $data = $goods->toArray();
+            $data['log_updated_at'] = $now;
+            $key = "helloo:business:goods:service:special:".$goods->goods_id;
+            try{
+                DB::beginTransaction();
+                $updateResult = DB::table('special_goods')->where('id' , $id)->update(array(
+                    'special_price'=>$specialPrice,
+                    'free_delivery'=>$freeDelivery,
+                    'packaging_cost'=>$packagingCost,
+                    'deadline'=>$deadline,
+                    'admin_id'=>$adminId,
+                    'updated_at'=>$now
+                ));
+                if($updateResult<=0)
+                {
+                    abort(500 , 'special goods update failed!');
+                }
+                $result = DB::table('special_goods_logs')->insert($data);
+                if(!$result)
+                {
+                    abort(500 , 'special goods log insert failed!');
+                }
+                DB::commit();
+                Redis::EXPIREAT($key , strtotime($goods->deadline));
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('special_goods_update_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'data'=>$request->all()
+                ));
+            }
+        }elseif ($type=='destroy')
+        {
+            $id = $request->input('id' , '');
+            $goods = SpecialGoods::where('id' , $id)->first();
+            if(empty($goods))
+            {
+                abort(404);
+            }
+            $goods = $goods->makeVisible(array('admin_id'));
+            $key = "helloo:business:goods:service:special:".$goods->goods_id;
+            $data = $goods->toArray();
+            $data['log_updated_at'] = $now;
+            $ds = array($data);
+            $data['admin_id'] = $adminId;
+            array_push($ds , $data);
+            try{
+                DB::beginTransaction();
+                $deleteResult = DB::table('special_goods')->where('id' , $id)->delete();
+                if($deleteResult<=0)
+                {
+                    abort(500 , 'special goods delete failed!');
+                }
+                $result = DB::table('special_goods_logs')->insert($ds);
+                if(!$result)
+                {
+                    abort(500 , 'special goods log insert failed!');
+                }
+                DB::commit();
+                Redis::del($key);
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('special_goods_destroy_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'data'=>$request->all()
+                ));
+            }
         }
         return $this->response->accepted();
     }
