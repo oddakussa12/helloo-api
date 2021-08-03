@@ -96,7 +96,7 @@ class OrderController extends BaseController
             {
                 if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
                 {
-                    abort(422 , 'Illegal delivery coast format!');
+                    abort(422 , 'Illegal delivery cost format!');
                 }
             }
         }
@@ -311,7 +311,7 @@ class OrderController extends BaseController
             {
                 if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
                 {
-                    abort(422 , 'Illegal delivery coast format!');
+                    abort(422 , 'Illegal delivery cost format!');
                 }
             }
         }
@@ -482,7 +482,6 @@ class OrderController extends BaseController
         $userName = $request->input('user_name' , '');
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
-        $promoCode = $request->input('promo_code' , '');
         $gIds = array_keys($goods);
         if(count($gIds)!=1)
         {
@@ -526,7 +525,7 @@ class OrderController extends BaseController
             {
                 if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
                 {
-                    abort(422 , 'Illegal delivery coast format!');
+                    abort(422 , 'Illegal delivery cost format!');
                 }
             }
         }
@@ -618,14 +617,6 @@ class OrderController extends BaseController
                 if(!$orderResult)
                 {
                     abort('500' , 'order insert failed!');
-                }
-                if(!empty($code)&&$code->limit>0)
-                {
-                    $codeResult = DB::table('promo_codes')->where('promo_code' , $promoCode)->decrement('limit');
-                    if($codeResult<=0)
-                    {
-                        abort('500' , 'promo code update failed!');
-                    }
                 }
                 if(!empty($orderAddresses))
                 {
