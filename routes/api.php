@@ -239,6 +239,8 @@ $api->group($V1Params , function ($api){
 
     $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
 
+    $api->get('business/special_goods' , 'Business\BusinessController@specialGoods')->name('business.special_goods');
+
     $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');
 
     $api->get('business/discovery/index' , 'Business\BusinessController@discoveryIndex')->name('business.discovery.index');
