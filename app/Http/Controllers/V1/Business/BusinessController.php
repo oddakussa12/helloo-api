@@ -121,7 +121,7 @@ class BusinessController extends BaseController
             ->where('user_verified' , 1)
             ->where('user_delivery' , 1)
             ->orderByDesc('user_created_at')
-            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop'])
+            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address'])
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
