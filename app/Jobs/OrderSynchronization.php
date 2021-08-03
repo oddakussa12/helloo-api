@@ -51,6 +51,10 @@ class OrderSynchronization implements ShouldQueue
                 'goods_currency'=>$detail['currency'],
                 'created_at'=>$returnData['created_at'],
             );
+            if(isset($detail['specialPrice']))
+            {
+                $data['goods_special_price'] = $detail['specialPrice'];
+            }
             DB::table('orders_goods')->insert($data);
         }else{
             $data = array();
@@ -58,7 +62,7 @@ class OrderSynchronization implements ShouldQueue
             {
                 foreach ($r['detail'] as $g)
                 {
-                    array_push($data , array(
+                    $d = array(
                         'id'=>Uuid::uuid1()->toString(),
                         'user_id'=>$r['user_id'],
                         'order_id'=>$r['order_id'],
@@ -71,7 +75,12 @@ class OrderSynchronization implements ShouldQueue
                         'goods_image'=>\json_encode($g['image'] , JSON_UNESCAPED_UNICODE),
                         'goods_currency'=>$g['currency'],
                         'created_at'=>$r['created_at'],
-                    ));
+                    );
+                    if(isset($g['specialPrice']))
+                    {
+                        $d['goods_special_price'] = $g['specialPrice'];
+                    }
+                    array_push($data , $d);
                 }
             }
             !empty($data)&&DB::table('orders_goods')->insert($data);
