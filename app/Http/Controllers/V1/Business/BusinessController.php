@@ -410,8 +410,10 @@ class BusinessController extends BaseController
     {
         $count = DB::table('special_goods')->where('status' , 1)->count();
         return $this->response->array(array(
-            'count'=>$count,
-            'image'=>'https://test.image.helloo.mantouhealth.com/9188905e74c28e489b44e954ec0b9bca/20210724/259464558865809408.png'
+            'data'=>array(
+                'count'=>$count,
+                'image'=>'https://test.image.helloo.mantouhealth.com/9188905e74c28e489b44e954ec0b9bca/20210724/259464558865809408.png'
+            )
         ));
     }
 }
