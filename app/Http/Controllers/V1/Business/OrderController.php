@@ -990,7 +990,7 @@ class OrderController extends BaseController
             {
                 $status = 200;
                 $message = $code->description;
-                $deliveryCoast = $code->free_delivery?0:!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
+                $deliveryCoast = $code->free_delivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100));
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
                 {
@@ -1116,7 +1116,7 @@ class OrderController extends BaseController
             $freeDelivery = collect($shopGs)->every(function ($value, $key) {
                 return !empty($value['free_delivery']);
             });
-            $deliveryCoast = $freeDelivery==true?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100));
+            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100));
             $totalPrice = round($promoPrice , 2);
             array_push($returnData , array_merge($data , array(
                 'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
