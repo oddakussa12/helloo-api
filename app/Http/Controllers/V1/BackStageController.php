@@ -729,4 +729,11 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    public function updateGoodsDiscountedSwitch(Request $request)
+    {
+        $switch = intval($request->input('switch' , 0));
+        Redis::set("helloo:business:order:service:discounted:switch" , $switch);
+        return $this->response->accepted();
+    }
+
 }
