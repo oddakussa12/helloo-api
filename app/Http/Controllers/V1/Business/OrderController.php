@@ -989,7 +989,7 @@ class OrderController extends BaseController
             if(!empty($code)&&$flag==0)
             {
                 $status = 200;
-                $message = '20% off for all products over BIRR300!';
+                $message = $code->description;
                 $deliveryCoast = $code->free_delivery?0:!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
