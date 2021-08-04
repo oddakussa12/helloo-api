@@ -768,7 +768,7 @@ class OrderController extends BaseController
         }
         if(!empty($promoCode))
         {
-            $this->promoPreview($request);
+            return $this->promoPreview($request);
         }
         return $this->normalPreview($request);
     }
