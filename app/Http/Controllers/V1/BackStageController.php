@@ -668,6 +668,12 @@ class BackStageController extends BaseController
                     abort(500 , 'special goods log insert failed!');
                 }
                 DB::commit();
+                Redis::hmset($key , array(
+                    'special_price'=>$specialPrice,
+                    'free_delivery'=>$freeDelivery,
+                    'packaging_cost'=>$packagingCost,
+                    'deadline'=>$deadline,
+                ));
                 Redis::EXPIREAT($key , strtotime($deadline));
             }catch (\Exception $e)
             {
