@@ -312,6 +312,8 @@ $api->group($V1Params , function ($api){
 
     $api->group(['prefix'=>'backstage'] , function ($api) {
 
+        $api->patch('special_goods/image' , 'BackStageController@updateSpecialGoodsImage')->name('backstage.update.special_goods.image');
+
         $api->patch('shop_tag/refresh' , 'BackStageController@refreshShopTag')->name('backstage.refresh.shop_tag');
 
         $api->patch('version/upgrade' , 'BackStageController@versionUpgrade')->name('backstage.version.upgrade');

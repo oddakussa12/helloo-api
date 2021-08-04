@@ -409,10 +409,12 @@ class BusinessController extends BaseController
     public function specialGoods()
     {
         $count = DB::table('special_goods')->where('status' , 1)->count();
+        $key = 'helloo:business:special_goods:image';
+        $image = Redis::get($key);
         return $this->response->array(array(
             'data'=>array(
                 'count'=>$count,
-                'image'=>'https://test.image.helloo.mantouhealth.com/9188905e74c28e489b44e954ec0b9bca/20210724/259464558865809408.png'
+                'image'=>$image??'https://test.image.helloo.mantouhealth.com/other/20210804/263383725620854784.jpg'
             )
         ));
     }

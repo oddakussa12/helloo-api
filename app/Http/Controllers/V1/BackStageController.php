@@ -718,4 +718,15 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    public function updateSpecialGoodsImage(Request $request)
+    {
+        $image = $request->input('image' , '');
+        if(filter_var($image, FILTER_VALIDATE_URL) !== false)
+        {
+            $key = 'helloo:business:special_goods:image';
+            Redis::set($key , $image);
+        }
+        return $this->response->accepted();
+    }
+
 }
