@@ -10,8 +10,9 @@ use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Pagination\Paginator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
@@ -271,6 +272,7 @@ class BusinessController extends BaseController
     public function deliveryCost(Request $request)
     {
         $user = auth()->user();
+        $jti = JWTAuth::getClaim('jti');
         $location = (array)$request->input('location' , array());
         $location = array_slice($location , 0 , 3);
         $distances = array();
@@ -403,7 +405,20 @@ class BusinessController extends BaseController
                 array_push($distances , $data);
             }
         }
-        return $this->response->array(array('data'=>$distances));
+        $secret = array();
+        foreach ($distances as $d)
+        {
+            $secret[$d['shop_id']] = array(
+                'distance'=>$d['distance'],
+                'delivery_cost'=>$d['delivery_cost'],
+                'start'=>$d['start']['location'],
+                'end'=>$d['end']['location'],
+            );
+        }
+        Log::info('$secret' , $secret);
+        $str = opensslEncrypt(\json_encode($secret) , $jti);
+        Log::info('$str' , array($str , opensslDecryptV2($str , $jti)));
+        return $this->response->array(array('data'=>$distances))->withHeader('delivery_coast' , $str);
     }
 
     public function specialGoods()
