@@ -429,7 +429,7 @@ class BusinessController extends BaseController
         return $this->response->array(array(
             'data'=>array(
                 'count'=>$count,
-                'image'=>$image??'https://test.image.helloo.mantouhealth.com/other/20210804/263383725620854784.jpg'
+                'image'=>$image?:'https://test.image.helloo.mantouhealth.com/other/20210804/263383725620854784.jpg'
             )
         ));
     }
