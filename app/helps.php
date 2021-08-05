@@ -1455,7 +1455,7 @@ if (!function_exists('opensslEncrypt')) {
      */
     function opensslEncrypt($data , $key)
     {
-        return base64_encode(openssl_encrypt($data,"AES-128-CBC",$key,OPENSSL_RAW_DATA , '1234567890789456'));
+        return base64_encode(openssl_encrypt($data,"AES-128-CBC",$key,OPENSSL_RAW_DATA , $key));
     }
 }
 
