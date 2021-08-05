@@ -165,7 +165,7 @@ class OrderController extends BaseController
             $data['reduction'] = 0;
             $data['discount'] = 100;
             $totalPrice = round($promoPrice , 2);
-            $discountedPrice = round($promoPrice+$deliveryCoast , 2);
+            $discountedPrice = round($promoPrice+$deliveryCoast+$packagingCost , 2);
             if($discounted&&$orderNumber==1)
             {
                 $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
@@ -387,10 +387,10 @@ class OrderController extends BaseController
             if($code->discount_type=='discount')
             {
                 $totalPrice = round($promoPrice*$code->percentage/100 , 2);
-                $discountedPrice = round($promoPrice*$code->percentage/100+$deliveryCoast , 2);
+                $discountedPrice = round($promoPrice*$code->percentage/100+$deliveryCoast+$packagingCost , 2);
             }else{
                 $totalPrice = round($promoPrice-$code->reduction , 2);
-                $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast , 2);
+                $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast+$packagingCost , 2);
             }
             if($orderNumber==1&&$discounted==true)
             {
@@ -472,6 +472,13 @@ class OrderController extends BaseController
      */
     private function specialStore(Request $request)
     {
+        $date = date('Y-m-d');
+        $userContact = strtr(strval($request->input('user_contact' , '')),array(" "=>"" , '+'=>""));
+        $specialDateKey = "helloo:business:order:service:special:user".$date;
+        if(empty($userContact)||Redis::SISMEMBER($specialDateKey , $userContact))
+        {
+            abort(422 , 'You have already enjoyed the discount today! Thank u!');
+        }
         $user = auth()->user();
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
@@ -480,7 +487,6 @@ class OrderController extends BaseController
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
         $userName = $request->input('user_name' , '');
-        $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
         $gIds = array_keys($goods);
         if(count($gIds)!=1)
@@ -593,7 +599,7 @@ class OrderController extends BaseController
             $data['reduction'] = 0;
             $data['discount'] = 100;
             $totalPrice = round($promoPrice , 2);
-            $discountedPrice = round($promoPrice+$deliveryCoast , 2);
+            $discountedPrice = round($promoPrice+$deliveryCoast+$packagingCost , 2);
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = '';
@@ -623,6 +629,8 @@ class OrderController extends BaseController
                     DB::table('orders_addresses')->insert($orderAddresses);
                 }
                 DB::commit();
+                Redis::sadd($specialDateKey , $userContact);
+                Redis::expireat($specialDateKey , strtotime("+7 day"));
             }catch (\Exception $e)
             {
                 DB::rollBack();
@@ -728,7 +736,7 @@ class OrderController extends BaseController
         $data['free_delivery'] = $specialG['free_delivery'];
         $data['reduction'] = 0;
         $data['discount'] = 100;
-        $data['discounted_price'] = $price+$data['delivery_coast'];
+        $data['discounted_price'] = round($price+$data['delivery_coast']+$data['packaging_cost'] , 2);
         $data['total_price'] = $price;
         $data['brokerage_percentage'] = $brokerage_percentage;
         $brokerage = round($brokerage_percentage/100*$price , 2);
