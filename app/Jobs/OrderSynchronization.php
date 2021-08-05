@@ -79,6 +79,8 @@ class OrderSynchronization implements ShouldQueue
                     if(isset($g['specialPrice']))
                     {
                         $d['goods_special_price'] = $g['specialPrice'];
+                    }else{
+                        $d['goods_special_price'] = 0;
                     }
                     array_push($data , $d);
                 }
