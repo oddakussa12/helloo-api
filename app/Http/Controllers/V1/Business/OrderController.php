@@ -107,10 +107,10 @@ class OrderController extends BaseController
         $returnData = array();
         $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
-        $firstKey = "helloo:business:order:service:first";
+//        $firstKey = "helloo:business:order:service:first";
         $orderNumber = count($shopGoods);
         $orderAddresses = array();
-        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
+//        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
@@ -166,22 +166,22 @@ class OrderController extends BaseController
             $data['discount'] = 100;
             $totalPrice = round($promoPrice , 2);
             $discountedPrice = round($promoPrice+$deliveryCoast+$packagingCost , 2);
-            if($discounted&&$orderNumber==1)
-            {
-                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
-                if($discount>0)
-                {
-                    $r = Redis::sadd($firstKey , $user->user_id);
-                    if($r)
-                    {
-                        $firstTotal = $totalPrice-$discount;
-                        $totalPrice = $firstTotal<0?0:$totalPrice;
-                        $firstDiscount = $discountedPrice-$discount;
-                        $discountedPrice = $firstDiscount<0?0:$firstDiscount;
-                        $data['first_order'] = round($discount , 2);
-                    }
-                }
-            }
+//            if($discounted&&$orderNumber==1)
+//            {
+//                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
+//                if($discount>0)
+//                {
+//                    $r = Redis::sadd($firstKey , $user->user_id);
+//                    if($r)
+//                    {
+//                        $firstTotal = $totalPrice-$discount;
+//                        $totalPrice = $firstTotal<0?0:$totalPrice;
+//                        $firstDiscount = $discountedPrice-$discount;
+//                        $discountedPrice = $firstDiscount<0?0:$firstDiscount;
+//                        $data['first_order'] = round($discount , 2);
+//                    }
+//                }
+//            }
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
@@ -214,10 +214,10 @@ class OrderController extends BaseController
             }catch (\Exception $e)
             {
                 DB::rollBack();
-                if(isset($r)&&$r)
-                {
-                    Redis::srem($firstKey , $user->user_id);
-                }
+//                if(isset($r)&&$r)
+//                {
+//                    Redis::srem($firstKey , $user->user_id);
+//                }
                 Log::info('normal_order_store_fail' , array(
                     'message'=>$e->getMessage(),
                     'user_id'=>$userId,
@@ -322,10 +322,10 @@ class OrderController extends BaseController
         $returnData = array();
         $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
-        $firstKey = "helloo:business:order:service:first";
+//        $firstKey = "helloo:business:order:service:first";
         $orderNumber = count($shopGoods);
         $orderAddresses = array();
-        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
+//        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
@@ -392,22 +392,22 @@ class OrderController extends BaseController
                 $totalPrice = round($promoPrice-$code->reduction , 2);
                 $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast+$packagingCost , 2);
             }
-            if($orderNumber==1&&$discounted==true)
-            {
-                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
-                if($discount>0)
-                {
-                    $r = Redis::sadd($firstKey , $user->user_id);
-                    if($r)
-                    {
-                        $firstTotal = $totalPrice-$discount;
-                        $totalPrice = $firstTotal<0?0:$totalPrice;
-                        $firstDiscount = $discountedPrice-$discount;
-                        $discountedPrice = $firstDiscount<0?0:$firstDiscount;
-                        $data['first_order'] = round($discount , 2);
-                    }
-                }
-            }
+//            if($orderNumber==1&&$discounted==true)
+//            {
+//                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
+//                if($discount>0)
+//                {
+//                    $r = Redis::sadd($firstKey , $user->user_id);
+//                    if($r)
+//                    {
+//                        $firstTotal = $totalPrice-$discount;
+//                        $totalPrice = $firstTotal<0?0:$totalPrice;
+//                        $firstDiscount = $discountedPrice-$discount;
+//                        $discountedPrice = $firstDiscount<0?0:$firstDiscount;
+//                        $data['first_order'] = round($discount , 2);
+//                    }
+//                }
+//            }
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
@@ -445,10 +445,10 @@ class OrderController extends BaseController
             }catch (\Exception $e)
             {
                 DB::rollBack();
-                if(isset($r)&&$r)
-                {
-                    Redis::srem($firstKey , $user->user_id);
-                }
+//                if(isset($r)&&$r)
+//                {
+//                    Redis::srem($firstKey , $user->user_id);
+//                }
                 Log::info('promo_order_store_fail' , array(
                     'message'=>$e->getMessage(),
                     'user_id'=>$userId,
@@ -836,7 +836,7 @@ class OrderController extends BaseController
                 }
             }
         }
-        $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
+//        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
         $status = 0;
         $message = '';
         $shopGoods->each(function($g) use ($filterGoods){
@@ -866,20 +866,20 @@ class OrderController extends BaseController
             $data['currency'] = $currency;
             $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
             $totalPrice = round($promoPrice , 2);
-            if($discounted&&$orderNumber==1)
-            {
-                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
-                if($discount>0)
-                {
-                    $firstKey = "helloo:business:order:service:first";
-                    $r = Redis::sismember($firstKey , $user->user_id);
-                    if($r)
-                    {
-                        $firstTotal = $totalPrice-$discount;
-                        $totalPrice = $firstTotal<0?0:$totalPrice;
-                    }
-                }
-            }
+//            if($discounted&&$orderNumber==1)
+//            {
+//                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
+//                if($discount>0)
+//                {
+//                    $firstKey = "helloo:business:order:service:first";
+//                    $r = Redis::sismember($firstKey , $user->user_id);
+//                    if($r)
+//                    {
+//                        $firstTotal = $totalPrice-$discount;
+//                        $totalPrice = $firstTotal<0?0:$totalPrice;
+//                    }
+//                }
+//            }
             array_push($returnData , array_merge($data , array(
                 'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
                 'goods'=>$shopGs,
@@ -949,7 +949,7 @@ class OrderController extends BaseController
                 }
             }
         }
-        $discounted = boolval(Redis::get("helloo:business:order:service:discounted"));
+        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
         $flag = $status = 0;
         $message = '';
         $code = PromoCode::where('promo_code' , $promoCode)->first();
@@ -1010,20 +1010,20 @@ class OrderController extends BaseController
                 $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
                 $totalPrice = round($promoPrice , 2);
             }
-            if($discounted)
-            {
-                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
-                if($discount>0)
-                {
-                    $firstKey = "helloo:business:order:service:first";
-                    $r = Redis::sismember($firstKey , $user->user_id);
-                    if($r)
-                    {
-                        $firstTotal = $totalPrice-$discount;
-                        $totalPrice = $firstTotal<0?0:$totalPrice;
-                    }
-                }
-            }
+//            if($discounted)
+//            {
+//                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
+//                if($discount>0)
+//                {
+//                    $firstKey = "helloo:business:order:service:first";
+//                    $r = Redis::sismember($firstKey , $user->user_id);
+//                    if($r)
+//                    {
+//                        $firstTotal = $totalPrice-$discount;
+//                        $totalPrice = $firstTotal<0?0:$totalPrice;
+//                    }
+//                }
+//            }
             array_push($returnData , array_merge($data , array(
                 'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),
                 'goods'=>$shopGs,
