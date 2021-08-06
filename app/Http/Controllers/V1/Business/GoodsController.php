@@ -434,7 +434,7 @@ class GoodsController extends BaseController
         if($packaging_cost!==null)
         {
             $packaging_cost = floatval($packaging_cost);
-            $validationField['packaging_cost'] = $data['packaging_cost'] = $packaging_cost;
+            $validationField['packaging_cost'] = $params['packaging_cost'] = $packaging_cost;
         }
         try {
             Validator::make($validationField, $rules)->validate();
