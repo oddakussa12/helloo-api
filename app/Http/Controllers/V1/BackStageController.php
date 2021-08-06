@@ -793,8 +793,8 @@ class BackStageController extends BaseController
             ],
             'admin_id' => [
                 'bail',
-                'required',
                 'string',
+                'required_if:type,store,update'
             ],
         ];
         $this->validate($request , $rules);
@@ -817,58 +817,58 @@ class BackStageController extends BaseController
         if($type=='store')
         {
             $goodsId = $request->input('goods_id' , '');
-            $goods = SpecialGoods::where('goods_id' , $goodsId)->first();
+            $goods = DelaySpecialGoods::where('goods_id' , $goodsId)->first();
             if(!empty($goods))
             {
                 abort(422 , 'Goods already exists!');
             }
             $goods = Goods::where('id' , $goodsId)->firstOrFail();
             $data = array(
+                'shop_id'=>$goods->user_id,
+                'goods_id'=>$goodsId,
+                'admin_id'=>$adminId,
                 'special_price'=>$specialPrice,
                 'free_delivery'=>$freeDelivery,
                 'packaging_cost'=>$packagingCost,
                 'deadline'=>$deadline,
                 'start_time'=>$start_time,
+                'created_at'=>$now,
+                'updated_at'=>$now,
             );
-            $delaySpecialGoods = new DelaySpecialGoodsJob($data);
-            $this->dispatch($delaySpecialGoods->onQueue('helloo_{delay_special_goods}')->delay(120));
-            $jobId = $delaySpecialGoods->job->getJobId();
-            $data['shop_id'] = $goods->user_id;
-            $data['goods_id'] = $goodsId;
-            $data['admin_id'] = $adminId;
-            $data['delay_id'] = $jobId;
-            $data['created_at'] = $now;
-            $data['updated_at'] = $now;
-            $result = DB::table('delay_delay_special_goods')->insert($data);
-            if(!$result)
-            {
-                abort(500 , 'special goods insert failed!');
-            }
+            $id = DB::table('delay_special_goods')->insertGetId($data);
+            $delaySpecialGoods = new DelaySpecialGoodsJob($id);
+            $delay = strtotime($start_time)-time();
+            Log::info('$delay' , array($delay));
+            $this->dispatch($delaySpecialGoods->onQueue('helloo_{delay_special_goods}')->delay($delay));
         }elseif ($type=='update')
         {
             $id = $request->input('id' , '');
-            DelaySpecialGoods::where('id' , $id)->firstOrFail();
+            $goods = DelaySpecialGoods::where('id' , $id)->firstOrFail();
             $data = array(
+                'shop_id'=>$goods->user_id,
+                'goods_id'=>$goods->goods_id,
+                'admin_id'=>$adminId,
                 'special_price'=>$specialPrice,
                 'free_delivery'=>$freeDelivery,
                 'packaging_cost'=>$packagingCost,
                 'deadline'=>$deadline,
                 'start_time'=>$start_time,
+                'created_at'=>$now,
+                'updated_at'=>$now,
             );
-            $delaySpecialGoods = new DelaySpecialGoodsJob($data);
-            $this->dispatch($delaySpecialGoods->onQueue('helloo_{delay_special_goods}')->delay(120));
-            $jobId = $delaySpecialGoods->job->getJobId();
-            $data['admin_id'] = $adminId;
-            $data['delay_id'] = $jobId;
-            $data['updated_at'] = $now;
             try{
                 DB::beginTransaction();
-                $updateResult = DB::table('delay_special_goods')->where('id' , $id)->update($data);
-                if($updateResult<=0)
+                $deleteResult = DB::table('delay_special_goods')->where('id' , $id)->delete();
+                if($deleteResult<=0)
                 {
-                    abort(500 , 'delay special goods update failed!');
+                    abort(500 , 'delay special goods update delete failed!');
                 }
+                $id = DB::table('delay_special_goods')->insertGetId($data);
                 DB::commit();
+                $delaySpecialGoods = new DelaySpecialGoodsJob($id);
+                $delay = strtotime($start_time)-time();
+                Log::info('$delay' , array($delay));
+                $this->dispatch($delaySpecialGoods->onQueue('helloo_{delay_special_goods}')->delay($delay));
             }catch (\Exception $e)
             {
                 DB::rollBack();
@@ -893,7 +893,6 @@ class BackStageController extends BaseController
                     abort(500 , 'delay special goods delete failed!');
                 }
                 DB::commit();
-                Redis::del($goods->delay_id);
             }catch (\Exception $e)
             {
                 DB::rollBack();
