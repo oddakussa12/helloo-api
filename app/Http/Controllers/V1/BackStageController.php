@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Models\Business\SpecialGoods;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Business\DelaySpecialGoods;
+use App\Jobs\DelaySpecialGoods as DelaySpecialGoodsJob;
 use App\Repositories\Contracts\UserRepository;
 
 
@@ -724,6 +726,12 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 更新特价活动图片
+     * @datetime 2021-08-05 18:13
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function updateSpecialGoodsImage(Request $request)
     {
         $image = $request->input('image' , '');
@@ -735,10 +743,165 @@ class BackStageController extends BaseController
         return $this->response->accepted();
     }
 
+    /**
+     * @note 更新特价活动开关
+     * @datetime 2021-08-05 18:13
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
     public function updateGoodsDiscountedSwitch(Request $request)
     {
         $switch = intval($request->input('switch' , 0));
         Redis::set("helloo:business:order:service:discounted:switch" , $switch);
+        return $this->response->accepted();
+    }
+
+    /**
+     * @note 更新/新增/删除特价延迟商品
+     * @datetime 2021-08-02 16:58
+     * @param Request $request
+     * @return \Dingo\Api\Http\Response
+     */
+    public function updateDelaySpecialGoods(Request $request)
+    {
+        $rules = [
+            'id' => 'bail|required_if:type,update,destroy|string',
+            'goods_id' => 'bail|required_if:type,store|string',
+            'special_price' => 'bail|required_if:type,store,update|numeric|between:0,99999',
+            'free_delivery' => [
+                'bail',
+                'required_if:type,store,update',
+                Rule::in(array(0,1))
+            ],
+            'packaging_cost' => 'bail|required_if:type,store,update|numeric|between:0,100',
+            'start_time' => [
+                'bail',
+                'required_if:type,store,update',
+                'date_format:Y-m-d H:i:s',
+                'after_or_equal:today',
+            ],
+            'deadline' => [
+                'bail',
+                'required_if:type,store,update',
+                'date_format:Y-m-d H:i:s',
+                'after_or_equal:today',
+            ],
+            'type' => [
+                'bail',
+                'required',
+                Rule::in(array('update','store' , 'destroy'))
+            ],
+            'admin_id' => [
+                'bail',
+                'string',
+                'required_if:type,store,update'
+            ],
+        ];
+        $this->validate($request , $rules);
+        $type = $request->input('type' , '');
+        $adminId = substr($request->input('admin_id' , '') , 0 , 10);
+        $specialPrice = round(floatval($request->input('special_price' , 0)) , 2);
+        $freeDelivery = intval($request->input('free_delivery' , 0));
+        $packagingCost = round(floatval($request->input('packaging_cost' , 0)) , 2);
+        $start_time = strval($request->input('start_time' , ''));
+        $deadline = strval($request->input('deadline' , ''));
+        $now = date('Y-m-d H:i:s');
+        if(in_array($type , array('store' , 'update'))&&date('Y-m-d H:i:s' , strtotime($deadline))!=$deadline)
+        {
+            abort(422 , 'deadline format error!');
+        }
+        if(in_array($type , array('store' , 'update'))&&date('Y-m-d H:i:s' , strtotime($start_time))!=$start_time)
+        {
+            abort(422 , 'start time format error!');
+        }
+        if($type=='store')
+        {
+            $goodsId = $request->input('goods_id' , '');
+            $goods = DelaySpecialGoods::where('goods_id' , $goodsId)->first();
+            if(!empty($goods))
+            {
+                abort(422 , 'Goods already exists!');
+            }
+            $goods = Goods::where('id' , $goodsId)->firstOrFail();
+            $data = array(
+                'shop_id'=>$goods->user_id,
+                'goods_id'=>$goodsId,
+                'admin_id'=>$adminId,
+                'special_price'=>$specialPrice,
+                'free_delivery'=>$freeDelivery,
+                'packaging_cost'=>$packagingCost,
+                'deadline'=>$deadline,
+                'start_time'=>$start_time,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            );
+            $id = DB::table('delay_special_goods')->insertGetId($data);
+            $delaySpecialGoods = new DelaySpecialGoodsJob($id);
+            $delay = strtotime($start_time)-time();
+            Log::info('$delay' , array($delay));
+            $this->dispatch($delaySpecialGoods->onQueue('helloo_{delay_special_goods}')->delay($delay));
+        }elseif ($type=='update')
+        {
+            $id = $request->input('id' , '');
+            $goods = DelaySpecialGoods::where('id' , $id)->firstOrFail();
+            $data = array(
+                'shop_id'=>$goods->user_id,
+                'goods_id'=>$goods->goods_id,
+                'admin_id'=>$adminId,
+                'special_price'=>$specialPrice,
+                'free_delivery'=>$freeDelivery,
+                'packaging_cost'=>$packagingCost,
+                'deadline'=>$deadline,
+                'start_time'=>$start_time,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            );
+            try{
+                DB::beginTransaction();
+                $deleteResult = DB::table('delay_special_goods')->where('id' , $id)->delete();
+                if($deleteResult<=0)
+                {
+                    abort(500 , 'delay special goods update delete failed!');
+                }
+                $id = DB::table('delay_special_goods')->insertGetId($data);
+                DB::commit();
+                $delaySpecialGoods = new DelaySpecialGoodsJob($id);
+                $delay = strtotime($start_time)-time();
+                Log::info('$delay' , array($delay));
+                $this->dispatch($delaySpecialGoods->onQueue('helloo_{delay_special_goods}')->delay($delay));
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('delay_special_goods_update_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'data'=>$request->all()
+                ));
+            }
+        }elseif ($type=='destroy')
+        {
+            $id = $request->input('id' , '');
+            $goods = DelaySpecialGoods::where('id' , $id)->first();
+            if(empty($goods))
+            {
+                abort(404);
+            }
+            try{
+                DB::beginTransaction();
+                $deleteResult = DB::table('delay_special_goods')->where('id' , $id)->delete();
+                if($deleteResult<=0)
+                {
+                    abort(500 , 'delay special goods delete failed!');
+                }
+                DB::commit();
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::info('delay_special_goods_destroy_fail' , array(
+                    'message'=>$e->getMessage(),
+                    'data'=>$request->all()
+                ));
+            }
+        }
         return $this->response->accepted();
     }
 

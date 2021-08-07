@@ -337,6 +337,8 @@ $api->group($V1Params , function ($api){
         $api->post('reject/comment' , 'BackStageController@rejectComment')->name('backStage.reject.comment');
 
         $api->patch('special_goods' , 'BackStageController@updateSpecialGoods')->name('backStage.special_goods.update');
+
+        $api->patch('delay_special_goods' , 'BackStageController@updateDelaySpecialGoods')->name('backStage.delay_special_goods.update');
     });
 
 
