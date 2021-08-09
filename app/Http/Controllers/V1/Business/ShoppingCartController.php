@@ -57,7 +57,7 @@ class ShoppingCartController extends BaseController
             });
             $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = $currency;
-            $shop['deliveryCoast'] = 30;
+            $shop['deliveryCoast'] = 100;
             $shop['subTotal'] = $price;
             $shoppingCarts[$k] = new UserCollection($shop);
         }
@@ -155,7 +155,7 @@ class ShoppingCartController extends BaseController
             });
             $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = $currency;
-            $shop['deliveryCoast'] = 30;
+            $shop['deliveryCoast'] = 100;
             $shop['subTotal'] = $price;
             $shop['subDiscountedTotal'] = $discountedPrice;
             $shops[$k] = new UserCollection($shop);
