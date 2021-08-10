@@ -1071,7 +1071,7 @@ class AuthController extends BaseController
         $agent = new Agent();
         $version = $agent->getHttpHeader('HellooVersion');
         $deviceId = $agent->getHttpHeader('deviceId');
-        if(!empty($deviceId)&&version_compare($version , config('common.block_version') , '<='))
+        if(!empty($version)&&version_compare($version , config('common.block_version') , '<='))
         {
             abort(401 , __('Please update to the latest version from Play Store.'));
         }
