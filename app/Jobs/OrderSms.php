@@ -83,9 +83,9 @@ class OrderSms implements ShouldQueue
         ));
 
         $response = curl_exec($curl);
-
+        $httpCode = curl_getinfo($curl,CURLINFO_HTTP_CODE);
         curl_close($curl);
-        Log::info(__CLASS__.'_result' , array('$response'=>$response));
+        Log::info(__CLASS__.'_result' , array('$response'=>$response , '$httpCode'=>$httpCode , '$params'=>$params));
     }
 
 }
