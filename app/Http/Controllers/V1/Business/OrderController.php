@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Jobs\OrderSms;
+use App\Traits\BotOrder;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
@@ -21,6 +23,8 @@ use App\Repositories\Contracts\UserRepository;
 
 class OrderController extends BaseController
 {
+    use BotOrder;
+
     /**
      * @note 下单
      * @datetime 2021-07-12 17:56
@@ -29,6 +33,11 @@ class OrderController extends BaseController
      */
     public function store(Request $request)
     {
+        $agent = new Agent();
+        if($agent->match('HellooBot'))
+        {
+            return $this->botStore($request);
+        }
         $type = $request->input('type' , '');
         if($type=='special')
         {

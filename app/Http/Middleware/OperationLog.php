@@ -38,6 +38,8 @@ class OperationLog extends BaseMiddleware
                 $src = 'android';
             }elseif($agent->match('HellooiOS')){
                 $src = 'ios';
+            }elseif($agent->match('HellooBot')){
+                $src = 'bot';
             }else{
                 $src = 'unknown';
             }
