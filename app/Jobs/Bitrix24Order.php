@@ -112,7 +112,7 @@ class Bitrix24Order implements ShouldQueue
 //                "UF_CRM_1629103354670"=>'', //是否收到钱
 
             ]);
-            Log::info('bitrix_store_product' , array(
+            Log::info('bitrix_store_order' , array(
                 $dealId
             ));
         }
