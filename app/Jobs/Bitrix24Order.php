@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Bitrix24\Bitrix24API;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,10 +14,14 @@ class Bitrix24Order implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private $data;
 
-    public function __construct()
+    private $type;
+
+    public function __construct($data , $type)
     {
-
+        $this->data = $data;
+        $this->type = $type;
     }
 
     /**
@@ -26,73 +31,103 @@ class Bitrix24Order implements ShouldQueue
      */
     public function handle()
     {
-        $webhookURL = 'https://b24-sjy1by.bitrix24.com/rest/1/om8rjqj54pviw3l4/';
-        $bx24 = new Bitrix24API($webhookURL);
-        $stages = array('NEW' , 'PREPARATION', 'PREPAYMENT_INVOICE', '1' ,'2' ,'3' ,'4' ,'LOSE' ,'APOLOGY' ,'WON');
-//        dd($bx24->request('crm.currency.list'));
-        $stageId = array_rand($stages);
-        $id = mt_rand(111111 , 999999999);
-        $now = date("Y-m-d H:i:s");
-        $dealId = $bx24->addDeal([
-            "TITLE"=>'New order from bot , Created at '. date("Y-m-d H:i:s"),
-//            "TYPE_ID"=>'',
-//            "CATEGORY_ID"=>'',
-            "STAGE_ID"=>'NEW',
-//            "STAGE_SEMANTIC_ID"=>'',
-            "IS_NEW"=>'true',
-//            "IS_RECURRING"=>'',
-//            "IS_RETURN_CUSTOMER"=>'',
-//            "IS_REPEATED_APPROACH"=>'',
-//            "PROBABILITY"=>'',
-            "CURRENCY_ID"=>'BIRR',
-//            "OPPORTUNITY"=>'',
-//            "IS_MANUAL_OPPORTUNITY"=>'',
-//            "TAX_VALUE"=>'',
-            "COMPANY_ID"=>'1',
-            "CONTACT_ID"=>'2',
-            /*            "CONTACT_IDS"=>'',*/
-//            "QUOTE_ID"=>'',
-            "BEGINDATE"=>$now,
-            "CLOSEDATE"=>$now,
-//            "OPENED"=>'',
-//            "CLOSED"=>'',
-            "COMMENTS"=>'comment test',
-            "ASSIGNED_BY_ID"=>'11',
-//            "CREATED_BY_ID"=>'11',
-//            "MODIFY_BY_ID"=>'',
-            "DATE_CREATE"=>$now,
-            "DATE_MODIFY"=>$now,
-            "SOURCE_ID"=>'web',
-            "SOURCE_DESCRIPTION"=>'web',
-//            "LEAD_ID"=>'',
-//            "ADDITIONAL_INFO"=>'',
-//            "LOCATION_ID"=>'',
-//            "ORIGINATOR_ID"=>'',
-//            "ORIGIN_ID"=>'',
-//            "UTM_SOURCE"=>'',
-//            "UTM_MEDIUM"=>'',
-//            "UTM_CAMPAIGN"=>'',
-//            "UTM_CONTENT"=>'',
-//            "UTM_TERM"=>'',
-            "UF_CRM_1628733276016"=>'order price',
-            "UF_CRM_1628733495712"=>'shop name',
-            "UF_CRM_1628733612424"=>'special price',
-            "UF_CRM_1628733649125"=>'discount price',
-            "UF_CRM_1628733763094"=>'reduction price',
-            "UF_CRM_1628733813318"=>'discounted used',
-            "UF_CRM_1628733998830"=>'package',
-            "UF_CRM_1628734031097"=>'is package',
-            "UF_CRM_1628734060152"=>'delivery cost',
-            "UF_CRM_1628734075984"=>'is delivery',
-            "UF_CRM_1628734746554"=>'order price',
-            "UF_CRM_1629098340599"=>'order price_1',
-            "UF_CRM_1628756015643"=>'order price_1',
-//            "UF_CRM_1628735337461"=>'',
-//            "UF_CRM_16287560156"
-        ]);
-        dump($id);
-        dump($stageId);
-        dump($dealId);
+        $type = $this->type;
+        $this->$type($this->data);
+    }
+
+    private function store($data)
+    {
+        $bx24 = app('bitrix24');
+        $flag = false;
+        $contactId = '';
+        foreach ($data as $d)
+        {
+            if(!$flag)
+            {
+                $contactId = $bx24->addContact(
+                    array(
+                        'NAME'=>$d['user_name'],
+                        'ADDRESS'=>$d['user_address'],
+                        'TYPE_ID'=>"CLIENT",
+                        'PHONE'=>array(
+                            array(
+                                'VALUE'=>$d['user_contact'],
+                                'VALUE_TYPE'=>'WORK',
+                            )
+                        ),
+                        "UF_CRM_1629187998"=>$d['user_id']
+                    )
+                );
+                $flag = true;
+            }
+            $detail = \json_decode($d['detail'] , true);
+            $specialPrice = collect($detail)->sum(function ($de){
+                if(isset($de['specialPrice']))
+                {
+                    return $de['goodsNumber']*$de['specialPrice'];
+                }
+                return 0;
+            });
+            $discountedPrice = collect($detail)->sum(function ($de){
+                $discountedPrice = $de['discounted_price']<=0?0:$de['discounted_price'];
+                return $de['goodsNumber']*$discountedPrice;
+            });
+            $discounted = '';
+            if($d['discount_type']=='discount')
+            {
+                $discounted = $d['discount'];
+            }elseif ($d['discount_type']=='reduction')
+            {
+                $discounted = $d['reduction'];
+            }
+            $dealId = $bx24->addDeal([
+                "ID"=>$d['id'],
+                "TITLE"=>'New order from bot , Created at '. date("Y-m-d H:i:s"),
+                "STAGE_ID"=>'NEW',
+                "IS_NEW"=>'true',
+                "CURRENCY_ID"=>'BIRR',
+                "COMPANY_ID"=>'1',
+                "CONTACT_ID"=>$contactId,
+                "BEGINDATE"=>$d['created_at'],
+                "COMMENTS"=>$d['currency'],
+//                "ASSIGNED_BY_ID"=>'11',
+                "DATE_CREATE"=>$d['created_at'],
+                "DATE_MODIFY"=>$d['created_at'],
+                "SOURCE_ID"=>'web',
+                "SOURCE_DESCRIPTION"=>'web',
+                "UF_CRM_1628733276016"=>$d['order_price'],
+                "UF_CRM_1628733612424"=>$specialPrice,
+                "UF_CRM_1628733649125"=>$discountedPrice,
+                "UF_CRM_1628733813318"=>$discounted,
+                "UF_CRM_1628733763094"=>$d['total_price'],
+                "UF_CRM_1628734060152"=>$d['packaging_cost'],
+//                "UF_CRM_1628734075984"=>$d['packaging_cost'],
+//                "UF_CRM_1628734746554"=>'', //订单原价
+//                "UF_CRM_1629098340599"=>'', //包装费
+//                "UF_CRM_1628756015643"=>'', //ship day
+//                "UF_CRM_1629103387129"=>'', //收了多少钱
+//                "UF_CRM_1629103354670"=>'', //是否收到钱
+
+            ]);
+            Log::info('bitrix_store_product' , array(
+                $dealId
+            ));
+        }
+
+    }
+
+    private function update($data)
+    {
+        Log::info('$data' , $data);
+    }
+
+
+    private function __call($name , $params)
+    {
+        Log::info('__call' , array(
+            'name'=>$name,
+            'params'=>$params,
+        ));
     }
 
 }
