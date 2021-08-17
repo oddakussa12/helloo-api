@@ -267,7 +267,7 @@ DOC;
 
     public function test()
     {
-        dd(geoip('45.248.45.90'));
+        Log::info('all' , request()->all());
     }
 
     public function aws()

@@ -348,6 +348,7 @@ $api->group($V1Params , function ($api){
     $api->post('test/token' , 'TestController@token')->name('test.token');
     $api->get('test/es' , 'TestController@es')->name('test.es');
     $api->get('test/test' , 'TestController@test')->name('test.test');
+    $api->post('test/test' , 'TestController@test')->name('test.test');
 
     $api->get('test/aws' , 'TestController@aws')->name('test.aws');
     $api->get('test/index' , 'TestController@index')->name('test.index');
