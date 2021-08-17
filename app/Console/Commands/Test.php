@@ -544,7 +544,7 @@ DOC;
 //                ));
 //            }
 //        });
-        DB::table('users')->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('created_at')->chunk(50 , function($shops) use ($bx24){
+        DB::table('users')->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('user_created_at')->chunk(50 , function($shops) use ($bx24){
             foreach ($shops as $shop)
             {
                 $phone = DB::table('users_phones')->where('user_id' , $shop->user_id)->first();
