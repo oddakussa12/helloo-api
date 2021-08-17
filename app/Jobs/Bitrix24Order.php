@@ -32,7 +32,10 @@ class Bitrix24Order implements ShouldQueue
     public function handle()
     {
         $type = $this->type;
-        $this->$type($this->data);
+        if(strpos($type , 'store')!==false)
+        {
+            $this->store($this->data);
+        }
     }
 
     private function store($data)
