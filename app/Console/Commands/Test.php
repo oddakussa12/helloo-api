@@ -530,20 +530,45 @@ DOC;
     public function syncBitrix()
     {
         $bx24 = app("bitrix24");
-        DB::table('goods')->orderByDesc('created_at')->chunk(50 , function ($goods) use ($bx24){
-            foreach ($goods as $g)
+//        DB::table('goods')->orderByDesc('created_at')->chunk(50 , function ($goods) use ($bx24){
+//            foreach ($goods as $g)
+//            {
+//                $id = $bx24->addProduct(array(
+//                    "NAME"=>$g->name,
+//                    "PRICE"=>$g->price,
+//                    "CURRENCY_ID"=>$g->currency,
+//                    "XML_ID"=>$g->id
+//                ));
+//                DB::table('goods')->where('id' , $g->id)->update(array(
+//                    'extension_id'=>$id
+//                ));
+//            }
+//        });
+        DB::table('users')->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('created_at')->chunk(50 , function($shops) use ($bx24){
+            foreach ($shops as $shop)
             {
-                $id = $bx24->addProduct(array(
-                    "NAME"=>$g->name,
-                    "PRICE"=>$g->price,
-                    "CURRENCY_ID"=>$g->currency,
-                    "XML_ID"=>$g->id
+                $phone = DB::table('users_phones')->where('user_id' , $shop->user_id)->first();
+                $id = $bx24->addCompany(array(
+                    "TITLE"=>$shop->user_name,
+                    "COMPANY_TYPE"=>"CLIENT",
+                    "INDUSTRY"=>"OTHER",
+                    "CURRENCY_ID"=>"GBP",
+                    "PHONE"=>array(
+                        array(
+                            "VALUE"=>empty($phone)?'':$phone->user_phone_country.$phone->user_phone, "VALUE_TYPE"=>"WORK"
+                        )
+                    ),
+                    "ADDRESS"=>$shop->user_address,
+                    "UF_CRM_1629181078"=>$shop->user_nick_name
                 ));
-                DB::table('goods')->where('id' , $g->id)->update(array(
-                    'extension_id'=>$id
+                DB::table('bitrix_shops')->insert(array(
+                    'user_id'=>$shop->user_id,
+                    'extension_id'=>$id,
                 ));
             }
         });
+
     }
+
 
 }
