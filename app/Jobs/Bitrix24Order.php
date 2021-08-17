@@ -104,7 +104,7 @@ class Bitrix24Order implements ShouldQueue
             }
             $dealId = $bx24->addDeal([
                 "ID"=>$d['order_id'],
-                "TITLE"=>'New order from bot , Created at '. date("Y-m-d H:i:s"),
+                "TITLE"=>'New order from '.$this->resource.' , Created at '. date("Y-m-d H:i:s"),
                 "STAGE_ID"=>'NEW',
                 "IS_NEW"=>'true',
                 "CURRENCY_ID"=>'BIRR',
