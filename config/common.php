@@ -83,4 +83,5 @@ return [
     'block_version' =>env('BLOCK_VERSION' , '1.0.9'),
     'mapbox_endpoint' =>env('MAPBOX_ENDPOINT' , ''),
     'mapbox_access_token' =>env('MAPBOX_ACCESS_TOKEN' , ''),
+    'bitrix24_endpoint' =>env('BITRIX24_ENDPOINT' , ''),
 ];

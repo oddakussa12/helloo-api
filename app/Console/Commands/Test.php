@@ -46,17 +46,6 @@ class Test extends Command
     {
         parent::__construct();
     }
-
-    public function initScore(): bool
-    {
-        $users = User::get();
-        foreach ($users as $key=>$user) {
-            //$score  = intval($key/100);
-            $memKey = 'helloo:account:user-score-rank';
-            Redis::zadd($memKey, $key*2, $user->user_id);
-        }
-        return true;
-    }
     /**
      * Execute the console command.
      *
@@ -64,7 +53,7 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->fixOrder();
+        $this->syncBitrix();
         die;
         $schools = array(
             "Sekolah Menengah Atas Negri 10",
@@ -534,6 +523,25 @@ DOC;
                         'user_currency'=>empty($phone)||$phone->user_phone_country!='251'?'USD':'BIRR'
                     )
                 );
+            }
+        });
+    }
+
+    public function syncBitrix()
+    {
+        $bx24 = app("bitrix24");
+        DB::table('goods')->orderByDesc('created_at')->chunk(50 , function ($goods) use ($bx24){
+            foreach ($goods as $g)
+            {
+                $id = $bx24->addProduct(array(
+                    "NAME"=>$g->name,
+                    "PRICE"=>$g->price,
+                    "CURRENCY_ID"=>$g->currency,
+                    "XML_ID"=>$g->id
+                ));
+                DB::table('goods')->where('id' , $g->id)->update(array(
+                    'extension_id'=>$id
+                ));
             }
         });
     }

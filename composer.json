@@ -9,6 +9,7 @@
     "type": "project",
     "require": {
         "php": ">=7.0.0",
+        "andrey-tech/bitrix24-api-php": "^1.7",
         "aws/aws-sdk-php": "^3.147",
         "aws/aws-sdk-php-laravel": "^3.6",
         "barryvdh/laravel-cors": "^0.11.3",

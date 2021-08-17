@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\UserFriend;
+use App\Bitrix24\Bitrix24API;
 use App\Models\Business\Goods;
 use Godruoyi\Snowflake\Snowflake;
 use App\Models\UserFriendRequest;
@@ -90,6 +91,9 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->singleton('snowflake', function () {
             return (new Snowflake())->setSequenceResolver((new RedisSequenceResolver())->setCachePrefix('helloo:snowflake:{sequence}:'));
+        });
+        $this->app->singleton('bitrix24', function () {
+            return new Bitrix24API(config('common.bitrix24_endpoint'));
         });
     }
 
