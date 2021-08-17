@@ -341,6 +341,7 @@ $api->group($V1Params , function ($api){
         $api->patch('delay_special_goods' , 'BackStageController@updateDelaySpecialGoods')->name('backStage.delay_special_goods.update');
     });
 
+    $api->post('business/bitrix_order_callback' , 'Business\BusinessController@bitrixOrderCallback')->name('business.bitrix.order.callback');
 
     $api->get('test/redis' , 'TestController@redis')->name('test.redis');
     $api->get('test/push' , 'TestController@push')->name('test.push');

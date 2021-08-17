@@ -433,4 +433,10 @@ class BusinessController extends BaseController
             )
         ));
     }
+
+
+    public function bitrixOrderCallback(Request $request)
+    {
+        Log::info('all' , $request->all());
+    }
 }
