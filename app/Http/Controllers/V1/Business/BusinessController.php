@@ -438,5 +438,65 @@ class BusinessController extends BaseController
     public function bitrixOrderCallback(Request $request)
     {
         Log::info('all' , $request->all());
+        $orderId = $request->get('order_id' , '');
+        if(!empty($orderId))
+        {
+            $stage = $request->get('stage' , '');
+            $schedule = 0;
+            switch ($stage){
+                case "New Order":
+                    $schedule = 1;
+                    break;
+                case "Confirm Order":
+                    $schedule = 2;
+                    break;
+                case "Send To Driver":
+                    $schedule = 3;
+                    break;
+                case "Driver Taken Order":
+                case "Driver Arrived Shop":
+                    $schedule = 4;
+                    break;
+                case "Food Arrived":
+                case "Order Completed":
+                case "Manager":
+                    $schedule = 5;
+                    break;
+                case "Spam":
+                    $schedule = 7;
+                    break;
+                case "Not Receiving Phonecall":
+                    $schedule = 6;
+                    break;
+                case "User Canceled Order":
+                    $schedule = 8;
+                    break;
+                case "Shop Canceled Order":
+                    $schedule = 9;
+                    break;
+                case "Other Reason":
+                    $schedule = 10;
+                    break;
+                default:
+                    break;
+            }
+            if($schedule>0)
+            {
+                $orderState = 0;
+                $time = date('Y-m-d H:i:s');
+                $schedule==5 && $orderState = 1;
+                $schedule>=6  && $orderState = 2;
+                $order = Order::where('order_id' , $orderId)->firstOrFail();
+                $duration = intval((strtotime($time)- strtotime($order->created_at))/60);
+                $brokerage = $shopPrice = round($order->order_price*$order->brokerage_percentage/100 , 2);
+                $data  = ['status'=>$orderState ?? 0, 'shop_price'=>$shopPrice, 'brokerage'=>$brokerage , 'schedule'=>$schedule, 'order_time'=>$duration];
+                if($schedule==5)
+                {
+                    $data['delivered_at'] = $time;
+                }
+                DB::table('orders')->where('order_id', $orderId)->update($data);
+            }
+        }
+        return $this->response->created()->setStatusCode(200);
     }
 }
