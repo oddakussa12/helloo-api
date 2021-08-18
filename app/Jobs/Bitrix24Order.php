@@ -146,7 +146,8 @@ class Bitrix24Order implements ShouldQueue
             }
             $bx24->setDealProductRows($dealId , $productData);
             Log::info('bitrix_store_order' , array(
-                $dealId
+                $dealId,
+                $productData
             ));
         }
 
