@@ -104,7 +104,7 @@ class Bitrix24Order implements ShouldQueue
             }
             $dealId = $bx24->addDeal([
                 "ID"=>$d['order_id'],
-                "TITLE"=>'New order from '.$this->resource.' , Created at '. date("Y-m-d H:i:s"),
+                "TITLE"=>$d['order_id'],
                 "STAGE_ID"=>'NEW',
                 "IS_NEW"=>'true',
                 "CURRENCY_ID"=>'BIRR',
@@ -140,7 +140,7 @@ class Bitrix24Order implements ShouldQueue
                     'PRICE'=>$det['price'],
                     'QUANTITY'=>$det['goodsNumber'],
                     'DISCOUNT_TYPE_ID'=>$d['discount_type']=='discount'?2:1,
-//                    'DISCOUNT_RATE'=>100,
+                    'DISCOUNT_RATE'=>100,
                     'DISCOUNT_SUM'=>$det['discounted_price'],
                 ));
             }
