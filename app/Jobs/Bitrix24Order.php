@@ -139,9 +139,9 @@ class Bitrix24Order implements ShouldQueue
                     'PRODUCT_ID'=>$det['extension_id'],
                     'PRICE'=>$det['price'],
                     'QUANTITY'=>$det['goodsNumber'],
-                    'DISCOUNT_TYPE_ID'=>$d['discount_type']=='discount'?2:1,
+                    'DISCOUNT_TYPE_ID'=>$d['discount_type']=='discount'?'2':'1',
                     'DISCOUNT_RATE'=>100,
-                    'DISCOUNT_SUM'=>$det['discounted_price'],
+                    'DISCOUNT_SUM'=>$det['discounted_price']<0?:$det['discounted_price'],
                 ));
             }
             $bx24->setDealProductRows($dealId , $productData);
