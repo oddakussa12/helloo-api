@@ -349,8 +349,8 @@ $api->group($V1Params , function ($api){
     $api->get('test/es' , 'TestController@es')->name('test.es');
     $api->get('test/test' , 'TestController@test')->name('test.test');
 
-    $api->get('business/ship_day_callback' , 'BusinessController@shipDayCallback')->name('business.shipDayCallback.get');
-    $api->post('business/ship_day_callback' , 'BusinessController@shipDayCallback')->name('business.shipDayCallback.post');
+    $api->get('business/ship_day_callback' , 'Business\BusinessController@shipDayCallback')->name('business.shipDayCallback.get');
+    $api->post('business/ship_day_callback' , 'Business\BusinessController@shipDayCallback')->name('business.shipDayCallback.post');
 
     $api->get('test/aws' , 'TestController@aws')->name('test.aws');
     $api->get('test/index' , 'TestController@index')->name('test.index');
