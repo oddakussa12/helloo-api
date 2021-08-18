@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1\Business;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Jobs\BusinessGoodsLog;
+use App\Jobs\Bitrix24Product;
 use App\Models\Business\Goods;
 use App\Jobs\BusinessSearchLog;
 use Illuminate\Validation\Rule;
@@ -334,6 +335,7 @@ class GoodsController extends BaseController
                 Redis::del("helloo:business:goods:category:service:account:".$userId);
             }
             DB::commit();
+            $this->dispatchNow(new Bitrix24Product($data , __FUNCTION__));
             if($data['status']==1)
             {
                 $price = $data['currency']=="BIRR"?$data['price']*0.023:$data['price'];
@@ -500,6 +502,9 @@ class GoodsController extends BaseController
                     }
                 }
                 DB::commit();
+                $goods->makeVisible(array('extension_id'));
+                $params['id'] = $goods->extension_id;
+                $this->dispatchNow(new Bitrix24Product($params , __FUNCTION__));
             }catch (\Exception $e)
             {
                 DB::rollBack();

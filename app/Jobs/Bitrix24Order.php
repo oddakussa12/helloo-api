@@ -2,14 +2,14 @@
 
 namespace App\Jobs;
 
-use App\Bitrix24\Bitrix24API;
+use Jenssegers\Agent\Agent;
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Jenssegers\Agent\Agent;
 
 class Bitrix24Order implements ShouldQueue
 {
@@ -21,6 +21,8 @@ class Bitrix24Order implements ShouldQueue
 
     private $resource;
 
+    private $platform;
+
     public function __construct($data , $type)
     {
         $this->data = $data;
@@ -29,17 +31,22 @@ class Bitrix24Order implements ShouldQueue
         if($agent->match('HellooAndroid'))
         {
             $this->resource = "android";
+            $this->platform = 47;
         }elseif ($agent->match('HellooLiteAndroid'))
         {
             $this->resource = "android_lite";
+            $this->platform = 49;
         }elseif ($agent->match('HellooLiteIos'))
         {
             $this->resource = "ios_lite";
+            $this->platform = 51;
         }elseif ($agent->match('HellooBot'))
         {
             $this->resource = "bot";
+            $this->platform = 55;
         }else{
             $this->resource = 'web';
+            $this->platform = 53;
         }
     }
 
@@ -102,13 +109,14 @@ class Bitrix24Order implements ShouldQueue
             {
                 $discounted = $d['reduction'];
             }
-            $dealId = $bx24->addDeal([
+            $company = DB::table('bitrix_shops')->where('user_id' , $d['shop_id'])->first();
+            $deal = [
                 "ID"=>$d['order_id'],
                 "TITLE"=>$d['order_id'],
                 "STAGE_ID"=>'NEW',
                 "IS_NEW"=>'true',
-                "CURRENCY_ID"=>'BIRR',
-                "COMPANY_ID"=>'1',
+                "CURRENCY_ID"=>'ETB',
+                "COMPANY_ID"=>empty($company)?0:$company->extension_id,
                 "CONTACT_ID"=>$contactId,
                 "BEGINDATE"=>$d['created_at'],
                 "COMMENTS"=>$d['currency'],
@@ -117,31 +125,40 @@ class Bitrix24Order implements ShouldQueue
                 "DATE_MODIFY"=>$d['created_at'],
                 "SOURCE_ID"=>$this->resource ,
                 "SOURCE_DESCRIPTION"=>$this->resource ,
+                "UF_CRM_1628735337461"=>$d['promo_code'],
                 "UF_CRM_1629192007"=>$d['order_id'],
                 "UF_CRM_1628733276016"=>$d['order_price'],
                 "UF_CRM_1628733612424"=>$specialPrice,
                 "UF_CRM_1628733649125"=>$discountedPrice,
                 "UF_CRM_1628733813318"=>$discounted,
                 "UF_CRM_1628733763094"=>$d['total_price'],
+                "UF_CRM_1628733998830"=>$d['packaging_cost'],
 //                "UF_CRM_1628734075984"=>$d['packaging_cost'],
 //                "UF_CRM_1628734746554"=>'', //订单原价
 //                "UF_CRM_1629098340599"=>'', //包装费
 //                "UF_CRM_1628756015643"=>'', //ship day
 //                "UF_CRM_1629103387129"=>'', //收了多少钱
 //                "UF_CRM_1629103354670"=>'', //是否收到钱
-                "UF_CRM_1628734060152"=>$d['packaging_cost'],
+                "UF_CRM_1628734060152"=>$d['delivery_coast'],
+                "UF_CRM_1629271456064"=>$d['discounted_price'],
+                "UF_CRM_1629274022921"=>$this->platform,
 
-            ]);
+            ];
+            Log::info('$deal' , $deal);
+            $dealId = $bx24->addDeal($deal);
             $productData = array();
             foreach ($detail as $det)
             {
                 array_push($productData , array(
                     'PRODUCT_ID'=>$det['extension_id'],
-                    'PRICE'=>$det['price'],
+                    'PRICE'=>$det['price']+0.01,
                     'QUANTITY'=>$det['goodsNumber'],
-                    'DISCOUNT_TYPE_ID'=>$d['discount_type']=='discount'?'2':'1',
-                    'DISCOUNT_RATE'=>100,
-                    'DISCOUNT_SUM'=>$det['discounted_price']<0?:$det['discounted_price'],
+                    'DISCOUNT_TYPE_ID'=>$d['discount_type']=='reduction'?1:2,
+                    'DISCOUNT_RATE'=>0,
+                    'CUSTOMIZED'=>"Y",
+                    'MEASURE_CODE'=>"Y",
+                    'MEASURE_NAME'=>"Y",
+                    'DISCOUNT_SUM'=>$det['discounted_price']<0?0:$det['discounted_price'],
                 ));
             }
             $bx24->setDealProductRows($dealId , $productData);

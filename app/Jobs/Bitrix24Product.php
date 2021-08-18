@@ -7,6 +7,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class Bitrix24Product implements ShouldQueue
@@ -37,7 +38,6 @@ class Bitrix24Product implements ShouldQueue
     {
         $bx24 = app("bitrix24");
         $data = array(
-            array(
                 "NAME"=>$goods['name'],
                 "PRICE"=>$goods['price'],
                 "CURRENCY_ID"=>$goods['currency'],
@@ -48,10 +48,11 @@ class Bitrix24Product implements ShouldQueue
 //                        chunk_split(base64_encode(file_get_contents($imgUrl)))
 //                    )
 //                )
-            ),
-
         );
         $result = $bx24->addProduct($data);
+        DB::table('goods')->where('id' , $goods['id'])->update(array(
+            'extension_id'=>$result
+        ));
         Log::info('bitrix_store_product' , array(
             $result
         ));
@@ -61,12 +62,9 @@ class Bitrix24Product implements ShouldQueue
     {
         $bx24 = app("bitrix24");
         $data = array(
-            array(
                 "NAME"=>$goods['name'],
                 "PRICE"=>$goods['price'],
                 "CURRENCY_ID"=>$goods['currency'],
-            ),
-
         );
         $result = $bx24->updateProduct($goods['id'] , $data);
         Log::info('bitrix_update_product' , array(

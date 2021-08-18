@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Models\Business\Order;
 use App\Models\User;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
@@ -438,7 +439,52 @@ class BusinessController extends BaseController
     public function bitrixOrderCallback(Request $request)
     {
         Log::info('all' , $request->all());
+//        preg_match_all("/\d+/", $str,$arr);
         $orderId = $request->get('order_id' , '');
+        $platform = $request->get('platform' , '');//Call
+        if($platform=='Call'&&empty($orderId))
+        {
+            $response = $this->response->created()->setStatusCode(200);
+            $company = $request->get('company' , '');
+            $userName = $request->get('user_name' , '');
+            $userContact = $request->get('user_contact' , '');
+            $userAddress = $request->get('user_address' , '');
+            $packageCost = $request->get('package_cost' , '');
+            $currency = $request->get('currency' , '');
+            $gs = $request->get('gs' , '');
+            $gs = explode(',' , $gs);
+            if(strpos(strtolower($currency)  , 'birr')!==false)
+            {
+                $currency = "BIRR";
+            }else{
+                $currency = "USD";
+            }
+            $shop = DB::table('bitrix_shops')->where('extension_id' , $company)->first();
+            if(empty($shop))
+            {
+                return $response;
+            }
+            $shopGs = array();
+            $orderId = app('snowflake')->id();
+            $now = date('Y-m-d H:i:s');
+            $data = array(
+                'order_id'=>$orderId,
+                'user_id'=>strval($shop->user_id),
+                'shop_id'=>strval($shop->user_id),
+                'user_name'=>$userName,
+                'user_contact'=>$userContact,
+                'user_address'=>$userAddress,
+                'detail'=>\json_encode($shopGs , JSON_UNESCAPED_UNICODE),
+                'order_price'=>0,
+                'promo_price'=>0,
+                'packaging_cost'=>round($packageCost , 2),
+                'first_order'=>0,
+                'currency'=>$currency,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            );
+            return $this->response->created()->setStatusCode(200);
+        }
         if(!empty($orderId))
         {
             $stage = $request->get('stage' , '');
