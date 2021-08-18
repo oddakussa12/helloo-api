@@ -433,4 +433,9 @@ class BusinessController extends BaseController
             )
         ));
     }
+
+    public function shipDayCallback()
+    {
+        Log::info('all' , request()->all());
+    }
 }
