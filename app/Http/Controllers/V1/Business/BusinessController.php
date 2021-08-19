@@ -440,6 +440,7 @@ class BusinessController extends BaseController
     {
         Log::info('all' , $request->all());
 //        preg_match_all("/\d+/", $str,$arr);
+        $id = $request->get('id' , '');
         $orderId = $request->get('order_id' , '');
         $platform = $request->get('platform' , '');//Call
         if($platform=='Call'&&empty($orderId))
@@ -449,10 +450,16 @@ class BusinessController extends BaseController
             $userName = $request->get('user_name' , '');
             $userContact = $request->get('user_contact' , '');
             $userAddress = $request->get('user_address' , '');
-            $packageCost = $request->get('package_cost' , '');
+            $packageCost = $request->get('package_cost' , 0);
             $currency = $request->get('currency' , '');
+            $promoCode = $request->get('promo_code' , '');
+            $order_price = $request->get('order_price' , 0);
+            $discounted_price = $request->get('discounted_price' , 0);
             $gs = $request->get('gs' , '');
             $gs = explode(',' , $gs);
+            $gs = array_map(function($v){
+                return trim($v);
+            } , $gs);
             if(strpos(strtolower($currency)  , 'birr')!==false)
             {
                 $currency = "BIRR";
@@ -464,25 +471,38 @@ class BusinessController extends BaseController
             {
                 return $response;
             }
-            $shopGs = array();
             $orderId = app('snowflake')->id();
             $now = date('Y-m-d H:i:s');
-            $data = array(
-                'order_id'=>$orderId,
-                'user_id'=>strval($shop->user_id),
-                'shop_id'=>strval($shop->user_id),
-                'user_name'=>$userName,
-                'user_contact'=>$userContact,
-                'user_address'=>$userAddress,
-                'detail'=>\json_encode($shopGs , JSON_UNESCAPED_UNICODE),
-                'order_price'=>0,
-                'promo_price'=>0,
-                'packaging_cost'=>round($packageCost , 2),
-                'first_order'=>0,
-                'currency'=>$currency,
-                'created_at'=>$now,
-                'updated_at'=>$now,
-            );
+            $shopGs = Goods::whereIn('extension_id' , $gs)->get();
+            if(!empty($shopGs))
+            {
+                $products = collect(app('bitrix24')->getDealProductRows($id));
+                $shopGs->each(function ($shopG) use ($products){
+                    $product= $products->where('id' , $shopG->extension_id)->first();
+                    if(!empty($product))
+                    {
+                        $product->price = $product['PRICE'];
+                        $product->discounted_price = $product['DISCOUNT_SUM'];
+                    }
+                });
+                $data = array(
+                    'order_id'=>$orderId,
+                    'user_id'=>strval($shop->user_id),
+                    'shop_id'=>strval($shop->user_id),
+                    'user_name'=>$userName,
+                    'user_contact'=>$userContact,
+                    'user_address'=>$userAddress,
+                    'detail'=>\json_encode($shopGs->toArray() , JSON_UNESCAPED_UNICODE),
+                    'order_price'=>0,
+                    'promo_price'=>0,
+                    'promo_code'=>$promoCode,
+                    'packaging_cost'=>round($packageCost , 2),
+                    'first_order'=>0,
+                    'currency'=>$currency,
+                    'created_at'=>$now,
+                    'updated_at'=>$now,
+                );
+            }
             return $this->response->created()->setStatusCode(200);
         }
         if(!empty($orderId))

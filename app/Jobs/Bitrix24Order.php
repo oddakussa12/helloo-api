@@ -151,7 +151,7 @@ class Bitrix24Order implements ShouldQueue
             {
                 array_push($productData , array(
                     'PRODUCT_ID'=>$det['extension_id'],
-                    'PRICE'=>$det['price']+0.01,
+                    'PRICE'=>$det['price'],
                     'QUANTITY'=>$det['goodsNumber'],
                     'DISCOUNT_TYPE_ID'=>$d['discount_type']=='reduction'?1:2,
                     'DISCOUNT_RATE'=>0,
