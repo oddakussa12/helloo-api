@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\V1\Business;
 
 use App\Jobs\OrderSms;
+use App\Traits\BotOrder;
 use App\Jobs\Bitrix24Order;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
@@ -22,6 +24,8 @@ use App\Repositories\Contracts\UserRepository;
 
 class OrderController extends BaseController
 {
+    use BotOrder;
+
     /**
      * @note 下单
      * @datetime 2021-07-12 17:56
@@ -30,6 +34,11 @@ class OrderController extends BaseController
      */
     public function store(Request $request)
     {
+        $agent = new Agent();
+        if($agent->match('HellooBot'))
+        {
+            return $this->botStore($request);
+        }
         $type = $request->input('type' , '');
         if($type=='special')
         {
@@ -54,7 +63,7 @@ class OrderController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
@@ -72,7 +81,7 @@ class OrderController extends BaseController
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
         $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&$cache[$k]==$v;
+            return isset($cache[$k])&&$cache[$k]===$v;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
         {
@@ -80,10 +89,10 @@ class OrderController extends BaseController
         }
         $gs = Goods::whereIn('id' , array_keys($goods))->get();
         $shopGoods = $gs->reject(function ($g) {
-            return $g->status==0;
+            return $g->status===0;
         });
         $shopGoods->each(function($g) use ($goods){
-            $g->goodsNumber = intval($goods[$g->id]);
+            $g->goodsNumber = (int)$goods[$g->id];
         });
         $goodsIds = $shopGoods->pluck('id')->toArray();
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
@@ -95,7 +104,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -141,11 +150,11 @@ class OrderController extends BaseController
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=>strval($userId),
-                'shop_id'=>strval($u),
+                'user_id'=> (string)$userId,
+                'shop_id'=> (string)$u,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
@@ -158,7 +167,7 @@ class OrderController extends BaseController
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
             $discount_type = '';
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
@@ -195,7 +204,7 @@ class OrderController extends BaseController
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
             unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
-            $data['free_delivery'] = boolval($data['free_delivery']);
+            $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
         if(!empty($orderData))
@@ -246,7 +255,7 @@ class OrderController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
@@ -270,7 +279,7 @@ class OrderController extends BaseController
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
         $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&$cache[$k]==$v;
+            return isset($cache[$k])&&$cache[$k]===$v;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
         {
@@ -299,19 +308,19 @@ class OrderController extends BaseController
         }
         $shopGoods = $gs;
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
-        if(count($userIds)!=1)
+        if(count($userIds)!==1)
         {
             abort(403 , 'Promo code can only be used for one order!');
         }
         $shopGoods->each(function($g) use ($goods){
-            $g->goodsNumber = intval($goods[$g->id]);
+            $g->goodsNumber = (int)$goods[$g->id];
         });
         $goodsIds = $shopGoods->pluck('id')->toArray();
         if(is_array($deliveryCoasts))
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -357,11 +366,11 @@ class OrderController extends BaseController
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=>strval($userId),
-                'shop_id'=>strval($u),
+                'user_id'=> (string)$userId,
+                'shop_id'=> (string)$u,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
@@ -378,14 +387,14 @@ class OrderController extends BaseController
             {
                 $deliveryCoast = 0;
             }else{
-                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
             }
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = $code->promo_code;
-            $data['free_delivery'] = intval($code->free_delivery);
+            $data['free_delivery'] = (int)$code->free_delivery;
             $data['reduction'] = $code->reduction;
             $data['discount'] = $code->percentage;
-            $discount_type = strval($code->discount_type);
+            $discount_type = (string)$code->discount_type;
             if($code->discount_type=='discount')
             {
                 $totalPrice = round($promoPrice*$code->percentage/100 , 2);
@@ -422,7 +431,7 @@ class OrderController extends BaseController
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
             unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
-            $data['free_delivery'] = boolval($data['free_delivery']);
+            $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
         if(!empty($orderData))
@@ -476,7 +485,7 @@ class OrderController extends BaseController
     private function specialStore(Request $request)
     {
         $date = date('Y-m-d');
-        $userContact = strtr(strval($request->input('user_contact' , '')),array(" "=>"" , '+'=>""));
+        $userContact = strtr((string)$request->input('user_contact', ''),array(" "=>"" , '+'=>""));
         $specialDateKey = "helloo:business:order:service:special:user".$date;
         if(empty($userContact)||Redis::SISMEMBER($specialDateKey , $userContact))
         {
@@ -485,27 +494,27 @@ class OrderController extends BaseController
         $user = auth()->user();
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
         $userName = $request->input('user_name' , '');
         $userAddress = $request->input('user_address' , '');
         $gIds = array_keys($goods);
-        if(count($gIds)!=1)
+        if(count($gIds)!==1)
         {
             abort(403 , 'Illegal request!');
         }
         $gs = Goods::whereIn('id' , $gIds)->get();
         $shopGoods = $gs->reject(function ($g) {
-            return $g->status==0;
+            return $g->status===0;
         });
         if($gs->count()!==1)
         {
             abort(403 , 'Only one goods can be ordered!');
         }else{
             $g = $gs->first();
-            if($goods[$g->id]!=1)
+            if($goods[$g->id]!==1)
             {
                 abort(403 , 'Only one goods can be ordered!!');
             }
@@ -519,12 +528,12 @@ class OrderController extends BaseController
         $shopGoods->each(function($g) use ($goods){
             $key = "helloo:business:goods:service:special:".$g->id;
             $specialG = Redis::hgetall($key);
-            $g->goodsNumber = intval($goods[$g->id]);
+            $g->goodsNumber = (int)$goods[$g->id];
             if(!empty($specialG))
             {
                 $g->specialPrice = round($specialG['special_price'] , 2);
                 $g->packaging_cost = round($specialG['packaging_cost'] , 2);
-                $g->free_delivery= boolval($specialG['free_delivery']);
+                $g->free_delivery= (bool)$specialG['free_delivery'];
             }
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
@@ -532,7 +541,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -578,11 +587,11 @@ class OrderController extends BaseController
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=>strval($userId),
-                'shop_id'=>strval($u),
+                'user_id'=> (string)$userId,
+                'shop_id'=> (string)$u,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
@@ -598,7 +607,7 @@ class OrderController extends BaseController
             $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100));
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
-            $data['free_delivery'] = intval($freeDelivery);
+            $data['free_delivery'] = (int)$freeDelivery;
             $data['reduction'] = 0;
             $data['discount'] = 100;
             $totalPrice = round($promoPrice , 2);
@@ -615,7 +624,7 @@ class OrderController extends BaseController
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
             unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
-            $data['free_delivery'] = boolval($data['free_delivery']);
+            $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
         if(!empty($orderData))
@@ -660,17 +669,17 @@ class OrderController extends BaseController
     public function specialOrder(Request $request)
     {
         $date = date('Y-m-d');
-        $userContact = strtr(strval($request->input('user_contact' , '')),array(" "=>"" , '+'=>""));
+        $userContact = strtr((string)$request->input('user_contact', ''),array(" "=>"" , '+'=>""));
         $specialDateKey = "helloo:business:order:service:special:user".$date;
         if(empty($userContact)||Redis::SISMEMBER($specialDateKey , $userContact))
         {
             abort(422 , 'You have already enjoyed the discount today! Thank u!');
         }
         $goodsId = $request->input('goods_id');
-        $userName = strval($request->input('user_name' , ''));
+        $userName = (string)$request->input('user_name', '');
         $userAddress = $request->input('user_address' , '');
         $jti = JWTAuth::getClaim('jti');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $key = "helloo:business:goods:service:special:".$goodsId;
@@ -681,7 +690,7 @@ class OrderController extends BaseController
             abort(403 , 'This goods is not a special offer!');
         }
         $specialGoods = DB::table('special_goods')->where('goods_id' , $goodsId)->first();
-        if(empty($specialGoods)||$specialGoods->status==0)
+        if(empty($specialGoods)||$specialGoods->status===0)
         {
             Redis::del($key);
             abort(403 , 'This goods is not a special offer!');
@@ -698,7 +707,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , array($goods->user_id))||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || $k !== $goods->user_id)
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -720,8 +729,8 @@ class OrderController extends BaseController
         $goods->goodsNumber = 1;
         $data = array(
             'order_id'=>$orderId,
-            'user_id'=>strval($userId),
-            'shop_id'=>strval($goods->user_id),
+            'user_id'=> (string)$userId,
+            'shop_id'=> (string)$goods->user_id,
             'user_name'=>$userName,
             'user_contact'=>$userContact,
             'user_address'=>$userAddress,
@@ -735,7 +744,7 @@ class OrderController extends BaseController
             'updated_at'=>$now,
         );
         $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$goods->user_id]['delivery_cost']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_cost']) , 2):100);
-        $data['delivery_coast'] = !empty(intval($specialG['free_delivery']))?0:$deliveryCoast;
+        $data['delivery_coast'] = !empty((int)$specialG['free_delivery'])?0:$deliveryCoast;
         $data['promo_code'] = '';
         $data['free_delivery'] = $specialG['free_delivery'];
         $data['reduction'] = 0;
@@ -747,7 +756,7 @@ class OrderController extends BaseController
         $data['brokerage'] = $brokerage;
         $data['profit'] = round($data['discounted_price']-$brokerage , 2);
         $returnData = $data;
-        $returnData['free_delivery'] = boolval($specialG['free_delivery']);
+        $returnData['free_delivery'] = (bool)$specialG['free_delivery'];
         $returnData['detail'] = $goods->toArray();
         $returnData['shop'] = new UserCollection($user);
         DB::table('orders')->insert($data);
@@ -758,7 +767,7 @@ class OrderController extends BaseController
         Redis::sadd($specialDateKey , $userContact);
         Redis::expireat($specialDateKey , strtotime("+7 day"));
         unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
-        $data['free_delivery'] = boolval($data['free_delivery']);
+        $data['free_delivery'] = (bool)$data['free_delivery'];
         OrderSynchronization::dispatch($returnData , 'special')->onQueue('helloo_{order_synchronization}');
         OrderSms::dispatch(array($data) , 'batch')->onQueue('helloo_{delivery_order_sms}');
         return new AnonymousCollection(collect($returnData));
@@ -797,7 +806,7 @@ class OrderController extends BaseController
         $jti = JWTAuth::getClaim('jti');
         $userId = $user->user_id;
         $goods = (array)$request->input('goods');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $key = "helloo:business:shopping_cart:service:account:".$userId;
@@ -817,7 +826,7 @@ class OrderController extends BaseController
         }
         $gs = Goods::whereIn('id' , array_keys($filterGoods))->get();
         $goodsStatus = $gs->every(function ($g , $k) {
-            return $g->status==1;
+            return $g->status===1;
         });
         if(!$goodsStatus)
         {
@@ -834,7 +843,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
@@ -844,7 +853,7 @@ class OrderController extends BaseController
         $status = 0;
         $message = '';
         $shopGoods->each(function($g) use ($filterGoods){
-            $g->goodsNumber = intval($filterGoods[$g->id]);
+            $g->goodsNumber = (int)$filterGoods[$g->id];
         });
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
@@ -866,9 +875,9 @@ class OrderController extends BaseController
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]==='251'?'BIRR':"USD";
             $data['currency'] = $currency;
-            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
+            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
             $totalPrice = round($promoPrice , 2);
 //            if($discounted&&$orderNumber==1)
 //            {
@@ -910,10 +919,10 @@ class OrderController extends BaseController
         $jti = JWTAuth::getClaim('jti');
         $userId = $user->user_id;
         $goods = (array)$request->input('goods');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
-        $promoCode = strval($request->input('promo_code' , ''));
+        $promoCode = (string)$request->input('promo_code', '');
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         $gIds = array_keys($goods);
         if(empty($gIds))
@@ -931,7 +940,7 @@ class OrderController extends BaseController
         }
         $gs = Goods::whereIn('id' , $gIds)->get();
         $goodsStatus = $gs->every(function ($g , $k) {
-            return $g->status==1;
+            return $g->status===1;
         });
         if(!$goodsStatus)
         {
@@ -939,7 +948,7 @@ class OrderController extends BaseController
         }
         $shopGoods = $gs;
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
-        if(count($userIds)!=1)
+        if(count($userIds)!==1)
         {
             abort(403 , 'Promo code can only be used for one order!');
         }
@@ -947,13 +956,13 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
             }
         }
-        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
+        $discounted = (bool)Redis::get("helloo:business:order:service:discounted:switch");
         $flag = $status = 0;
         $message = '';
         $code = PromoCode::where('promo_code' , $promoCode)->first();
@@ -974,7 +983,7 @@ class OrderController extends BaseController
             }
         }
         $shopGoods->each(function($g) use ($filterGoods){
-            $g->goodsNumber = intval($filterGoods[$g->id]);
+            $g->goodsNumber = (int)$filterGoods[$g->id];
         });
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
@@ -996,13 +1005,13 @@ class OrderController extends BaseController
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]==='251'?'BIRR':"USD";
             $data['currency'] = $currency;
-            if(!empty($code)&&$flag==0)
+            if(!empty($code)&&$flag===0)
             {
                 $status = 200;
                 $message = $code->description;
-                $deliveryCoast = $code->free_delivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100));
+                $deliveryCoast = $code->free_delivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100));
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
                 {
@@ -1011,7 +1020,7 @@ class OrderController extends BaseController
                     $totalPrice = round($promoPrice-$code->reduction , 2);
                 }
             }else{
-                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
+                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
                 $totalPrice = round($promoPrice , 2);
             }
 //            if($discounted)
@@ -1051,24 +1060,24 @@ class OrderController extends BaseController
     {
         $jti = JWTAuth::getClaim('jti');
         $filterGoods = (array)$request->input('goods');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)($request->input('delivery_coast' , ''));
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $gIds = array_keys($filterGoods);
-        if(count($gIds)!=1)
+        if(count($gIds)!==1)
         {
             abort(403 , 'Illegal request!');
         }
         $gs = Goods::whereIn('id' , $gIds)->get();
         $shopGoods = $gs->reject(function ($g) {
-            return $g->status==0;
+            return $g->status===0;
         });
         if($gs->count()!==1)
         {
             abort(403 , 'Only one goods can be ordered!');
         }else{
             $g = $gs->first();
-            if($filterGoods[$g->id]!=1)
+            if($filterGoods[$g->id]!==1)
             {
                 abort(403 , 'Only one goods can be ordered!!');
             }
@@ -1084,7 +1093,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
@@ -1095,12 +1104,12 @@ class OrderController extends BaseController
         $shopGoods->each(function($g) use ($filterGoods){
             $key = "helloo:business:goods:service:special:".$g->id;
             $specialG = Redis::hgetall($key);
-            $g->goodsNumber = intval($filterGoods[$g->id]);
+            $g->goodsNumber = (int)$filterGoods[$g->id];
             if(!empty($specialG))
             {
                 $g->specialPrice = round($specialG['special_price'] , 2);
                 $g->packaging_cost = round($specialG['packaging_cost'] , 2);
-                $g->free_delivery= boolval($specialG['free_delivery']);
+                $g->free_delivery= (bool)$specialG['free_delivery'];
             }
         });
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -1123,7 +1132,7 @@ class OrderController extends BaseController
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]==='251'?'BIRR':"USD";
             $data['currency'] = $currency;
             $freeDelivery = collect($shopGs)->every(function ($value, $key) {
                 return !empty($value['free_delivery']);
