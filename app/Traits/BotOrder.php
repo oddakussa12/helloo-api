@@ -49,7 +49,7 @@ trait BotOrder
         $user = auth()->user();
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
@@ -57,7 +57,7 @@ trait BotOrder
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
         $filterGoods = array_filter($goods , function ($v, $k){
-            $v = intval($v);
+            $v = (int)$v;
             return !empty($v)&&!empty($k)&&$v>0&&$v<=50;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
@@ -66,10 +66,10 @@ trait BotOrder
         }
         $gs = Goods::whereIn('id' , array_keys($goods))->get();
         $shopGoods = $gs->reject(function ($g) {
-            return $g->status==0;
+            return $g->status===0;
         });
         $shopGoods->each(function($g) use ($goods){
-            $g->goodsNumber = intval($goods[$g->id]);
+            $g->goodsNumber = (int)$goods[$g->id];
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         if(count($userIds)>3||count($userIds)<=0)
@@ -80,7 +80,7 @@ trait BotOrder
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -123,11 +123,11 @@ trait BotOrder
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=>strval($userId),
-                'shop_id'=>strval($u),
+                'user_id'=> (string)$userId,
+                'shop_id'=> (string)$u,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
@@ -140,7 +140,7 @@ trait BotOrder
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
             $discount_type = '';
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
@@ -161,7 +161,7 @@ trait BotOrder
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
             unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
-            $data['free_delivery'] = boolval($data['free_delivery']);
+            $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
         if(!empty($orderData))
@@ -205,7 +205,7 @@ trait BotOrder
         $user = auth()->user();
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
@@ -223,7 +223,7 @@ trait BotOrder
             abort(403 , 'Goods is empty!');
         }
         $filterGoods = array_filter($goods , function ($v, $k){
-            $v = intval($v);
+            $v = (int)$v;
             return !empty($v)&&!empty($k)&&$v>0&&$v<=50;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
@@ -232,7 +232,7 @@ trait BotOrder
         }
         $gs = Goods::whereIn('id' , array_keys($goods))->get();
         $goodsStatus = $gs->every(function ($g , $k) {
-            return $g->status==1;
+            return $g->status===1;
         });
         if(!$goodsStatus)
         {
@@ -253,18 +253,18 @@ trait BotOrder
         }
         $shopGoods = $gs;
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
-        if(count($userIds)!=1)
+        if(count($userIds)!==1)
         {
             abort(403 , 'Promo code can only be used for one order!');
         }
         $shopGoods->each(function($g) use ($goods){
-            $g->goodsNumber = intval($goods[$g->id]);
+            $g->goodsNumber = (int)$goods[$g->id];
         });
         if(is_array($deliveryCoasts))
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -307,11 +307,11 @@ trait BotOrder
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=>strval($userId),
-                'shop_id'=>strval($u),
+                'user_id'=> (string)$userId,
+                'shop_id'=> (string)$u,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
@@ -328,14 +328,14 @@ trait BotOrder
             {
                 $deliveryCoast = 0;
             }else{
-                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
             }
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = $code->promo_code;
-            $data['free_delivery'] = intval($code->free_delivery);
+            $data['free_delivery'] = (int)$code->free_delivery;
             $data['reduction'] = $code->reduction;
             $data['discount'] = $code->percentage;
-            $discount_type = strval($code->discount_type);
+            $discount_type = (string)$code->discount_type;
             if($code->discount_type=='discount')
             {
                 $totalPrice = round($promoPrice*$code->percentage/100 , 2);
@@ -356,7 +356,7 @@ trait BotOrder
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
             unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
-            $data['free_delivery'] = boolval($data['free_delivery']);
+            $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
         if(!empty($orderData))
@@ -403,7 +403,7 @@ trait BotOrder
     private function specialBotStore(Request $request)
     {
         $date = date('Y-m-d');
-        $userContact = strtr(strval($request->input('user_contact' , '')),array(" "=>"" , '+'=>""));
+        $userContact = strtr((string)$request->input('user_contact', ''),array(" "=>"" , '+'=>""));
         $specialDateKey = "helloo:business:order:service:special:user".$date;
         if(empty($userContact)||Redis::SISMEMBER($specialDateKey , $userContact))
         {
@@ -412,27 +412,27 @@ trait BotOrder
         $user = auth()->user();
         $userId = $user->user_id;
         $jti = JWTAuth::getClaim('jti');
-        $deliveryCoast = strval($request->input('delivery_coast' , ''));
+        $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
         $goods = (array)$request->input('goods');
         $userName = $request->input('user_name' , '');
         $userAddress = $request->input('user_address' , '');
         $gIds = array_keys($goods);
-        if(count($gIds)!=1)
+        if(count($gIds)!==1)
         {
             abort(403 , 'Illegal request!');
         }
         $gs = Goods::whereIn('id' , $gIds)->get();
         $shopGoods = $gs->reject(function ($g) {
-            return $g->status==0;
+            return $g->status===0;
         });
         if($gs->count()!==1)
         {
             abort(403 , 'Only one goods can be ordered!');
         }else{
             $g = $gs->first();
-            if($goods[$g->id]!=1)
+            if($goods[$g->id]!==1)
             {
                 abort(403 , 'Only one goods can be ordered!!');
             }
@@ -446,12 +446,12 @@ trait BotOrder
         $shopGoods->each(function($g) use ($goods){
             $key = "helloo:business:goods:service:special:".$g->id;
             $specialG = Redis::hgetall($key);
-            $g->goodsNumber = intval($goods[$g->id]);
+            $g->goodsNumber = (int)$goods[$g->id];
             if(!empty($specialG))
             {
                 $g->specialPrice = round($specialG['special_price'] , 2);
                 $g->packaging_cost = round($specialG['packaging_cost'] , 2);
-                $g->free_delivery= boolval($specialG['free_delivery']);
+                $g->free_delivery= (bool)$specialG['free_delivery'];
             }
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
@@ -459,7 +459,7 @@ trait BotOrder
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!in_array($k , $userIds)||!isset($v['distance'])||!isset($v['delivery_cost'])||!isset($v['start'][0])||!isset($v['start'][1])||!isset($v['end'][0])||!isset($v['end'][1]))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -505,11 +505,11 @@ trait BotOrder
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
                 return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
-            $currency = isset($phones[$u])&&$phones[$u]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=>strval($userId),
-                'shop_id'=>strval($u),
+                'user_id'=> (string)$userId,
+                'shop_id'=> (string)$u,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
@@ -522,10 +522,10 @@ trait BotOrder
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100));
+            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100));
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
-            $data['free_delivery'] = intval($freeDelivery);
+            $data['free_delivery'] = (int)$freeDelivery;
             $data['reduction'] = 0;
             $data['discount'] = 100;
             $totalPrice = round($promoPrice , 2);
@@ -542,7 +542,7 @@ trait BotOrder
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
             unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
-            $data['free_delivery'] = boolval($data['free_delivery']);
+            $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
         if(!empty($orderData))
