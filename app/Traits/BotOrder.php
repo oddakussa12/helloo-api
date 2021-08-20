@@ -8,7 +8,6 @@ use App\Models\Business\Goods;
 use App\Resources\UserCollection;
 use App\Models\Business\PromoCode;
 use App\Jobs\OrderSynchronization;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -48,7 +47,7 @@ trait BotOrder
     {
         $user = auth()->user();
         $userId = $user->user_id;
-        $jti = JWTAuth::getClaim('jti');
+        $jti = str_pad((string)$userId,16,"0",STR_PAD_RIGHT);
         $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
@@ -80,7 +79,7 @@ trait BotOrder
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -204,7 +203,7 @@ trait BotOrder
     {
         $user = auth()->user();
         $userId = $user->user_id;
-        $jti = JWTAuth::getClaim('jti');
+        $jti = str_pad((string)$userId,16,"0",STR_PAD_RIGHT);
         $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
@@ -264,7 +263,7 @@ trait BotOrder
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -411,7 +410,7 @@ trait BotOrder
         }
         $user = auth()->user();
         $userId = $user->user_id;
-        $jti = JWTAuth::getClaim('jti');
+        $jti = str_pad((string)$userId,16,"0",STR_PAD_RIGHT);
         $deliveryCoast = (string)$request->input('delivery_coast', '');
         $plaintext = opensslDecryptV2($deliveryCoast , $jti);
         $deliveryCoasts = \json_decode($plaintext , true);
@@ -459,7 +458,7 @@ trait BotOrder
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }

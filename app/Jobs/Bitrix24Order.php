@@ -58,7 +58,7 @@ class Bitrix24Order implements ShouldQueue
     public function handle()
     {
         $type = $this->type;
-        if(strpos(strtolower($type) , 'store')!==false)
+        if(stripos($type, 'store') !==false)
         {
             $this->store($this->data);
         }
@@ -116,7 +116,7 @@ class Bitrix24Order implements ShouldQueue
                 "STAGE_ID"=>'NEW',
                 "IS_NEW"=>'true',
                 "CURRENCY_ID"=>'ETB',
-                "COMPANY_ID"=>empty($company)?0:$company->extension_id,
+                "COMPANY_ID"=> $company->extension_id ?? 0,
                 "CONTACT_ID"=>$contactId,
                 "BEGINDATE"=>$d['created_at'],
                 "COMMENTS"=>$d['currency'],

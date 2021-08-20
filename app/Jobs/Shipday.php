@@ -56,18 +56,26 @@ class Shipday implements ShouldQueue
             "restaurantName" => $this->restaurantName,
             "restaurantAddress" => $this->restaurantAddress,
             "restaurantPhoneNumber" => $this->restaurantPhoneNumber,
+//            "expectedDeliveryDate"=>'',
+//            "expectedPickupTime"=>'',
+//            "expectedDeliveryTime"=>'',
             "pickupLatitude" => 0,
             "pickupLongitude" => 0,
             "deliveryLatitude" => 0,
             "deliveryLongitude" => 0,
             "orderItem" => $this->orderItem,
-            "totalOrderCost" => $this->totalOrderCost,
+            "tips" => 0,
             "tax" => $this->tax,
-            "tips" => "0",
-            "deliveryFee" => "30",
+            "discountAmount" => 0,
+            "deliveryFee" => 100,
+            "totalOrderCost" => $this->totalOrderCost,
             "deliveryInstruction" => "fast",
+            "orderSource" => "",
             "additionalId" => "",
-            "paymentMethod"=>'cash'
+            "clientRestaurantId" => "",
+            "paymentMethod"=>'cash',
+//            "creditCardType"=>'',
+            "creditCardId"=>0,
         ];
         Log::info('shipday_data' , $data);
         $curl = curl_init();
@@ -83,7 +91,7 @@ class Shipday implements ShouldQueue
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS =>\json_encode($data),
             CURLOPT_HTTPHEADER => array(
-                'Authorization: Basic upquBv2pED.UqKHGwFMNUzpSUxg2oRB',
+                'Authorization: Basic '.config('common.ship_day_token'),
                 'Content-Type: application/json'
             ),
         ));

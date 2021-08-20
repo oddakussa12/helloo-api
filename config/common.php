@@ -84,4 +84,5 @@ return [
     'mapbox_endpoint' =>env('MAPBOX_ENDPOINT' , ''),
     'mapbox_access_token' =>env('MAPBOX_ACCESS_TOKEN' , ''),
     'bitrix24_endpoint' =>env('BITRIX24_ENDPOINT' , ''),
+    'ship_day_token' =>env('SHIP_DAY_TOKEN' , ''),
 ];

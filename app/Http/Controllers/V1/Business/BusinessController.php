@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Models\Business\Order;
 use App\Models\User;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
+use App\Models\Business\Order;
 use App\Jobs\BusinessSearchLog;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
@@ -27,8 +27,8 @@ class BusinessController extends BaseController
 
     public function search(Request $request)
     {
-        $userId = intval(auth()->id());
-        $keyword = escape_like(strval($request->input('keyword' , '')));
+        $userId = (int)auth()->id();
+        $keyword = escape_like((string)$request->input('keyword', ''));
         if(!empty($keyword))
         {
             $users = User::where('user_shop' , 1)->where('user_verified' , 1)->where(function ($query) use ($keyword) {
@@ -47,7 +47,7 @@ class BusinessController extends BaseController
                     $likes = array();
                 }
                 $goods->each(function($g) use ($likes){
-                    $g->likeState = in_array($g->id , $likes);
+                    $g->likeState = in_array($g->id, $likes, true);
                 });
             }
         }else{
@@ -68,9 +68,9 @@ class BusinessController extends BaseController
     public function searchV2(Request $request)
     {
         $appends = array();
-        $userId = intval(auth()->id());
-        $keyword = escape_like(strval($request->input('keyword' , '')));
-        $tag = escape_like(strval($request->input('tag' , '')));
+        $userId = (int)auth()->id();
+        $keyword = escape_like((string)$request->input('keyword', ''));
+        $tag = escape_like((string)$request->input('tag', ''));
         $appends['keyword'] = $keyword;
         $appends['tag'] = $tag;
         if(!empty($keyword)&&!empty($tag))
@@ -113,7 +113,10 @@ class BusinessController extends BaseController
     }
 
     /**
-     *
+     * @version 2.0
+     * @note discovery
+     * @datetime 2021-08-19 15:23
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function discoveryIndex()
     {
@@ -144,14 +147,14 @@ class BusinessController extends BaseController
         $type = $request->input('type' , 'product');
         $order = $request->input('order' , 'popular');
         $tag = $request->input('tag' , '');
-        $sort = strval($request->input('sort' , 'desc'));
+        $sort = (string)$request->input('sort', 'desc');
         $appends['type'] = $type;
         $appends['order'] = $order;
         $appends['tag'] = $tag;
         $appends['sort'] = $sort;
         $pageName = 'page';
-        $page     = intval($request->input($pageName, 1));
-        $perPage  = intval($request->input('per_page', 10));
+        $page     = (int)$request->input($pageName, 1);
+        $perPage  = (int)$request->input('per_page', 10);
         $perPage = $perPage<10?10:$perPage;
         $perPage = $perPage>50?50:$perPage;
         $offset   = ($page-1) * $perPage;
@@ -278,7 +281,7 @@ class BusinessController extends BaseController
         $location = array_slice($location , 0 , 3);
         $distances = array();
         $location = array_filter($location , function ($v , $k){
-            return isset($v['shop_id'])&&isset($v['start'])&&count($v['start'])==2;
+            return isset($v['shop_id'], $v['start']) && count($v['start']) === 2;
         } , ARRAY_FILTER_USE_BOTH);
         $shopIds = array_column($location , 'shop_id');
         $addresses = DB::table('shops_addresses')->whereIn('shop_id' , $shopIds)->get();
@@ -287,7 +290,7 @@ class BusinessController extends BaseController
             return array(
                 'shop_id'=>$v['shop_id'],
                 'start'=>$v['start'],
-                'end'=>empty($address)?array(0 , 0):array(floatval($address->longitude) , floatval($address->latitude)),
+                'end'=>empty($address)?array(0 , 0):array((float)$address->longitude, (float)$address->latitude),
             );
         } , $location);
         $url = config('common.mapbox_endpoint');
@@ -323,7 +326,7 @@ class BusinessController extends BaseController
                 'concurrency' => $total,
                 'fulfilled'   => function ($response, $index) use ($location , $user , &$distances){
                     $routes = json_decode($response->getBody()->getContents() , true);
-                    if(!isset($routes['routes'][0])||!isset($routes['waypoints']))
+                    if(!isset($routes['routes'][0], $routes['waypoints']))
                     {
                         abort(500 , 'The result is abnormal!');
                     }
@@ -435,81 +438,74 @@ class BusinessController extends BaseController
         ));
     }
 
-
     public function bitrixOrderCallback(Request $request)
     {
-        Log::info('all' , $request->all());
+        Log::info('all', $request->all());
 //        preg_match_all("/\d+/", $str,$arr);
-        $id = $request->get('id' , '');
-        $orderId = $request->get('order_id' , '');
-        $platform = $request->get('platform' , '');//Call
-        if($platform=='Call'&&empty($orderId))
-        {
+        $id = $request->get('id', '');
+        $orderId = $request->get('order_id', '');
+        $platform = $request->get('platform', '');//Call
+        if ($platform == 'Call' && empty($orderId)) {
             $response = $this->response->created()->setStatusCode(200);
-            $company = $request->get('company' , '');
-            $userName = $request->get('user_name' , '');
-            $userContact = $request->get('user_contact' , '');
-            $userAddress = $request->get('user_address' , '');
-            $packageCost = $request->get('package_cost' , 0);
-            $currency = $request->get('currency' , '');
-            $promoCode = $request->get('promo_code' , '');
-            $order_price = $request->get('order_price' , 0);
-            $discounted_price = $request->get('discounted_price' , 0);
-            $gs = $request->get('gs' , '');
-            $gs = explode(',' , $gs);
-            $gs = array_map(function($v){
+            $company = $request->get('company', '');
+            $userName = $request->get('user_name', '');
+            $userContact = $request->get('user_contact', '');
+            $userAddress = $request->get('user_address', '');
+            $packageCost = $request->get('package_cost', 0);
+            $currency = $request->get('currency', '');
+            $promoCode = $request->get('promo_code', '');
+            $order_price = $request->get('order_price', 0);
+            $discounted_price = $request->get('discounted_price', 0);
+            $gs = $request->get('gs', '');
+            $gs = explode(',', $gs);
+            $gs = array_map(function ($v) {
                 return trim($v);
-            } , $gs);
-            if(strpos(strtolower($currency)  , 'birr')!==false)
-            {
+            }, $gs);
+            if (stripos($currency, 'birr') !== false) {
                 $currency = "BIRR";
-            }else{
+            } else {
                 $currency = "USD";
             }
-            $shop = DB::table('bitrix_shops')->where('extension_id' , $company)->first();
-            if(empty($shop))
-            {
+            $shop = DB::table('bitrix_shops')->where('extension_id', $company)->first();
+            if (empty($shop)) {
                 return $response;
             }
             $orderId = app('snowflake')->id();
             $now = date('Y-m-d H:i:s');
-            $shopGs = Goods::whereIn('extension_id' , $gs)->get();
-            if(!empty($shopGs))
-            {
+            $shopGs = Goods::whereIn('extension_id', $gs)->get();
+            if (!empty($shopGs)) {
                 $products = collect(app('bitrix24')->getDealProductRows($id));
-                $shopGs->each(function ($shopG) use ($products){
-                    $product= $products->where('id' , $shopG->extension_id)->first();
-                    if(!empty($product))
-                    {
+                $shopGs->each(function ($shopG) use ($products) {
+                    $product = $products->where('id', $shopG->extension_id)->first();
+                    if (!empty($product)) {
                         $product->price = $product['PRICE'];
                         $product->discounted_price = $product['DISCOUNT_SUM'];
                     }
                 });
                 $data = array(
-                    'order_id'=>$orderId,
-                    'user_id'=>strval($shop->user_id),
-                    'shop_id'=>strval($shop->user_id),
-                    'user_name'=>$userName,
-                    'user_contact'=>$userContact,
-                    'user_address'=>$userAddress,
-                    'detail'=>\json_encode($shopGs->toArray() , JSON_UNESCAPED_UNICODE),
-                    'order_price'=>0,
-                    'promo_price'=>0,
-                    'promo_code'=>$promoCode,
-                    'packaging_cost'=>round($packageCost , 2),
-                    'first_order'=>0,
-                    'currency'=>$currency,
-                    'created_at'=>$now,
-                    'updated_at'=>$now,
+                    'order_id' => $orderId,
+                    'user_id' => strval($shop->user_id),
+                    'shop_id' => strval($shop->user_id),
+                    'user_name' => $userName,
+                    'user_contact' => $userContact,
+                    'user_address' => $userAddress,
+                    'detail' => \json_encode($shopGs->toArray(), JSON_UNESCAPED_UNICODE),
+                    'order_price' => 0,
+                    'promo_price' => 0,
+                    'promo_code' => $promoCode,
+                    'packaging_cost' => round($packageCost, 2),
+                    'first_order' => 0,
+                    'currency' => $currency,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 );
             }
             return $this->response->created()->setStatusCode(200);
         }
-        if(!empty($orderId))
-        {
-            $stage = $request->get('stage' , '');
+        if (!empty($orderId)) {
+            $stage = $request->get('stage', '');
             $schedule = 0;
-            switch ($stage){
+            switch ($stage) {
                 case "New Order":
                     $schedule = 1;
                     break;
@@ -546,18 +542,16 @@ class BusinessController extends BaseController
                 default:
                     break;
             }
-            if($schedule>0)
-            {
+            if ($schedule > 0) {
                 $orderState = 0;
                 $time = date('Y-m-d H:i:s');
-                $schedule==5 && $orderState = 1;
-                $schedule>=6  && $orderState = 2;
-                $order = Order::where('order_id' , $orderId)->firstOrFail();
-                $duration = intval((strtotime($time)- strtotime($order->created_at))/60);
-                $brokerage = $shopPrice = round($order->order_price*$order->brokerage_percentage/100 , 2);
-                $data  = ['status'=>$orderState ?? 0, 'shop_price'=>$shopPrice, 'brokerage'=>$brokerage , 'schedule'=>$schedule, 'order_time'=>$duration];
-                if($schedule==5)
-                {
+                $schedule === 5 && $orderState = 1;
+                $schedule >= 6 && $orderState = 2;
+                $order = Order::where('order_id', $orderId)->firstOrFail();
+                $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
+                $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
+                $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
+                if ($schedule === 5) {
                     $data['delivered_at'] = $time;
                 }
                 DB::table('orders')->where('order_id', $orderId)->update($data);
@@ -565,4 +559,31 @@ class BusinessController extends BaseController
         }
         return $this->response->created()->setStatusCode(200);
     }
+    public function shipDayCallback(Request $request)
+    {
+        $event = (string)$request->input('event' , '');
+        switch ($event){
+            case "ORDER_ASSIGNED":
+                $s = 1;
+                break;
+            case "ORDER_ACCEPTED_AND_STARTED":
+                $s = 2;
+                break;
+            case "ORDER_PIKEDUP":
+                $s = 3;
+                break;
+            case "ORDER_ONTHEWAY":
+                $s = 4;
+                break;
+            case "ORDER_COMPLETED":
+                $s = 5;
+                break;
+            case "ORDER_FAILED":
+                $s = 6;
+                break;
+            default:
+                break;
+        }
+    }
+
 }

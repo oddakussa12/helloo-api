@@ -81,7 +81,7 @@ class OrderController extends BaseController
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
         $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&$cache[$k]===$v;
+            return isset($cache[$k])&&(int)$cache[$k]===$v;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
         {
@@ -104,7 +104,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -279,7 +279,7 @@ class OrderController extends BaseController
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
         $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&$cache[$k]===$v;
+            return isset($cache[$k])&&(int)$cache[$k]===$v;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
         {
@@ -320,7 +320,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
@@ -541,7 +541,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery cost format!');
                 }
