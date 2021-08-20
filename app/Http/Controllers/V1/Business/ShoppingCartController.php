@@ -73,13 +73,13 @@ class ShoppingCartController extends BaseController
     public function store(Request $request)
     {
         $type = $request->input('type' , 'store');
-        $shopId = intval($request->input('user_id' , 0));
+        $shopId = (int)$request->input('user_id', 0);
         $user = auth()->user();
         $userId = $user->user_id;
         $key = "helloo:business:shopping_cart:service:account:".$userId;
-        $goodsId = $request->input('goods_id' , '');
+        $goodsId = (string)$request->input('goods_id' , '');
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
-        if($goods->status==0)
+        if($goods->status===0)
         {
             abort(404 , 'This goods does not exist or out of stock!');
         }
@@ -100,12 +100,12 @@ class ShoppingCartController extends BaseController
             }
             $number = Redis::hincrby($key , $goodsId , 1);
         }else{
-            $number = intval($request->input('number' , 1));
+            $number = (int)$request->input('number', 1);
             if($number<0||$number>50)
             {
                 abort(422 , 'The number of goods is the most right to add 50!');
             }
-            if($number==0)
+            if($number ===0)
             {
                 Redis::hdel($key , $goodsId);
             }else{
@@ -128,11 +128,11 @@ class ShoppingCartController extends BaseController
         if($shopId>0)
         {
             $gs = $gs->reject(function ($g) use ($shopId) {
-                return $g->user_id!=$shopId;
+                return $g->user_id!==(string)$shopId;
             });
         }
         $gs->each(function($g) use ($goods){
-            $g->goodsNumber = intval($goods[$g->id]);
+            $g->goodsNumber = (int)$goods[$g->id];
         });
         $userIds = $gs->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -141,7 +141,7 @@ class ShoppingCartController extends BaseController
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
-            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
+            $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]==='251'?'BIRR':"USD";
             $shopGs = collect($shopGoods->get($shop['user_id']));
             $price = $shopGs->sum(function($shopG){
                 return $shopG['goodsNumber']*$shopG['price'];
@@ -176,7 +176,7 @@ class ShoppingCartController extends BaseController
         $key = "helloo:business:shopping_cart:service:account:".$userId;
         $goodsId = $request->input('goods_id' , '');
         $goods = Goods::where('id' , $goodsId)->firstOrFail();
-        if($goods->status==0)
+        if($goods->status===0)
         {
             abort(404 , 'This goods does not exist or out of stock!');
         }

@@ -72,7 +72,7 @@ class Bitrix24Product implements ShouldQueue
         ));
     }
 
-    private function __call($name , $params)
+    public function __call($name , $params)
     {
         Log::info('__call' , array(
             'name'=>$name,

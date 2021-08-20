@@ -11,6 +11,7 @@ use App\Models\Business\Order;
 use App\Jobs\BusinessSearchLog;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
+use Ramsey\Uuid\Uuid;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\Paginator;
@@ -445,6 +446,7 @@ class BusinessController extends BaseController
         $id = $request->get('id', '');
         $orderId = $request->get('order_id', '');
         $platform = $request->get('platform', '');//Call
+        $operator = $request->get('operator', '');
         if ($platform == 'Call' && empty($orderId)) {
             $response = $this->response->created()->setStatusCode(200);
             $company = $request->get('company', '');
@@ -484,8 +486,8 @@ class BusinessController extends BaseController
                 });
                 $data = array(
                     'order_id' => $orderId,
-                    'user_id' => strval($shop->user_id),
-                    'shop_id' => strval($shop->user_id),
+                    'user_id' => (string)$shop->user_id,
+                    'shop_id' => (string)$shop->user_id,
                     'user_name' => $userName,
                     'user_contact' => $userContact,
                     'user_address' => $userAddress,
@@ -554,7 +556,25 @@ class BusinessController extends BaseController
                 if ($schedule === 5) {
                     $data['delivered_at'] = $time;
                 }
-                DB::table('orders')->where('order_id', $orderId)->update($data);
+                $order = $order->toArray();
+                $order['id'] = Uuid::uuid1()->toString();
+                $order['updated_at'] = $time;
+                $data['operator'] = $operator;
+                unset($order['format_price']);
+                $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
+                try {
+                    DB::beginTransaction();
+                    DB::table('orders')->where('order_id', $orderId)->update($data);
+                    DB::connection('lovbee')->table('orders_logs')->insert($order);
+                    DB::commit();
+                }catch (\Exception $e)
+                {
+                    DB::rollBack();
+                    Log::error('order_update_fail', array(
+                        'message'=>$e->getMessage(),
+                        'data'=>$request->all(),
+                    ));
+                }
             }
         }
         return $this->response->created()->setStatusCode(200);
@@ -562,27 +582,86 @@ class BusinessController extends BaseController
     public function shipDayCallback(Request $request)
     {
         $event = (string)$request->input('event' , '');
+        $shipOrder = (array)$request->input('order' , array());
+        $operator = (string)$request->input('operator' , '');
+        $schedule = 0;
+        $bitrixSchedule = '';
+        $stages = array('NEW' , 'PREPARATION', 'PREPAYMENT_INVOICE', '1' ,'2' ,'3' ,'4' ,'LOSE' ,'APOLOGY' ,'WON');
         switch ($event){
             case "ORDER_ASSIGNED":
-                $s = 1;
+                //@todo Send To Driver
+                //@todo Called Driver via Bitrix callback
                 break;
             case "ORDER_ACCEPTED_AND_STARTED":
-                $s = 2;
+                //@todo Driver Taken Order
+                //@todo Called Shop
+                $schedule = 4;
+                $bitrixSchedule = '1';
                 break;
             case "ORDER_PIKEDUP":
-                $s = 3;
-                break;
             case "ORDER_ONTHEWAY":
-                $s = 4;
+                //@todo Driver Arrived Shop
+                //@todo Called Shop
+                $schedule = 4;
+                $bitrixSchedule = '2';
                 break;
             case "ORDER_COMPLETED":
-                $s = 5;
+                //@todo Food Arrived
+                //@todo Delivered
+                $schedule = 5;
+                $bitrixSchedule = 'WON';
                 break;
             case "ORDER_FAILED":
-                $s = 6;
+                //@todo Other Reason
+                //@todo Other
+                $schedule = 10;
+                $bitrixSchedule = 'LOSE';
                 break;
             default:
                 break;
+        }
+        if($schedule>0)
+        {
+            $orderState = 0;
+            $time = date('Y-m-d H:i:s');
+            $schedule === 5 && $orderState = 1;
+            $schedule >= 6 && $orderState = 2;
+            $orderId = $shipOrder['id']??0;
+            $order = Order::where('order_id', $orderId)->firstOrFail();
+            $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
+            $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
+            $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
+            if ($schedule === 5) {
+                $data['delivered_at'] = $time;
+            }
+            $order = $order->toArray();
+            $order['id'] = Uuid::uuid1()->toString();
+            $order['updated_at'] = $time;
+            $data['operator'] = $operator;
+            unset($order['format_price']);
+            $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
+            try {
+                DB::beginTransaction();
+                DB::table('orders')->where('order_id', $orderId)->update($data);
+                DB::connection('lovbee')->table('orders_logs')->insert($order);
+                DB::commit();
+            }catch (\Exception $e)
+            {
+                DB::rollBack();
+                Log::error('order_update_fail', array(
+                    'message'=>$e->getMessage(),
+                    'data'=>$request->all(),
+                ));
+            }
+        }
+        if(empty($bitrixSchedule))
+        {
+            $orderId = $shipOrder['id']??0;
+            $bx24 = app('bitrix24');
+            $bitrixOrder = DB::table('bitrix_orders')->where('order_id' , $orderId)->first();
+            $bx24->updateDeal($bitrixOrder->extension_id , array(
+                "STAGE_ID"=>$bitrixSchedule,
+            ));
         }
     }
 

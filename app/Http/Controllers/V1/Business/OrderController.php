@@ -287,7 +287,7 @@ class OrderController extends BaseController
         }
         $gs = Goods::whereIn('id' , array_keys($goods))->get();
         $goodsStatus = $gs->every(function ($g , $k) {
-            return $g->status==1;
+            return $g->status===1;
         });
         if(!$goodsStatus)
         {

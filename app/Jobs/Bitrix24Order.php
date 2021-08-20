@@ -172,11 +172,13 @@ class Bitrix24Order implements ShouldQueue
 
     private function update($data)
     {
+        $bx24 = app('bitrix24');
+
         Log::info('$data' , $data);
     }
 
 
-    private function __call($name , $params)
+    public function __call($name , $params)
     {
         Log::info('__call' , array(
             'name'=>$name,
