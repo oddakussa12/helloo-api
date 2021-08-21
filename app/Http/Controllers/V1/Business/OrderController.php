@@ -71,17 +71,24 @@ class OrderController extends BaseController
         $userContact = $request->input('user_contact' , '');
         $userAddress = $request->input('user_address' , '');
         $key = "helloo:business:shopping_cart:service:account:".$userId;
-        if(empty(array_keys($goods)))
+        $gIds = array_keys($goods);
+        if(empty($gIds))
         {
             abort(422);
         }
-        $cache = Redis::hmget($key , array_keys($goods));
-        $cache = array_combine(array_keys($goods) , $cache);
+        $cache = Redis::hmget($key , $gIds);
+        $cache = array_map(function ($v){
+            return (int)$v;
+        } , $cache);
+        $cache = array_combine($gIds , $cache);
         $cache = array_filter($cache , function ($v, $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
+        array_walk($goods, function($value, $key) use (&$goods ){
+            $goods[$key] = (int)$value;
+        });
         $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&(int)$cache[$k]===$v;
+            return isset($cache[$k])&&$cache[$k]===$v;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
         {
@@ -273,13 +280,20 @@ class OrderController extends BaseController
             abort(403 , 'Goods is empty!');
         }
         $key = "helloo:business:shopping_cart:service:account:".$userId;
-        $cache = Redis::hmget($key , array_keys($goods));
-        $cache = array_combine(array_keys($goods) , $cache);
+        $cache = Redis::hmget($key , $gIds);
+        $cache = array_map(function ($v){
+            return (int)$v;
+        } , $cache);
+        $cache = array_combine($gIds , $cache);
         $cache = array_filter($cache , function ($v, $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
+
+        array_walk($goods, function($value, $key) use (&$goods ){
+            $goods[$key] = (int)$value;
+        });
         $filterGoods = array_filter($goods , function ($v, $k) use ($cache){
-            return isset($cache[$k])&&(int)$cache[$k]===$v;
+            return isset($cache[$k])&&$cache[$k]===$v;
         } , ARRAY_FILTER_USE_BOTH);
         if($goods!==$filterGoods)
         {
@@ -815,8 +829,8 @@ class OrderController extends BaseController
         {
             abort(403 , 'Illegal request!');
         }
-        $cache = Redis::hmget($key , array_keys($goods));
-        $cache = array_combine(array_keys($goods) , $cache);
+        $cache = Redis::hmget($key , $gIds);
+        $cache = array_combine($gIds , $cache);
         $filterGoods = array_filter($cache , function ($v, $k){
             return !empty($v)&&!empty($k);
         } , ARRAY_FILTER_USE_BOTH);
@@ -938,7 +952,7 @@ class OrderController extends BaseController
         {
             abort(403 , 'There is no goods in the shopping cart!');
         }
-        $gs = Goods::whereIn('id' , $gIds)->get();
+        $gs = Goods::whereIn('id' , array_keys($filterGoods))->get();
         $goodsStatus = $gs->every(function ($g , $k) {
             return $g->status===1;
         });
