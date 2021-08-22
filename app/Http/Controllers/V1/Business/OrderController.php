@@ -857,7 +857,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
@@ -970,7 +970,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
@@ -1107,7 +1107,7 @@ class OrderController extends BaseController
         {
             foreach ($deliveryCoasts as $k=>$v)
             {
-                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array($k, $userIds, true))
+                if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
                     abort(422 , 'Illegal delivery coast format!');
                 }
