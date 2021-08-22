@@ -537,7 +537,7 @@ DOC;
                 $id = $bx24->addProduct(array(
                     "NAME"=>$g->name,
                     "PRICE"=>$g->price,
-                    "CURRENCY_ID"=>$g->currency,
+//                    "CURRENCY_ID"=>$g->currency,
                     "XML_ID"=>$g->id,
                     "SECTION_ID"=>$section->section_id??0
                 ));
