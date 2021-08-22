@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use App\Jobs\ShipdayOrder;
 use App\Models\User;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
@@ -767,6 +768,9 @@ class BusinessController extends BaseController
                 $data['detail'] = \json_encode($data['detail']);
                 DB::table('orders_logs')->insert($data);
                 Log::info('delete_deal_7' , array(
+                    '$sameShop'=>$sameShop,
+                    '$shop->user_id'=>$shop->user_id,
+                    '$order->shop_id'=>$order->shop_id,
                     'deal'=>$deal,
                     'data'=>$request->all(),
                 ));
