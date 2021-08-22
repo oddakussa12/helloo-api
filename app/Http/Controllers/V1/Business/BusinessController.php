@@ -590,6 +590,10 @@ class BusinessController extends BaseController
                             abort('500', 'promo code update failed!');
                         }
                     }
+                    DB::table('bitrix_orders')->insert(array(
+                        'order_id'=>$orderId,
+                        'extension_id'=>$id
+                    ));
                     DB::commit();
                     $discounted = '';
                     if($data['discount_type']==='discount')
