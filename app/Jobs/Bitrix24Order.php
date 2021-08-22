@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\Business\Goods;
+use App\Models\Business\Order;
 use Jenssegers\Agent\Agent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Ramsey\Uuid\Uuid;
 
 class Bitrix24Order implements ShouldQueue
 {
@@ -95,21 +98,22 @@ class Bitrix24Order implements ShouldQueue
                 {
                     return $de['goodsNumber']*$de['specialPrice'];
                 }
-                return 0;
+                return $de['goodsNumber']*$de['price'];
             });
             $discountedPrice = collect($detail)->sum(function ($de){
-                $discountedPrice = $de['discounted_price']<=0?0:$de['discounted_price'];
+                $discountedPrice = $de['discounted_price']<=0?$de['price']:$de['discounted_price'];
                 return $de['goodsNumber']*$discountedPrice;
             });
             $discounted = '';
             if($d['discount_type']=='discount')
             {
-                $discounted = $d['discount'];
+                $discounted = (string)$d['discount'] . "%";
             }elseif ($d['discount_type']=='reduction')
             {
                 $discounted = $d['reduction'];
             }
             $company = DB::table('bitrix_shops')->where('user_id' , $d['shop_id'])->first();
+            $shop = DB::table('users')->where('user_id' , $d['shop_id'])->first();
             $deal = [
                 "ID"=>$d['order_id'],
                 "TITLE"=>$d['order_id'],
@@ -125,23 +129,24 @@ class Bitrix24Order implements ShouldQueue
                 "DATE_MODIFY"=>$d['created_at'],
                 "SOURCE_ID"=>$this->resource ,
                 "SOURCE_DESCRIPTION"=>$this->resource ,
-                "UF_CRM_1628735337461"=>$d['promo_code'],
-                "UF_CRM_1629192007"=>$d['order_id'],
-                "UF_CRM_1628733276016"=>$d['order_price'],
-                "UF_CRM_1628733612424"=>$specialPrice,
-                "UF_CRM_1628733649125"=>$discountedPrice,
-                "UF_CRM_1628733813318"=>$discounted,
-                "UF_CRM_1628733763094"=>$d['total_price'],
-                "UF_CRM_1628733998830"=>$d['packaging_cost'],
-//                "UF_CRM_1628734075984"=>$d['packaging_cost'],
-//                "UF_CRM_1628734746554"=>'', //订单原价
-//                "UF_CRM_1629098340599"=>'', //包装费
-//                "UF_CRM_1628756015643"=>'', //ship day
-//                "UF_CRM_1629103387129"=>'', //收了多少钱
-//                "UF_CRM_1629103354670"=>'', //是否收到钱
-                "UF_CRM_1628734060152"=>$d['delivery_coast'],
-                "UF_CRM_1629271456064"=>$d['discounted_price'],
-                "UF_CRM_1629274022921"=>$this->platform,
+
+
+                "UF_CRM_1628733612424"=>$specialPrice, //Special price
+                "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price
+                "UF_CRM_1628733813318"=>$discounted, //Discount Used
+                "UF_CRM_1628733998830"=>$d['packaging_cost'],//Package fee
+                "UF_CRM_1628734031097"=>(bool)$d['packaging_cost'], //Package fee free？
+                "UF_CRM_1628734060152"=>$d['delivery_coast'], //Delivery fee
+                "UF_CRM_1628734075984"=>(bool)$d['free_delivery'], //Delivery fee free？
+//                "UF_CRM_1628734746554"=>'', //Order Price (dish)
+                "UF_CRM_1628735337461"=>$d['promo_code'], //Promo code
+//                "UF_CRM_1629098340599"=>'', //Shop Order Price (package fee)
+//                "UF_CRM_1629103354670"=>'', //我们收到的钱
+//                "UF_CRM_1629103387129"=>'', //我们是否收到了钱
+                "UF_CRM_1629192007"=>$d['order_id'],//ORDER_ID
+                "UF_CRM_1629271456064"=>$d['discounted_price'], //Total price Paid
+                "UF_CRM_1629274022921"=>$this->platform, //Platform type
+                "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
 
             ];
             Log::info('$deal' , $deal);
@@ -172,8 +177,60 @@ class Bitrix24Order implements ShouldQueue
 
     private function update($data)
     {
-        $bx24 = app('bitrix24');
+//        $bx24 = app('bitrix24');
+//        $dealId = $data['id'];
+//        $order_id = $data['order_id'];
+//        $operator = $data['operator'];
+//        $deliveryFee = $data['delivery_fee']??'';
+//        $deliveryFree = $data['delivery_free']??'';
+//        $packagingFee = $data['packaging_fee']??'';
+//        $packagingFree = $data['packaging_free']??'';
+//        $orderData = array('operator'=>$operator);
+//        if($deliveryFree=="Y")
+//        {
+//            $orderData['free_delivery'] =1;
+//            $orderData['packaging_cost'] =0;
+//        }else{
+//            $orderData['free_delivery'] =0;
+//            preg_match_all("/\d+/", $deliveryFee,$arr);
+//            $delivery = round((float)explode('' , $arr) , 2);
+//            $orderData['packaging_cost'] = $delivery;
+//        }
+//        $time = date('Y-m-d H:i:s');
+//        $orderData['packaging_cost'] = $packagingFree=="Y"?0:round((float)$packagingFree , 2);
+//        $order = Order::where('order_id' , $order_id)->firstOrFail();
+//        $orderData['discounted_price'] = $order->total_price+$orderData['packaging_cost']+$orderData['packaging_cost'];
+//        DB::table('orders')->where('order_id' , $order_id)->update($orderData);
+//        $order = $order->toArray();
+//        $order['id'] = Uuid::uuid1()->toString();
+//        $order['updated_at'] = $time;
+//        DB::table('orders_logs')->insert($order);
+//        $dealProducts = $bx24->getDealProductRows($dealId);
+//        $goods = collect($dealProducts)->pluck('QUANTITY' , 'ID')->toArray();
+//        $ids = collect($dealProducts)->pluck('ID')->toArray();
 
+//        $gs = Goods::whereIn('extension_id' , $ids)->get();
+//        $gs->each(function($g) use ($goods){
+//            $g->goodsNumber = $goods[$g['extension_id']];
+//        });
+//        $price = $gs->sum(function ($shopG){
+//            return $shopG->goodsNumber*$shopG->price;
+//        });
+//        $promoPrice = $gs->sum(function ($shopG){
+//            if($shopG->discounted_price<0)
+//            {
+//                return $shopG->goodsNumber*$shopG->price;
+//            }
+//            return $shopG->goodsNumber*$shopG->discounted_price;
+//        });
+//        $shopIds = $gs->pluck('user_id')->unique()->toArray();
+//        if(count($shopIds)===1)
+//        {
+//            $bx24->getDealProductRows($dealId , $productData);
+//            $gs->sum(function ($shopG) use ($goods) {
+//                return $goods[$shopG['id']]*$shopG['price'];
+//            });
+//        }
         Log::info('$data' , $data);
     }
 

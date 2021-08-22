@@ -441,144 +441,418 @@ class BusinessController extends BaseController
 
     public function bitrixOrderCallback(Request $request)
     {
-        Log::info('all', $request->all());
-//        preg_match_all("/\d+/", $str,$arr);
-        $id = $request->get('id', '');
-        $orderId = $request->get('order_id', '');
-        $platform = $request->get('platform', '');//Call
-        $operator = $request->get('operator', '');
-        if ($platform == 'Call' && empty($orderId)) {
-            $response = $this->response->created()->setStatusCode(200);
-            $company = $request->get('company', '');
-            $userName = $request->get('user_name', '');
-            $userContact = $request->get('user_contact', '');
-            $userAddress = $request->get('user_address', '');
-            $packageCost = $request->get('package_cost', 0);
-            $currency = $request->get('currency', '');
-            $promoCode = $request->get('promo_code', '');
-            $order_price = $request->get('order_price', 0);
-            $discounted_price = $request->get('discounted_price', 0);
-            $gs = $request->get('gs', '');
-            $gs = explode(',', $gs);
-            $gs = array_map(function ($v) {
-                return trim($v);
-            }, $gs);
-            if (stripos($currency, 'birr') !== false) {
-                $currency = "BIRR";
-            } else {
-                $currency = "USD";
+        Log::info(__FUNCTION__, $request->all());
+        $type = (string)$request->input('type' , '');
+        $id = $request->input('id' , '');
+        $stage = (string)$request->input('stage' , '');
+        $contactId = (string)$request->input('contact_id' , '');
+        $userName = (string)$request->input('user_name' , '');
+        $userContact = (string)$request->input('user_contact' , '');
+        $userAddress = (string)$request->input('user_address' , '');
+        $responsible = (string)$request->input('responsible' , '');
+        $now = date('Y-m-d H:i:s');
+        if($type=='new'&&!empty($id)&&$stage=='New Order')
+        {
+            $bx24 = app('bitrix24');
+            $deal = $bx24->getDeal($id);
+            $products = $bx24->getDealProductRows($id);
+            if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['COMPANY_ID']!==$contactId)
+            {
+                $bx24->deleteDeal($id);
+                return ;
             }
-            $shop = DB::table('bitrix_shops')->where('extension_id', $company)->first();
-            if (empty($shop)) {
-                return $response;
+            $packagingFee = $deal['UF_CRM_1628733998830']??'';
+            $packagingFree = $deal['UF_CRM_1628734031097']??'';
+            $deliveryFee = $deal['UF_CRM_1628734060152']??'';
+            $deliveryFree = $deal['UF_CRM_1628734075984']??'';
+            $promoCode = (string)$deal['UF_CRM_1628735337461'];
+            $companyId = (string)$deal['COMPANY_ID'];
+
+            $shop = DB::table('bitrix_shops')->where('extension_id' , $companyId)->first();
+            if(empty($shop))
+            {
+                $bx24->deleteDeal($id);
+                return ;
             }
-            $orderId = app('snowflake')->id();
-            $now = date('Y-m-d H:i:s');
-            $shopGs = Goods::whereIn('extension_id', $gs)->get();
-            if (!empty($shopGs)) {
-                $products = collect(app('bitrix24')->getDealProductRows($id));
-                $shopGs->each(function ($shopG) use ($products) {
-                    $product = $products->where('id', $shopG->extension_id)->first();
-                    if (!empty($product)) {
-                        $product->price = $product['PRICE'];
-                        $product->discounted_price = $product['DISCOUNT_SUM'];
-                    }
-                });
-                $data = array(
-                    'order_id' => $orderId,
-                    'user_id' => (string)$shop->user_id,
-                    'shop_id' => (string)$shop->user_id,
-                    'user_name' => $userName,
-                    'user_contact' => $userContact,
-                    'user_address' => $userAddress,
-                    'detail' => \json_encode($shopGs->toArray(), JSON_UNESCAPED_UNICODE),
-                    'order_price' => 0,
-                    'promo_price' => 0,
-                    'promo_code' => $promoCode,
-                    'packaging_cost' => round($packageCost, 2),
-                    'first_order' => 0,
-                    'currency' => $currency,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                );
+            $gIds = collect($products)->pluck('ID')->unique()->toArray();
+            $productsQuantity = collect($products)->pluck('QUANTITY' , 'ID')->unique()->toArray();
+            $gs = Goods::whereIn('extension_id' , $gIds)->get();
+            $sameShop = $gs->every(function($g , $k) use ($shop){
+                return $g->user_id === $shop->user_id;
+            });
+            if(!$sameShop)
+            {
+                $bx24->deleteDeal($id);
+                return ;
             }
-            return $this->response->created()->setStatusCode(200);
-        }
-        if (!empty($orderId)) {
-            $stage = $request->get('stage', '');
-            $schedule = 0;
-            switch ($stage) {
-                case "New Order":
-                    $schedule = 1;
-                    break;
-                case "Confirm Order":
-                    $schedule = 2;
-                    break;
-                case "Send To Driver":
-                    $schedule = 3;
-                    break;
-                case "Driver Taken Order":
-                case "Driver Arrived Shop":
-                    $schedule = 4;
-                    break;
-                case "Food Arrived":
-                case "Order Completed":
-                case "Manager":
-                    $schedule = 5;
-                    break;
-                case "Spam":
-                    $schedule = 7;
-                    break;
-                case "Not Receiving Phonecall":
-                    $schedule = 6;
-                    break;
-                case "User Canceled Order":
-                    $schedule = 8;
-                    break;
-                case "Shop Canceled Order":
-                    $schedule = 9;
-                    break;
-                case "Other Reason":
-                    $schedule = 10;
-                    break;
-                default:
-                    break;
+            $gs->each(function ($g) use ($productsQuantity){
+                $g->goodsNumber = $productsQuantity[$g->extension_id];
+            });
+            $orderData = array();
+            $code = PromoCode::where('promo_code' , $promoCode)->first();
+            if(empty($code)||$code->limit<=0||empty($code->deadline)||$code->deadline<date('Y-m-d'))
+            {
+                $promoCode = '';
             }
-            if ($schedule > 0) {
-                $orderState = 0;
-                $time = date('Y-m-d H:i:s');
-                $schedule === 5 && $orderState = 1;
-                $schedule >= 6 && $orderState = 2;
-                $order = Order::where('order_id', $orderId)->firstOrFail();
-                $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
-                $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
-                $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
-                if ($schedule === 5) {
-                    $data['delivered_at'] = $time;
+            if(!empty($promoCode))
+            {
+                $reduction = $code->reduction;
+                $discount = $code->percentage;
+                $freeDelivery = (int)$code->free_delivery;
+                $deliveryCoast = $code->free_delivery?0:money_to_number($deliveryFee);
+            }else{
+                $freeDelivery = (int)$deliveryFree;
+                $deliveryCoast = $deliveryFree==="1"?0:money_to_number($deliveryFee);
+            }
+            $price = collect($gs)->sum(function ($shopG) {
+                return $shopG->goodsNumber*$shopG->price;
+            });
+            $promoPrice = collect($gs)->sum(function ($shopG) {
+                if($shopG->discounted_price<0)
+                {
+                    return $shopG->goodsNumber*$shopG->price;
                 }
-                $order = $order->toArray();
-                $order['id'] = Uuid::uuid1()->toString();
-                $order['updated_at'] = $time;
-                $data['operator'] = $operator;
-                unset($order['format_price']);
-                $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
+                return $shopG->goodsNumber*$shopG->discounted_price;
+            });
+            $packagingCost = $packagingFree==='1'?0:money_to_number($packagingFee);
+            $orderId = app('snowflake')->id();
+            $data = array(
+                'order_id'=>$orderId,
+                'user_id'=> 8888,
+                'shop_id'=> $shop->user_id,
+                'user_name'=>$userName,
+                'user_contact'=>$userContact,
+                'user_address'=>$userAddress,
+                'detail'=>\json_encode($gs->toArray() , JSON_UNESCAPED_UNICODE),
+                'order_price'=>round($price , 2),
+                'promo_price'=>round($promoPrice , 2),
+                'packaging_cost'=>round($packagingCost , 2),
+                'first_order'=>0,
+                'currency'=>"BIRR",
+                'operator'=>$responsible,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            );
+            $data['delivery_coast'] = $deliveryCoast;
+            $data['promo_code'] = $promoCode;
+            $data['free_delivery'] = $freeDelivery;
+            $data['reduction'] = $reduction??0;
+            $data['discount'] = $discount??0;
+            if(!empty($promoCode))
+            {
+                $discount_type = (string)$code->discount_type;
+                if($code->discount_type=='discount')
+                {
+                    $totalPrice = round($promoPrice*$code->percentage/100 , 2);
+                    $discountedPrice = round($promoPrice*$code->percentage/100+$deliveryCoast+$packagingCost , 2);
+                }else{
+                    $totalPrice = round($promoPrice-$code->reduction , 2);
+                    $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast+$packagingCost , 2);
+                }
+            }else{
+                $totalPrice = round($promoPrice , 2);
+                $discountedPrice = round($totalPrice+$deliveryCoast+$packagingCost , 2);
+            }
+            $brokerage_percentage = 95;
+            $data['discounted_price'] = $discountedPrice;
+            $data['total_price'] = $totalPrice;
+            $data['discount_type'] = $discount_type??'';
+            $data['brokerage_percentage'] = $brokerage_percentage;
+            $brokerage = round($brokerage_percentage/100*$price , 2);
+            $data['brokerage'] = $brokerage;
+            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
+            if(!empty($orderData)) {
                 try {
                     DB::beginTransaction();
-                    DB::table('orders')->where('order_id', $orderId)->update($data);
-                    DB::connection('lovbee')->table('orders_logs')->insert($order);
+                    $orderResult = DB::table('orders')->insert($data);
+                    if (!$orderResult) {
+                        abort('500', 'order insert failed!');
+                    }
+                    $codeResult = DB::table('promo_codes')->where('promo_code', $promoCode)->decrement('limit');
+                    if ($codeResult <= 0) {
+                        abort('500', 'promo code update failed!');
+                    }
                     DB::commit();
-                }catch (\Exception $e)
-                {
-                    DB::rollBack();
-                    Log::error('order_update_fail', array(
-                        'message'=>$e->getMessage(),
-                        'data'=>$request->all(),
+                    $discounted = '';
+                    if($data['discount_type']==='discount')
+                    {
+                        $discounted = (string)$data['discount'] . "%";
+                    }elseif ($data['discount_type']=='reduction')
+                    {
+                        $discounted = $data['reduction'];
+                    }
+                    $bx24->updateDeal($id , array(
+                        "SOURCE_ID"=>'call' ,
+                        "SOURCE_DESCRIPTION"=>'call' ,
+                        "UF_CRM_1628733612424"=>0, //Special price
+                        "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price
+                        "UF_CRM_1628733813318"=>$discounted, //Discount Used
+                        "UF_CRM_1628733998830"=>$packagingCost,//Package fee
+                        "UF_CRM_1628734031097"=>(bool)$data['packaging_cost'], //Package fee free？
+                        "UF_CRM_1628734060152"=>$data['delivery_coast'], //Delivery fee
+                        "UF_CRM_1628734075984"=>(bool)$data['free_delivery'], //Delivery fee free？
+                        "UF_CRM_1628735337461"=>$promoCode, //Promo code
+                        "UF_CRM_1629192007"=>$orderId,//ORDER_ID
+                        "UF_CRM_1629271456064"=>$data['discounted_price'], //Total price Paid
+                        "UF_CRM_1629274022921"=>53, //Platform type
+                        "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
+                        "UF_CRM_1629555411"=>"0", //Restaurant
                     ));
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::info('bitrix_order_update_fail', array(
+                        'message' => $e->getMessage(),
+                        'user_id' => 'callCenter',
+                        'data' => $request->all()
+                    ));
+                    $bx24->delete($id);
                 }
             }
+        }else if ($type=='update'){
+            $bx24 = app('bitrix24');
+            $deal = $bx24->getDeal($id);
+            $orderId = $deal['UF_CRM_1629192007']??'';
+            $order = Order::where('order_id' , $orderId)->first();
+            if(empty($order))
+            {
+                $bx24->deleteDeal($id);
+                return ;
+            }
+            $isFieldUpdate = (bool)($deal['UF_CRM_1629593448']??0);
+            if(!$isFieldUpdate)
+            {
+                $stage = $request->get('stage', '');
+                $bx24 = app('bitrix24');
+                $deal = $bx24->getDeal($id);
+                $orderId = $deal['UF_CRM_1629192007']??'';
+                $schedule = 0;
+                $isDispatch = false;
+                switch ($stage) {
+                    case "New Order":
+                        $schedule = 1;
+                        break;
+                    case "Confirmed by Customer":
+                        $schedule = 2;
+                        break;
+                    case "Send To Driver":
+                        $isDispatch = true;
+                        $schedule = 3;
+                        break;
+                    case "Driver Accepted":
+                    case "Driver Picked Up Food":
+                        $schedule = 4;
+                        break;
+                    case "Order Completed":
+                        $schedule = 5;
+                        break;
+                    case "Spam":
+                        $schedule = 7;
+                        break;
+                    case "Not Receiving Phone call":
+                        $schedule = 6;
+                        break;
+                    case "User Canceled Order":
+                        $schedule = 8;
+                        break;
+                    case "Shop Canceled Order":
+                        $schedule = 9;
+                        break;
+                    case "Other Reason":
+                        $schedule = 10;
+                        break;
+                    default:
+                        break;
+                }
+                if ($schedule > 0) {
+                    $orderState = 0;
+                    $time = date('Y-m-d H:i:s');
+                    $schedule === 5 && $orderState = 1;
+                    $schedule >= 6 && $orderState = 2;
+                    $order = Order::where('order_id', $orderId)->firstOrFail();
+                    $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
+                    $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
+                    $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
+                    if ($schedule === 5) {
+                        $data['delivered_at'] = $time;
+                    }
+                    $order = $order->toArray();
+                    $order['id'] = Uuid::uuid1()->toString();
+                    $order['updated_at'] = $time;
+                    $data['operator'] = $responsible;
+                    unset($order['format_price']);
+                    $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
+                    try {
+                        DB::beginTransaction();
+                        DB::table('orders')->where('order_id', $orderId)->update($data);
+                        DB::table('orders_logs')->insert($order);
+                        DB::commit();
+                        if($isDispatch)
+                        {
+                            dd(1);
+                        }
+                    }catch (\Exception $e)
+                    {
+                        DB::rollBack();
+                        Log::error('order_update_fail', array(
+                            'message'=>$e->getMessage(),
+                            'data'=>$request->all(),
+                        ));
+                    }
+                }
+                return;
+            }
+
+            $packagingFee = $deal['UF_CRM_1628733998830']??'';
+            $packagingFree = $deal['UF_CRM_1628734031097']??'';
+            $deliveryFee = $deal['UF_CRM_1628734060152']??'';
+            $deliveryFree = $deal['UF_CRM_1628734075984']??'';
+            $products = $bx24->getDealProductRows($id);
+            if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['COMPANY_ID']!==$contactId)
+            {
+                $bx24->deleteDeal($id);
+                return ;
+            }
+            $companyId = (string)$deal['COMPANY_ID'];
+            $shop = DB::table('bitrix_shops')->where('extension_id' , $companyId)->first();
+            if(empty($shop))
+            {
+                $bx24->deleteDeal($id);
+                $data = $order->toArray();
+                $data['id'] = Uuid::uuid1()->toString();
+                $data['updated_at'] = $now;
+                DB::table('orders')->where('order_id' , $order->order_id)->delete();
+                DB::table('orders_logs')->insert($data);
+                return ;
+            }
+            $gIds = collect($products)->pluck('ID')->unique()->toArray();
+            $productsQuantity = collect($products)->pluck('QUANTITY' , 'ID')->unique()->toArray();
+            $gs = Goods::whereIn('extension_id' , $gIds)->get();
+            $sameShop = $gs->every(function($g , $k) use ($order){
+                return $g->user_id === $order->shop_id;
+            });
+            if(!$sameShop||$shop->user_id!==$orderId->shop_id)
+            {
+                $bx24->deleteDeal($id);
+                $data = $order->toArray();
+                $data['id'] = Uuid::uuid1()->toString();
+                $data['updated_at'] = $now;
+                DB::table('orders')->where('order_id' , $order->order_id)->delete();
+                DB::table('orders_logs')->insert($data);
+                return ;
+            }
+
+            $gs->each(function ($g) use ($productsQuantity){
+                $g->goodsNumber = $productsQuantity[$g->extension_id];
+            });
+            $promoCode = $order->promo_code;
+            if(!empty($promoCode))
+            {
+                $reduction = $order->reduction;
+                $discount = $order->percentage;
+                $freeDelivery = (int)$order->free_delivery;
+                $deliveryCoast = $order->free_delivery?0:money_to_number($deliveryFee);
+            }else{
+                $freeDelivery = (int)$deliveryFree;
+                $deliveryCoast = $deliveryFree==="1"?0:money_to_number($deliveryFee);
+            }
+            $price = collect($gs)->sum(function ($shopG) {
+                return $shopG->goodsNumber*$shopG->price;
+            });
+            $promoPrice = collect($gs)->sum(function ($shopG) {
+                if($shopG->discounted_price<0)
+                {
+                    return $shopG->goodsNumber*$shopG->price;
+                }
+                return $shopG->goodsNumber*$shopG->discounted_price;
+            });
+            $packagingCost = $packagingFree==='1'?0:money_to_number($packagingFee);
+            $orderId = app('snowflake')->id();
+            $data = array(
+                'user_id'=> 8888,
+                'shop_id'=> $shop->user_id,
+                'user_name'=>$userName,
+                'user_contact'=>$userContact,
+                'user_address'=>$userAddress,
+                'detail'=>\json_encode($gs->toArray() , JSON_UNESCAPED_UNICODE),
+                'order_price'=>round($price , 2),
+                'promo_price'=>round($promoPrice , 2),
+                'packaging_cost'=>round($packagingCost , 2),
+                'first_order'=>0,
+                'currency'=>"BIRR",
+                'operator'=>$responsible,
+                'created_at'=>$now,
+                'updated_at'=>$now,
+            );
+            $data['delivery_coast'] = $deliveryCoast;
+            $data['promo_code'] = $promoCode;
+            $data['free_delivery'] = $freeDelivery;
+            $data['reduction'] = $reduction??0;
+            $data['discount'] = $discount??0;
+            if(!empty($promoCode))
+            {
+                $discount_type = (string)$order->discount_type;
+                if($order->discount_type=='discount')
+                {
+                    $totalPrice = round($promoPrice*$order->percentage/100 , 2);
+                    $discountedPrice = round($promoPrice*$order->percentage/100+$deliveryCoast+$packagingCost , 2);
+                }else{
+                    $totalPrice = round($promoPrice-$order->reduction , 2);
+                    $discountedPrice = round($promoPrice-$order->reduction+$deliveryCoast+$packagingCost , 2);
+                }
+            }else{
+                $totalPrice = round($promoPrice , 2);
+                $discountedPrice = round($totalPrice+$deliveryCoast+$packagingCost , 2);
+            }
+            $brokerage_percentage = 95;
+            $data['discounted_price'] = $discountedPrice;
+            $data['total_price'] = $totalPrice;
+            $data['discount_type'] = $discount_type??'';
+            $data['brokerage_percentage'] = $brokerage_percentage;
+            $brokerage = round($brokerage_percentage/100*$price , 2);
+            $data['brokerage'] = $brokerage;
+            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
+            $order = $order->toArray();
+            $order['id'] = Uuid::uuid1()->toString();
+            $order['updated_at'] = $now;
+            DB::table('orders_logs')->insert($order);
+            DB::table('orders')->where('order_id' , $orderId)->update($data);
+            $discounted = '';
+            if($data['discount_type']==='discount')
+            {
+                $discounted = (string)$data['discount'] . "%";
+            }elseif ($data['discount_type']=='reduction')
+            {
+                $discounted = $data['reduction'];
+            }
+            $deal = [
+                "TITLE"=>$orderId,
+                "STAGE_ID"=>'NEW',
+                "IS_NEW"=>'true',
+                "CURRENCY_ID"=>'ETB',
+                "COMPANY_ID"=> $shop->user_id ?? 0,
+                "CONTACT_ID"=>$contactId,
+                "UF_CRM_1628733612424"=>0, //Special price
+                "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price
+                "UF_CRM_1628733813318"=>$discounted, //Discount Used
+                "UF_CRM_1628733998830"=>$data['packaging_cost'],//Package fee
+                "UF_CRM_1628734031097"=>(bool)$data['packaging_cost'], //Package fee free？
+                "UF_CRM_1628734060152"=>$data['delivery_coast'], //Delivery fee
+                "UF_CRM_1628734075984"=>(bool)$data['free_delivery'], //Delivery fee free？
+                "UF_CRM_1628735337461"=>$data['promo_code'], //Promo code
+                "UF_CRM_1629192007"=>$data['order_id'],//ORDER_ID
+                "UF_CRM_1629271456064"=>$data['discounted_price'], //Total price Paid
+                "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
+                "UF_CRM_1629555411"=>'0', //IS UPDATE
+                "UF_CRM_1629593448"=>'0' //IS FIELD UPDATE
+            ];
+            $bx24->updateDeal($id , array(
+                $deal
+            ));
         }
         return $this->response->created()->setStatusCode(200);
     }
+
+
     public function shipDayCallback(Request $request)
     {
         $event = (string)$request->input('event' , '');
@@ -586,27 +860,32 @@ class BusinessController extends BaseController
         $operator = (string)$request->input('operator' , '');
         $schedule = 0;
         $bitrixSchedule = '';
-        $stages = array('NEW' , 'PREPARATION', 'PREPAYMENT_INVOICE', '1' ,'2' ,'3' ,'4' ,'LOSE' ,'APOLOGY' ,'WON');
+        $stages = array('NEW' , 'PREPARATION', 'PREPAYMENT_INVOICE', '1' ,'2' ,'LOSE' ,'6' ,'5' ,'7' ,'APOLOGY' , 'WON');
         switch ($event){
             case "ORDER_ASSIGNED":
                 //@todo Send To Driver
                 //@todo Called Driver via Bitrix callback
                 break;
             case "ORDER_ACCEPTED_AND_STARTED":
-                //@todo Driver Taken Order
+                //@todo Driver Accepted
                 //@todo Called Shop
                 $schedule = 4;
                 $bitrixSchedule = '1';
                 break;
             case "ORDER_PIKEDUP":
-            case "ORDER_ONTHEWAY":
-                //@todo Driver Arrived Shop
+                //@todo Driver Picked Up Food
                 //@todo Called Shop
                 $schedule = 4;
                 $bitrixSchedule = '2';
                 break;
+            case "ORDER_ONTHEWAY":
+                //@todo
+                //@todo Called Shop
+//                $schedule = 4;
+//                $bitrixSchedule = '2';
+                break;
             case "ORDER_COMPLETED":
-                //@todo Food Arrived
+                //@todo Order Completed
                 //@todo Delivered
                 $schedule = 5;
                 $bitrixSchedule = 'WON';
@@ -615,7 +894,7 @@ class BusinessController extends BaseController
                 //@todo Other Reason
                 //@todo Other
                 $schedule = 10;
-                $bitrixSchedule = 'LOSE';
+                $bitrixSchedule = 'APOLOGY';
                 break;
             default:
                 break;
@@ -661,6 +940,7 @@ class BusinessController extends BaseController
             $bitrixOrder = DB::table('bitrix_orders')->where('order_id' , $orderId)->first();
             $bx24->updateDeal($bitrixOrder->extension_id , array(
                 "STAGE_ID"=>$bitrixSchedule,
+                "UF_CRM_1629555411"=>"0",
             ));
         }
     }

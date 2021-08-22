@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,14 +16,14 @@ class ShipdayOrder implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
 
-    private $orders;
-    private $addresses;
+    private $order;
+    private $address;
 
 
-    public function __construct($orders , $addresses)
+    public function __construct($order , $address)
     {
-        $this->orders = $orders;
-        $this->addresses = $addresses;
+        $this->order = $order;
+        $this->address = $address;
     }
 
     /**
@@ -32,68 +33,65 @@ class ShipdayOrder implements ShouldQueue
      */
     public function handle()
     {
-        $orders = $this->orders;
-        $addresses = collect($this->addresses);
-        $shopIds = collect($orders)->pluck('shop_id')->unique()->toArray();
-        $phones = DB::table('users_phones')->whereIn('user_id' , $shopIds)->get();
-        foreach ($orders as $order)
+        $order = $this->order;
+        $address = $this->address;
+        $shop = User::where('user_id' , $order['shop_id'])->first();
+        $phone = DB::table('users_phones')->where('user_id' , $order['shop_id'])->first();
+
+        $detail = $order['detail'];
+        $orderItem = array();
+        $str = "";
+        foreach ($detail as $d)
         {
-            $phone = $phones->where('user_id' , $order['shop_id'])->first();
-            $address = $addresses->where('order_id' , $order['order_id'])->first();
-            $detail = $order['detail'];
-            $orderItem = array();
-            $str = "";
-            foreach ($detail as $d)
+            if($d['discounted_price']>=0)
             {
-                if($d['discounted_price']>=0)
-                {
-                    $str .= $d['name'] . "Unit price after discount is" . (string)$d['discounted_price'] .' &&';
-                }
-                array_push($orderItem  , array(
-                    'name'=>$d['name'],
-                    'quantity'=>$d['goodsNumber'],
-                    'unitPrice'=>$d['price'],
-                    'detail'=>$str,
-                ));
+                $str .= $d['name'] . "Unit price after discount is" . (string)$d['discounted_price'] .' &&';
             }
-            $data = [
-                "orderNumber" => $order['order_id'],
-                "customerName" => $order['user_name'],
-                "customerAddress" => $order['user_address'],
-                "customerEmail" => "",
-                "customerPhoneNumber" => $order['user_contact'],
-                "restaurantName" => $order['shop']->user_nick_name,
-                "restaurantAddress" => $order['shop']->user_address,
-                "restaurantPhoneNumber" => empty($phone)?'':$phone->user_phone_country.$phone->user_phone,
+            array_push($orderItem  , array(
+                'name'=>$d['name'],
+                'quantity'=>$d['goodsNumber'],
+                'unitPrice'=>$d['price'],
+                'detail'=>$str,
+            ));
+        }
+
+        $data = [
+            "orderNumber" => $order['order_id'],
+            "customerName" => $order['user_name'],
+            "customerAddress" => $order['user_address'],
+            "customerEmail" => "",
+            "customerPhoneNumber" => $order['user_contact'],
+            "restaurantName" => $shop->user_nick_name,
+            "restaurantAddress" => $shop->user_address,
+            "restaurantPhoneNumber" => empty($phone)?'':$phone->user_phone_country.$phone->user_phone,
 //            "expectedDeliveryDate"=>'',
 //            "expectedPickupTime"=>'',
 //            "expectedDeliveryTime"=>'',
 //                "pickupLatitude" => 0,
 //                "pickupLongitude" => 0,
-                "deliveryLatitude" => $address['user_latitude'],
-                "deliveryLongitude" => $address['user_longitude'],
-                "orderItem" => $orderItem,
-                "tips" => 0,
-                "tax" => 0,
-                "discountAmount" => $order['total_price'],
-                "deliveryFee" => $order['delivery_coast'],
-                "totalOrderCost" => $order['discounted_price'],
-                "deliveryInstruction" => "fast",
-                "orderSource" => "",
-                "additionalId" => "",
-                "clientRestaurantId" => "",
-                "paymentMethod"=>'cash',
+            "deliveryLatitude" => $address['user_latitude'],
+            "deliveryLongitude" => $address['user_longitude'],
+            "orderItem" => $orderItem,
+            "tips" => 0,
+            "tax" => 0,
+            "discountAmount" => $order['total_price'],
+            "deliveryFee" => $order['delivery_coast'],
+            "totalOrderCost" => $order['discounted_price'],
+            "deliveryInstruction" => "fast",
+            "orderSource" => "",
+            "additionalId" => "",
+            "clientRestaurantId" => "",
+            "paymentMethod"=>'cash',
 //            "creditCardType"=>'',
-                "creditCardId"=>0,
-            ];
-            $this->curl($data);
-        }
+            "creditCardId"=>0,
+        ];
+        $this->curl($data);
 
     }
 
     public function curl($data)
     {
-        Log::info('shipday_data' , $data);
+        Log::info(__FUNCTION__.'_data' , $data);
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
@@ -115,7 +113,7 @@ class ShipdayOrder implements ShouldQueue
         $response = curl_exec($curl);
 
         curl_close($curl);
-        Log::info('Shipday_result' , array('$response'=>$response));
+        Log::info(__FUNCTION__.'_result' , array('$response'=>$response));
     }
 
 }

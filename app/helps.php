@@ -1633,3 +1633,12 @@ if (! function_exists('batchUpdate')) {
         );
     }
 }
+
+if(!function_exists('money_to_number'))
+{
+    function money_to_number($str)
+    {
+        preg_match_all("/\d+/", (string)$str,$arr);
+        return isset($arr[0])?round((float)implode('.' , $arr[0]) , 2):0;
+    }
+}
