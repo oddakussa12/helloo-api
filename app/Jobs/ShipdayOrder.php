@@ -17,13 +17,11 @@ class ShipdayOrder implements ShouldQueue
 
 
     private $order;
-    private $address;
 
 
-    public function __construct($order , $address)
+    public function __construct($order)
     {
         $this->order = $order;
-        $this->address = $address;
     }
 
     /**
@@ -34,11 +32,10 @@ class ShipdayOrder implements ShouldQueue
     public function handle()
     {
         $order = $this->order;
-        $address = $this->address;
+        $address = DB::table('orders_addresses')->where('order_id' , $order['order_id'])->first();
         $shop = User::where('user_id' , $order['shop_id'])->first();
         $phone = DB::table('users_phones')->where('user_id' , $order['shop_id'])->first();
-
-        $detail = $order['detail'];
+        $detail = \json_decode($order['detail'] , true);
         $orderItem = array();
         $str = "";
         foreach ($detail as $d)
@@ -69,8 +66,8 @@ class ShipdayOrder implements ShouldQueue
 //            "expectedDeliveryTime"=>'',
 //                "pickupLatitude" => 0,
 //                "pickupLongitude" => 0,
-            "deliveryLatitude" => $address['user_latitude'],
-            "deliveryLongitude" => $address['user_longitude'],
+//            "deliveryLatitude" => $address->user_longitude??0,
+//            "deliveryLongitude" => $address->user_latitude??0,
             "orderItem" => $orderItem,
             "tips" => 0,
             "tax" => 0,
@@ -85,6 +82,11 @@ class ShipdayOrder implements ShouldQueue
 //            "creditCardType"=>'',
             "creditCardId"=>0,
         ];
+        if(!empty(deliveryLatitude))
+        {
+            $data['deliveryLongitude'] = $address->user_longitude??0;
+            $data['deliveryLatitude'] = $address->user_latitude??0;
+        }
         $this->curl($data);
 
     }

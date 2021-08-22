@@ -688,7 +688,7 @@ class BusinessController extends BaseController
                         DB::commit();
                         if($isDispatch)
                         {
-                            dd(1);
+                            $this->dispatchNow(new ShipdayOrder($order));
                         }
                     }catch (\Exception $e)
                     {
