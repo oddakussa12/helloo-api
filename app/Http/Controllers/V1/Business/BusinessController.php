@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\V1\Business;
 
-use App\Jobs\ShipdayOrder;
 use App\Models\User;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
+use App\Custom\RedisList;
+use App\Jobs\ShipdayOrder;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
@@ -531,7 +532,7 @@ class BusinessController extends BaseController
             $orderId = app('snowflake')->id();
             $data = array(
                 'order_id'=>$orderId,
-                'user_id'=> 8888,
+                'user_id'=> 2055272474,
                 'shop_id'=> $shop->user_id,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
@@ -718,7 +719,12 @@ class BusinessController extends BaseController
                 }
                 return;
             }
-
+            $lock_key = 'helloo:bitrix:repeat:order'.$id;
+            $redis = new RedisList();
+            if(!$redis->tryGetLock($lock_key))
+            {
+                return;
+            }
             $packagingFee = $deal['UF_CRM_1628733998830']??'';
             $packagingFree = $deal['UF_CRM_1628734031097']??'';
             $deliveryFee = $deal['UF_CRM_1628734060152']??'';
@@ -751,13 +757,14 @@ class BusinessController extends BaseController
                 ));
                 return ;
             }
+            $shop = User::where('user_id' , $shop->user_id)->first();
             $gIds = collect($products)->pluck('ID')->unique()->toArray();
             $productsQuantity = collect($products)->pluck('QUANTITY' , 'ID')->unique()->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();
             $sameShop = $gs->every(function($g , $k) use ($order){
                 return (int)$g->user_id === (int)$order->shop_id;
             });
-            if(!$sameShop||(int)$shop->user_id!==(int)$orderId->shop_id)
+            if(!$sameShop||(int)$shop->user_id!==(int)$order->shop_id)
             {
                 $bx24->deleteDeal($id);
                 $data = $order->toArray();
@@ -773,6 +780,7 @@ class BusinessController extends BaseController
                     '$order->shop_id'=>$order->shop_id,
                     'deal'=>$deal,
                     'data'=>$request->all(),
+                    '$gs'=>$gs->toArray(),
                 ));
                 return ;
             }
@@ -802,10 +810,8 @@ class BusinessController extends BaseController
                 return $shopG->goodsNumber*$shopG->discounted_price;
             });
             $packagingCost = $packagingFree==='1'?0:money_to_number($packagingFee);
-            $orderId = app('snowflake')->id();
+            $orderId = $order->order_id;
             $data = array(
-                'user_id'=> 8888,
-                'shop_id'=> $shop->user_id,
                 'user_name'=>$userName,
                 'user_contact'=>$userContact,
                 'user_address'=>$userAddress,
@@ -862,9 +868,6 @@ class BusinessController extends BaseController
                 $discounted = $data['reduction'];
             }
             $deal = [
-                "TITLE"=>$orderId,
-                "STAGE_ID"=>'NEW',
-                "IS_NEW"=>'true',
                 "CURRENCY_ID"=>'ETB',
                 "COMPANY_ID"=> $shop->user_id ?? 0,
                 "CONTACT_ID"=>$contactId,
@@ -944,6 +947,12 @@ class BusinessController extends BaseController
             $schedule === 5 && $orderState = 1;
             $schedule >= 6 && $orderState = 2;
             $orderId = $shipOrder['id']??0;
+            $lock_key = 'helloo:bitrix:repeat:order:'.$orderId;
+            $redis = new RedisList();
+            if(!$redis->tryGetLock($lock_key , 1 , 5000))
+            {
+                return;
+            }
             $order = Order::where('ship_id', $orderId)->firstOrFail();
             $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
             $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
