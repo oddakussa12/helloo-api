@@ -857,6 +857,7 @@ class BusinessController extends BaseController
             $order['id'] = Uuid::uuid1()->toString();
             $order['updated_at'] = $now;
             unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
+            $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
             DB::table('orders_logs')->insert($order);
             DB::table('orders')->where('order_id' , $orderId)->update($data);
             $discounted = '';
