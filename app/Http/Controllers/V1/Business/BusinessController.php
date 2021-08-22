@@ -759,7 +759,7 @@ class BusinessController extends BaseController
             }
             $shop = User::where('user_id' , $shop->user_id)->first();
             $gIds = collect($products)->pluck('PRODUCT_ID')->unique()->toArray();
-            $productsQuantity = collect($products)->pluck('QUANTITY' , 'PRODUCT_ID')->unique()->toArray();
+            $productsQuantity = collect($products)->pluck('QUANTITY' , 'PRODUCT_ID')->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();
             $sameShop = $gs->every(function($g , $k) use ($order){
                 return (int)$g->user_id === (int)$order->shop_id;
@@ -887,9 +887,7 @@ class BusinessController extends BaseController
                 "UF_CRM_1629593448"=>'0' //IS FIELD UPDATE
             ];
             Log::info('updateDeal' , $deal);
-            $bx24->updateDeal($id , array(
-                $deal
-            ));
+            $bx24->updateDeal($id , $deal);
         }
         return $this->response->created()->setStatusCode(200);
     }

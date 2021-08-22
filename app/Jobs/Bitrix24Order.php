@@ -166,10 +166,11 @@ class Bitrix24Order implements ShouldQueue
                     'DISCOUNT_SUM'=>$det['discounted_price']<0?0:$det['discounted_price'],
                 ));
             }
-            $bx24->setDealProductRows($dealId , $productData);
+            $result = $bx24->setDealProductRows($dealId , $productData);
             Log::info('bitrix_store_order' , array(
                 $dealId,
-                $productData
+                $productData,
+                $result
             ));
         }
 
