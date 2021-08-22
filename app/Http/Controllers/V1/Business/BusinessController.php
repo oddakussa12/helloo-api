@@ -456,7 +456,7 @@ class BusinessController extends BaseController
             $bx24 = app('bitrix24');
             $deal = $bx24->getDeal($id);
             $products = $bx24->getDealProductRows($id);
-            if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['COMPANY_ID']!==$contactId)
+            if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['CONTACT_ID']!==$contactId)
             {
                 $bx24->deleteDeal($id);
                 Log::info('delete_deal_1' , array(
@@ -486,7 +486,7 @@ class BusinessController extends BaseController
             $productsQuantity = collect($products)->pluck('QUANTITY' , 'ID')->unique()->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();
             $sameShop = $gs->every(function($g , $k) use ($shop){
-                return $g->user_id === $shop->user_id;
+                return (int)$g->user_id === (int)$shop->user_id;
             });
             if(!$sameShop)
             {
@@ -723,7 +723,7 @@ class BusinessController extends BaseController
             $deliveryFee = $deal['UF_CRM_1628734060152']??'';
             $deliveryFree = $deal['UF_CRM_1628734075984']??'';
             $products = $bx24->getDealProductRows($id);
-            if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['COMPANY_ID']!==$contactId)
+            if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['CONTACT_ID']!==$contactId)
             {
                 $bx24->deleteDeal($id);
                 Log::info('delete_deal_5' , array(
@@ -742,6 +742,7 @@ class BusinessController extends BaseController
                 $data['updated_at'] = $now;
                 unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
+                $data['detail'] = \json_encode($data['detail']);
                 DB::table('orders_logs')->insert($data);
                 Log::info('delete_deal_6' , array(
                     'deal'=>$deal,
@@ -753,9 +754,9 @@ class BusinessController extends BaseController
             $productsQuantity = collect($products)->pluck('QUANTITY' , 'ID')->unique()->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();
             $sameShop = $gs->every(function($g , $k) use ($order){
-                return $g->user_id === $order->shop_id;
+                return (int)$g->user_id === (int)$order->shop_id;
             });
-            if(!$sameShop||$shop->user_id!==$orderId->shop_id)
+            if(!$sameShop||(int)$shop->user_id!==(int)$orderId->shop_id)
             {
                 $bx24->deleteDeal($id);
                 $data = $order->toArray();
@@ -763,6 +764,7 @@ class BusinessController extends BaseController
                 $data['updated_at'] = $now;
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
                 unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
+                $data['detail'] = \json_encode($data['detail']);
                 DB::table('orders_logs')->insert($data);
                 Log::info('delete_deal_7' , array(
                     'deal'=>$deal,
