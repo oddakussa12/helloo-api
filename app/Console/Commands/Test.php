@@ -530,22 +530,7 @@ DOC;
     public function syncBitrix()
     {
         $bx24 = app("bitrix24");
-        DB::table('goods')->orderByDesc('created_at')->chunk(50 , function ($goods) use ($bx24){
-            foreach ($goods as $g)
-            {
-                $section = DB::table('bitrix_shops')->where('user_id' , $g->user_id)->first();
-                $id = $bx24->addProduct(array(
-                    "NAME"=>$g->name,
-                    "PRICE"=>$g->price,
-//                    "CURRENCY_ID"=>$g->currency,
-                    "XML_ID"=>$g->id,
-                    "SECTION_ID"=>$section->section_id??0
-                ));
-                DB::table('goods')->where('id' , $g->id)->update(array(
-                    'extension_id'=>$id
-                ));
-            }
-        });
+
         DB::table('users')->where('user_shop' , 1)->where('user_verified' , 1)->orderByDesc('user_created_at')->chunk(50 , function($shops) use ($bx24){
             foreach ($shops as $shop)
             {
@@ -574,6 +559,22 @@ DOC;
                     'user_id'=>$shop->user_id,
                     'extension_id'=>$id,
                     'section_id'=>$sectionId,
+                ));
+            }
+        });
+        DB::table('goods')->orderByDesc('created_at')->chunk(50 , function ($goods) use ($bx24){
+            foreach ($goods as $g)
+            {
+                $section = DB::table('bitrix_shops')->where('user_id' , $g->user_id)->first();
+                $id = $bx24->addProduct(array(
+                    "NAME"=>$g->name,
+                    "PRICE"=>$g->price,
+//                    "CURRENCY_ID"=>$g->currency,
+                    "XML_ID"=>$g->id,
+                    "SECTION_ID"=>$section->section_id??0
+                ));
+                DB::table('goods')->where('id' , $g->id)->update(array(
+                    'extension_id'=>$id
                 ));
             }
         });
