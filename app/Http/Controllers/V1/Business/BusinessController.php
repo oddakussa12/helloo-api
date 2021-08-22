@@ -504,7 +504,6 @@ class BusinessController extends BaseController
             $gs->each(function ($g) use ($productsQuantity){
                 $g->goodsNumber = $productsQuantity[$g->extension_id];
             });
-            $orderData = array();
             $code = PromoCode::where('promo_code' , $promoCode)->first();
             if(empty($code)||$code->limit<=0||empty($code->deadline)||$code->deadline<date('Y-m-d'))
             {
@@ -577,16 +576,19 @@ class BusinessController extends BaseController
             $brokerage = round($brokerage_percentage/100*$price , 2);
             $data['brokerage'] = $brokerage;
             $data['profit'] = round($data['discounted_price']-$brokerage , 2);
-            if(!empty($orderData)) {
+            if(!empty($data)) {
                 try {
                     DB::beginTransaction();
                     $orderResult = DB::table('orders')->insert($data);
                     if (!$orderResult) {
                         abort('500', 'order insert failed!');
                     }
-                    $codeResult = DB::table('promo_codes')->where('promo_code', $promoCode)->decrement('limit');
-                    if ($codeResult <= 0) {
-                        abort('500', 'promo code update failed!');
+                    if(!empty($promoCode))
+                    {
+                        $codeResult = DB::table('promo_codes')->where('promo_code', $promoCode)->decrement('limit');
+                        if ($codeResult <= 0) {
+                            abort('500', 'promo code update failed!');
+                        }
                     }
                     DB::commit();
                     $discounted = '';
@@ -598,6 +600,7 @@ class BusinessController extends BaseController
                         $discounted = $data['reduction'];
                     }
                     $bx24->updateDeal($id , array(
+                        "TITLE"=>$orderId,
                         "SOURCE_ID"=>'call' ,
                         "SOURCE_DESCRIPTION"=>'call' ,
                         "UF_CRM_1628733612424"=>0, //Special price
