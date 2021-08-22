@@ -634,7 +634,7 @@ class BusinessController extends BaseController
                     case "Confirmed by Customer":
                         $schedule = 2;
                         break;
-                    case "Send To Driver":
+                    case "Sent To Driver":
                         $isDispatch = true;
                         $schedule = 3;
                         break;
@@ -909,7 +909,7 @@ class BusinessController extends BaseController
             $schedule === 5 && $orderState = 1;
             $schedule >= 6 && $orderState = 2;
             $orderId = $shipOrder['id']??0;
-            $order = Order::where('order_id', $orderId)->firstOrFail();
+            $order = Order::where('ship_id', $orderId)->firstOrFail();
             $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
             $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
             $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
@@ -920,12 +920,12 @@ class BusinessController extends BaseController
             $order['id'] = Uuid::uuid1()->toString();
             $order['updated_at'] = $time;
             $data['operator'] = $operator;
-            unset($order['format_price']);
+            unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
             $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
             try {
                 DB::beginTransaction();
                 DB::table('orders')->where('order_id', $orderId)->update($data);
-                DB::connection('lovbee')->table('orders_logs')->insert($order);
+                DB::table('orders_logs')->insert($order);
                 DB::commit();
             }catch (\Exception $e)
             {

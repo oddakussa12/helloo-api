@@ -76,8 +76,8 @@ class ShipdayOrder implements ShouldQueue
             "totalOrderCost" => $order['discounted_price'],
             "deliveryInstruction" => "fast",
             "orderSource" => "",
-            "additionalId" => "",
-            "clientRestaurantId" => "",
+            "additionalId" => (string)$order['order_id'],
+            "clientRestaurantId" => (string)$order['shop_id'],
             "paymentMethod"=>'cash',
 //            "creditCardType"=>'',
             "creditCardId"=>0,
@@ -116,6 +116,14 @@ class ShipdayOrder implements ShouldQueue
 
         curl_close($curl);
         Log::info(__FUNCTION__.'_result' , array('$response'=>$response));
+
+        $order = \json_decode($response , true);
+        if(isset($order['orderId']))
+        {
+            DB::table('orders')->where('order_id' , $data['additionalId'])->update(array(
+                'ship_id'=>$response['orderId']
+            ));
+        }
     }
 
 }
