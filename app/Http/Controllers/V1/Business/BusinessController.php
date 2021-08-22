@@ -992,7 +992,7 @@ class BusinessController extends BaseController
             $orderId = $shipOrder['id']??0;
             $bx24 = app('bitrix24');
             $bitrixOrder = DB::table('bitrix_orders')->where('order_id' , $orderId)->first();
-            $bx24->updateDeal($bitrixOrder->extension_id , array(
+            !empty($bitrixOrder)&&$bx24->updateDeal($bitrixOrder->extension_id , array(
                 "STAGE_ID"=>$bitrixSchedule,
                 "UF_CRM_1629555411"=>"0",
             ));
