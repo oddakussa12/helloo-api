@@ -679,7 +679,7 @@ class BusinessController extends BaseController
                     $order['id'] = Uuid::uuid1()->toString();
                     $order['updated_at'] = $time;
                     $data['operator'] = $responsible;
-                    unset($order['format_price']);
+                    unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
                     $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
                     try {
                         DB::beginTransaction();
@@ -720,6 +720,7 @@ class BusinessController extends BaseController
                 $data = $order->toArray();
                 $data['id'] = Uuid::uuid1()->toString();
                 $data['updated_at'] = $now;
+                unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
                 DB::table('orders_logs')->insert($data);
                 return ;
@@ -737,6 +738,7 @@ class BusinessController extends BaseController
                 $data['id'] = Uuid::uuid1()->toString();
                 $data['updated_at'] = $now;
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
+                unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
                 DB::table('orders_logs')->insert($data);
                 return ;
             }
@@ -814,6 +816,7 @@ class BusinessController extends BaseController
             $order = $order->toArray();
             $order['id'] = Uuid::uuid1()->toString();
             $order['updated_at'] = $now;
+            unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
             DB::table('orders_logs')->insert($order);
             DB::table('orders')->where('order_id' , $orderId)->update($data);
             $discounted = '';
