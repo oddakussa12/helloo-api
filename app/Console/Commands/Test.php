@@ -566,16 +566,22 @@ DOC;
             foreach ($goods as $g)
             {
                 $section = DB::table('bitrix_shops')->where('user_id' , $g->user_id)->first();
-                $id = $bx24->addProduct(array(
-                    "NAME"=>$g->name,
-                    "PRICE"=>$g->price,
+                if(!empty($section))
+                {
+                    $id = $bx24->addProduct(array(
+                        "NAME"=>$g->name,
+                        "PRICE"=>$g->price,
 //                    "CURRENCY_ID"=>$g->currency,
-                    "XML_ID"=>$g->id,
-                    "SECTION_ID"=>$section->section_id??0
-                ));
-                DB::table('goods')->where('id' , $g->id)->update(array(
-                    'extension_id'=>$id
-                ));
+                        "XML_ID"=>$g->id,
+                        "SECTION_ID"=>$section->section_id??0
+                    ));
+                    DB::table('goods')->where('id' , $g->id)->update(array(
+                        'extension_id'=>$id
+                    ));
+                }else{
+                    dump($g);
+                }
+
             }
         });
 
