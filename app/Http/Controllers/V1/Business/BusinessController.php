@@ -459,6 +459,10 @@ class BusinessController extends BaseController
             if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['COMPANY_ID']!==$contactId)
             {
                 $bx24->deleteDeal($id);
+                Log::info('delete_deal_1' , array(
+                    'deal'=>$deal,
+                    'data'=>$request->all(),
+                ));
                 return ;
             }
             $packagingFee = $deal['UF_CRM_1628733998830']??'';
@@ -472,6 +476,10 @@ class BusinessController extends BaseController
             if(empty($shop))
             {
                 $bx24->deleteDeal($id);
+                Log::info('delete_deal_2' , array(
+                    'deal'=>$deal,
+                    'data'=>$request->all(),
+                ));
                 return ;
             }
             $gIds = collect($products)->pluck('ID')->unique()->toArray();
@@ -483,6 +491,10 @@ class BusinessController extends BaseController
             if(!$sameShop)
             {
                 $bx24->deleteDeal($id);
+                Log::info('delete_deal_3' , array(
+                    'deal'=>$deal,
+                    'data'=>$request->all(),
+                ));
                 return ;
             }
             $gs->each(function ($g) use ($productsQuantity){
@@ -616,6 +628,10 @@ class BusinessController extends BaseController
             if(empty($order))
             {
                 $bx24->deleteDeal($id);
+                Log::info('delete_deal_4' , array(
+                    'deal'=>$deal,
+                    'data'=>$request->all(),
+                ));
                 return ;
             }
             $isFieldUpdate = (bool)($deal['UF_CRM_1629593448']??0);
@@ -710,6 +726,10 @@ class BusinessController extends BaseController
             if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['COMPANY_ID']!==$contactId)
             {
                 $bx24->deleteDeal($id);
+                Log::info('delete_deal_5' , array(
+                    'deal'=>$deal,
+                    'data'=>$request->all(),
+                ));
                 return ;
             }
             $companyId = (string)$deal['COMPANY_ID'];
@@ -723,6 +743,10 @@ class BusinessController extends BaseController
                 unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
                 DB::table('orders_logs')->insert($data);
+                Log::info('delete_deal_6' , array(
+                    'deal'=>$deal,
+                    'data'=>$request->all(),
+                ));
                 return ;
             }
             $gIds = collect($products)->pluck('ID')->unique()->toArray();
@@ -740,6 +764,10 @@ class BusinessController extends BaseController
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
                 unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
                 DB::table('orders_logs')->insert($data);
+                Log::info('delete_deal_7' , array(
+                    'deal'=>$deal,
+                    'data'=>$request->all(),
+                ));
                 return ;
             }
 
@@ -848,6 +876,7 @@ class BusinessController extends BaseController
                 "UF_CRM_1629555411"=>'0', //IS UPDATE
                 "UF_CRM_1629593448"=>'0' //IS FIELD UPDATE
             ];
+            Log::info('updateDeal' , $deal);
             $bx24->updateDeal($id , array(
                 $deal
             ));
