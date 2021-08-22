@@ -716,7 +716,7 @@ class BusinessController extends BaseController
                         DB::commit();
                         if($isDispatch)
                         {
-                            $this->dispatchNow(new ShipdayOrder($order));
+                            $this->dispatch((new ShipdayOrder($order))->onQueue('helloo_{ship_day_order}'));
                         }
                     }catch (\Exception $e)
                     {

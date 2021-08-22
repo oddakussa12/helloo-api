@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Jobs\OrderSms;
+use App\Jobs\Bitrix24Order;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Resources\UserCollection;
@@ -189,6 +190,7 @@ trait BotOrder
             }
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
+            $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return AnonymousCollection::collection(collect($returnData));
     }
@@ -389,6 +391,7 @@ trait BotOrder
             }
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
+            $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return AnonymousCollection::collection(collect($returnData));
     }
@@ -572,6 +575,7 @@ trait BotOrder
             }
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
+            $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return AnonymousCollection::collection(collect($returnData));
     }

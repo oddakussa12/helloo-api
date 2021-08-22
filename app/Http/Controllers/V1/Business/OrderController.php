@@ -246,7 +246,7 @@ class OrderController extends BaseController
             Redis::hdel($key , $goodsIds);
             ShoppingCartTransfer::dispatch($userId , $goodsIds)->onQueue('helloo_{shopping_cart_transfer}');
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
-            $this->dispatchNow(new Bitrix24Order($orderData , __FUNCTION__));
+            $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return AnonymousCollection::collection(collect($returnData));
     }
@@ -485,7 +485,7 @@ class OrderController extends BaseController
             Redis::hdel($key , $goodsIds);
             ShoppingCartTransfer::dispatch($userId , $goodsIds)->onQueue('helloo_{shopping_cart_transfer}');
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
-            $this->dispatchNow(new Bitrix24Order($orderData , __FUNCTION__));
+            $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return AnonymousCollection::collection(collect($returnData));
     }
@@ -669,7 +669,7 @@ class OrderController extends BaseController
             }
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
-            $this->dispatchNow(new Bitrix24Order($orderData , __FUNCTION__));
+            $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return AnonymousCollection::collection(collect($returnData));
     }

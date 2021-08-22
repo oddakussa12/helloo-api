@@ -151,18 +151,24 @@ class Bitrix24Order implements ShouldQueue
             $productData = array();
             foreach ($detail as $det)
             {
+                $discountedP = $det['discounted_price']<0?$det['price']:$det['discounted_price'];
                 array_push($productData , array(
                     'PRODUCT_ID'=>$det['extension_id'],
-                    'PRICE'=>$det['price'],
+                    'PRICE'=>$discountedP,
+                    'PRICE_NETTO'=>$det['price'],
+                    'PRICE_BRUTTO'=>$det['price'],
                     'QUANTITY'=>$det['goodsNumber'],
-                    'DISCOUNT_TYPE_ID'=>$d['discount_type']=='reduction'?1:2,
+                    'DISCOUNT_TYPE_ID'=>$d['discount_type']=='discount'?2:1,
                     'DISCOUNT_RATE'=>0,
                     'CUSTOMIZED'=>"Y",
                     'MEASURE_CODE'=>"Y",
                     'MEASURE_NAME'=>"Y",
-                    'DISCOUNT_SUM'=>$det['discounted_price']<0?0:$det['discounted_price'],
+                    'PRICE_EXCLUSIVE'=>$discountedP,
+                    'PRICE_ACCOUNT'=>$discountedP,
+                    'DISCOUNT_SUM'=>$det['price']-$discountedP,
                 ));
             }
+
             $result = $bx24->setDealProductRows($dealId , $productData);
             DB::table('bitrix_orders')->insert(array(
                 'order_id'=>$d['order_id'],

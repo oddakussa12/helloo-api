@@ -335,7 +335,7 @@ class GoodsController extends BaseController
                 Redis::del("helloo:business:goods:category:service:account:".$userId);
             }
             DB::commit();
-            $this->dispatchNow(new Bitrix24Product($data , __FUNCTION__));
+            $this->dispatch((new Bitrix24Product($data , __FUNCTION__))->onQueue('helloo_{bitrix_product}'));
             if($data['status']==1)
             {
                 $price = $data['currency']=="BIRR"?$data['price']*0.023:$data['price'];
@@ -504,7 +504,7 @@ class GoodsController extends BaseController
                 DB::commit();
                 $goods->makeVisible(array('extension_id'));
                 $params['id'] = $goods->extension_id;
-                $this->dispatchNow(new Bitrix24Product($params , __FUNCTION__));
+                $this->dispatch((new Bitrix24Product($params , __FUNCTION__))->onQueue('helloo_{bitrix_product}'));
             }catch (\Exception $e)
             {
                 DB::rollBack();
