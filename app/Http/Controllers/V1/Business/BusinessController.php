@@ -484,8 +484,8 @@ class BusinessController extends BaseController
                 ));
                 return ;
             }
-            $gIds = collect($products)->pluck('ID')->unique()->toArray();
-            $productsQuantity = collect($products)->pluck('QUANTITY' , 'ID')->unique()->toArray();
+            $gIds = collect($products)->pluck('PRODUCT_ID')->unique()->toArray();
+            $productsQuantity = collect($products)->pluck('QUANTITY' , 'PRODUCT_ID')->unique()->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();
             $sameShop = $gs->every(function($g , $k) use ($shop){
                 return (int)$g->user_id === (int)$shop->user_id;
@@ -758,8 +758,8 @@ class BusinessController extends BaseController
                 return ;
             }
             $shop = User::where('user_id' , $shop->user_id)->first();
-            $gIds = collect($products)->pluck('ID')->unique()->toArray();
-            $productsQuantity = collect($products)->pluck('QUANTITY' , 'ID')->unique()->toArray();
+            $gIds = collect($products)->pluck('PRODUCT_ID')->unique()->toArray();
+            $productsQuantity = collect($products)->pluck('QUANTITY' , 'PRODUCT_ID')->unique()->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();
             $sameShop = $gs->every(function($g , $k) use ($order){
                 return (int)$g->user_id === (int)$order->shop_id;
