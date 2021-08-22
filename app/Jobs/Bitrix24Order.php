@@ -131,23 +131,20 @@ class Bitrix24Order implements ShouldQueue
                 "SOURCE_DESCRIPTION"=>$this->resource ,
 
 
+                "UF_CRM_1628733276016"=>$d['order_price'],
                 "UF_CRM_1628733612424"=>$specialPrice, //Special price
                 "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price
                 "UF_CRM_1628733813318"=>$discounted, //Discount Used
+                "UF_CRM_1628733763094"=>$d['total_price'],
                 "UF_CRM_1628733998830"=>$d['packaging_cost'],//Package fee
-                "UF_CRM_1628734031097"=>(bool)$d['packaging_cost'], //Package fee free？
+                "UF_CRM_1628734031097"=>$d['packaging_cost']>0?0:1, //Package fee free？
                 "UF_CRM_1628734060152"=>$d['delivery_coast'], //Delivery fee
-                "UF_CRM_1628734075984"=>(bool)$d['free_delivery'], //Delivery fee free？
-//                "UF_CRM_1628734746554"=>'', //Order Price (dish)
+                "UF_CRM_1628734075984"=>(int)$d['free_delivery'], //Delivery fee free？
                 "UF_CRM_1628735337461"=>$d['promo_code'], //Promo code
-//                "UF_CRM_1629098340599"=>'', //Shop Order Price (package fee)
-//                "UF_CRM_1629103354670"=>'', //我们收到的钱
-//                "UF_CRM_1629103387129"=>'', //我们是否收到了钱
                 "UF_CRM_1629192007"=>$d['order_id'],//ORDER_ID
                 "UF_CRM_1629271456064"=>$d['discounted_price'], //Total price Paid
                 "UF_CRM_1629274022921"=>$this->platform, //Platform type
                 "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
-
             ];
             Log::info('$deal' , $deal);
             $dealId = $bx24->addDeal($deal);

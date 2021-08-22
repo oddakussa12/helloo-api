@@ -615,7 +615,8 @@ class BusinessController extends BaseController
                         "UF_CRM_1629271456064"=>$data['discounted_price'], //Total price Paid
                         "UF_CRM_1629274022921"=>53, //Platform type
                         "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
-                        "UF_CRM_1629555411"=>"0", //Restaurant
+                        "UF_CRM_1629555411"=>"0", //IS UPDATE
+                        "UF_CRM_1629593448"=>"0", //IS FIELD UPDATE
                     ));
                 } catch (\Exception $e) {
                     DB::rollBack();
@@ -624,7 +625,7 @@ class BusinessController extends BaseController
                         'user_id' => 'callCenter',
                         'data' => $request->all()
                     ));
-                    $bx24->delete($id);
+                    $bx24->deleteDeal($id);
                 }
             }
         }else if ($type=='update'){
@@ -879,9 +880,9 @@ class BusinessController extends BaseController
                 "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price
                 "UF_CRM_1628733813318"=>$discounted, //Discount Used
                 "UF_CRM_1628733998830"=>$data['packaging_cost'],//Package fee
-                "UF_CRM_1628734031097"=>(bool)$data['packaging_cost'], //Package fee free？
+                "UF_CRM_1628734031097"=>$packagingFree, //Package fee free？
                 "UF_CRM_1628734060152"=>$data['delivery_coast'], //Delivery fee
-                "UF_CRM_1628734075984"=>(bool)$data['free_delivery'], //Delivery fee free？
+                "UF_CRM_1628734075984"=>(int)$data['free_delivery'], //Delivery fee free？
                 "UF_CRM_1628735337461"=>$data['promo_code'], //Promo code
                 "UF_CRM_1629192007"=>$orderId,//ORDER_ID
                 "UF_CRM_1629271456064"=>$data['discounted_price'], //Total price Paid
