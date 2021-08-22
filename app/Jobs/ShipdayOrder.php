@@ -82,11 +82,8 @@ class ShipdayOrder implements ShouldQueue
 //            "creditCardType"=>'',
             "creditCardId"=>0,
         ];
-        if(!empty(deliveryLatitude))
-        {
-            $data['deliveryLongitude'] = $address->user_longitude??0;
-            $data['deliveryLatitude'] = $address->user_latitude??0;
-        }
+        $data['deliveryLongitude'] = $address->user_longitude??0;
+        $data['deliveryLatitude'] = $address->user_latitude??0;
         $this->curl($data);
 
     }
@@ -116,8 +113,8 @@ class ShipdayOrder implements ShouldQueue
 
         curl_close($curl);
         Log::info(__FUNCTION__.'_result' , array('$response'=>$response));
-
         $order = \json_decode($response , true);
+        Log::info(__FUNCTION__.'order' , array('$order'=>$order));
         if(isset($order['orderId']))
         {
             DB::table('orders')->where('order_id' , $data['additionalId'])->update(array(

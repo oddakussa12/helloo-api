@@ -777,7 +777,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
 
     public function updateUserOnlineState($users)
     {
-        RyOnline::dispatch($users)->onConnection('sqs-fifo')->onQueue('helloo_ry_user_online.fifo');
+//        RyOnline::dispatch($users)->onConnection('sqs-fifo')->onQueue('helloo_ry_user_online.fifo');
     }
 
     public function isOnline($id)

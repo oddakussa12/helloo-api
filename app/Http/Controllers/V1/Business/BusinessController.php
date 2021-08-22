@@ -874,8 +874,6 @@ class BusinessController extends BaseController
                 $discounted = $data['reduction'];
             }
             $deal = [
-                "CURRENCY_ID"=>'ETB',
-                "COMPANY_ID"=> $shop->user_id ?? 0,
                 "CONTACT_ID"=>$contactId,
                 "UF_CRM_1628733612424"=>0, //Special price
                 "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price
