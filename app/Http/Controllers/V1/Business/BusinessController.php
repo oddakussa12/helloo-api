@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1\Business;
 
 use App\Models\User;
 use GuzzleHttp\Pool;
+use Ramsey\Uuid\Uuid;
 use GuzzleHttp\Client;
 use App\Custom\RedisList;
 use App\Jobs\ShipdayOrder;
@@ -13,7 +14,7 @@ use App\Models\Business\Order;
 use App\Jobs\BusinessSearchLog;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
-use Ramsey\Uuid\Uuid;
+use App\Models\Business\PromoCode;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\Paginator;
