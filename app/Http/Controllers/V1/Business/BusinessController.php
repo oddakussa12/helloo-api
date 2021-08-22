@@ -487,6 +487,7 @@ class BusinessController extends BaseController
             $gIds = collect($products)->pluck('PRODUCT_ID')->unique()->toArray();
             $productsQuantity = collect($products)->pluck('QUANTITY' , 'PRODUCT_ID')->unique()->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();
+            $shop = User::where('user_id' , $shop->user_id)->first();
             $sameShop = $gs->every(function($g , $k) use ($shop){
                 return (int)$g->user_id === (int)$shop->user_id;
             });
