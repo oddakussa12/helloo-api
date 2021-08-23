@@ -496,6 +496,7 @@ class BusinessController extends BaseController
             {
                 $bx24->deleteDeal($id);
                 Log::info('delete_deal_3' , array(
+                    '$gs'=>$gs->toArray(),
                     'deal'=>$deal,
                     'data'=>$request->all(),
                 ));
@@ -627,7 +628,8 @@ class BusinessController extends BaseController
                     Log::info('bitrix_order_update_fail', array(
                         'message' => $e->getMessage(),
                         'user_id' => 'callCenter',
-                        'data' => $request->all()
+                        'data' => $request->all(),
+                        'deal' => $deal,
                     ));
                     $bx24->deleteDeal($id);
                 }
@@ -650,9 +652,6 @@ class BusinessController extends BaseController
             if(!$isFieldUpdate)
             {
                 $stage = $request->get('stage', '');
-                $bx24 = app('bitrix24');
-                $deal = $bx24->getDeal($id);
-                $orderId = $deal['UF_CRM_1629192007']??'';
                 $schedule = 0;
                 $isDispatch = false;
                 switch ($stage) {
@@ -696,7 +695,6 @@ class BusinessController extends BaseController
                     $time = date('Y-m-d H:i:s');
                     $schedule === 5 && $orderState = 1;
                     $schedule >= 6 && $orderState = 2;
-                    $order = Order::where('order_id', $orderId)->firstOrFail();
                     $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
                     $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
                     $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
@@ -746,12 +744,13 @@ class BusinessController extends BaseController
                 Log::info('delete_deal_5' , array(
                     'deal'=>$deal,
                     'data'=>$request->all(),
+                    'products'=>$products,
                 ));
                 return ;
             }
             $companyId = (string)$deal['COMPANY_ID'];
-            $shop = DB::table('bitrix_shops')->where('extension_id' , $companyId)->first();
-            if(empty($shop))
+            $bitrixShop = DB::table('bitrix_shops')->where('extension_id' , $companyId)->first();
+            if(empty($bitrixShop))
             {
                 $bx24->deleteDeal($id);
                 $data = $order->toArray();
@@ -767,7 +766,7 @@ class BusinessController extends BaseController
                 ));
                 return ;
             }
-            $shop = User::where('user_id' , $shop->user_id)->first();
+            $shop = User::where('user_id' , $bitrixShop->user_id)->first();
             $gIds = collect($products)->pluck('PRODUCT_ID')->unique()->toArray();
             $productsQuantity = collect($products)->pluck('QUANTITY' , 'PRODUCT_ID')->toArray();
             $gs = Goods::whereIn('extension_id' , $gIds)->get();

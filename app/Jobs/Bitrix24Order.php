@@ -2,8 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\Business\Goods;
-use App\Models\Business\Order;
 use Jenssegers\Agent\Agent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +10,6 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Ramsey\Uuid\Uuid;
 
 class Bitrix24Order implements ShouldQueue
 {
@@ -113,6 +110,11 @@ class Bitrix24Order implements ShouldQueue
                 $discounted = $d['reduction'];
             }
             $company = DB::table('bitrix_shops')->where('user_id' , $d['shop_id'])->first();
+            if(empty($company))
+            {
+                Log::info('shop_not_exists_in_bitrix' , $d);
+                continue;
+            }
             $shop = DB::table('users')->where('user_id' , $d['shop_id'])->first();
             $deal = [
                 "ID"=>$d['order_id'],
@@ -146,7 +148,6 @@ class Bitrix24Order implements ShouldQueue
                 "UF_CRM_1629274022921"=>$this->platform, //Platform type
                 "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
             ];
-            Log::info('$deal' , $deal);
             $dealId = $bx24->addDeal($deal);
             $productData = array();
             foreach ($detail as $det)

@@ -539,7 +539,7 @@ DOC;
                     "TITLE"=>$shop->user_name,
                     "COMPANY_TYPE"=>"CLIENT",
                     "INDUSTRY"=>"OTHER",
-                    "CURRENCY_ID"=>"GBP",
+                    "CURRENCY_ID"=>"ETB",
                     "PHONE"=>array(
                         array(
                             "VALUE"=>empty($phone)?'':$phone->user_phone_country.$phone->user_phone, "VALUE_TYPE"=>"WORK"

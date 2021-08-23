@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\BlackUser;
 use App\Models\UserScore;
 use App\Custom\RedisList;
+use App\Jobs\Bitrix24Company;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use Illuminate\Validation\Rule;
@@ -546,6 +547,7 @@ class BackStageController extends BaseController
                 DB::table('goods_categories')->insert($data);
                 Redis::del("helloo:business:goods:category:service:account:".$id);
             }
+            $this->dispatch((new Bitrix24Company($user , 'store'))->onQueue('helloo_{bitrix_company}'));
         }
         return $this->response->accepted();
     }

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\V1;
 
 use Carbon\Carbon;
 use App\Jobs\Device;
-use Illuminate\Validation\Rule;
 use Ramsey\Uuid\Uuid;
 use App\Rules\UserPhone;
 use App\Events\SignupEvent;
@@ -12,13 +11,14 @@ use App\Events\SignInEvent;
 use Jenssegers\Agent\Agent;
 use App\Jobs\SignUpOrInFail;
 use Illuminate\Http\Request;
+use App\Jobs\Bitrix24Company;
 use App\Rules\UserPhoneUnique;
+use Illuminate\Validation\Rule;
 use App\Resources\UserCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Foundation\Auth\User\Update;
 use Illuminate\Support\Facades\Redis;
-use App\Resources\AnonymousCollection;
 use Illuminate\Support\Facades\Validator;
 use App\Repositories\Contracts\UserRepository;
 use Illuminate\Validation\ValidationException;
@@ -470,6 +470,7 @@ class AuthController extends BaseController
             );
             Validator::make($fields, $rules)->validate();
             $user = $this->user->update($user , $fields);
+            $this->dispatch((new Bitrix24Company($user , 'update'))->onQueue('helloo_{bitrix_company}'));
         }
         return new UserCollection($user);
     }
