@@ -118,7 +118,7 @@ class ShipdayOrder implements ShouldQueue
         if(isset($order['orderId']))
         {
             DB::table('orders')->where('order_id' , $data['additionalId'])->update(array(
-                'ship_id'=>$response['orderId']
+                'ship_id'=>$order['orderId']
             ));
         }
     }
