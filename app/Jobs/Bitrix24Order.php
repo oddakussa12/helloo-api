@@ -152,21 +152,28 @@ class Bitrix24Order implements ShouldQueue
             $productData = array();
             foreach ($detail as $det)
             {
-                $discountedP = $det['discounted_price']<0?$det['price']:$det['discounted_price'];
+                $price = $det['price'];
+                $number = $det['goodsNumber'];
+                $discountedPrice = $det['discounted_price'];
+                $discountRate = 0;
+                $discountTypeId = 1;//1:reduction 2:discount
+                if($discountedPrice>=0)
+                {
+                    $discountSum = $number*($price-$discountedPrice);
+                }else{
+                    $discountSum = 0;
+                }
                 array_push($productData , array(
                     'PRODUCT_ID'=>$det['extension_id'],
-                    'PRICE'=>$discountedP,
-                    'PRICE_NETTO'=>$det['price'],
-                    'PRICE_BRUTTO'=>$det['price'],
-                    'QUANTITY'=>$det['goodsNumber'],
-                    'DISCOUNT_TYPE_ID'=>$d['discount_type']=='discount'?2:1,
-                    'DISCOUNT_RATE'=>0,
+                    'PRICE'=>$discountedPrice,
+                    'PRICE_NETTO'=>$price,
+                    'QUANTITY'=>$number,
+                    'DISCOUNT_TYPE_ID'=>$discountTypeId,
+                    'DISCOUNT_RATE'=>$discountRate,
                     'CUSTOMIZED'=>"Y",
                     'MEASURE_CODE'=>"Y",
                     'MEASURE_NAME'=>"Y",
-                    'PRICE_EXCLUSIVE'=>$discountedP,
-                    'PRICE_ACCOUNT'=>$discountedP,
-                    'DISCOUNT_SUM'=>$det['price']-$discountedP,
+                    'DISCOUNT_SUM'=>$discountSum,
                 ));
             }
 
