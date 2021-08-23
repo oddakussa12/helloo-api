@@ -962,7 +962,7 @@ class BusinessController extends BaseController
 //            {
 //                return;
 //            }
-            $order = Order::where('ship_id', $orderId)->firstOrFail();
+            $order = Order::where('order_id', $orderId)->firstOrFail();
             $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
             $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
             $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
