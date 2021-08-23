@@ -994,6 +994,7 @@ class BusinessController extends BaseController
             !empty($bitrixOrder)&&$bx24->updateDeal($bitrixOrder->extension_id , array(
                 "STAGE_ID"=>$bitrixSchedule,
                 "UF_CRM_1629555411"=>"0",
+                "UF_CRM_1629593448"=>"0",
             ));
         }
     }
