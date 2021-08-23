@@ -117,7 +117,7 @@ class ShipdayOrder implements ShouldQueue
         Log::info(__FUNCTION__.'order' , array('$order'=>$order));
         if(isset($order['orderId']))
         {
-            DB::table('orders')->where('order_id' , $data['additionalId'])->update(array(
+            DB::table('orders')->where('order_id' , $data['orderNumber'])->update(array(
                 'ship_id'=>$order['orderId']
             ));
         }
