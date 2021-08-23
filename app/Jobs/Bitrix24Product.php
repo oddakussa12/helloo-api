@@ -40,7 +40,7 @@ class Bitrix24Product implements ShouldQueue
         $data = array(
                 "NAME"=>$goods['name'],
                 "PRICE"=>$goods['price'],
-                "CURRENCY_ID"=>$goods['currency'],
+                "CURRENCY_ID"=>'ETB',
                 "XML_ID"=>$goods['id']
 //                "DETAIL_PICTURE"=>array(
 //                    "fileData"=>array(
@@ -64,7 +64,7 @@ class Bitrix24Product implements ShouldQueue
         $data = array(
                 "NAME"=>$goods['name'],
                 "PRICE"=>$goods['price'],
-                "CURRENCY_ID"=>$goods['currency'],
+                "CURRENCY_ID"=>'ETB',
         );
         $result = $bx24->updateProduct($goods['id'] , $data);
         Log::info('bitrix_update_product' , array(

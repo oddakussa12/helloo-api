@@ -989,7 +989,7 @@ class BusinessController extends BaseController
                 ));
             }
         }
-        if(empty($bitrixSchedule))
+        if(!empty($bitrixSchedule))
         {
             $orderId = $shipOrder['id']??0;
             $bx24 = app('bitrix24');
