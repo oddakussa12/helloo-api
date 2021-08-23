@@ -904,7 +904,8 @@ class BusinessController extends BaseController
     {
         $event = (string)$request->input('event' , '');
         $shipOrder = (array)$request->input('order' , array());
-        $operator = (string)$request->input('operator' , '');
+        $carrier = $request->input('carrier' , '');
+        $operator = $carrier['phone']??'';
         $schedule = 0;
         $bitrixSchedule = '';
         $stages = array('NEW' , 'PREPARATION', 'PREPAYMENT_INVOICE', '1' ,'2' ,'LOSE' ,'6' ,'5' ,'7' ,'APOLOGY' , 'WON');
