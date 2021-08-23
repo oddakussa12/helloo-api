@@ -955,13 +955,13 @@ class BusinessController extends BaseController
             $time = date('Y-m-d H:i:s');
             $schedule === 5 && $orderState = 1;
             $schedule >= 6 && $orderState = 2;
-            $orderId = $shipOrder['id']??0;
-            $lock_key = 'helloo:bitrix:repeat:order:'.$orderId;
-            $redis = new RedisList();
-            if(!$redis->tryGetLock($lock_key , 1 , 5000))
-            {
-                return;
-            }
+            $orderId = $shipOrder['order_number']??0;
+//            $lock_key = 'helloo:bitrix:repeat:order:'.$orderId;
+//            $redis = new RedisList();
+//            if(!$redis->tryGetLock($lock_key , 1 , 5000))
+//            {
+//                return;
+//            }
             $order = Order::where('ship_id', $orderId)->firstOrFail();
             $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
             $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
@@ -991,7 +991,7 @@ class BusinessController extends BaseController
         }
         if(!empty($bitrixSchedule))
         {
-            $orderId = $shipOrder['id']??0;
+            $orderId = $shipOrder['order_number']??0;
             $bx24 = app('bitrix24');
             $bitrixOrder = DB::table('bitrix_orders')->where('order_id' , $orderId)->first();
             !empty($bitrixOrder)&&$bx24->updateDeal($bitrixOrder->extension_id , array(
