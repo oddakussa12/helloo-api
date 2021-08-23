@@ -903,6 +903,7 @@ class BusinessController extends BaseController
 
     public function shipDayCallback(Request $request)
     {
+        Log::info(__FUNCTION__ , $request->all());
         $event = (string)$request->input('event' , '');
         $shipOrder = (array)$request->input('order' , array());
         $carrier = $request->input('carrier' , '');

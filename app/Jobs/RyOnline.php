@@ -43,10 +43,7 @@ class RyOnline implements ShouldQueue
     public function __construct($users)
     {
         $this->chinaNow = Carbon::now('Asia/Shanghai');
-        $this->chinaDate = $this->chinaNow->toDateString();
-        $this->chinaDateTime = $this->chinaNow->toDateTimeString();
         $this->time = $this->chinaNow->timestamp;
-        $this->date = date('Y-m-d H:i:s' , $this->time);
         $this->users = $users;
         $this->statusData = array();
         $this->visitData = array();
@@ -64,7 +61,7 @@ class RyOnline implements ShouldQueue
         {
             return;
         }
-        $users = (array)(collect($allUsers)->sortByDesc('time')->toArray());
+        $users = collect($allUsers)->sortByDesc('time')->toArray();
         $users = assoc_unique($users , 'userid');
         $lastActivityTime = 'helloo:account:service:account-ry-last-activity-time';
         $key = 'helloo:account:service:account-random-im-set';
@@ -134,7 +131,7 @@ class RyOnline implements ShouldQueue
         }
         $time = $this->time;
         !blank($users)&&array_walk($users , function ($user , $k) use ($bitKey , $lastActivityTime , $time){
-            $userId = intval($user['userid']);
+            $userId = (int)$user['userid'];
             $status = $user['status'];
             $status = intval($status)>0?0:1;
             Redis::setBit($bitKey , $userId , $status);
