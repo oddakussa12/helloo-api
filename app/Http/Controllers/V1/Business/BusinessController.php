@@ -637,6 +637,7 @@ class BusinessController extends BaseController
         }else if ($type=='update'){
             $bx24 = app('bitrix24');
             $deal = $bx24->getDeal($id);
+            Log::info('update_deal' , $deal);
             $orderId = $deal['UF_CRM_1629192007']??'';
             $order = Order::where('order_id' , $orderId)->first();
             if(empty($order))

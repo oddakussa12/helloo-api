@@ -42,7 +42,7 @@ class OrderSms implements ShouldQueue
             }
             $params['customerPhone']   = $data['user_contact'];
             $params['customerAddress'] = $data['user_address'];
-            $params['customerOrder']   = !empty($goods) ? $goods->goods_name : null;
+            $params['customerOrder']   = $goods->goods_name ?? null;
             $params['customerCountry'] = !empty($country) && in_array($country->country, ['et', 'tl']) ? $country->country : null;
             $this->curl($params);
         }else{
