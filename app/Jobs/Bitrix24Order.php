@@ -154,7 +154,7 @@ class Bitrix24Order implements ShouldQueue
             {
                 $price = $det['price'];
                 $number = $det['goodsNumber'];
-                $discountedPrice = $det['discounted_price'];
+                $discountedPrice = $det['specialPrice'] ?? $det['discounted_price'];
                 $discountRate = 0;
                 $discountTypeId = 1;//1:reduction 2:discount
                 if($discountedPrice>=0)
