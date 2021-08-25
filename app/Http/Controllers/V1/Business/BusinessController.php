@@ -794,9 +794,14 @@ class BusinessController extends BaseController
                 ));
                 return ;
             }
-
-            $gs->each(function ($g) use ($productsQuantity){
+            $orderDetail = collect($order->detail);
+            $gs->each(function ($g) use ($productsQuantity , $orderDetail){
+                $goods = $orderDetail->where('id' , $g->id)->first();
                 $g->goodsNumber = $productsQuantity[$g->extension_id];
+                if(isset($goods['specialPrice']))
+                {
+                    $g->specialPrice = $goods['specialPrice'];
+                }
             });
             $promoCode = $order->promo_code;
             if(!empty($promoCode))
@@ -813,6 +818,10 @@ class BusinessController extends BaseController
                 return $shopG->goodsNumber*$shopG->price;
             });
             $promoPrice = collect($gs)->sum(function ($shopG) {
+                if(isset($shopG->specialPrice))
+                {
+                    return $shopG->goodsNumber*$shopG->specialPrice;
+                }
                 if($shopG->discounted_price<0)
                 {
                     return $shopG->goodsNumber*$shopG->price;
