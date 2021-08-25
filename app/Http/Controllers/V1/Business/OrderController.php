@@ -1091,7 +1091,7 @@ class OrderController extends BaseController
             abort(403 , 'Only one goods can be ordered!');
         }else{
             $g = $gs->first();
-            if($filterGoods[$g->id]!==1)
+            if((int)$filterGoods[$g->id]!==1)
             {
                 abort(403 , 'Only one goods can be ordered!!');
             }
