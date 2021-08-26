@@ -47,6 +47,7 @@ class ShoppingCartController extends BaseController
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $shoppingCarts = array();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
@@ -57,7 +58,7 @@ class ShoppingCartController extends BaseController
             });
             $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = $currency;
-            $shop['deliveryCoast'] = 100;
+            $shop['deliveryCoast'] = $defaultDeliveryCost;
             $shop['subTotal'] = $price;
             $shoppingCarts[$k] = new UserCollection($shop);
         }
@@ -138,6 +139,7 @@ class ShoppingCartController extends BaseController
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($gs->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shops as $k=>$shop)
         {
             $shop = collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link')->toArray();
@@ -155,7 +157,7 @@ class ShoppingCartController extends BaseController
             });
             $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = $currency;
-            $shop['deliveryCoast'] = 100;
+            $shop['deliveryCoast'] = $defaultDeliveryCost;
             $shop['subTotal'] = $price;
             $shop['subDiscountedTotal'] = $discountedPrice;
             $shops[$k] = new UserCollection($shop);

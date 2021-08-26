@@ -317,6 +317,7 @@ class BusinessController extends BaseController
             'access_token'=>config('common.mapbox_access_token'),
         );
         $params = http_build_query($data);
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         try{
             $requests = function ($total) use ($client , $urls , $params) {
                 foreach ($urls as $url) {
@@ -339,17 +340,14 @@ class BusinessController extends BaseController
                     $distance = $route['distance'];
                     switch ($distance)
                     {
-                        case $distance<=3000:
-                            $deliveryCost=45;
+                        case $distance>6000&&$distance<=12000:
+                            $deliveryCost=55;
                             break;
-                        case $distance>3000&&$distance<=6000:
-                            $deliveryCost=65;
-                            break;
-                        case $distance>6000&&$distance<=9000:
-                            $deliveryCost=85;
+                        case $distance>12000:
+                            $deliveryCost=130;
                             break;
                         default:
-                            $deliveryCost=100;
+                            $deliveryCost=35;
                             break;
                     }
                     $data = array(
@@ -368,7 +366,7 @@ class BusinessController extends BaseController
                     );
                     array_push($distances , $data);
                 },
-                'rejected' => function ($reason, $index) use ($location , $user , &$distances){
+                'rejected' => function ($reason, $index) use ($location , $user , &$distances , $defaultDeliveryCost){
                     $data = array(
                         'start'=>[
                             'location'=>$location[$index]['start'],
@@ -380,7 +378,7 @@ class BusinessController extends BaseController
                         ],
                         'shop_id'=>$location[$index]['shop_id'],
                         'distance'=>-1,
-                        'delivery_cost'=>100,
+                        'delivery_cost'=>$defaultDeliveryCost,
                         'currency'=>$user->user_currency
                     );
                     array_push($distances , $data);
@@ -407,7 +405,7 @@ class BusinessController extends BaseController
                     ],
                     'shop_id'=>$v['shop_id'],
                     'distance'=>-1,
-                    'delivery_cost'=>100,
+                    'delivery_cost'=>$defaultDeliveryCost,
                     'currency'=>$user->user_currency
                 );
                 array_push($distances , $data);

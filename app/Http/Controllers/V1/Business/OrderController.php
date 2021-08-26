@@ -174,7 +174,8 @@ class OrderController extends BaseController
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+            $defaultDeliveryCost = config('common.default_delivery_cost');
+            $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):$defaultDeliveryCost);
             $discount_type = '';
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
@@ -346,6 +347,7 @@ class OrderController extends BaseController
         $orderData = array();
         $returnData = array();
         $brokerage_percentage = 95;
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         $now = date('Y-m-d H:i:s');
 //        $firstKey = "helloo:business:order:service:first";
         $orderNumber = count($shopGoods);
@@ -401,7 +403,7 @@ class OrderController extends BaseController
             {
                 $deliveryCoast = 0;
             }else{
-                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+                $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):$defaultDeliveryCost);
             }
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = $code->promo_code;
@@ -567,6 +569,7 @@ class OrderController extends BaseController
         $orderData = array();
         $returnData = array();
         $brokerage_percentage = 95;
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
         foreach ($shopGoods as $u=>$shopGs)
@@ -618,7 +621,7 @@ class OrderController extends BaseController
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):100));
+            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$u]['delivery_cost']))?round(floatval($deliveryCoasts[$u]['delivery_cost']) , 2):$defaultDeliveryCost));
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
             $data['free_delivery'] = (int)$freeDelivery;
@@ -757,7 +760,8 @@ class OrderController extends BaseController
             'created_at'=>$now,
             'updated_at'=>$now,
         );
-        $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$goods->user_id]['delivery_cost']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_cost']) , 2):100);
+        $defaultDeliveryCost = config('common.default_delivery_cost');
+        $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$goods->user_id]['delivery_cost']))?round(floatval($deliveryCoasts[$goods->user_id]['delivery_cost']) , 2):$defaultDeliveryCost);
         $data['delivery_coast'] = !empty((int)$specialG['free_delivery'])?0:$deliveryCoast;
         $data['promo_code'] = '';
         $data['free_delivery'] = $specialG['free_delivery'];
@@ -873,6 +877,7 @@ class OrderController extends BaseController
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $returnData = array();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shops as $shop)
         {
             $shopGs = $shopGoods->get($shop['user_id']);
@@ -891,7 +896,7 @@ class OrderController extends BaseController
             });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]==='251'?'BIRR':"USD";
             $data['currency'] = $currency;
-            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
+            $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):$defaultDeliveryCost);
             $totalPrice = round($promoPrice , 2);
 //            if($discounted&&$orderNumber==1)
 //            {
@@ -1003,6 +1008,7 @@ class OrderController extends BaseController
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $returnData = array();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shops as $shop)
         {
             $shopGs = $shopGoods->get($shop['user_id']);
@@ -1025,7 +1031,7 @@ class OrderController extends BaseController
             {
                 $status = 200;
                 $message = $code->description;
-                $deliveryCoast = $code->free_delivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100));
+                $deliveryCoast = $code->free_delivery?0:(!is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):$defaultDeliveryCost));
                 $data['deliveryCoast'] = $deliveryCoast;
                 if($code->discount_type=='discount')
                 {
@@ -1034,7 +1040,7 @@ class OrderController extends BaseController
                     $totalPrice = round($promoPrice-$code->reduction , 2);
                 }
             }else{
-                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100);
+                $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):$defaultDeliveryCost);
                 $totalPrice = round($promoPrice , 2);
             }
 //            if($discounted)
@@ -1130,6 +1136,7 @@ class OrderController extends BaseController
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
         $shops = app(UserRepository::class)->findByUserIds($userIds)->toArray();
         $returnData = array();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shops as $shop)
         {
             $shopGs = $shopGoods->get($shop['user_id']);
@@ -1151,7 +1158,7 @@ class OrderController extends BaseController
             $freeDelivery = collect($shopGs)->every(function ($value, $key) {
                 return !empty($value['free_delivery']);
             });
-            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):100));
+            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round(floatval($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):$defaultDeliveryCost));
             $totalPrice = round($promoPrice , 2);
             array_push($returnData , array_merge($data , array(
                 'shop'=>new UserCollection(collect($shop)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address')),

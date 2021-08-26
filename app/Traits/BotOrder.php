@@ -94,6 +94,7 @@ trait BotOrder
         $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
@@ -140,7 +141,7 @@ trait BotOrder
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+            $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):$defaultDeliveryCost);
             $discount_type = '';
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
@@ -279,6 +280,7 @@ trait BotOrder
         $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
@@ -329,7 +331,7 @@ trait BotOrder
             {
                 $deliveryCoast = 0;
             }else{
-                $deliveryCoast = !is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100);
+                $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):$defaultDeliveryCost);
             }
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = $code->promo_code;
@@ -475,6 +477,7 @@ trait BotOrder
         $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
+        $defaultDeliveryCost = config('common.default_delivery_cost');
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
@@ -524,7 +527,7 @@ trait BotOrder
                 'created_at'=>$now,
                 'updated_at'=>$now,
             );
-            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?100:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):100));
+            $deliveryCoast = $freeDelivery?0:(!is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$u]['delivery_cost']))?round((float)($deliveryCoasts[$u]['delivery_cost']) , 2):$defaultDeliveryCost));
             $data['delivery_coast'] = $deliveryCoast;
             $data['promo_code'] = '';
             $data['free_delivery'] = (int)$freeDelivery;
