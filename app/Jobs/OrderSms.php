@@ -65,7 +65,12 @@ class OrderSms implements ShouldQueue
     public function curl($params)
     {
         $curl = curl_init();
-        $url = 'http://beu-notification-api.eba-f6wpgpmf.us-west-2.elasticbeanstalk.com/v1/sms/outbound';
+        if(app()->environment('production'))
+        {
+            $url = 'http://172.31.34.242:7521/v1/sms/outbound';
+        }else{
+            $url = 'http://13.212.220.56:7521/v1/sms/outbound';
+        }
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
