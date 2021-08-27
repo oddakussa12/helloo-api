@@ -182,45 +182,56 @@ $api->group($V1Params , function ($api){
 
         /*****business start*****/
         $api->get('agora/rtc/token' , 'UserController@agoraToken')->name('user.agora.token');
-        $api->get('business/notification/activities' , 'Business\NotificationController@activities')->name('notification.activities');
 
-        $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
-        $api->post('business/delivery_cost' , 'Business\BusinessController@deliveryCost')->name('business.delivery_cost');
-        $api->get('goods/uncategorized' , 'Business\GoodsController@uncategorized')->name('goods.uncategorized');
-        $api->get('goods/recommendation' , 'Business\GoodsController@recommendation')->name('goods.recommendation');
 
         // $api->get('goods/comment/reply' , 'Business\GoodsCommentsController@reply')->name('goods.comment.reply');
 
-        $api->get('goods/{goods}/like' , 'Business\GoodsController@like')->name('goods.like.index');
-        $api->get('shopping_cart' , 'Business\ShoppingCartController@index')->name('business.shopping.cart.index');
-        $api->post('order/preview' , 'Business\OrderController@preview')->name('business.order.preview');
-        $api->post('order/special' , 'Business\OrderController@specialOrder')->name('business.order.special');
-        $api->get('order/myself' , 'Business\OrderController@my')->name('business.order.my');
-        $api->get('order/{order}' , 'Business\OrderController@show')->name('business.order.show');
-        $api->group(['middleware'=>['repeatedSubmit']] , function($api){
-            $api->post('goods/comment' , 'Business\GoodsCommentsController@store')->name('goods.comment.store');
-            $api->post('goods/{goods}/like' , 'Business\GoodsController@storeLike')->name('goods.like.store');
-            $api->delete('goods/{goods}/like' , 'Business\GoodsController@destroyLike')->name('goods.like.destroy');
-            $api->post('goods' , 'Business\GoodsController@store')->name('goods.store');
-            $api->put('goods/{goods}' , 'Business\GoodsController@update')->name('goods.update');
-            $api->post('delivery/order' , 'Business\DeliveryOrderController@store')->name('goods.delivery.order.store');
-            $api->post('shopping_cart' , 'Business\ShoppingCartController@store')->name('business.shopping.cart.store');
-            $api->delete('shopping_cart' , 'Business\ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
-            $api->post('order/special' , 'Business\OrderController@specialOrder')->name('business.order.special');
-            $api->post('order' , 'Business\OrderController@store')->name('business.order.store');
-            $api->post('follow' , 'Business\FollowController@store')->name('business.follow.store');
-            $api->delete('follow/{follow}' , 'Business\FollowController@destroy')->name('business.follow.destroy');
-            $api->post('goods_category' , 'Business\GoodsCategoryController@store')->name('business.goods.category.store');
-            $api->patch('goods_category/{goods_category}' , 'Business\GoodsCategoryController@update')->name('business.goods.category.update');
-            $api->put('goods_category/sort' , 'Business\GoodsCategoryController@sort')->name('business.goods.category.sort');
-            $api->delete('goods_category/{goods_category}' , 'Business\GoodsCategoryController@destroy')->name('business.goods.category.destroy');
+
+        $api->group(['namespace'=>'Business'] , function($api){
+
+            $api->get('business/notification/activities' , 'NotificationController@activities')->name('notification.activities');
+            $api->get('business/search' , 'BusinessController@search')->name('business.search');
+            $api->post('business/delivery_cost' , 'BusinessController@deliveryCost')->name('business.delivery_cost');
+            $api->get('goods/uncategorized' , 'GoodsController@uncategorized')->name('goods.uncategorized');
+            $api->get('goods/recommendation' , 'GoodsController@recommendation')->name('goods.recommendation');
+
+            $api->get('goods/{goods}/like' , 'GoodsController@like')->name('goods.like.index');
+            $api->get('shopping_cart' , 'ShoppingCartController@index')->name('business.shopping.cart.index');
+            $api->post('order/preview' , 'OrderController@preview')->name('business.order.preview');
+            $api->post('order/special' , 'OrderController@specialOrder')->name('business.order.special');
+            $api->get('order/myself' , 'OrderController@my')->name('business.order.my');
+            $api->get('order/{order}' , 'OrderController@show')->name('business.order.show');
+
+            $api->group(['middleware'=>['repeatedSubmit']] , function($api){
+                $api->post('goods/comment' , 'GoodsCommentsController@store')->name('goods.comment.store');
+                $api->post('goods/{goods}/like' , 'GoodsController@storeLike')->name('goods.like.store');
+                $api->delete('goods/{goods}/like' , 'GoodsController@destroyLike')->name('goods.like.destroy');
+                $api->post('goods' , 'GoodsController@store')->name('goods.store');
+                $api->put('goods/{goods}' , 'GoodsController@update')->name('goods.update');
+                $api->post('delivery/order' , 'DeliveryOrderController@store')->name('goods.delivery.order.store');
+                $api->post('shopping_cart' , 'ShoppingCartController@store')->name('business.shopping.cart.store');
+                $api->delete('shopping_cart' , 'ShoppingCartController@destroy')->name('business.shopping.cart.destroy');
+                $api->post('order/special' , 'OrderController@specialOrder')->name('business.order.special');
+                $api->post('order' , 'OrderController@store')->name('business.order.store');
+                $api->post('follow' , 'FollowController@store')->name('business.follow.store');
+                $api->delete('follow/{follow}' , 'FollowController@destroy')->name('business.follow.destroy');
+                $api->post('goods_category' , 'GoodsCategoryController@store')->name('business.goods.category.store');
+                $api->patch('goods_category/{goods_category}' , 'GoodsCategoryController@update')->name('business.goods.category.update');
+                $api->put('goods_category/sort' , 'GoodsCategoryController@sort')->name('business.goods.category.sort');
+                $api->delete('goods_category/{goods_category}' , 'GoodsCategoryController@destroy')->name('business.goods.category.destroy');
+            });
+
+            $api->get('goods_category' , 'GoodsCategoryController@index')->name('business.goods.category.index');
+
+            $api->get('follow/myself' , 'FollowController@my')->name('business.follow.my');
+
+            $api->get('follow/{user}' , 'FollowController@index')->name('business.follow.index');
+
+            $api->get('recipient', 'RecipientController@index')->name('recipient.index');
+            $api->post('recipient', 'RecipientController@store')->name('recipient.store');
+            $api->patch('recipient/{recipient}', 'RecipientController@update')->name('recipient.update');
+            $api->destroy('recipient/{recipient}', 'RecipientController@destroy')->name('recipient.destroy');
         });
-
-        $api->get('goods_category' , 'Business\GoodsCategoryController@index')->name('business.goods.category.index');
-
-        $api->get('follow/myself' , 'Business\FollowController@my')->name('business.follow.my');
-
-        $api->get('follow/{user}' , 'Business\FollowController@index')->name('business.follow.index');
 
         $api->group(['prefix'=>'dashboard' , 'namespace'=>'Dashboard'] , function ($api) {
             $api->get('order' , 'IndexController@order')->name('dashboard.order');
@@ -233,31 +244,41 @@ $api->group($V1Params , function ($api){
 
 
     });
-    $api->get('shop_tag' , 'Business\ShopTagController@index')->name('business.shop.tag');
+    $api->group(['namespace'=>'Business'] , function($api){
+        $api->get('shop_tag' , 'ShopTagController@index')->name('business.shop.tag');
 
-    $api->get('goods/special' , 'Business\GoodsController@special')->name('goods.special');
+        $api->get('goods/special' , 'GoodsController@special')->name('goods.special');
 
-    $api->get('goods' , 'Business\GoodsController@index')->name('goods.index');
+        $api->get('goods' , 'GoodsController@index')->name('goods.index');
 
-    $api->get('business/special_goods' , 'Business\BusinessController@specialGoods')->name('business.special_goods');
+        $api->get('business/special_goods' , 'BusinessController@specialGoods')->name('business.special_goods');
 
-    $api->get('business/discovery/home' , 'Business\BusinessController@home')->name('business.discovery.home');
+        $api->get('business/discovery/home' , 'BusinessController@home')->name('business.discovery.home');
 
-    $api->get('business/discovery/index' , 'Business\BusinessController@discoveryIndex')->name('business.discovery.index');
+        $api->get('business/discovery/index' , 'BusinessController@discoveryIndex')->name('business.discovery.index');
 
-    $api->get('business/discovery' , 'Business\BusinessController@discovery')->name('business.discovery');
+        $api->get('business/discovery' , 'BusinessController@discovery')->name('business.discovery');
 
-    $api->get('goods/comment' , 'Business\GoodsCommentsController@index')->name('goods.comment.index');
+        $api->get('goods/comment' , 'GoodsCommentsController@index')->name('goods.comment.index');
 
-    $api->get('business/search_v2' , 'Business\BusinessController@searchV2')->name('business.search_v2');
+        $api->get('business/search_v2' , 'BusinessController@searchV2')->name('business.search_v2');
 
-    $api->get('business/search' , 'Business\BusinessController@search')->name('business.search');
+        $api->get('business/search' , 'BusinessController@search')->name('business.search');
 
-    $api->get('goods/{goods}' , 'Business\GoodsController@show')->name('goods.show');
+        $api->get('goods/{goods}' , 'GoodsController@show')->name('goods.show');
 
-    $api->get('promo_code/{promo_code}' , 'Business\PromoCodeController@show')->name('promo.show');
+        $api->get('promo_code/{promo_code}' , 'PromoCodeController@show')->name('promo.show');
 
-    $api->patch('promo_code/{promo_code}' , 'Business\PromoCodeController@update')->name('promo.update');
+        $api->patch('promo_code/{promo_code}' , 'PromoCodeController@update')->name('promo.update');
+
+        $api->post('business/bitrix_order_callback' , 'BusinessController@bitrixOrderCallback')->name('business.bitrix.order.callback');
+
+        $api->get('business/ship_day_callback' , 'BusinessController@shipDayCallback')->name('business.shipDayCallback.get');
+
+        $api->post('business/ship_day_callback' , 'BusinessController@shipDayCallback')->name('business.shipDayCallback.post');
+
+    });
+
 
     $api->get('sticker/index' , 'StickerController@index')->name('sticker.index');
 
@@ -280,7 +301,6 @@ $api->group($V1Params , function ($api){
         $api->resource('feedback' , 'FeedbackController' , ['only' => ['store']]); //feedback
     });
     $api->post('statistics/download' , 'StatisticsController@download')->name('statistics.download');
-
 
     $api->get('user/{user}/type/{type}' , 'AuthController@accountVerification')->where('type', 'phone|nick_name')->name('user.account.verification');
 
@@ -341,27 +361,7 @@ $api->group($V1Params , function ($api){
         $api->patch('delay_special_goods' , 'BackStageController@updateDelaySpecialGoods')->name('backStage.delay_special_goods.update');
     });
 
-    $api->post('business/bitrix_order_callback' , 'Business\BusinessController@bitrixOrderCallback')->name('business.bitrix.order.callback');
 
-    $api->get('test/redis' , 'TestController@redis')->name('test.redis');
-    $api->get('test/push' , 'TestController@push')->name('test.push');
-    $api->get('test/broadcast' , 'TestController@broadcast')->name('test.broadcast');
-    $api->post('test/token' , 'TestController@token')->name('test.token');
-    $api->get('test/es' , 'TestController@es')->name('test.es');
-    $api->get('test/test' , 'TestController@test')->name('test.test');
-    $api->post('test/test' , 'TestController@test')->name('test.test');
-
-    $api->get('business/ship_day_callback' , 'Business\BusinessController@shipDayCallback')->name('business.shipDayCallback.get');
-    $api->post('business/ship_day_callback' , 'Business\BusinessController@shipDayCallback')->name('business.shipDayCallback.post');
-
-    $api->get('test/aws' , 'TestController@aws')->name('test.aws');
-    $api->get('test/index' , 'TestController@index')->name('test.index');
-    $api->get('test/send' , 'TestController@send')->name('test.send');
-    $api->get('test/fcm' , 'TestController@fcm')->name('test.fcm');
-    $api->get('test/office' , 'TestController@office')->name('test.office');
-    $api->get('test/ding' , 'TestController@ding')->name('test.ding');
-    $api->post('test/ding' , 'TestController@ding')->name('test.ding');
-    $api->get('test/sms' , 'TestController@sms')->name('test.sms');
 
     /** 商户 免登陆可访问的接口 start */
 
