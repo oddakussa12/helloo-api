@@ -24,6 +24,7 @@ class RecipientController extends BaseController
 
     public function store(RecipientRequest $request)
     {
+        $auth = (int)auth()->id();
         $name = $request->input('name');
         $phone = $request->input('phone');
         $longitude = $request->input('longitude');
@@ -31,6 +32,7 @@ class RecipientController extends BaseController
         $address = $request->input('address');
         $specific = $request->input('specific');
         $recipient = new Recipient();
+        $recipient->user_id = $auth;
         $recipient->name = $name;
         $recipient->phone = $phone;
         $recipient->longitude = $longitude;
