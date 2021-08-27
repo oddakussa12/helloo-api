@@ -230,7 +230,7 @@ $api->group($V1Params , function ($api){
             $api->get('recipient', 'RecipientController@index')->name('recipient.index');
             $api->post('recipient', 'RecipientController@store')->name('recipient.store');
             $api->patch('recipient/{recipient}', 'RecipientController@update')->name('recipient.update');
-            $api->destroy('recipient/{recipient}', 'RecipientController@destroy')->name('recipient.destroy');
+            $api->delete('recipient/{recipient}', 'RecipientController@destroy')->name('recipient.destroy');
         });
 
         $api->group(['prefix'=>'dashboard' , 'namespace'=>'Dashboard'] , function ($api) {
