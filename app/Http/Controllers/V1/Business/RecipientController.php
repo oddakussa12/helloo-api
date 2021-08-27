@@ -18,7 +18,7 @@ class RecipientController extends BaseController
         {
             abort(403);
         }
-        $recipients = Recipient::wherr('user_id' , $userId)->orderByDesc('updated_at')->get();
+        $recipients = Recipient::where('user_id' , $userId)->orderByDesc('updated_at')->get();
         return AnonymousCollection::collection($recipients);
     }
 
