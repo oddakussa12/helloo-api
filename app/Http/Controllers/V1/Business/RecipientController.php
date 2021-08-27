@@ -32,6 +32,7 @@ class RecipientController extends BaseController
         $address = $request->input('address');
         $specific = $request->input('specific');
         $recipient = new Recipient();
+        $recipient->id = app('snowflake')->id();
         $recipient->user_id = $auth;
         $recipient->name = $name;
         $recipient->phone = $phone;
@@ -45,6 +46,7 @@ class RecipientController extends BaseController
 
     public function update(RecipientRequest $request , $id)
     {
+        $auth = (int)auth()->id();
         $name = $request->input('name');
         $phone = $request->input('phone');
         $longitude = $request->input('longitude');
@@ -52,6 +54,10 @@ class RecipientController extends BaseController
         $address = $request->input('address');
         $specific = $request->input('specific');
         $recipient = Recipient::where('id' , $id)->firstOrFail();
+        if($recipient->user_id!==$auth)
+        {
+            abort(403);
+        }
         $recipient->name = $name;
         $recipient->phone = $phone;
         $recipient->longitude = $longitude;
@@ -64,6 +70,12 @@ class RecipientController extends BaseController
 
     public function destroy($id)
     {
+        $auth = (int)auth()->id();
+        $recipient = Recipient::where('id' , $id)->firstOrFail();
+        if($recipient->user_id!==$auth)
+        {
+            abort(403);
+        }
         Recipient::where('id' , $id)->delete();
         return $this->response->noContent();
     }
