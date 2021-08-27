@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1\Business;
 
+use Illuminate\Http\Request;
 use App\Models\Business\Recipient;
 use App\Resources\AnonymousCollection;
 use App\Http\Requests\RecipientRequest;
@@ -9,9 +10,15 @@ use App\Http\Controllers\V1\BaseController;
 
 class RecipientController extends BaseController
 {
-    public function index()
+    public function index(Request $request)
     {
-        $recipients = Recipient::orderByDesc('updated_at')->get();
+        $userId = (int)$request->input('user_id' , 0);
+        $auth = (int)auth()->id();
+        if($userId!==$auth)
+        {
+            abort(403);
+        }
+        $recipients = Recipient::wherr('user_id' , $userId)->orderByDesc('updated_at')->get();
         return AnonymousCollection::collection($recipients);
     }
 
