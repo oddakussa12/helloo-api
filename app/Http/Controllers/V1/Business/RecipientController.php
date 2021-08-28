@@ -72,7 +72,7 @@ class RecipientController extends BaseController
     {
         $auth = (int)auth()->id();
         $recipient = Recipient::where('id' , $id)->firstOrFail();
-        if($recipient->user_id!==$auth)
+        if((int)$recipient->user_id!==$auth)
         {
             abort(403);
         }
