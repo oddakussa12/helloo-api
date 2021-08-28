@@ -15,8 +15,8 @@ class Recipient extends Model
     protected $casts = [
         'id' => 'string',
         'user_id' => 'string',
-        'longitude' => 'float',
+        'longitude' => 'double',
         'is_default' => 'bool',
-        'latitude' => 'float',
+        'latitude' => 'double',
     ];
 }
