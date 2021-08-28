@@ -16,6 +16,7 @@ class Recipient extends Model
         'id' => 'string',
         'user_id' => 'string',
         'longitude' => 'float',
+        'is_default' => 'bool',
         'latitude' => 'float',
     ];
 }
