@@ -11,4 +11,11 @@ class Recipient extends Model
     const CREATED_AT = 'created_at';
 
     const UPDATED_AT = 'updated_at';
+
+    protected $casts = [
+        'id' => 'string',
+        'user_id' => 'string',
+        'longitude' => 'float',
+        'latitude' => 'float',
+    ];
 }
