@@ -54,7 +54,7 @@ class RecipientController extends BaseController
         $address = $request->input('address');
         $specific = $request->input('specific');
         $recipient = Recipient::where('id' , $id)->firstOrFail();
-        if($recipient->user_id!==$auth)
+        if((int)$recipient->user_id!==$auth)
         {
             abort(403);
         }
