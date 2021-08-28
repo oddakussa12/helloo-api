@@ -140,12 +140,6 @@ class User extends Authenticatable implements JWTSubject
         $this->attributes[$this->default_password_field] = bcrypt($value);
     }
 
-//
-//    public function getUserCountryAttribute()
-//    {
-//        return getUserCountryName($this->user_country_id);
-//    }
-
     public function setUserCountryIdAttribute($value)
     {
         $this->attributes['user_country'] = strtolower($value);

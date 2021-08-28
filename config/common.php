@@ -4,9 +4,8 @@ return [
     'cron_switch'=>env('CRON_SWITCH' , false),
     'match_version'=>env('MATCH_VERSION' , 0),
     'online_domain'=>[
-        'dev.api.helloo.mantouhealth.com',
         'api.helloo.mantouhealth.com',
-        'cn.api.helloo.mantouhealth.com',
+        'api.beu.chat',
     ],
 	'qnUploadDomain'=>[
         'video_domain' => 'https://qnidyooulvideo.mmantou.cn/',
@@ -15,17 +14,6 @@ return [
         'avatar_domain' => 'https://qneventsource.mmantou.cn/',
         'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
 	],
-    'awsUploadDomain'=>[
-        'video_domain' => 'https://media.yooul.com/',
-        'video_domain_cn' => 'https://media.mmantou.cn/',
-        'thumbnail_domain' => 'https://media.yooul.com/',
-    ],
-    'front_domain'=> [
-        'h5'=>'yooul.com',
-        'h5_test'=>'h5.mmantou.cn',
-        'web'=>'web.yooul.com',
-        'web_test'=>'web.mmantou.cn',
-    ],
     'app_dir' => env('APP_DIR', 'api.helloo.mantouhealth.com'),
     'order_sms_domain'=>env('ORDER_SMS_DOMAIN'),
 
