@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Custom\Uuid\RandomStringGenerator;
+use App\Models\Business\Goods;
 use App\Models\UserKpiCount;
 use App\Models\User;
 use App\Traits\CachableUser;
@@ -53,7 +54,7 @@ class Test extends Command
      */
     public function handle()
     {
-        $this->syncBitrix();
+        $this->fixBitrix();
         die;
         $schools = array(
             "Sekolah Menengah Atas Negri 10",
@@ -587,5 +588,33 @@ DOC;
 
     }
 
-
+    public function fixBitrix()
+    {
+        $bx24 = app("bitrix24");
+        $results = $bx24->getProductList();
+        foreach ($results as $products)
+        {
+            $gIds = collect($products)->pluck('XML_ID')->toArray();
+            $gs = Goods::whereIn('id' , $gIds)->get();
+            foreach ($products as $product) {
+                $gId = $product['XML_ID'];
+                $g = $gs->where('id' , $gId)->first();
+                if(empty($g))
+                {
+                    Log::info('bitrix_1' , $product);
+                    continue;
+                }
+                $bitrix = DB::table('bitrix_shops')->where('user_id' , $g->user_id)->first();
+                if(empty($bitrix))
+                {
+                    Log::info('bitrix_2' , $product);
+                    continue;
+                }
+                $data['PRICE'] = $g->price;
+                $data['NAME'] = $g->name;
+                $data['SECTION_ID'] = $bitrix->section_id;
+                $bx24->updateProduct($product['ID'] , $data);
+            }
+        }
+    }
 }

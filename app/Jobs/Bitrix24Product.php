@@ -36,12 +36,21 @@ class Bitrix24Product implements ShouldQueue
 
     private function store($goods)
     {
+        $section = DB::table('bitrix_shops')->where('user_id' , $goods['user_id'])->first();
+        if(!empty($section)||empty($section->section_id))
+        {
+            Log::info('bitrix_shop_empty' , array(
+                'goods'=>$goods
+            ));
+            return;
+        }
         $bx24 = app("bitrix24");
         $data = array(
                 "NAME"=>$goods['name'],
                 "PRICE"=>$goods['price'],
                 "CURRENCY_ID"=>'ETB',
-                "XML_ID"=>$goods['id']
+                "XML_ID"=>$goods['id'],
+                "SECTION_ID"=>$section->section_id
 //                "DETAIL_PICTURE"=>array(
 //                    "fileData"=>array(
 //                        time().".jpg",
