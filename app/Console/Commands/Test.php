@@ -591,9 +591,10 @@ DOC;
     public function fixBitrix()
     {
         $bx24 = app("bitrix24");
-        $results = $bx24->getProductList();
+        $results = $bx24->fetchProductList();
         foreach ($results as $products)
         {
+            dump(count($products));
             $gIds = collect($products)->pluck('XML_ID')->toArray();
             $gs = Goods::whereIn('id' , $gIds)->get();
             foreach ($products as $product) {
