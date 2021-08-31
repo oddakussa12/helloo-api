@@ -696,7 +696,7 @@ class BusinessController extends BaseController
                     $schedule >= 6 && $orderState = 2;
                     $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
                     $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
-                    $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
+                    $data = ['status' => $orderState ?? 0, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
                     if ($schedule === 5) {
                         $data['delivered_at'] = $time;
                     }
@@ -972,7 +972,7 @@ class BusinessController extends BaseController
             $order = Order::where('order_id', $orderId)->firstOrFail();
             $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
             $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
-            $data = ['status' => $orderState ?? 0, 'shop_price' => $shopPrice, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
+            $data = ['status' => $orderState ?? 0, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
             if ($schedule === 5) {
                 $data['delivered_at'] = $time;
             }

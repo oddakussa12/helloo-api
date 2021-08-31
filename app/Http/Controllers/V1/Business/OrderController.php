@@ -122,12 +122,8 @@ class OrderController extends BaseController
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
-//        $firstKey = "helloo:business:order:service:first";
-        $orderNumber = count($shopGoods);
         $orderAddresses = array();
-//        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
@@ -169,7 +165,6 @@ class OrderController extends BaseController
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -184,34 +179,14 @@ class OrderController extends BaseController
             $data['discount'] = 100;
             $totalPrice = round($promoPrice , 2);
             $discountedPrice = round($promoPrice+$deliveryCoast+$packagingCost , 2);
-//            if($discounted&&$orderNumber==1)
-//            {
-//                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
-//                if($discount>0)
-//                {
-//                    $r = Redis::sadd($firstKey , $user->user_id);
-//                    if($r)
-//                    {
-//                        $firstTotal = $totalPrice-$discount;
-//                        $totalPrice = $firstTotal<0?0:$totalPrice;
-//                        $firstDiscount = $discountedPrice-$discount;
-//                        $discountedPrice = $firstDiscount<0?0:$firstDiscount;
-//                        $data['first_order'] = round($discount , 2);
-//                    }
-//                }
-//            }
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -232,11 +207,7 @@ class OrderController extends BaseController
             }catch (\Exception $e)
             {
                 DB::rollBack();
-//                if(isset($r)&&$r)
-//                {
-//                    Redis::srem($firstKey , $user->user_id);
-//                }
-                Log::info('normal_order_store_fail' , array(
+                Log::error('normal_order_store_fail' , array(
                     'message'=>$e->getMessage(),
                     'user_id'=>$userId,
                     'data'=>$request->all()
@@ -346,13 +317,9 @@ class OrderController extends BaseController
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $defaultDeliveryCost = config('common.default_delivery_cost');
         $now = date('Y-m-d H:i:s');
-//        $firstKey = "helloo:business:order:service:first";
-        $orderNumber = count($shopGoods);
         $orderAddresses = array();
-//        $discounted = boolval(Redis::get("helloo:business:order:service:discounted:switch"));
         foreach ($shopGoods as $u=>$shopGs)
         {
             $orderId = app('snowflake')->id();
@@ -394,7 +361,6 @@ class OrderController extends BaseController
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -419,34 +385,14 @@ class OrderController extends BaseController
                 $totalPrice = round($promoPrice-$code->reduction , 2);
                 $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast+$packagingCost , 2);
             }
-//            if($orderNumber==1&&$discounted==true)
-//            {
-//                $discount = round(floatval(Redis::get('helloo:business:order:service:first:discount')) , 2);
-//                if($discount>0)
-//                {
-//                    $r = Redis::sadd($firstKey , $user->user_id);
-//                    if($r)
-//                    {
-//                        $firstTotal = $totalPrice-$discount;
-//                        $totalPrice = $firstTotal<0?0:$totalPrice;
-//                        $firstDiscount = $discountedPrice-$discount;
-//                        $discountedPrice = $firstDiscount<0?0:$firstDiscount;
-//                        $data['first_order'] = round($discount , 2);
-//                    }
-//                }
-//            }
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -472,11 +418,7 @@ class OrderController extends BaseController
             }catch (\Exception $e)
             {
                 DB::rollBack();
-//                if(isset($r)&&$r)
-//                {
-//                    Redis::srem($firstKey , $user->user_id);
-//                }
-                Log::info('promo_order_store_fail' , array(
+                Log::error('promo_order_store_fail' , array(
                     'message'=>$e->getMessage(),
                     'user_id'=>$userId,
                     'data'=>$request->all()
@@ -568,7 +510,6 @@ class OrderController extends BaseController
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $defaultDeliveryCost = config('common.default_delivery_cost');
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
@@ -616,7 +557,6 @@ class OrderController extends BaseController
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -632,15 +572,11 @@ class OrderController extends BaseController
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = '';
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -663,7 +599,7 @@ class OrderController extends BaseController
             }catch (\Exception $e)
             {
                 DB::rollBack();
-                Log::info('special_order_store_fail' , array(
+                Log::error('special_order_store_fail' , array(
                     'message'=>$e->getMessage(),
                     'user_id'=>$userId,
                     'data'=>$request->all()
