@@ -714,8 +714,7 @@ class BusinessController extends BaseController
                     $schedule === 5 && $orderState = 1;
                     $schedule >= 6 && $orderState = 2;
                     $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
-                    $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
-                    $data = ['status' => $orderState ?? 0, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
+                    $data = ['status' => $orderState ?? 0, 'schedule' => $schedule, 'order_time' => $duration];
                     if ($schedule === 5) {
                         $data['delivered_at'] = $time;
                     }
@@ -723,6 +722,8 @@ class BusinessController extends BaseController
                     $order['id'] = Uuid::uuid1()->toString();
                     $order['updated_at'] = $time;
                     $data['operator'] = $responsible;
+                    $isDispatch&&$data['assigned_at'] = $time;
+                    $orderState===1&&$data['delivered_at'] = $time;
                     unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
                     $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
                     try {
@@ -955,6 +956,7 @@ class BusinessController extends BaseController
         $shipOrder = (array)$request->input('order' , array());
         $carrier = $request->input('carrier' , '');
         $operator = $carrier['phone']??'';
+        $courier = $carrier['name']??'';
         $schedule = 0;
         $bitrixSchedule = '';
         $stages = array('NEW' , 'PREPARATION', 'PREPAYMENT_INVOICE', '1' ,'2' ,'LOSE' ,'6' ,'5' ,'7' ,'APOLOGY' , 'WON');
@@ -1014,6 +1016,7 @@ class BusinessController extends BaseController
             $order['id'] = Uuid::uuid1()->toString();
             $order['updated_at'] = $time;
             $data['operator'] = $operator;
+            $data['courier'] = $courier;
             unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
             $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
             try {
