@@ -472,7 +472,16 @@ class BusinessController extends BaseController
             $deliveryFree = $deal['UF_CRM_1628734075984']??'';
             $promoCode = (string)$deal['UF_CRM_1628735337461'];
             $companyId = (string)$deal['COMPANY_ID'];
-
+            $currencyId = (string)$deal['CURRENCY_ID'];
+            $comment = (string)$deal['COMMENTS'];
+            $pay = money_to_number($deal['UF_CRM_1629103354670']);
+            $purchasePrice = money_to_number($deal['UF_CRM_1628734746554']);
+            $packagePurchase = money_to_number($deal['UF_CRM_1629098340599']);
+            $brokeragePercentage = $deal['UF_CRM_1630463561'];
+            $brokerage = ($purchasePrice+$packagePurchase)*$brokeragePercentage/100;
+            $reason = $deal['UF_CRM_1630462597'];
+            $grossProfit = $pay-($purchasePrice+$packagePurchase)*$brokeragePercentage/100;
+            $income = ($purchasePrice+$packagePurchase)*0.05+money_to_number($deliveryFee);
             $shop = DB::table('bitrix_shops')->where('extension_id' , $companyId)->first();
             if(empty($shop))
             {
@@ -541,8 +550,9 @@ class BusinessController extends BaseController
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
-                'currency'=>"BIRR",
+                'currency'=>strtolower($currencyId)=='etb'?'BIRR':"USD",
+                'comment'=>$comment,
+                'resource'=>'bitrix',
                 'operator'=>$responsible,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -567,14 +577,9 @@ class BusinessController extends BaseController
                 $totalPrice = round($promoPrice , 2);
                 $discountedPrice = round($totalPrice+$deliveryCoast+$packagingCost , 2);
             }
-            $brokerage_percentage = 95;
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type??'';
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             if(!empty($data)) {
                 try {
                     DB::beginTransaction();
@@ -591,7 +596,15 @@ class BusinessController extends BaseController
                     }
                     DB::table('bitrix_orders')->insert(array(
                         'order_id'=>$orderId,
-                        'extension_id'=>$id
+                        'extension_id'=>$id,
+                        'pay'=>$pay,
+                        'purchase_price'=>$purchasePrice,
+                        'package_purchase_price'=>$packagePurchase,
+                        'gross_profit'=>$grossProfit,
+                        'income'=>$income,
+                        'brokerage_percentage'=>$brokeragePercentage,
+                        'brokerage'=>$brokerage,
+                        'reason'=>$reason,
                     ));
                     DB::commit();
                     $discounted = '';
@@ -616,10 +629,16 @@ class BusinessController extends BaseController
                         "UF_CRM_1628735337461"=>$promoCode, //Promo code
                         "UF_CRM_1629192007"=>$orderId,//ORDER_ID
                         "UF_CRM_1629271456064"=>$data['discounted_price'], //Total price Paid
-                        "UF_CRM_1629274022921"=>53, //Platform type
+                        "UF_CRM_1629274022921"=>45, //Platform type
                         "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
                         "UF_CRM_1629555411"=>"0", //IS UPDATE
                         "UF_CRM_1629593448"=>"0", //IS FIELD UPDATE
+                        "UF_CRM_1629103387129"=>(int)($pay>0), //Does the user pay?
+                        "UF_CRM_1629103354670"=>$pay, //Fees paid by users
+                        "UF_CRM_1630463379"=>$grossProfit, //Gross profit
+                        "UF_CRM_1630463416"=>$income, //Income
+                        "UF_CRM_1630463561"=>$brokeragePercentage, //Brokerage(%)
+                        "UF_CRM_1630463595"=>$brokerage, //Brokerage(%)
                     ));
                 } catch (\Exception $e) {
                     DB::rollBack();
@@ -736,6 +755,16 @@ class BusinessController extends BaseController
             $packagingFree = $deal['UF_CRM_1628734031097']??'';
             $deliveryFee = $deal['UF_CRM_1628734060152']??'';
             $deliveryFree = $deal['UF_CRM_1628734075984']??'';
+            $currencyId = (string)$deal['CURRENCY_ID'];
+            $comment = (string)$deal['COMMENTS'];
+            $pay = money_to_number($deal['UF_CRM_1629103354670']);
+            $purchasePrice = money_to_number($deal['UF_CRM_1628734746554']);
+            $packagePurchase = money_to_number($deal['UF_CRM_1629098340599']);
+            $brokeragePercentage = $deal['UF_CRM_1630463561'];
+            $brokerage = ($purchasePrice+$packagePurchase)*$brokeragePercentage/100;
+            $reason = $deal['UF_CRM_1630462597'];
+            $grossProfit = $pay-($purchasePrice+$packagePurchase)*$brokeragePercentage/100;
+            $income = ($purchasePrice+$packagePurchase)*0.05+money_to_number($deliveryFee);
             $products = $bx24->getDealProductRows($id);
             if(empty($deal['COMPANY_ID'])||empty($deal['CONTACT_ID'])||empty($contactId)||empty($userName)||empty($userContact)||empty($userAddress)||empty($products)||(string)$deal['CONTACT_ID']!==$contactId)
             {
@@ -836,8 +865,8 @@ class BusinessController extends BaseController
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
-                'currency'=>"BIRR",
+                'currency'=>strtolower($currencyId)=='etb'?'BIRR':"USD",
+                'comment'=>$comment,
                 'operator'=>$responsible,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -862,14 +891,9 @@ class BusinessController extends BaseController
                 $totalPrice = round($promoPrice , 2);
                 $discountedPrice = round($totalPrice+$deliveryCoast+$packagingCost , 2);
             }
-            $brokerage_percentage = 95;
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type??'';
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             $order = $order->toArray();
             $order['id'] = Uuid::uuid1()->toString();
             $order['updated_at'] = $now;
@@ -877,6 +901,17 @@ class BusinessController extends BaseController
             $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
             DB::table('orders_logs')->insert($order);
             DB::table('orders')->where('order_id' , $orderId)->update($data);
+            DB::table('bitrix_orders')->where('order_id' , $orderId)->update(array(
+                'extension_id'=>$id,
+                'pay'=>$pay,
+                'purchase_price'=>$purchasePrice,
+                'package_purchase_price'=>$packagePurchase,
+                'gross_profit'=>$grossProfit,
+                'income'=>$income,
+                'brokerage_percentage'=>$brokeragePercentage,
+                'brokerage'=>$brokerage,
+                'reason'=>$reason,
+            ));
             $discounted = '';
             if($data['discount_type']==='discount')
             {
@@ -887,7 +922,6 @@ class BusinessController extends BaseController
             }
             $deal = [
                 "CONTACT_ID"=>$contactId,
-                "UF_CRM_1628733612424"=>0, //Special price
                 "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price
                 "UF_CRM_1628733813318"=>$discounted, //Discount Used
                 "UF_CRM_1628733998830"=>$data['packaging_cost'],//Package fee
@@ -899,7 +933,13 @@ class BusinessController extends BaseController
                 "UF_CRM_1629271456064"=>$data['discounted_price'], //Total price Paid
                 "UF_CRM_1629461733965"=>$shop->user_nick_name, //Restaurant
                 "UF_CRM_1629555411"=>'0', //IS UPDATE
-                "UF_CRM_1629593448"=>'0' //IS FIELD UPDATE
+                "UF_CRM_1629593448"=>'0', //IS FIELD UPDATE,
+                "UF_CRM_1629103387129"=>(int)($pay>0), //Does the user pay?
+                "UF_CRM_1629103354670"=>$pay, //Fees paid by users
+                "UF_CRM_1630463379"=>$grossProfit, //Gross profit
+                "UF_CRM_1630463416"=>$income, //Income
+                "UF_CRM_1630463561"=>$brokeragePercentage, //Brokerage(%)
+                "UF_CRM_1630463595"=>$brokerage, //Brokerage(%)
             ];
             Log::info('updateDeal' , $deal);
             $bx24->updateDeal($id , $deal);
@@ -963,12 +1003,6 @@ class BusinessController extends BaseController
             $schedule === 5 && $orderState = 1;
             $schedule >= 6 && $orderState = 2;
             $orderId = $shipOrder['order_number']??0;
-//            $lock_key = 'helloo:bitrix:repeat:order:'.$orderId;
-//            $redis = new RedisList();
-//            if(!$redis->tryGetLock($lock_key , 1 , 5000))
-//            {
-//                return;
-//            }
             $order = Order::where('order_id', $orderId)->firstOrFail();
             $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
             $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
