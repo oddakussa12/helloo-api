@@ -649,7 +649,6 @@ class OrderController extends BaseController
             abort(403 , 'This goods is not a special offer!');
         }
         $price = round($specialG['special_price'] , 2);
-        $brokerage_percentage = 95;
         $user = auth()->user();
         $userId = $user->user_id;
         $orderId = app('snowflake')->id();
@@ -705,10 +704,6 @@ class OrderController extends BaseController
         $data['discount'] = 100;
         $data['discounted_price'] = round($price+$data['delivery_coast']+$data['packaging_cost'] , 2);
         $data['total_price'] = $price;
-        $data['brokerage_percentage'] = $brokerage_percentage;
-        $brokerage = round($brokerage_percentage/100*$price , 2);
-        $data['brokerage'] = $brokerage;
-        $data['profit'] = round($data['discounted_price']-$brokerage , 2);
         $returnData = $data;
         $returnData['free_delivery'] = (bool)$specialG['free_delivery'];
         $returnData['detail'] = $goods->toArray();
@@ -720,7 +715,7 @@ class OrderController extends BaseController
         }
         Redis::sadd($specialDateKey , $userContact);
         Redis::expireat($specialDateKey , strtotime("+7 day"));
-        unset($returnData['discount_type'] , $returnData['brokerage_percentage'] , $returnData['brokerage'] , $returnData['profit']);
+        unset($returnData['discount_type']);
         $data['free_delivery'] = (bool)$data['free_delivery'];
         OrderSynchronization::dispatch($returnData , 'special')->onQueue('helloo_{order_synchronization}');
         OrderSms::dispatch(array($data) , 'batch')->onQueue('helloo_{delivery_order_sms}');

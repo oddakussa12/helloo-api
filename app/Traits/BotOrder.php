@@ -91,7 +91,6 @@ trait BotOrder
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
         $defaultDeliveryCost = config('common.default_delivery_cost');
@@ -153,15 +152,11 @@ trait BotOrder
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -277,7 +272,6 @@ trait BotOrder
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
         $defaultDeliveryCost = config('common.default_delivery_cost');
@@ -350,15 +344,11 @@ trait BotOrder
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -474,7 +464,6 @@ trait BotOrder
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
         $defaultDeliveryCost = config('common.default_delivery_cost');
@@ -538,15 +527,11 @@ trait BotOrder
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = '';
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
