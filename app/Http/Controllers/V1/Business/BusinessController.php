@@ -721,7 +721,7 @@ class BusinessController extends BaseController
                     $order = $order->toArray();
                     $order['id'] = Uuid::uuid1()->toString();
                     $order['updated_at'] = $time;
-                    $data['operator'] = $responsible;
+                    $data['operator'] = $order['operator'] = $responsible;
                     $isDispatch&&$data['assigned_at'] = $time;
                     $orderState===1&&$data['delivered_at'] = $time;
                     unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
@@ -788,6 +788,7 @@ class BusinessController extends BaseController
                 unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
                 $data['detail'] = \json_encode($data['detail']);
+                $data['operator'] = $responsible;
                 DB::table('orders_logs')->insert($data);
                 Log::info('delete_deal_6' , array(
                     'deal'=>$deal,
@@ -811,6 +812,7 @@ class BusinessController extends BaseController
                 DB::table('orders')->where('order_id' , $order->order_id)->delete();
                 unset($data['format_price'], $data['format_discounted_price'], $data['format_promo_price'], $data['format_total_price'], $data['format_packaging_cost']);
                 $data['detail'] = \json_encode($data['detail']);
+                $data['operator'] = $responsible;
                 DB::table('orders_logs')->insert($data);
                 Log::info('delete_deal_7' , array(
                     '$sameShop'=>$sameShop,
@@ -900,6 +902,7 @@ class BusinessController extends BaseController
             $order['updated_at'] = $now;
             unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
             $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
+            $order['operator'] = $responsible;
             DB::table('orders_logs')->insert($order);
             DB::table('orders')->where('order_id' , $orderId)->update($data);
             DB::table('bitrix_orders')->where('order_id' , $orderId)->update(array(
@@ -955,8 +958,7 @@ class BusinessController extends BaseController
         $event = (string)$request->input('event' , '');
         $shipOrder = (array)$request->input('order' , array());
         $carrier = $request->input('carrier' , '');
-        $operator = $carrier['phone']??'';
-        $courier = $carrier['name']??'';
+        $courier = $carrier['phone']??'';
         $schedule = 0;
         $bitrixSchedule = '';
         $stages = array('NEW' , 'PREPARATION', 'PREPAYMENT_INVOICE', '1' ,'2' ,'LOSE' ,'6' ,'5' ,'7' ,'APOLOGY' , 'WON');
@@ -1007,15 +1009,13 @@ class BusinessController extends BaseController
             $orderId = $shipOrder['order_number']??0;
             $order = Order::where('order_id', $orderId)->firstOrFail();
             $duration = (int)((strtotime($time) - strtotime($order->created_at)) / 60);
-            $brokerage = $shopPrice = round($order->order_price * $order->brokerage_percentage / 100, 2);
-            $data = ['status' => $orderState ?? 0, 'brokerage' => $brokerage, 'schedule' => $schedule, 'order_time' => $duration];
+            $data = ['status' => $orderState ?? 0, 'schedule' => $schedule, 'order_time' => $duration];
             if ($schedule === 5) {
                 $data['delivered_at'] = $time;
             }
             $order = $order->toArray();
             $order['id'] = Uuid::uuid1()->toString();
             $order['updated_at'] = $time;
-            $data['operator'] = $operator;
             $data['courier'] = $courier;
             unset($order['format_price'], $order['format_discounted_price'], $order['format_promo_price'], $order['format_total_price'], $order['format_packaging_cost']);
             $order['detail']  = \json_encode($order['detail'],JSON_UNESCAPED_UNICODE);
