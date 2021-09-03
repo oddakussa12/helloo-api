@@ -327,6 +327,22 @@ class OrderController extends BaseController
         {
             abort(403 , 'Promo code can only be used for one order!');
         }
+        if($code->discount_type==='limit')
+        {
+            if(count($gIds)!==1)
+            {
+                abort(403 , 'Oops! This code is for double burger only!');
+            }
+            $promoGoods = DB::table('promo_goods')->where('code' , $promoCode)->first();
+            if(empty($promoGoods))
+            {
+                abort(403 , 'Promo code does not exist!');
+            }
+            if($promoGoods->goods_id!==$gIds[0])
+            {
+                abort(403 , 'Oops! This code is for double burger only!!');
+            }
+        }
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = (int)$goods[$g->id];
         });
@@ -989,6 +1005,22 @@ class OrderController extends BaseController
         {
             $flag = 1;
             $message = "Sorry this code is invalid!";
+        }
+        if($flag===0&&$code->discount_type==='limit')
+        {
+            if(count($gIds)!==1)
+            {
+                abort(403 , 'Oops! This code is for double burger only!');
+            }
+            $promoGoods = DB::table('promo_goods')->where('code' , $promoCode)->first();
+            if(empty($promoGoods))
+            {
+                abort(403 , 'Promo code does not exist!');
+            }
+            if($promoGoods->goods_id!==$gIds[0])
+            {
+                abort(403 , 'Oops! This code is for double burger only!!');
+            }
         }
         if(!$discounted&&!empty($code))
         {

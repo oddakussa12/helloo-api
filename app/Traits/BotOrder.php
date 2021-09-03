@@ -232,7 +232,7 @@ trait BotOrder
         {
             abort(403 , 'An error occurred in the parameter!');
         }
-        $gs = Goods::whereIn('id' , array_keys($goods))->get();
+        $gs = Goods::whereIn('id' , $gIds)->get();
         $goodsStatus = $gs->every(function ($g , $k) {
             return $g->status===1;
         });
@@ -258,6 +258,22 @@ trait BotOrder
         if(count($userIds)!==1)
         {
             abort(403 , 'Promo code can only be used for one order!');
+        }
+        if($code->discount_type==='limit')
+        {
+            if(count($gIds)!==1)
+            {
+                abort(403 , 'Oops! This code is for double burger only!');
+            }
+            $promoGoods = DB::table('promo_goods')->where('code' , $promoCode)->first();
+            if(empty($promoGoods))
+            {
+                abort(403 , 'Promo code does not exist!');
+            }
+            if($promoGoods->goods_id!==$gIds[0])
+            {
+                abort(403 , 'Oops! This code is for double burger only!!');
+            }
         }
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = (int)$goods[$g->id];
