@@ -338,7 +338,7 @@ class OrderController extends BaseController
             {
                 abort(403 , 'Promo code does not exist!');
             }
-            if($promoGoods->goods_id!==$gIds[0])
+            if($promoGoods->goods_id!==$gIds[0]||(int)$goods[$promoGoods->goods_id]!==1)
             {
                 abort(403 , 'Oops! This code is for double burger only!!');
             }
@@ -431,9 +431,12 @@ class OrderController extends BaseController
             {
                 $totalPrice = round($promoPrice*$code->percentage/100 , 2);
                 $discountedPrice = round($promoPrice*$code->percentage/100+$deliveryCoast+$packagingCost , 2);
-            }else{
+            }else if($code->discount_type=='reduction'){
                 $totalPrice = round($promoPrice-$code->reduction , 2);
                 $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast+$packagingCost , 2);
+            }else{
+                $totalPrice = 0;
+                $discountedPrice = round($deliveryCoast+$packagingCost , 2);
             }
 //            if($orderNumber==1&&$discounted==true)
 //            {
@@ -1017,7 +1020,7 @@ class OrderController extends BaseController
             {
                 abort(403 , 'Promo code does not exist!');
             }
-            if($promoGoods->goods_id!==$gIds[0])
+            if($promoGoods->goods_id!==$gIds[0]||(int)$goods[$promoGoods->goods_id]!==1)
             {
                 abort(403 , 'Oops! This code is for double burger only!!');
             }
@@ -1068,8 +1071,10 @@ class OrderController extends BaseController
                 if($code->discount_type=='discount')
                 {
                     $totalPrice = round($promoPrice*$code->percentage/100 , 2);
-                }else{
+                }else if($code->discount_type=='reduction'){
                     $totalPrice = round($promoPrice-$code->reduction , 2);
+                }else{
+                    $totalPrice = 0;
                 }
             }else{
                 $deliveryCoast = !is_array($deliveryCoasts)?$defaultDeliveryCost:((isset($deliveryCoasts[$shop['user_id']]['delivery_cost']))?round((float)($deliveryCoasts[$shop['user_id']]['delivery_cost']) , 2):$defaultDeliveryCost);

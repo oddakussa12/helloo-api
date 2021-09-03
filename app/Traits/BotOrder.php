@@ -270,7 +270,7 @@ trait BotOrder
             {
                 abort(403 , 'Promo code does not exist!');
             }
-            if($promoGoods->goods_id!==$gIds[0])
+            if($promoGoods->goods_id!==$gIds[0]||(int)$goods[$promoGoods->goods_id]!==1)
             {
                 abort(403 , 'Oops! This code is for double burger only!!');
             }
@@ -359,9 +359,12 @@ trait BotOrder
             {
                 $totalPrice = round($promoPrice*$code->percentage/100 , 2);
                 $discountedPrice = round($promoPrice*$code->percentage/100+$deliveryCoast+$packagingCost , 2);
-            }else{
+            }else if ($code->discount_type=='reduction'){
                 $totalPrice = round($promoPrice-$code->reduction , 2);
                 $discountedPrice = round($promoPrice-$code->reduction+$deliveryCoast+$packagingCost , 2);
+            }else{
+                $totalPrice = 0;
+                $discountedPrice = round($deliveryCoast+$packagingCost , 2);
             }
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
