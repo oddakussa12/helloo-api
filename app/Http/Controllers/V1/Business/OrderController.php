@@ -879,7 +879,7 @@ class OrderController extends BaseController
             {
                 if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
-                    abort(422 , 'Illegal delivery coast format!');
+                    abort(422 , 'Illegal delivery cost format!');
                 }
             }
         }
@@ -993,7 +993,7 @@ class OrderController extends BaseController
             {
                 if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
-                    abort(422 , 'Illegal delivery coast format!');
+                    abort(422 , 'Illegal delivery cost format!');
                 }
             }
         }
@@ -1147,7 +1147,7 @@ class OrderController extends BaseController
             {
                 if(!isset($v['distance'], $v['delivery_cost'], $v['start'][0], $v['start'][1], $v['end'][0], $v['end'][1]) || !in_array((string)$k, $userIds, true))
                 {
-                    abort(422 , 'Illegal delivery coast format!');
+                    abort(422 , 'Illegal delivery cost format!');
                 }
             }
         }
