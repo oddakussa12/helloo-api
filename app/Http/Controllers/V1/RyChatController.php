@@ -43,12 +43,12 @@ class RyChatController extends BaseController
                     if (Constant::QUEUE_PUSH_TYPE == 'redis') {
                         if (Constant::QUEUE_RY_CHAT_SWITCH) {
                             $ryChat = new RyChat($all);
-                            $this->dispatch($ryChat->onQueue("helloo_{store_ry_msg}"));
+//                            $this->dispatch($ryChat->onQueue("helloo_{store_ry_msg}"));
                         }
                     } else {
                         if (Constant::QUEUE_RY_CHAT_SWITCH) {
                             $ryChat = new RyChat($all);
-                            $this->dispatch($ryChat->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
+//                            $this->dispatch($ryChat->onConnection('sqs')->onQueue(Constant::QUEUE_RY_CHAT));
                         }
                     }
                 }

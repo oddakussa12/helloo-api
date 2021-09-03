@@ -92,8 +92,8 @@ class GroupMemberJoin implements ShouldQueue
                         'name'=>\json_encode($names),
                         'updated_at'=>$this->now,
                     ));
-                    $group = Group::where('id' , $groupId)->first();
-                    GroupUpdate::dispatch($group , $this->user)->onQueue('helloo_{group_operate}');
+//                    $group = Group::where('id' , $groupId)->first();
+//                    GroupUpdate::dispatch($group , $this->user)->onQueue('helloo_{group_operate}');
                 }
             }
 
@@ -112,8 +112,8 @@ class GroupMemberJoin implements ShouldQueue
                         'avatar'=>\json_encode($avatars),
                         'updated_at'=>$this->now,
                     ));
-                    $group = Group::where('id' , $groupId)->first();
-                    GroupUpdate::dispatch($group , $this->user)->onQueue('helloo_{group_operate}');
+//                    $group = Group::where('id' , $groupId)->first();
+//                    GroupUpdate::dispatch($group , $this->user)->onQueue('helloo_{group_operate}');
                 }
             }
         }
