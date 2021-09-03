@@ -119,7 +119,7 @@ class GroupMemberController extends BaseController
                 ));
                 throw new UpdateResourceFailedException('Group dismiss failed');
             }
-            GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
+//            GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         }else{
             $groupMember['deleted_at'] = $now;
             $groupData = array('member'=>DB::raw('member-1') ,  'updated_at'=>$now);
@@ -150,7 +150,7 @@ class GroupMemberController extends BaseController
                 ));
                 throw new UpdateResourceFailedException('Group quit failed');
             }
-            GroupMemberExit::dispatch($group , $user , [$userId] , 'exit')->onQueue('helloo_{group_member_update}');
+//            GroupMemberExit::dispatch($group , $user , [$userId] , 'exit')->onQueue('helloo_{group_member_update}');
         }
         return $this->response->accepted();
     }
@@ -232,7 +232,7 @@ class GroupMemberController extends BaseController
             ));
             throw new UpdateResourceFailedException('Group kick failed');
         }
-        GroupMemberExit::dispatch($group , $user , $groupMemberIds , 'kicked')->onQueue('helloo_{group_member_update}');
+//        GroupMemberExit::dispatch($group , $user , $groupMemberIds , 'kicked')->onQueue('helloo_{group_member_update}');
         return $this->response->accepted();
     }
 
@@ -290,7 +290,7 @@ class GroupMemberController extends BaseController
                     ));
                     throw new UpdateResourceFailedException('Group join failed!');
                 }
-                GroupMemberJoin::dispatch($group , $user , [$auth])->onQueue('helloo_{group_member_update}');
+//                GroupMemberJoin::dispatch($group , $user , [$auth])->onQueue('helloo_{group_member_update}');
             }
         }else if($type=='pull'){
             $userIds = (array)$request->input('user_id' , array());
@@ -333,7 +333,7 @@ class GroupMemberController extends BaseController
                     ));
                     throw new UpdateResourceFailedException('Group pull join failed!');
                 }
-                GroupMemberJoin::dispatch($group , $user , $userIds)->onQueue('helloo_{group_member_update}');
+//                GroupMemberJoin::dispatch($group , $user , $userIds)->onQueue('helloo_{group_member_update}');
             }
         }
         return $this->response->accepted();

@@ -121,7 +121,7 @@ class GroupController extends BaseController
             throw new StoreResourceFailedException('Group creation failed');
         }
         $group = Group::where('id' , $groupId)->where('is_deleted' , 0)->first();
-        GroupCreate::dispatch($group , $user , $memberIds)->onQueue('helloo_{group_operate}');
+//        GroupCreate::dispatch($group , $user , $memberIds)->onQueue('helloo_{group_operate}');
         return new AnonymousCollection($group);
     }
 
@@ -196,7 +196,7 @@ class GroupController extends BaseController
                 ));
                 throw new UpdateResourceFailedException('Group update failed');
             }
-            GroupUpdate::dispatch($group , $user)->onQueue('helloo_{group_operate}');
+//            GroupUpdate::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         }
         return $this->response->accepted();
     }
@@ -252,7 +252,7 @@ class GroupController extends BaseController
             ));
             throw new UpdateResourceFailedException('Group dismiss failed');
         }
-        GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
+//        GroupDestroy::dispatch($group , $user)->onQueue('helloo_{group_operate}');
         return $this->response->noContent();
     }
 }
