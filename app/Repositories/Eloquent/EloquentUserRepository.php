@@ -46,7 +46,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
         isset($data['user_birthday'])&&Redis::zadd($ageSortSetKey , age($data['user_birthday']) , $model->getKey());
         if(isset($data['user_avatar'])||isset($data['user_nick_name']))
         {
-            UserUpdate::dispatch($user)->onQueue('helloo_{user_update}');
+//            UserUpdate::dispatch($user)->onQueue('helloo_{user_update}');
         }
         $now = Carbon::now()->toDateTimeString();
         if(isset($data['user_sl'])||isset($data['user_school']))
