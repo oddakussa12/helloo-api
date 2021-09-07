@@ -556,7 +556,7 @@ trait BotOrder
             $discountedPrice = round($promoPrice+$deliveryCoast+$packagingCost , 2);
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
-            $data['discount_type'] = '';
+            $data['discount_type'] = 'special_price';
             $data['brokerage_percentage'] = $brokerage_percentage;
             $brokerage = round($brokerage_percentage/100*$price , 2);
             $data['brokerage'] = $brokerage;

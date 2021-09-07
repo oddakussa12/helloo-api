@@ -102,7 +102,7 @@ class Bitrix24Order implements ShouldQueue
                 return $de['goodsNumber']*$discountedPrice;
             });
             $discounted = '';
-            if($d['discount_type']=='discount')
+            if($d['discount_type']=='discount'||$d['discount_type']=='limit')
             {
                 $discounted = (string)$d['discount'] . "%";
             }elseif ($d['discount_type']=='reduction')
