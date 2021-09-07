@@ -220,7 +220,7 @@ class OrderController extends BaseController
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 
     /**
@@ -431,7 +431,7 @@ class OrderController extends BaseController
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 
     /**
@@ -610,7 +610,7 @@ class OrderController extends BaseController
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 
     /**
@@ -719,7 +719,7 @@ class OrderController extends BaseController
         $data['free_delivery'] = (bool)$data['free_delivery'];
         OrderSynchronization::dispatch($returnData , 'special')->onQueue('helloo_{order_synchronization}');
         OrderSms::dispatch(array($data) , 'batch')->onQueue('helloo_{delivery_order_sms}');
-        return new AnonymousCollection(collect($returnData));
+        return new OrderCollection(collect($returnData));
     }
 
     /**

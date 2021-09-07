@@ -8,11 +8,11 @@ use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Resources\UserCollection;
 use App\Models\Business\PromoCode;
+use App\Resources\OrderCollection;
 use App\Jobs\OrderSynchronization;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use App\Resources\AnonymousCollection;
 use App\Repositories\Contracts\UserRepository;
 
 trait BotOrder
@@ -187,7 +187,7 @@ trait BotOrder
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 
     /**
@@ -383,7 +383,7 @@ trait BotOrder
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 
     /**
@@ -562,6 +562,6 @@ trait BotOrder
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 }
