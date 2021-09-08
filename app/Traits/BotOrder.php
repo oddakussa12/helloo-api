@@ -8,11 +8,11 @@ use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Resources\UserCollection;
 use App\Models\Business\PromoCode;
+use App\Resources\OrderCollection;
 use App\Jobs\OrderSynchronization;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use App\Resources\AnonymousCollection;
 use App\Repositories\Contracts\UserRepository;
 
 trait BotOrder
@@ -91,7 +91,6 @@ trait BotOrder
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
         $defaultDeliveryCost = config('common.default_delivery_cost');
@@ -136,7 +135,6 @@ trait BotOrder
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -153,15 +151,11 @@ trait BotOrder
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -193,7 +187,7 @@ trait BotOrder
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 
     /**
@@ -293,7 +287,6 @@ trait BotOrder
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
         $defaultDeliveryCost = config('common.default_delivery_cost');
@@ -338,7 +331,6 @@ trait BotOrder
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -369,15 +361,11 @@ trait BotOrder
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
             $data['discount_type'] = $discount_type;
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -414,7 +402,7 @@ trait BotOrder
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 
     /**
@@ -493,7 +481,6 @@ trait BotOrder
         $shopGoods = $shopGoods->groupBy('user_id')->toArray();
         $orderData = array();
         $returnData = array();
-        $brokerage_percentage = 95;
         $now = date('Y-m-d H:i:s');
         $orderAddresses = array();
         $defaultDeliveryCost = config('common.default_delivery_cost');
@@ -541,7 +528,6 @@ trait BotOrder
                 'order_price'=>round($price , 2),
                 'promo_price'=>round($promoPrice , 2),
                 'packaging_cost'=>round($packagingCost , 2),
-                'first_order'=>0,
                 'currency'=>$currency,
                 'created_at'=>$now,
                 'updated_at'=>$now,
@@ -556,16 +542,12 @@ trait BotOrder
             $discountedPrice = round($promoPrice+$deliveryCoast+$packagingCost , 2);
             $data['discounted_price'] = $discountedPrice;
             $data['total_price'] = $totalPrice;
-            $data['discount_type'] = 'special_price';
-            $data['brokerage_percentage'] = $brokerage_percentage;
-            $brokerage = round($brokerage_percentage/100*$price , 2);
-            $data['brokerage'] = $brokerage;
-            $data['profit'] = round($data['discounted_price']-$brokerage , 2);
+            $data['discount_type'] = '';
             array_push($orderData , $data);
             $user = $users->where('user_id' , $u)->first()->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
             $data['shop'] = new UserCollection($user);
             $data['detail'] = $shopGs;
-            unset($data['discount_type'] , $data['brokerage_percentage'] , $data['brokerage'] , $data['profit']);
+            unset($data['discount_type']);
             $data['free_delivery'] = (bool)$data['free_delivery'];
             array_push($returnData , $data);
         }
@@ -599,6 +581,6 @@ trait BotOrder
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
-        return AnonymousCollection::collection(collect($returnData));
+        return OrderCollection::collection(collect($returnData));
     }
 }

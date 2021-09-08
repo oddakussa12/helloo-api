@@ -1202,9 +1202,9 @@ return [
                 "isMultiple"=> false,
                 "isDynamic"=> true,
                 "title"=> "UF_CRM_1629103354670",
-                "listLabel"=> "我们收到的钱",
-                "formLabel"=> "我们收到的钱",
-                "filterLabel"=> "我们收到的钱"
+                "listLabel"=> "Fees paid by users",
+                "formLabel"=> "Fees paid by users",
+                "filterLabel"=> "Fees paid by users"
             ],
             "is_receive_money"=> [
                 "value"=>'UF_CRM_1629103387129',
@@ -1215,9 +1215,9 @@ return [
                 "isMultiple"=> false,
                 "isDynamic"=> true,
                 "title"=> "UF_CRM_1629103387129",
-                "listLabel"=> "我们是否收到了钱",
-                "formLabel"=> "我们是否收到了钱",
-                "filterLabel"=> "我们是否收到了钱"
+                "listLabel"=> "Does the user pay?",
+                "formLabel"=> "Does the user pay?",
+                "filterLabel"=> "Does the user pay?"
             ],
             "order_id"=> [
                 "value"=>'UF_CRM_1629192007',
@@ -1335,6 +1335,71 @@ return [
                 "listLabel"=> "IS FIELD UPDATE",
                 "formLabel"=> "IS FIELD UPDATE",
                 "filterLabel"=> "IS FIELD UPDATE"
+            ],
+            "reason"=>[
+                "value"=>'UF_CRM_1630462597',
+                "type" => "string",
+                "isRequired" => false,
+                "isReadOnly" => false,
+                "isImmutable" => false,
+                "isMultiple" => false,
+                "isDynamic" => true,
+                "title" => "UF_CRM_1630462597",
+                "listLabel" => "Reason",
+                "formLabel" => "Reason",
+                "filterLabel" => "Reason"
+            ],
+            "gross_profit"=>[
+                "value"=>'UF_CRM_1630463379',
+                "type" => "money",
+                "isRequired" => false,
+                "isReadOnly" => false,
+                "isImmutable" => false,
+                "isMultiple" => false,
+                "isDynamic" => true,
+                "title" => "UF_CRM_1630463379",
+                "listLabel" => "Gross profit",
+                "formLabel" => "Gross profit",
+                "filterLabel" => "Gross profit"
+            ],
+            "income"=>[
+                "value"=>'UF_CRM_1630463416',
+                "type" => "money",
+                "isRequired" => false,
+                "isReadOnly" => false,
+                "isImmutable" => false,
+                "isMultiple" => false,
+                "isDynamic" => true,
+                "title" => "UF_CRM_1630463416",
+                "listLabel" => "Income",
+                "formLabel" => "Income",
+                "filterLabel" => "Income"
+            ],
+            "brokerage_percentage"=>[
+                "value"=>'UF_CRM_1630463561',
+                "type" => "double",
+                "isRequired" => false,
+                "isReadOnly" => false,
+                "isImmutable" => false,
+                "isMultiple" => false,
+                "isDynamic" => true,
+                "title" => "UF_CRM_1630463561",
+                "listLabel" => "Brokerage(%)",
+                "formLabel" => "Brokerage(%)",
+                "filterLabel" => "Brokerage(%)",
+            ],
+            "brokerage"=>[
+                "value"=>'UF_CRM_1630463595',
+                "type" => "money",
+                "isRequired" => false,
+                "isReadOnly" => false,
+                "isImmutable" => false,
+                "isMultiple" => false,
+                "isDynamic" => true,
+                "title" => "UF_CRM_1630463595",
+                "listLabel" => "Brokerage",
+                "formLabel" => "Brokerage",
+                "filterLabel" => "Brokerage"
             ]
         ],
         'product_section'=>[
@@ -2767,9 +2832,9 @@ return [
                 "isMultiple"=> false,
                 "isDynamic"=> true,
                 "title"=> "UF_CRM_1629103354670",
-                "listLabel"=> "我们收到的钱",
-                "formLabel"=> "我们收到的钱",
-                "filterLabel"=> "我们收到的钱"
+                "listLabel"=> "Fees paid by users",
+                "formLabel"=> "Fees paid by users",
+                "filterLabel"=> "Fees paid by users"
             ],
             "is_receive_money"=> [
                 "value"=>'UF_CRM_1629103387129',
@@ -2780,9 +2845,9 @@ return [
                 "isMultiple"=> false,
                 "isDynamic"=> true,
                 "title"=> "UF_CRM_1629103387129",
-                "listLabel"=> "我们是否收到了钱",
-                "formLabel"=> "我们是否收到了钱",
-                "filterLabel"=> "我们是否收到了钱"
+                "listLabel"=> "Does the user pay?",
+                "formLabel"=> "Does the user pay?",
+                "filterLabel"=> "Does the user pay?"
             ],
             "order_id"=> [
                 "value"=>'UF_CRM_1629192007',
