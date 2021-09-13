@@ -37,7 +37,7 @@ class Bitrix24Product implements ShouldQueue
     private function store($goods)
     {
         $section = DB::table('bitrix_shops')->where('user_id' , $goods['user_id'])->first();
-        if(!empty($section)||empty($section->section_id))
+        if(empty($section)||empty($section->section_id))
         {
             Log::info('bitrix_shop_empty' , array(
                 'goods'=>$goods
