@@ -31,29 +31,33 @@ class SpecialPriceCount implements ShouldQueue
         {
             $time = $order['created_at'];
             $date = date('Y-m-d' , strtotime($time));
-            foreach ($order['detail'] as $d)
+            $detail = \json_decode($order['detail'] , true);
+            if(is_array($detail))
             {
-                $goods = DB::table('special_counts')->where('goods_id' , $d['id'])->where('date' , $date)->first();
-                if(empty($goods))
+                foreach ($detail as $d)
                 {
-                    DB::table('special_counts')->insert(array(
-                        'goods_id'=>$d['id'],
-                        'goods_name'=>$d['name'],
-                        'shop_id'=>$order['shop_id'],
-                        'total_price'=>$d['price'],
-                        'total_purchase_price'=>$d['purchase_price'],
-                        'special_price'=>$d['specialPrice'],
-                        'num'=>1,
-                        'date'=>$date,
-                        'created_at'=>$time,
-                    ));
-                }else{
-                    DB::table('special_counts')->where('goods_id' , $d['id'])->where('date' , $date)->update(array(
-                        'total_price'=>DB::raw('total_price+'.$d['price']),
-                        'total_purchase_price'=>DB::raw('total_purchase_price+'.$d['purchase_price']),
-                        'special_price'=>DB::raw('special_price+'.$d['specialPrice']),
-                        'num'=>DB::raw('num+1'),
-                    ));
+                    $goods = DB::table('special_counts')->where('goods_id' , $d['id'])->where('date' , $date)->first();
+                    if(empty($goods))
+                    {
+                        DB::table('special_counts')->insert(array(
+                            'goods_id'=>$d['id'],
+                            'goods_name'=>$d['name'],
+                            'shop_id'=>$order['shop_id'],
+                            'total_price'=>$d['price'],
+                            'total_purchase_price'=>$d['purchase_price'],
+                            'special_price'=>$d['specialPrice'],
+                            'num'=>1,
+                            'date'=>$date,
+                            'created_at'=>$time,
+                        ));
+                    }else{
+                        DB::table('special_counts')->where('goods_id' , $d['id'])->where('date' , $date)->update(array(
+                            'total_price'=>DB::raw('total_price+'.$d['price']),
+                            'total_purchase_price'=>DB::raw('total_purchase_price+'.$d['purchase_price']),
+                            'special_price'=>DB::raw('special_price+'.$d['specialPrice']),
+                            'num'=>DB::raw('num+1'),
+                        ));
+                    }
                 }
             }
         }

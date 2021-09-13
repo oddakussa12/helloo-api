@@ -9,6 +9,7 @@ use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use App\Models\Business\Goods;
 use App\Models\Business\Order;
+use App\Jobs\SpecialPriceCount;
 use App\Resources\UserCollection;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\Business\PromoCode;
@@ -628,6 +629,7 @@ class OrderController extends BaseController
             OrderSynchronization::dispatch($returnData)->onQueue('helloo_{order_synchronization}');
             OrderSms::dispatch($orderData , 'batch')->onQueue('helloo_{delivery_order_sms}');
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
+            $this->dispatch((new SpecialPriceCount($orderData))->onQueue('helloo_{special_order_count}'));
         }
         return OrderCollection::collection(collect($returnData));
     }
