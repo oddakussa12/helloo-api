@@ -294,7 +294,7 @@ class BusinessController extends BaseController
             return array(
                 'shop_id'=>$v['shop_id'],
                 'start'=>$v['start'],
-                'end'=>empty($address)?array(0 , 0):array((float)$address->longitude, (float)$address->latitude),
+                'end'=>empty($address)?$v['start']:array((float)$address->longitude, (float)$address->latitude),
             );
         } , $location);
         $url = config('common.mapbox_endpoint');
@@ -341,13 +341,13 @@ class BusinessController extends BaseController
                     switch ($distance)
                     {
                         case $distance>6000&&$distance<=12000:
-                            $deliveryCost=55;
+                            $deliveryCost=18;
                             break;
                         case $distance>12000:
-                            $deliveryCost=130;
+                            $deliveryCost=25;
                             break;
                         default:
-                            $deliveryCost=35;
+                            $deliveryCost=15;
                             break;
                     }
                     $data = array(
