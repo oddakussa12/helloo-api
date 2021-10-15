@@ -133,6 +133,35 @@ class BusinessController extends BaseController
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address'])
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser){
+            Log::info('shop address' , $deliveryUser->user_address);
+            $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
+        });
+        return UserCollection::collection($deliveryUsers);
+    }
+
+
+    /**
+     * @note not tested
+     * @datetime 2021-10-14 22:16
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function discoveryByDistance(Request $request)
+    {
+        $long = 0;
+        $lat = 0;
+        $deliveryUsers = app(UserRepository::class)
+            ->allWithBuilder()->where('user_activation' , 1)
+            ->where('user_shop' , 1)
+            ->where('user_verified' , 1)
+            ->where('user_delivery' , 1)
+            ->orderByRaw('POW(user_address)')
+            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address']);
+        $sorted = $deliveryUsers->sort(function($deliveryUser) {
+                $dist = $deliveryUser->user_address;       
+        }
+        $deliveryUsersPages = $deliveryUsers ->paginate(10);
+        $deliveryUsers->each(function($deliveryUser){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
         });
         return UserCollection::collection($deliveryUsers);
