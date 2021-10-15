@@ -18,6 +18,11 @@ class OrderCollection extends Resource
         {
             $resource->put('free_delivery' , boolval($resource->get('free_delivery')));
         }
+        if($resource->has('detail'))
+        {
+            $detail = $resource->get('detail');
+            $resource->put('detail' , collect($detail)->except('purchase_price' , 'package_purchase_price' , 'extension_id' , 'charge')->toArray());
+        }
         return $resource->toArray();
     }
 }

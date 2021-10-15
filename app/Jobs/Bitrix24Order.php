@@ -102,7 +102,7 @@ class Bitrix24Order implements ShouldQueue
                 return $de['goodsNumber']*$discountedPrice;
             });
             $discounted = '';
-            if($d['discount_type']=='discount')
+            if($d['discount_type']=='discount'||$d['discount_type']=='limit')
             {
                 $discounted = (string)$d['discount'] . "%";
             }elseif ($d['discount_type']=='reduction')
@@ -125,14 +125,18 @@ class Bitrix24Order implements ShouldQueue
                 "COMPANY_ID"=> $company->extension_id ?? 0,
                 "CONTACT_ID"=>$contactId,
                 "BEGINDATE"=>$d['created_at'],
-                "COMMENTS"=>$d['currency'],
+                "COMMENTS"=>'', //Mark
 //                "ASSIGNED_BY_ID"=>'11',
                 "DATE_CREATE"=>$d['created_at'],
                 "DATE_MODIFY"=>$d['created_at'],
                 "SOURCE_ID"=>$this->resource ,
                 "SOURCE_DESCRIPTION"=>$this->resource ,
 
-
+                "UF_CRM_1629103387129"=>0, //Does the user pay?
+                "UF_CRM_1629103354670"=>'0', //Fees paid by users
+                "UF_CRM_1629098340599"=>'0', //Shop Order Price (package fee) as (Packing fee purchase price)
+                "UF_CRM_1630462597"=>'', //Reason
+                "UF_CRM_1628734746554"=>'0', //Order Price (dish) as (Purchase price)
                 "UF_CRM_1628733276016"=>$d['order_price'],
                 "UF_CRM_1628733612424"=>$specialPrice, //Special price
                 "UF_CRM_1628733649125"=>$discountedPrice, //Shop discount price

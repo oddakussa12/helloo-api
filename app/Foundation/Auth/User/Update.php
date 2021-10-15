@@ -331,7 +331,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new UpdatePhoneMessage($code);
-        EasySms::dispatch($phone , $message)->onConnection('redis')->onQueue('helloo_{update_phone_sms}');
+//        EasySms::dispatch($phone , $message)->onConnection('redis')->onQueue('helloo_{update_phone_sms}');
         return $code;
     }
 
@@ -359,7 +359,7 @@ trait Update
         $code = $this->getCode();
         $phone = new PhoneNumber($user_phone , $user_phone_country);
         $message = new SignInMessage($code);
-        EasySms::dispatch($phone , $message)->onConnection('redis')->onQueue('helloo_{sign_in_sms}');
+//        EasySms::dispatch($phone , $message)->onConnection('redis')->onQueue('helloo_{sign_in_sms}');
         return $code;
     }
 

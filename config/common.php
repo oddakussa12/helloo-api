@@ -73,5 +73,5 @@ return [
     'mapbox_access_token' =>env('MAPBOX_ACCESS_TOKEN' , ''),
     'bitrix24_endpoint' =>env('BITRIX24_ENDPOINT' , ''),
     'ship_day_token' =>env('SHIP_DAY_TOKEN' , ''),
-    'default_delivery_cost' =>env('DEFAULT_DELIVERY_COST' , 35),
+    'default_delivery_cost' =>env('DEFAULT_DELIVERY_COST' , 15),
 ];
