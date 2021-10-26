@@ -122,7 +122,37 @@ class BusinessController extends BaseController
      * @datetime 2021-08-19 15:23
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function discoveryIndex()
+    public function discoveryIndex(Request $request)
+    {
+        $longtitude = $request->input('longtitude', 0);
+        $latitude = $request->input('latitude', 0);
+        $location = array($longtitude, $latitude);
+        
+        if($longtitude == 0 || $latitude == 0) {
+            return discoveryIndexOld($request);
+        }
+
+        $deliveryUsers = app(UserRepository::class)
+            ->allWithBuilder()
+            ->join('shops_addresses', 'users.user_id', '=', 'shops_addresses.shop_id')
+            ->where('user_activation' , 1)
+            ->where('user_shop' , 1)
+            ->where('user_verified' , 1)
+            ->where('user_delivery' , 1)
+            ->orderByRaw("(sqrt(power(`t_shops_addresses`.`longitude`-$location[0], 2) + power(`t_shops_addresses`.`latitude`-$location[1], 2)))")
+            // ->orderByDesc('user_created_at')
+            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address'])
+            ->paginate(10);
+        $deliveryUsers->each(function($deliveryUser) use ($location){
+            $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
+        });
+        
+        $result = UserCollection::collection($deliveryUsers);
+        // Log::info('discoveryIndex', array('result' => $result));
+        return $result; 
+    }
+
+    public function discoveryIndexOld(Request $request)
     {
         $deliveryUsers = app(UserRepository::class)
             ->allWithBuilder()->where('user_activation' , 1)
@@ -135,8 +165,11 @@ class BusinessController extends BaseController
         $deliveryUsers->each(function($deliveryUser){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
         });
+        $result = UserCollection::collection($deliveryUsers);
+        // Log::info('discoveryIndex', array('result' => $result));
         return UserCollection::collection($deliveryUsers);
     }
+
 
     /**
      * @version 2.0
