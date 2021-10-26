@@ -820,31 +820,19 @@ DOC;
             1803624417,
             2100650464
         );
-//        $key = 'helloo:discovery:popular:products';
-
         foreach ($users as $user)
         {
-//            $u = User::where('user_id' , $user)->firstOrFail();
-//            app(UserRepository::class)->update($u , array(
-//                'user_verified'=>0
-//            ));
-//            DB::table('categories_goods')->where('user_id' , $user)->update(
-//                array('status'=>0)
-//            );
-//            DB::table('goods')->where('user_id' , $user)->update(
-//                array('status'=>0)
-//            );
-//            Redis::del("helloo:business:goods:category:service:account:".$user);
-            Redis::zrem('helloo:discovery:popular:shops' , $user);
-            Redis::zrem('helloo:discovery:rated:shops' , $user);
-
-            $gs = DB::table('goods')->where('user_id' , $user)->get();
-            foreach ($gs as $g)
-            {
-                Redis::zrem('helloo:discovery:popular:products' , $g->id);
-                Redis::zrem('helloo:discovery:price:products' , $g->id);
-                Redis::zrem('helloo:discovery:rated:products' , $g->id);
-            }
+            $u = User::where('user_id' , $user)->firstOrFail();
+            app(UserRepository::class)->update($u , array(
+                'user_verified'=>0
+            ));
+            DB::table('categories_goods')->where('user_id' , $user)->update(
+                array('status'=>0)
+            );
+            DB::table('goods')->where('user_id' , $user)->update(
+                array('status'=>0)
+            );
+            Redis::del("helloo:business:goods:category:service:account:".$user);
         }
     }
 
