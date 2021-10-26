@@ -129,7 +129,7 @@ class BusinessController extends BaseController
         $location = array($longtitude, $latitude);
         
         if($longtitude == 0 || $latitude == 0) {
-            return discoveryIndexOld($request);
+            return $this->discoveryIndexOld($request);
         }
 
         $deliveryUsers = app(UserRepository::class)
