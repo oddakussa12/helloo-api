@@ -92,13 +92,31 @@ class BusinessController extends BaseController
         return UserCollection::collection($users);
     }
 
+    function computeDistance($lat1, $lng1, $lat2, $lng2, $radius = 6378137)
+    {
+        static $x = M_PI / 180;
+        $lat1 *= $x; $lng1 *= $x;
+        $lat2 *= $x; $lng2 *= $x;
+        $distance = 2 * asin(sqrt(pow(sin(($lat1 - $lat2) / 2), 2) + cos($lat1) * cos($lat2) * pow(sin(($lng1 - $lng2) / 2), 2)));
+
+        return $distance * $radius;
+    }
+
     public function deliveryTime(Array $locationUser, Array $locationShop) //todo: transfer to proper class
     {
-        $distance = sqrt(pow($locationUser[0]-$locationShop[0], 2) - pow($locationUser[1]-$locationShop[1], 2));
+        $distance = $this->computeDistance($locationUser[0], $locationUser[1], $locationShop[0], $locationShop[1]);
+        
         $speed = 3.33;
         if($distance < 10 * 1000) $speed = 3;
         if($distance < 5 * 1000) $speed = 2.6; //todo: use mapbox as in deliveryCost() for more predictable distance
-        return $speed * $distance;
+        $t1 = (($distance / 1000) / $speed) * 60 * 60;
+        if(is_nan($t1) || is_infinite($t1)) $t1 = 0;
+    
+        $t2 = 17 * 60 * 60; //17 mins for peackup
+        $t3 = 3 * 60 * 60; //3 mins for call center work
+
+        return $t1 + $t2 + $t3;
+
     }
 
     /**
@@ -155,7 +173,19 @@ class BusinessController extends BaseController
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
-            $deliveryUser->deliveryTime = $this->deliveryTime($location, aray($deliveryUser->longitude, $deliveryUser->latitude));
+            //echo($deliveryUser->longitude);
+            //echo(' ');
+            $deliveryTime = 0.0;
+            if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
+            {
+                $dt = $this->deliveryTime($location, 
+                    array(number_format($deliveryUser->longitude), number_format($deliveryUser->latitude)));
+                if(!is_nan($dt) && !is_infinite($dt)) {
+                    $deliveryTime = $dt;
+                }
+            }
+
+            $deliveryUser->deliveryTime = $deliveryTime;
         });
         
         $result = UserCollection::collection($deliveryUsers);
