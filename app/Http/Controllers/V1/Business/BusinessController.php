@@ -151,7 +151,7 @@ class BusinessController extends BaseController
             ->orderByRaw("(sqrt(power(`t_shops_addresses`.`longitude`-$location[0], 2) + power(`t_shops_addresses`.`latitude`-$location[1], 2)))")
             // ->orderByDesc('user_created_at')
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                '`t_shops_addresses`.`longitude`', '`t_shops_addresses`.`latitude`'])
+                'shops_addresses.longitude', 'shops_addresses.latitude'])
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
