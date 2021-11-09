@@ -155,7 +155,7 @@ class BusinessController extends BaseController
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
-            $deliveryUser->deliveryTime = deliveryTime($location, aray($deliveryUser->longitude, $deliveryUser->latitude));
+            $deliveryUser->deliveryTime = $this->deliveryTime($location, aray($deliveryUser->longitude, $deliveryUser->latitude));
         });
         
         $result = UserCollection::collection($deliveryUsers);
