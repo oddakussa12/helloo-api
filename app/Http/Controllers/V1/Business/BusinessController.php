@@ -92,6 +92,15 @@ class BusinessController extends BaseController
         return UserCollection::collection($users);
     }
 
+    public function deliveryTime(Array $locationUser, Array $locationShop) //todo: transfer to proper class
+    {
+        $distance = sqrt(pow($locationUser[0]-$locationShop[0], 2) - pow($locationUser[1]-$locationShop[1], 2));
+        $speed = 3.33;
+        if($distance < 10 * 1000) $speed = 3;
+        if($distance < 5 * 1000) $speed = 2.6; //todo: use mapbox as in deliveryCost() for more predictable distance
+        return $speed * $distance;
+    }
+
     /**
      * @version 1.0
      * @note 店铺发现
@@ -141,10 +150,12 @@ class BusinessController extends BaseController
             ->where('user_delivery' , 1)
             ->orderByRaw("(sqrt(power(`t_shops_addresses`.`longitude`-$location[0], 2) + power(`t_shops_addresses`.`latitude`-$location[1], 2)))")
             // ->orderByDesc('user_created_at')
-            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address'])
+            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
+                `t_shops_addresses`.`longitude`, `t_shops_addresses`.`latitude`])
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
+            $deliveryUser->deliveryTime = deliveryTime($location, aray($deliveryUser->longitude, $deliveryUser->latitude));
         });
         
         $result = UserCollection::collection($deliveryUsers);
