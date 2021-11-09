@@ -115,7 +115,7 @@ class BusinessController extends BaseController
         $t2 = 17 * 60 * 60; //17 mins for peackup
         $t3 = 3 * 60 * 60; //3 mins for call center work
 
-        return $t1 + $t2 + $t3;
+        return $t1;// + $t2 + $t3;
 
     }
 
@@ -173,13 +173,12 @@ class BusinessController extends BaseController
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
-            //echo($deliveryUser->longitude);
-            //echo(' ');
+        
             $deliveryTime = 0.0;
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
                 $dt = $this->deliveryTime($location, 
-                    array(number_format($deliveryUser->longitude), number_format($deliveryUser->latitude)));
+                    array(number_format($deliveryUser->longitude, 10), number_format($deliveryUser->latitude, 10)));
                 if(!is_nan($dt) && !is_infinite($dt)) {
                     $deliveryTime = $dt;
                 }
