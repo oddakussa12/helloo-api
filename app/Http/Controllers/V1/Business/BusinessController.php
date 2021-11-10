@@ -92,6 +92,33 @@ class BusinessController extends BaseController
         return UserCollection::collection($users);
     }
 
+    function computeDistance($lat1, $lng1, $lat2, $lng2, $radius = 6378137)
+    {
+        static $x = M_PI / 180;
+        $lat1 *= $x; $lng1 *= $x;
+        $lat2 *= $x; $lng2 *= $x;
+        $distance = 2 * asin(sqrt(pow(sin(($lat1 - $lat2) / 2), 2) + cos($lat1) * cos($lat2) * pow(sin(($lng1 - $lng2) / 2), 2)));
+
+        return $distance * $radius;
+    }
+
+    public function deliveryTime(Array $locationUser, Array $locationShop) //todo: transfer to proper class
+    {
+        $distance = $this->computeDistance($locationUser[0], $locationUser[1], $locationShop[0], $locationShop[1]);
+        
+        $speed = 3.33;
+        if($distance < 10 * 1000) $speed = 3;
+        if($distance < 5 * 1000) $speed = 2.6; //todo: use mapbox as in deliveryCost() for more predictable distance
+        $t1 = (($distance / 1000) / $speed) * 60 * 60;
+        if(is_nan($t1) || is_infinite($t1)) $t1 = 0;
+    
+        $t2 = 17 * 60 * 60; //17 mins for peackup
+        $t3 = 3 * 60 * 60; //3 mins for call center work
+
+        return $t1;// + $t2 + $t3;
+
+    }
+
     /**
      * @version 1.0
      * @note 店铺发现
@@ -141,10 +168,23 @@ class BusinessController extends BaseController
             ->where('user_delivery' , 1)
             ->orderByRaw("(sqrt(power(`t_shops_addresses`.`longitude`-$location[0], 2) + power(`t_shops_addresses`.`latitude`-$location[1], 2)))")
             // ->orderByDesc('user_created_at')
-            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address'])
+            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
+                'shops_addresses.longitude', 'shops_addresses.latitude'])
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
+        
+            $deliveryTime = 0.0;
+            if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
+            {
+                $dt = $this->deliveryTime($location, 
+                    array(number_format($deliveryUser->longitude, 10), number_format($deliveryUser->latitude, 10)));
+                if(!is_nan($dt) && !is_infinite($dt)) {
+                    $deliveryTime = $dt;
+                }
+            }
+
+            $deliveryUser->deliveryTime = $deliveryTime;
         });
         
         $result = UserCollection::collection($deliveryUsers);
