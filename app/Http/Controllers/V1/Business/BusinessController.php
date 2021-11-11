@@ -166,7 +166,12 @@ class BusinessController extends BaseController
             ->where('user_shop' , 1)
             ->where('user_verified' , 1)
             ->where('user_delivery' , 1)
-            ->orderByRaw("(sqrt(power(`t_shops_addresses`.`longitude`-$location[0], 2) + power(`t_shops_addresses`.`latitude`-$location[1], 2)))")
+            ->orderByRaw("(6371 * acos(cos(radians($latitude)))" 
+                            ." * cos(radians(`t_shops_addresses`.`latitude`))"
+                            ." * cos(radians(`t_shops_addresses`.`longitude`) - radians($longtitude))"
+                            ." + sin(radians($latitude))"
+                            ." * sin(radians(`t_shops_addresses`.`latitude`)))") 
+            // ->orderByRaw("(sqrt(power(`t_shops_addresses`.`longitude`-$location[0], 2) + power(`t_shops_addresses`.`latitude`-$location[1], 2)))")
             // ->orderByDesc('user_created_at')
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
                 'shops_addresses.longitude', 'shops_addresses.latitude'])
