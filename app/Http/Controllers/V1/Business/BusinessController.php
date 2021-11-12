@@ -115,7 +115,7 @@ class BusinessController extends BaseController
         $t2 = 17 * 60 * 60; //17 mins for peackup
         $t3 = 3 * 60 * 60; //3 mins for call center work
 
-        return $t1;// + $t2 + $t3;
+        return array('distance' => $distance, 'delivery_time' => $t1);// + $t2 + $t3;
 
     }
 
@@ -180,21 +180,45 @@ class BusinessController extends BaseController
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
         
             $deliveryTime = 0.0;
+            $distance = 0.0;
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
                 $dt = $this->deliveryTime($location, 
                     array(number_format($deliveryUser->longitude, 10), number_format($deliveryUser->latitude, 10)));
-                if(!is_nan($dt) && !is_infinite($dt)) {
-                    $deliveryTime = $dt;
+                if(!is_nan($dt['distance']) && !is_infinite($dt['delivery_time'])) {
+                    $distance = $dt['distance'];
+                    $deliveryTime = $dt['delivery_time'];
                 }
             }
 
             $deliveryUser->deliveryTime = $deliveryTime;
+            $deliveryUser->distance = $distance;
+
         });
         
         $result = UserCollection::collection($deliveryUsers);
         // Log::info('discoveryIndex', array('result' => $result));
         return $result; 
+    }
+
+    public function fixShopsLatitudes() {
+        $addresses = DB::table('shops_addresses')->get();
+
+        // DB::connection()->enableQueryLog();
+        $addresses->each(function($addr) {
+            $lat = $addr->latitude;
+            if(str_ends_with($lat, ',')) {
+                echo("update latitude=$lat for id=$addr->shop_id; ");
+                DB::table('shops_addresses')
+                    -> where('shop_id', $addr->shop_id)
+                    -> update(['latitude' => substr($lat, 0, -1)]);
+                    // -> update(['latitude' => $lat.',']);
+            }
+        });
+        // $queries = DB::getQueryLog();
+        // echo(" Log: ");
+        // var_dump($queries);
+        // DB::connection()->disableQueryLog();
     }
 
     public function discoveryIndexOld(Request $request)
@@ -211,10 +235,8 @@ class BusinessController extends BaseController
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
         });
         $result = UserCollection::collection($deliveryUsers);
-        // Log::info('discoveryIndex', array('result' => $result));
         return UserCollection::collection($deliveryUsers);
     }
-
 
     /**
      * @version 2.0

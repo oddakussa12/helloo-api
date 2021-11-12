@@ -277,6 +277,9 @@ $api->group($V1Params , function ($api){
 
         $api->post('business/ship_day_callback' , 'BusinessController@shipDayCallback')->name('business.shipDayCallback.post');
 
+        // tmp
+        $api->get('business/discovery/fixlat' , 'BusinessController@fixShopsLatitudes')->name('business.discovery.fixlat');
+
     });
 
 
