@@ -112,10 +112,10 @@ class BusinessController extends BaseController
         $t1 = (($distance / 1000) / $speed) * 60 * 60;
         if(is_nan($t1) || is_infinite($t1)) $t1 = 0;
     
-        $t2 = 17 * 60 * 60; //17 mins for peackup
-        $t3 = 3 * 60 * 60; //3 mins for call center work
+        $t2 = 17 * 60; //17 mins for peackup
+        $t3 = 3 * 60; //3 mins for call center work
 
-        return array('distance' => $distance, 'delivery_time' => $t1);// + $t2 + $t3;
+        return array('distance' => $distance, 'delivery_time' => $t1 + $t2 + $t3);
 
     }
 
@@ -165,14 +165,12 @@ class BusinessController extends BaseController
             ->where('user_activation' , 1)
             ->where('user_shop' , 1)
             ->where('user_verified' , 1)
-            ->where('user_delivery' , 1)
-            ->orderByRaw("(6371 * acos(cos(radians($latitude)))" 
-                            ." * cos(radians(`t_shops_addresses`.`latitude`))"
-                            ." * cos(radians(`t_shops_addresses`.`longitude`) - radians($longtitude))"
-                            ." + sin(radians($latitude))"
-                            ." * sin(radians(`t_shops_addresses`.`latitude`)))") 
-            // ->orderByRaw("(sqrt(power(`t_shops_addresses`.`longitude`-$location[0], 2) + power(`t_shops_addresses`.`latitude`-$location[1], 2)))")
-            // ->orderByDesc('user_created_at')
+            ->where('user_delivery' , 1) 
+            // 2 * asin(sqrt(pow(sin(($lat1 - $lat2) / 2), 2) + cos($lat1) * cos($lat2) * pow(sin(($lng1 - $lng2) / 2), 2)))
+            ->orderByRaw("(2 * asin(sqrt(power(sin((radians($latitude) - radians(`t_shops_addresses`.`latitude`)) / 2), 2)"
+                            ." + cos(radians($longtitude)) * cos(radians(`t_shops_addresses`.`latitude`))"
+                            ." * power(sin((radians($longtitude) - radians(`t_shops_addresses`.`longitude`))/ 2), 2))))" 
+                        ) 
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
                 'shops_addresses.longitude', 'shops_addresses.latitude'])
             ->paginate(10);
