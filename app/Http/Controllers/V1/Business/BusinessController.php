@@ -109,7 +109,7 @@ class BusinessController extends BaseController
         $speed = 3.33; // minutes per km
         if($distance < 10 * 1000) $speed = 3;
         if($distance < 5 * 1000) $speed = 2.6; //todo: use mapbox as in deliveryCost() for more predictable distance
-        $t1 = (($distance / 1000) / ($speed / 60)) * 60 * 60;
+        $t1 = (($distance / 1000) / (60 / $speed)) * 60 * 60;
         if(is_nan($t1) || is_infinite($t1)) $t1 = 0;
     
         $t2 = 17 * 60; //17 mins for peackup
