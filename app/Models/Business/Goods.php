@@ -54,5 +54,9 @@ class Goods extends Model
     {
         return sprintf("%1\$.2f", $this->packaging_cost).' '. $this->currency;
     }
+    // good/meal belongs to a given User/shop/Resturant
+    public function user(){
+        return $this->belongsTo('App\Models\User','user_id','id');
+    }
 
 }
