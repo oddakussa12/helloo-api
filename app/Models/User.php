@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Support\Facades\DB;
 use App\Foundation\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -161,6 +162,15 @@ class User extends Authenticatable implements JWTSubject
     public function SignupInfo()
     {
         return $this->hasOne(SignupInfo::class , 'user_id' , 'user_id');
+    }
+    // shop/resturant i.e user has many orders
+    public function orders(){
+        return $this->hasMany('App\Models\Business\Order','user_id','user_id');
+    }
+
+    // Shop/resturnat has many goods
+    public function goods(){
+        return $this->hasMany('App\Models\Business\Goods','user_id','user_id')->select('*', DB::raw('AVG(price) AS avg_price'));
     }
 
 }
