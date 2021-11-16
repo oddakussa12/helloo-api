@@ -29,6 +29,18 @@ class BusinessController extends BaseController
 {
     use BuildsQueries;
 
+    public function settings(Request $request) {
+        return $this->response->array(array(
+            'data'=>array(
+                'unpopular_restaurant'=>10,
+                'popular_restaurant'=>1000000,
+                'very_popular_restaurant'=>1000000,
+                'super_popular_restaurant'=>1000000,
+                'black_house_restaurant'=>1000000
+            )
+        ));
+    }
+
     public function search(Request $request)
     {
         $userId = (int)auth()->id();
