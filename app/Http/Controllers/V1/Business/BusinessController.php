@@ -159,7 +159,7 @@ class BusinessController extends BaseController
             return $this->discoveryIndexOld($request);
         }
 
-        // $shop = User::where('user_id',1)->withCount('orders')->with('goods')->get();
+        // $shop = User::where('user_id',1)->withCount('orders')->with('avg_check')->get();
         // return $shop;
 
         $deliveryUsers = app(UserRepository::class)
@@ -175,7 +175,7 @@ class BusinessController extends BaseController
                             ." * power(sin((radians($longtitude) - radians(`t_shops_addresses`.`longitude`))/ 2), 2))))" 
                         ) 
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude'])->withCount('orders')->with('goods')
+                'shops_addresses.longitude', 'shops_addresses.latitude'])->withCount('orders')->with('avg_check')
             ->paginate(10);
 
             // return $deliveryUsers;
