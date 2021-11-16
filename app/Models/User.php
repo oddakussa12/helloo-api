@@ -165,12 +165,12 @@ class User extends Authenticatable implements JWTSubject
     }
     // shop/resturant i.e user has many orders
     public function orders(){
-        return $this->hasMany('App\Models\Business\Order','user_id','user_id');
+        return $this->hasMany('App\Models\Business\Order','shop_id','user_id');
     }
 
     // Shop/resturnat has many goods
-    public function goods(){
-        return $this->hasMany('App\Models\Business\Goods','user_id','user_id')->select('*', DB::raw('AVG(price) AS avg_price'));
+    public function avg_check(){
+        return $this->hasMany('App\Models\Business\Order','shop_id','user_id')->select('*', DB::raw('AVG(order_price) AS avg_check'));
     }
 
 }
