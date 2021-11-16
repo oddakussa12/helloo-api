@@ -159,9 +159,6 @@ class BusinessController extends BaseController
             return $this->discoveryIndexOld($request);
         }
 
-        // $shop = User::where('user_id',1)->withCount('orders')->with('avg_check')->get();
-        // return $shop;
-
         $deliveryUsers = app(UserRepository::class)
             ->allWithBuilder()
             ->join('shops_addresses', 'users.user_id', '=', 'shops_addresses.shop_id')
@@ -182,7 +179,7 @@ class BusinessController extends BaseController
 
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
-        
+
             $deliveryTime = 0.0;
             $distance = 0.0;
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
@@ -197,7 +194,7 @@ class BusinessController extends BaseController
 
             $deliveryUser->deliveryTime = $deliveryTime;
             $deliveryUser->distance = $distance;
-
+            
         });
         
         $result = UserCollection::collection($deliveryUsers);

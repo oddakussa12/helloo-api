@@ -165,7 +165,8 @@ class User extends Authenticatable implements JWTSubject
     }
     // shop/resturant i.e user has many orders
     public function orders(){
-        return $this->hasMany('App\Models\Business\Order','shop_id','user_id');
+        return $this->hasMany('App\Models\Business\Order','shop_id','user_id')
+        ->where('created_at', '>', now()->subDays(30)->endOfDay());
     }
 
     // Shop/resturnat has many goods
