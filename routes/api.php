@@ -257,6 +257,8 @@ $api->group($V1Params , function ($api){
 
         $api->get('business/discovery/index' , 'BusinessController@discoveryIndex')->name('business.discovery.index');
 
+        $api->get('business/settings/view' , 'BusinessController@settings')->name('business.settings');
+
         $api->get('business/discovery' , 'BusinessController@discovery')->name('business.discovery');
 
         $api->get('goods/comment' , 'GoodsCommentsController@index')->name('goods.comment.index');
