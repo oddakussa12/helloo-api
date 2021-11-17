@@ -29,9 +29,10 @@ class BusinessController extends BaseController
 {
     use BuildsQueries;
 
+    // todo: review
     public function settings(Request $request) {
         return $this->response->array(array(
-                'unpopular_restaurant'=>10,
+                'unpopular_restaurant'=>0,
                 'popular_restaurant'=>1000000,
                 'very_popular_restaurant'=>1000000,
                 'super_popular_restaurant'=>1000000,
