@@ -209,7 +209,8 @@ class BusinessController extends BaseController
         
         $result = UserCollection::collection($deliveryUsers);
         // Log::info('discoveryIndex', array('result' => $result));
-        return $result; 
+        return $result;
+        // return $result->sortBy('distance'); 
     }
 
     public function fixShopsLatitudes() {
