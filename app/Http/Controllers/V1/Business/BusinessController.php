@@ -169,7 +169,8 @@ class BusinessController extends BaseController
         if($longtitude == 0 || $latitude == 0) {
             return $this->discoveryIndexOld($request);
         }
-
+        
+        static $x = M_PI / 180;
         $deliveryUsers = app(UserRepository::class)
             ->allWithBuilder()
             ->join('shops_addresses', 'users.user_id', '=', 'shops_addresses.shop_id')
@@ -177,11 +178,14 @@ class BusinessController extends BaseController
             ->where('user_shop' , 1)
             ->where('user_verified' , 1)
             ->where('user_delivery' , 1) 
-            // 2 * asin(sqrt(pow(sin(($lat1 - $lat2) / 2), 2) + cos($lat1) * cos($lat2) * pow(sin(($lng1 - $lng2) / 2), 2)))
-            ->orderByRaw("(2 * asin(sqrt(power(sin((radians($latitude) - radians(`t_shops_addresses`.`latitude`)) / 2), 2)"
-                            ." + cos(radians($longtitude)) * cos(radians(`t_shops_addresses`.`latitude`))"
-                            ." * power(sin((radians($longtitude) - radians(`t_shops_addresses`.`longitude`))/ 2), 2))))" 
-                        ) 
+            ->orderByRaw("round( 
+                (6373000 * acos(least(1.0,  
+                  cos( radians($latitude) ) 
+                  * cos( radians(`t_shops_addresses`.`latitude`) ) 
+                  * cos( radians(`t_shops_addresses`.`longitude`) - radians($longtitude) ) 
+                  + sin( radians($latitude) ) 
+                  * sin( radians(`t_shops_addresses`.`latitude`) 
+                )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
                 'shops_addresses.longitude', 'shops_addresses.latitude'])->withCount('orders')->with('avg_check')
             ->paginate(10);
