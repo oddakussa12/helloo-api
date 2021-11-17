@@ -171,7 +171,9 @@ class User extends Authenticatable implements JWTSubject
 
     // Shop/resturnat has many goods
     public function avg_check(){
-        return $this->hasMany('App\Models\Business\Order','shop_id','user_id')->select('*', DB::raw('AVG(order_price) AS avg_check'));
+        return $this->hasMany('App\Models\Business\Order','shop_id','user_id')
+        ->where('order_price', '!=', 0.00)
+        ->select('*', DB::raw('AVG(order_price) AS avg_check'));
     }
 
 }
