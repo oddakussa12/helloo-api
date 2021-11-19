@@ -188,7 +188,7 @@ class BusinessController extends BaseController
                 )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
                 'shops_addresses.longitude', 'shops_addresses.latitude', 'food_preparation_time'])
-                ->withCount('orders')->with('avg_check')
+                ->with('avg_check')->withCount('orders')
             ->paginate(10);
 
         $deliveryUsers->each(function($deliveryUser) use ($location){
@@ -196,7 +196,7 @@ class BusinessController extends BaseController
 
             $deliveryTime = 0.0;
             $distance = 0.0;
-            // $avg = $deliveryUser->average_price->avg('order_price');
+            // $avg = $deliveryUser->avg_check;
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
                 $dt = $this->deliveryTime($location, 
@@ -206,7 +206,7 @@ class BusinessController extends BaseController
                     $deliveryTime = $dt['delivery_time'];
                 }
             }
-            // $deliveryUser->avg = $avg;
+            // $deliveryUser->avg = $avg->avg('order_price');
             $fptInMin = $deliveryUser->food_preparation_time;
             $fptInSec = $fptInMin*60;
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;

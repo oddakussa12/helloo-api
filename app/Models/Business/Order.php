@@ -63,4 +63,8 @@ class Order extends Model
         return sprintf("%1\$.2f", $this->packaging_cost).' '. $this->currency;
     }
 
+    public function user(){
+        return $this->belongsTo('App\Models\Business\User','shop_id','user_id');
+    }
+
 }
