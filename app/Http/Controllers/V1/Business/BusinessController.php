@@ -211,7 +211,6 @@ class BusinessController extends BaseController
             // $deliveryUser->avg = $avg;
             $fptInMin = $deliveryUser->food_preparation_time;
             $fptInSec = $fptInMin*60;
-            echo("deliveryTime: $deliveryTime + $fptInSec");
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
             // $deliveryUser->deliveryTime = $deliveryTime;
