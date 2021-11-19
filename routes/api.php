@@ -256,9 +256,9 @@ $api->group($V1Params , function ($api){
         $api->get('business/discovery/home' , 'BusinessController@home')->name('business.discovery.home');
 
         $api->get('business/discovery/index' , 'BusinessController@discoveryIndex')->name('business.discovery.index');
-        // $api->get('business/discovery/listResturant' , 'BusinessController@listResturants')->name('business.discovery.listResturant');
-        $api->get('business/discovery/avg' , 'BusinessController@calculateAvgPrice')->name('business.discovery.avg');
         
+        $api->get('business/discovery/index_untested' , 'BusinessController@discoveryIndexUntested')->name('business.discovery.indexUntested');
+
         $api->get('business/settings/view' , 'BusinessController@settings')->name('business.settings');
 
         $api->get('business/discovery' , 'BusinessController@discovery')->name('business.discovery');

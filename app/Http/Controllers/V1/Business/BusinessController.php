@@ -29,53 +29,15 @@ class BusinessController extends BaseController
 {
     use BuildsQueries;
 
+    // todo: review
     public function settings(Request $request) {
         return $this->response->array(array(
-                'unpopular_restaurant'=>10,
+                'unpopular_restaurant'=>0,
                 'popular_restaurant'=>1000000,
                 'very_popular_restaurant'=>1000000,
                 'super_popular_restaurant'=>1000000,
                 'black_house_restaurant'=>1000000        
         ));
-    }
-    // below function is used to insert resturants food preparation time in minutes
-    public function listResturants(){
-        $resturants = User::where('user_activation' , 1)
-        ->where('user_shop' , 1)
-        ->where('user_verified' , 1)
-        ->where('user_delivery' , 1)
-        ->select(['user_id','user_name','food_preparation_time'])->get();
-        return $resturants;
-        // return $resturants->count();
-        $fpts = collect([15,14,10,17,15,20,17,17,22,22,
-                         12,15,17,31,17,10,17,17,19,15,
-                         15,26,19,15,18,19,45,16,15,17,
-                         21,34,15,33,25,18,34,14,13,19,
-                         12,17,17,15,31,15,36,15,18,18,
-                         10,20,15,15,21,17,15,15,15,22,
-                         17,17,17,24,17,15,26,26,26,26,
-                         15,10,15,24,24,15,16,13,13,15,
-                         15,15,15,29,17,10,23,23,23,21,
-                         15,15,17,15,15,16,16,30,15,15,
-                         15,15,13,17,11,15,15,17,15,15,
-                         13,17,26,22
-                        ]);
-        $count = 0;
-        foreach($resturants as $resturant){
-            $resturant->food_preparation_time = $fpts[$count];
-            $resturant->save();
-            $count++;
-        }
-        return "Success";
-    }
-    public function calculateAvgPrice(){
-        $resturants = User::where('user_activation' , 1)
-        ->where('user_shop' , 1)
-        ->where('user_verified' , 1)
-        ->where('user_delivery' , 1)
-        ->select(['user_id','user_name','food_preparation_time'])
-        ->with('avg_check')->withCount('orders')->get();
-        return $resturants;
     }
 
     public function search(Request $request)
@@ -161,10 +123,10 @@ class BusinessController extends BaseController
         $t1 = $distance / ((60 / $speed) * 1000 / 3600);
         if(is_nan($t1) || is_infinite($t1)) $t1 = 0;
     
-        $t2 = 17 * 60; //17 mins for peackup
+        // $t2 = 17 * 60; //17 mins for peackup
         $t3 = 3 * 60; //3 mins for call center work
 
-        return array('distance' => $distance, 'delivery_time' => $t1 + $t2 + $t3);
+        return array('distance' => $distance, 'delivery_time' => $t1 /*+ $t2*/ + $t3);
 
     }
 
@@ -207,7 +169,8 @@ class BusinessController extends BaseController
         if($longtitude == 0 || $latitude == 0) {
             return $this->discoveryIndexOld($request);
         }
-       
+        
+        static $x = M_PI / 180;
         $deliveryUsers = app(UserRepository::class)
             ->allWithBuilder()
             ->join('shops_addresses', 'users.user_id', '=', 'shops_addresses.shop_id')
@@ -215,17 +178,18 @@ class BusinessController extends BaseController
             ->where('user_shop' , 1)
             ->where('user_verified' , 1)
             ->where('user_delivery' , 1) 
-            // 2 * asin(sqrt(pow(sin(($lat1 - $lat2) / 2), 2) + cos($lat1) * cos($lat2) * pow(sin(($lng1 - $lng2) / 2), 2)))
-            ->orderByRaw("(2 * asin(sqrt(power(sin((radians($latitude) - radians(`t_shops_addresses`.`latitude`)) / 2), 2)"
-                            ." + cos(radians($longtitude)) * cos(radians(`t_shops_addresses`.`latitude`))"
-                            ." * power(sin((radians($longtitude) - radians(`t_shops_addresses`.`longitude`))/ 2), 2))))" 
-                        ) 
+            ->orderByRaw("round( 
+                (6373000 * acos(least(1.0,  
+                  cos( radians($latitude) ) 
+                  * cos( radians(`t_shops_addresses`.`latitude`) ) 
+                  * cos( radians(`t_shops_addresses`.`longitude`) - radians($longtitude) ) 
+                  + sin( radians($latitude) ) 
+                  * sin( radians(`t_shops_addresses`.`latitude`) 
+                )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude'])
+                'shops_addresses.longitude', 'shops_addresses.latitude', 'food_preparation_time'])
                 ->withCount('orders')->with('avg_check')
             ->paginate(10);
-
-            // return $deliveryUsers;
 
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
@@ -247,15 +211,17 @@ class BusinessController extends BaseController
             $fptInSec = $fptInMin*60;
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
-            // $deliveryUser->deliveryTime = $deliveryTime;
             $deliveryUser->distance = $distance;
             
         });
         
         $result = UserCollection::collection($deliveryUsers);
-        // Log::info('discoveryIndex', array('result' => $result));
         return $result;
-        // return $result->sortBy('distance'); 
+    }
+
+    public function discoveryIndexUntested(Request $request)
+    {
+        return "waiting for new features...";
     }
 
     public function fixShopsLatitudes() {
