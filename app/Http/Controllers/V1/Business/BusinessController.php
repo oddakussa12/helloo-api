@@ -38,14 +38,14 @@ class BusinessController extends BaseController
                 'black_house_restaurant'=>1000000        
         ));
     }
-
+    // below function is used to insert resturants food preparation time in minutes
     public function listResturants(){
         $resturants = User::where('user_activation' , 1)
         ->where('user_shop' , 1)
         ->where('user_verified' , 1)
         ->where('user_delivery' , 1)
-        ->select(['user_id','user_name'])->get();
-        // return $resturants;
+        ->select(['user_id','user_name','food_preparation_time'])->get();
+        return $resturants;
         // return $resturants->count();
         $fpts = collect([15,14,10,17,15,20,17,17,22,22,
                          12,15,17,31,17,10,17,17,19,15,
@@ -234,10 +234,11 @@ class BusinessController extends BaseController
                 }
             }
             // $deliveryUser->avg = $avg;
-            // $fptInMin = $deliveryUser->food_preparation_time;
-            // $fptInSec = $fptInMin*60;
-            // $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
-            $deliveryUser->deliveryTime = $deliveryTime;
+            $fptInMin = $deliveryUser->food_preparation_time;
+            $fptInSec = $fptInMin*60;
+            $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
+
+            // $deliveryUser->deliveryTime = $deliveryTime;
             $deliveryUser->distance = $distance;
             
         });
