@@ -56,6 +56,7 @@ class User extends Authenticatable implements JWTSubject
         'user_online',
         'user_timezone',
         'user_business_time',
+        'food_preparation_time'
     ];
 
     public $default_name_field = 'user_name';
@@ -177,5 +178,15 @@ class User extends Authenticatable implements JWTSubject
         
         return $result;
     }
+
+    public function average_price(){
+        return $this->hasMany('App\Models\Business\Order','shop_id','user_id')
+        ->where('order_price', '!=', 0.00)
+        ->where('order_price', '>=' , 40)
+        ->where('order_price', '<=' , 3000)
+        ->select('*', DB::raw('AVG(order_price) AS avg_check'));
+    }
+
+
 
 }

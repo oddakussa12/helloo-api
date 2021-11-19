@@ -123,10 +123,10 @@ class BusinessController extends BaseController
         $t1 = $distance / ((60 / $speed) * 1000 / 3600);
         if(is_nan($t1) || is_infinite($t1)) $t1 = 0;
     
-        $t2 = 17 * 60; //17 mins for peackup
+        // $t2 = 17 * 60; //17 mins for peackup
         $t3 = 3 * 60; //3 mins for call center work
 
-        return array('distance' => $distance, 'delivery_time' => $t1 + $t2 + $t3);
+        return array('distance' => $distance, 'delivery_time' => $t1 /*+ $t2*/ + $t3);
 
     }
 
@@ -187,7 +187,8 @@ class BusinessController extends BaseController
                   * sin( radians(`t_shops_addresses`.`latitude`) 
                 )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude'])->withCount('orders')->with('avg_check')
+                'shops_addresses.longitude', 'shops_addresses.latitude'])
+                ->withCount('orders')->with('avg_check')
             ->paginate(10);
 
             // return $deliveryUsers;
@@ -197,6 +198,7 @@ class BusinessController extends BaseController
 
             $deliveryTime = 0.0;
             $distance = 0.0;
+            // $avg = $deliveryUser->average_price->avg('order_price');
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
                 $dt = $this->deliveryTime($location, 
@@ -206,8 +208,13 @@ class BusinessController extends BaseController
                     $deliveryTime = $dt['delivery_time'];
                 }
             }
+            // $deliveryUser->avg = $avg;
+            $fptInMin = $deliveryUser->food_preparation_time;
+            $fptInSec = $fptInMin*60;
+            echo("deliveryTime: $deliveryTime + $fptInSec");
+            $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
-            $deliveryUser->deliveryTime = $deliveryTime;
+            // $deliveryUser->deliveryTime = $deliveryTime;
             $deliveryUser->distance = $distance;
             
         });
@@ -247,6 +254,7 @@ class BusinessController extends BaseController
             ->where('user_delivery' , 1)
             ->orderByDesc('user_created_at')
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address'])
+            ->withCount('orders')->with('avg_check')
             ->paginate(10);
         $deliveryUsers->each(function($deliveryUser){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
