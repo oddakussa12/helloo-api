@@ -68,6 +68,15 @@ class BusinessController extends BaseController
         }
         return "Success";
     }
+    public function calculateAvgPrice(){
+        $resturants = User::where('user_activation' , 1)
+        ->where('user_shop' , 1)
+        ->where('user_verified' , 1)
+        ->where('user_delivery' , 1)
+        ->select(['user_id','user_name','food_preparation_time'])
+        ->with('avg_check')->withCount('orders')->get();
+        return $resturants;
+    }
 
     public function search(Request $request)
     {
