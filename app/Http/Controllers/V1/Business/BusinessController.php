@@ -187,76 +187,10 @@ class BusinessController extends BaseController
                   * sin( radians(`t_shops_addresses`.`latitude`) 
                 )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude'])
-                ->withCount('orders')->with('avg_check')
-            ->paginate(10);
-
-            // return $deliveryUsers;
-
-        $deliveryUsers->each(function($deliveryUser) use ($location){
-            $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
-
-            $deliveryTime = 0.0;
-            $distance = 0.0;
-            // $avg = $deliveryUser->average_price->avg('order_price');
-            if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
-            {
-                $dt = $this->deliveryTime($location, 
-                    array(number_format($deliveryUser->longitude, 10), number_format($deliveryUser->latitude, 10)));
-                if(!is_nan($dt['distance']) && !is_infinite($dt['delivery_time'])) {
-                    $distance = $dt['distance'];
-                    $deliveryTime = $dt['delivery_time'];
-                }
-            }
-            // $deliveryUser->avg = $avg;
-            $fptInMin = $deliveryUser->food_preparation_time;
-            $fptInSec = $fptInMin*60;
-            $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
-
-            // $deliveryUser->deliveryTime = $deliveryTime;
-            $deliveryUser->distance = $distance;
-            
-        });
-        
-        $result = UserCollection::collection($deliveryUsers);
-        // Log::info('discoveryIndex', array('result' => $result));
-        return $result;
-        // return $result->sortBy('distance'); 
-    }
-
-    public function discoveryIndexUntested(Request $request)
-    {
-        $longtitude = $request->input('longtitude', 0);
-        $latitude = $request->input('latitude', 0);
-        $location = array($longtitude, $latitude);
-        
-        if($longtitude == 0 || $latitude == 0) {
-            return $this->discoveryIndexOld($request);
-        }
-        
-        static $x = M_PI / 180;
-        $deliveryUsers = app(UserRepository::class)
-            ->allWithBuilder()
-            ->join('shops_addresses', 'users.user_id', '=', 'shops_addresses.shop_id')
-            ->where('user_activation' , 1)
-            ->where('user_shop' , 1)
-            ->where('user_verified' , 1)
-            ->where('user_delivery' , 1) 
-            ->orderByRaw("round( 
-                (6373000 * acos(least(1.0,  
-                  cos( radians($latitude) ) 
-                  * cos( radians(`t_shops_addresses`.`latitude`) ) 
-                  * cos( radians(`t_shops_addresses`.`longitude`) - radians($longtitude) ) 
-                  + sin( radians($latitude) ) 
-                  * sin( radians(`t_shops_addresses`.`latitude`) 
-                )))), 1)")
-            ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
                 'shops_addresses.longitude', 'shops_addresses.latitude', 'food_preparation_time'])
                 ->withCount('orders')->with('avg_check')
             ->paginate(10);
 
-            // return $deliveryUsers;
-
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
 
@@ -275,18 +209,19 @@ class BusinessController extends BaseController
             // $deliveryUser->avg = $avg;
             $fptInMin = $deliveryUser->food_preparation_time;
             $fptInSec = $fptInMin*60;
-            echo("deliveryTime: $deliveryTime + $fptInSec");
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
-            // $deliveryUser->deliveryTime = $deliveryTime;
             $deliveryUser->distance = $distance;
             
         });
         
         $result = UserCollection::collection($deliveryUsers);
-        // Log::info('discoveryIndex', array('result' => $result));
         return $result;
-        // return $result->sortBy('distance'); 
+    }
+
+    public function discoveryIndexUntested(Request $request)
+    {
+        return "waiting for new features...";
     }
 
     public function fixShopsLatitudes() {
