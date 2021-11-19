@@ -39,6 +39,36 @@ class BusinessController extends BaseController
         ));
     }
 
+    public function listResturants(){
+        $resturants = User::where('user_activation' , 1)
+        ->where('user_shop' , 1)
+        ->where('user_verified' , 1)
+        ->where('user_delivery' , 1)
+        ->select(['user_id','user_name'])->get();
+        // return $resturants;
+        // return $resturants->count();
+        $fpts = collect([15,14,10,17,15,20,17,17,22,22,
+                         12,15,17,31,17,10,17,17,19,15,
+                         15,26,19,15,18,19,45,16,15,17,
+                         21,34,15,33,25,18,34,14,13,19,
+                         12,17,17,15,31,15,36,15,18,18,
+                         10,20,15,15,21,17,15,15,15,22,
+                         17,17,17,24,17,15,26,26,26,26,
+                         15,10,15,24,24,15,16,13,13,15,
+                         15,15,15,29,17,10,23,23,23,21,
+                         15,15,17,15,15,16,16,30,15,15,
+                         15,15,13,17,11,15,15,17,15,15,
+                         13,17,26,22
+                        ]);
+        $count = 0;
+        foreach($resturants as $resturant){
+            $resturant->food_preparation_time = $fpts[$count];
+            $resturant->save();
+            $count++;
+        }
+        return "Success";
+    }
+
     public function search(Request $request)
     {
         $userId = (int)auth()->id();
@@ -168,7 +198,7 @@ class BusinessController extends BaseController
         if($longtitude == 0 || $latitude == 0) {
             return $this->discoveryIndexOld($request);
         }
-
+       
         $deliveryUsers = app(UserRepository::class)
             ->allWithBuilder()
             ->join('shops_addresses', 'users.user_id', '=', 'shops_addresses.shop_id')
@@ -182,7 +212,8 @@ class BusinessController extends BaseController
                             ." * power(sin((radians($longtitude) - radians(`t_shops_addresses`.`longitude`))/ 2), 2))))" 
                         ) 
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude'])->withCount('orders')->with('avg_check')
+                'shops_addresses.longitude', 'shops_addresses.latitude'])
+                ->withCount('orders')->with('avg_check')
             ->paginate(10);
 
             // return $deliveryUsers;
@@ -192,6 +223,7 @@ class BusinessController extends BaseController
 
             $deliveryTime = 0.0;
             $distance = 0.0;
+            // $avg = $deliveryUser->average_price->avg('order_price');
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
                 $dt = $this->deliveryTime($location, 
@@ -201,7 +233,10 @@ class BusinessController extends BaseController
                     $deliveryTime = $dt['delivery_time'];
                 }
             }
-
+            // $deliveryUser->avg = $avg;
+            // $fptInMin = $deliveryUser->food_preparation_time;
+            // $fptInSec = $fptInMin*60;
+            // $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
             $deliveryUser->deliveryTime = $deliveryTime;
             $deliveryUser->distance = $distance;
             
