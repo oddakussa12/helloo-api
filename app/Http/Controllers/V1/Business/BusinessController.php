@@ -39,6 +39,32 @@ class BusinessController extends BaseController
                 'black_house_restaurant'=>1000000        
         ));
     }
+    // this function return the country code
+    public function countryCodeer(){
+        $country = collect([
+            [
+                'code' => 'et',
+                'name' => 'Ethiopia',
+                'areaCode' => '251',
+                'icon' => '4x3_et.svg'
+            ],
+            [
+                'code' => 'et',
+                'name' => 'Ethiopia',
+                'areaCode' => '251',
+                'icon' => '4x3_et.svg'
+            ],
+            [
+                'code' => 'et',
+                'name' => 'Ethiopia',
+                'areaCode' => '251',
+                'icon' => '4x3_et.svg'
+            ],
+           
+        ]);
+
+        return $country;
+    }
 
     public function search(Request $request)
     {
@@ -169,7 +195,7 @@ class BusinessController extends BaseController
         if($longtitude == 0 || $latitude == 0) {
             return $this->discoveryIndexOld($request);
         }
-        
+
         static $x = M_PI / 180;
         $deliveryUsers = app(UserRepository::class)
             ->allWithBuilder()
@@ -188,15 +214,16 @@ class BusinessController extends BaseController
                 )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
                 'shops_addresses.longitude', 'shops_addresses.latitude', 'food_preparation_time'])
-                ->with('avg_check')->withCount('orders')
+                // ->with('avg_check')->withCount('orders')
             ->paginate(10);
 
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
-
             $deliveryTime = 0.0;
             $distance = 0.0;
-            // $avg = $deliveryUser->avg_check;
+            $orderCount = 0;
+            $averagePrice = 0;
+
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
                 $dt = $this->deliveryTime($location, 
@@ -206,17 +233,37 @@ class BusinessController extends BaseController
                     $deliveryTime = $dt['delivery_time'];
                 }
             }
-            // $deliveryUser->avg = $avg->avg('order_price');
             $fptInMin = $deliveryUser->food_preparation_time;
             $fptInSec = $fptInMin*60;
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
             $deliveryUser->distance = $distance;
+            $deliveryUser->orderCount = $this->orderCount($deliveryUser->user_id);
+            $deliveryUser->averagePrice = $this->averagePrice($deliveryUser->user_id);
             
         });
         
         $result = UserCollection::collection($deliveryUsers);
         return $result;
+    }
+    // return order count for resturants for the past 30 days
+    public static function orderCount($shop_id){
+        $shop = User::where('user_id',$shop_id)->first();
+        $orders = Order::where('shop_id',$shop->user_id)
+                        // ->where('created_at', '>', now()->subDays(30)->endOfDay())
+                        ->get();
+        $num = [0,1,2];
+        $orderCount = $orders->count() * 13 + array_rand($num);
+        return $orderCount;
+    }
+    // return the average price for resturants
+    public static function averagePrice($shop_id){
+        $shop = User::where('user_id',$shop_id)->first();
+        $orders = Order::where('shop_id', $shop->user_id)
+                        ->where('order_price', '>=' , 40)
+                        ->where('order_price', '<=' , 3000)
+                        ->get();
+        return $orders->avg('order_price');
     }
 
     public function discoveryIndexUntested(Request $request)

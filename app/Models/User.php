@@ -165,17 +165,17 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(SignupInfo::class , 'user_id' , 'user_id');
     }
     // shop/resturant i.e user have many orders
-    public function orders(){
-        return $this->hasMany('App\Models\Business\Order','shop_id','user_id')
-        ->where('created_at', '>', now()->subDays(30)->endOfDay());
-    }
+    // public function orders(){
+    //     return $this->hasMany('App\Models\Business\Order','shop_id','user_id');
+    //     // ->where('created_at', '>', now()->subDays(30)->endOfDay());
+    // }
 
     // calculate resturants average check
-    public function avg_check(){
-        return $this->hasMany('App\Models\Business\Order','shop_id','user_id')
-        ->where('order_price', '>=' , 40)
-        ->where('order_price', '<=' , 3000)
-        ->selectRaw('shop_id,AVG(t_orders.order_price) AS average_price')
-                    ->groupBy('shop_id');
-    }
+    // public function avg_check(){
+    //     return $this->hasMany('App\Models\Business\Order','shop_id','user_id')
+    //     ->where('order_price', '>=' , 40)
+    //     ->where('order_price', '<=' , 3000)
+    //     ->selectRaw('shop_id,AVG(t_orders.order_price) AS average_price')
+    //                 ->groupBy('shop_id');
+    // }
 }
