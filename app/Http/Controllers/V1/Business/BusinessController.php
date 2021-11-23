@@ -39,32 +39,6 @@ class BusinessController extends BaseController
                 'black_house_restaurant'=>1000000        
         ));
     }
-    // this function return the country code
-    public function countryCodeer(){
-        $country = collect([
-            [
-                'code' => 'et',
-                'name' => 'Ethiopia',
-                'areaCode' => '251',
-                'icon' => '4x3_et.svg'
-            ],
-            [
-                'code' => 'et',
-                'name' => 'Ethiopia',
-                'areaCode' => '251',
-                'icon' => '4x3_et.svg'
-            ],
-            [
-                'code' => 'et',
-                'name' => 'Ethiopia',
-                'areaCode' => '251',
-                'icon' => '4x3_et.svg'
-            ],
-           
-        ]);
-
-        return $country;
-    }
 
     public function search(Request $request)
     {
@@ -221,8 +195,8 @@ class BusinessController extends BaseController
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
             $deliveryTime = 0.0;
             $distance = 0.0;
-            $orderCount = 0;
-            $averagePrice = 0;
+            $orders_count = 0;
+            $average_price = 0;
 
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
@@ -238,8 +212,8 @@ class BusinessController extends BaseController
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
             $deliveryUser->distance = $distance;
-            $deliveryUser->orderCount = $this->orderCount($deliveryUser->user_id);
-            $deliveryUser->averagePrice = $this->averagePrice($deliveryUser->user_id);
+            $deliveryUser->orders_count = $this->orderCount($deliveryUser->user_id);
+            $deliveryUser->average_price = $this->averagePrice($deliveryUser->user_id);
             
         });
         

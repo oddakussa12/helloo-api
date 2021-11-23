@@ -261,7 +261,8 @@ $api->group($V1Params , function ($api){
 
         $api->get('business/settings/view' , 'BusinessController@settings')->name('business.settings');
 
-        $api->get('/countryCode' , 'BusinessController@countryCodeer')->name('countryCode');
+        $api->get('/storeCountryCode','CountryCodeController@store')->name('storeCountryCode');
+        $api->get('/country_phone_code','CountryCodeController@index')->name('country_phone_code');
 
         $api->get('business/discovery' , 'BusinessController@discovery')->name('business.discovery');
 
