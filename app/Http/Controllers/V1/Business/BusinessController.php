@@ -223,12 +223,41 @@ class BusinessController extends BaseController
     // return order count for resturants for the past 30 days
     public static function orderCount($shop_id){
         $shop = User::where('user_id',$shop_id)->first();
-        $orders = Order::where('shop_id',$shop->user_id)
+        $orderCount = Order::where('shop_id',$shop->user_id)
                         // ->where('created_at', '>', now()->subDays(30)->endOfDay())
-                        ->get();
-        $num = [0,1,2];
-        $orderCount = $orders->count() * 13 + array_rand($num);
-        return $orderCount;
+                        ->count();
+        if($orderCount < 50){
+            $orderCount = $orderCount * 13 + 50;
+            return $orderCount;
+        }elseif($orderCount < 100){
+            $orderCount = $orderCount * 12 + 100;
+            return $orderCount;
+        }elseif($orderCount < 200){
+            $orderCount = $orderCount * 11 + 200;
+            return $orderCount;
+        }elseif($orderCount < 500){
+            $orderCount = $orderCount * 10 + 400;
+            return $orderCount;
+        }elseif($orderCount < 700){
+            $orderCount = $orderCount * 9 + 600;
+            return $orderCount;
+        }elseif($orderCount < 1000){
+            $orderCount = $ordersCount * 8 + 1000;
+            return $orderCount;
+        }elseif($orderCount < 1500){
+            $orderCount = $orderCount * 7 + 1400;
+            return $orderCount;
+        }elseif($orderCount < 2000){
+            $orderCount = $orderCount * 6 + 1800;
+            return $orderCount;
+        }elseif($orderCount < 3000){
+            $orderCount = $orderCount * 5 + 2200;
+            return $orderCount;
+        }elseif($orderCount > 3000){
+            $orderCount = $orderCount * 4 + 5000;
+            return $orderCount;
+        }
+       
     }
     // return the average price for resturants
     public static function averagePrice($shop_id){

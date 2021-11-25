@@ -25,6 +25,7 @@ use Illuminate\Validation\ValidationException;
 use App\Repositories\Contracts\GoodsRepository;
 use Illuminate\Database\Concerns\BuildsQueries;
 use App\Repositories\Contracts\CategoryGoodsRepository;
+use App\Models\Business\SpecialGoods;
 
 class GoodsController extends BaseController
 {
@@ -117,7 +118,20 @@ class GoodsController extends BaseController
                 $g->likeState = in_array($g->id , $likes);
             });
         }
+        $goods->each(function($good){
+            $discount_price = 0;
+            $good->discount_price = $this->discountPrice($good->id);
+
+        });
         return AnonymousCollection::collection($goods);
+    }
+    public function discountPrice($good_id){
+        $discount_price = SpecialGoods::select('special_price')->where('goods_id',$good_id)->first();
+        if($discount_price != null){
+            return $discount_price->special_price;
+        }else{
+            return null;
+        }
     }
 
     /**
