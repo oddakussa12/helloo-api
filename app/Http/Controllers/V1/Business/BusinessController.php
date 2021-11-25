@@ -169,7 +169,7 @@ class BusinessController extends BaseController
         if($longtitude == 0 || $latitude == 0) {
             return $this->discoveryIndexOld($request);
         }
-        
+
         static $x = M_PI / 180;
         $deliveryUsers = app(UserRepository::class)
             ->allWithBuilder()
@@ -187,18 +187,19 @@ class BusinessController extends BaseController
                   * sin( radians(`t_shops_addresses`.`latitude`) 
                 )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude', 'food_preparation_time', 
+                'shops_addresses.longitude', 'shops_addresses.latitude', 'food_preparation_time',
                 DB::raw("time_format(open_time, '%r') as open_time"), 
                 DB::raw("time_format(close_time, '%r') as close_time")])
-                ->withCount('orders')->with('avg_check')
+                // ->withCount('orders')->with('avg_check')
             ->paginate(10);
 
         $deliveryUsers->each(function($deliveryUser) use ($location){
-            $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
-
+            // $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
             $deliveryTime = 0.0;
             $distance = 0.0;
-            // $avg = $deliveryUser->average_price->avg('order_price');
+            $orders_count = 0;
+            $average_price = 0;
+
             if(is_numeric($deliveryUser->longitude) && is_numeric($deliveryUser->latitude)) 
             {
                 $dt = $this->deliveryTime($location, 
@@ -208,17 +209,66 @@ class BusinessController extends BaseController
                     $deliveryTime = $dt['delivery_time'];
                 }
             }
-            // $deliveryUser->avg = $avg;
             $fptInMin = $deliveryUser->food_preparation_time;
             $fptInSec = $fptInMin*60;
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
             $deliveryUser->distance = $distance;
+            $deliveryUser->orders_count = $this->orderCount($deliveryUser->user_id);
+            $deliveryUser->average_price = $this->averagePrice($deliveryUser->user_id);
             
         });
         
         $result = UserCollection::collection($deliveryUsers);
         return $result;
+    }
+    // return order count for resturants for the past 30 days
+    public static function orderCount($shop_id){
+        $shop = User::where('user_id',$shop_id)->first();
+        $orderCount = Order::where('shop_id',$shop->user_id)
+                        // ->where('created_at', '>', now()->subDays(30)->endOfDay())
+                        ->count();
+        if($orderCount < 50){
+            $orderCount = $orderCount * 13 + 50;
+            return $orderCount;
+        }elseif($orderCount < 100){
+            $orderCount = $orderCount * 12 + 100;
+            return $orderCount;
+        }elseif($orderCount < 200){
+            $orderCount = $orderCount * 11 + 200;
+            return $orderCount;
+        }elseif($orderCount < 500){
+            $orderCount = $orderCount * 10 + 400;
+            return $orderCount;
+        }elseif($orderCount < 700){
+            $orderCount = $orderCount * 9 + 600;
+            return $orderCount;
+        }elseif($orderCount < 1000){
+            $orderCount = $ordersCount * 8 + 1000;
+            return $orderCount;
+        }elseif($orderCount < 1500){
+            $orderCount = $orderCount * 7 + 1400;
+            return $orderCount;
+        }elseif($orderCount < 2000){
+            $orderCount = $orderCount * 6 + 1800;
+            return $orderCount;
+        }elseif($orderCount < 3000){
+            $orderCount = $orderCount * 5 + 2200;
+            return $orderCount;
+        }elseif($orderCount > 3000){
+            $orderCount = $orderCount * 4 + 5000;
+            return $orderCount;
+        }
+       
+    }
+    // return the average price for resturants
+    public static function averagePrice($shop_id){
+        $shop = User::where('user_id',$shop_id)->first();
+        $orders = Order::where('shop_id', $shop->user_id)
+                        ->where('order_price', '>=' , 40)
+                        ->where('order_price', '<=' , 3000)
+                        ->get();
+        return $orders->avg('order_price');
     }
 
     public function discoveryIndexUntested(Request $request)
