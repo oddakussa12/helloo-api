@@ -135,6 +135,8 @@ class ShoppingCartController extends BaseController
         }
         $gs->each(function($g) use ($goods){
             $g->goodsNumber = (int)$goods[$g->id];
+            $g->ddd = 0;
+            $g->ddd = 5;
         });
         $userIds = $gs->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
