@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
+use App\Models\Business\SpecialGoods;
 
 class ShoppingCartController extends BaseController
 {
@@ -135,8 +136,8 @@ class ShoppingCartController extends BaseController
         }
         $gs->each(function($g) use ($goods){
             $g->goodsNumber = (int)$goods[$g->id];
-            $g->ddd = 0;
-            $g->ddd = 5;
+            $g->discount_price = $g->price;
+            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $userIds = $gs->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -166,6 +167,17 @@ class ShoppingCartController extends BaseController
             $shops[$k] = new UserCollection($shop);
         }
         return AnonymousCollection::collection(collect($shops)->values());
+    }
+
+    public static function discountPrice($good_id, $good_price){
+        $good = SpecialGoods::where('goods_id', $good_id)->first();
+
+        if($good != null){
+            return $good->special_price;
+        }else{
+            return $good_price;
+        }
+
     }
 
     /**
