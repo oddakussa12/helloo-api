@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
-use App\Models\Business\SpecialGoods;
 
 class ShoppingCartController extends BaseController
 {
@@ -42,8 +41,6 @@ class ShoppingCartController extends BaseController
         });
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = intval($goods[$g->id]);
-            $discount_price = $g->price;
-            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -57,7 +54,7 @@ class ShoppingCartController extends BaseController
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]=='251'?'BIRR':"USD";
             $shopGs = collect($shopGoods->get($shop['user_id']));
             $price = $shopGs->sum(function($shopG){
-                return $shopG['goodsNumber']*$shopG['discount_price'];
+                return $shopG['goodsNumber']*$shopG['price'];
             });
             $shop['goods'] = AnonymousCollection::collection($shopGs);
             $shop['user_currency'] = $currency;
@@ -68,14 +65,6 @@ class ShoppingCartController extends BaseController
         return AnonymousCollection::collection(collect($shoppingCarts)->values());
     }
 
-    public function discountPrice($good_id, $price){
-        $discount_price = SpecialGoods::select('special_price')->where('goods_id',$good_id)->first();
-        if($discount_price != null){
-            return $discount_price->special_price;
-        }else{
-            return $price;
-        }
-    }
 
     /**
      * @note 购物车新增
