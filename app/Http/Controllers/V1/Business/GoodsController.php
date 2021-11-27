@@ -128,7 +128,7 @@ class GoodsController extends BaseController
     public function discountPrice($good_id){
         $discount_price = SpecialGoods::select('special_price')->where('goods_id',$good_id)->first();
         if($discount_price != null){
-            return $discount_price->special_price;
+            return (int)$discount_price->special_price;
         }else{
             return 0;
         }
