@@ -42,6 +42,8 @@ class ShoppingCartController extends BaseController
         });
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = intval($goods[$g->id]);
+            $g->discount_price = $g->price;
+            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -173,9 +175,9 @@ class ShoppingCartController extends BaseController
         $good = SpecialGoods::where('goods_id', $good_id)->first();
 
         if($good != null){
-            return $good->special_price;
+            return (int)$good->special_price;
         }else{
-            return $good_price;
+            return (int)$good_price;
         }
 
     }
