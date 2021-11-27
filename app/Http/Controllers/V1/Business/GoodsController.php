@@ -130,7 +130,7 @@ class GoodsController extends BaseController
         if($discount_price != null){
             return $discount_price->special_price;
         }else{
-            return null;
+            return 0;
         }
     }
 
