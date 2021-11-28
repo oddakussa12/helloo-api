@@ -102,6 +102,8 @@ class OrderController extends BaseController
         });
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = (int)$goods[$g->id];
+            $g->discount_price = $g->price;
+            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $goodsIds = $shopGoods->pluck('id')->toArray();
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
@@ -143,12 +145,18 @@ class OrderController extends BaseController
                 ));
             }
             $price = collect($shopGs)->sum(function ($shopG) use ($goods) {
-                return $goods[$shopG['id']]*$shopG['price'];
+                // return $goods[$shopG['id']]*$shopG['price'];
+                return $goods[$shopG['id']]*$shopG['discount_price'];
             });
             $promoPrice = collect($shopGs)->sum(function ($shopG) use ($goods) {
+                // if($shopG['discounted_price']<0)
+                // {
+                //     return $goods[$shopG['id']]*$shopG['price'];
+                // }
+                // return $goods[$shopG['id']]*$shopG['discounted_price'];
                 if($shopG['discounted_price']<0)
                 {
-                    return $goods[$shopG['id']]*$shopG['price'];
+                    return $goods[$shopG['id']]*$shopG['discount_price'];
                 }
                 return $goods[$shopG['id']]*$shopG['discounted_price'];
             });
