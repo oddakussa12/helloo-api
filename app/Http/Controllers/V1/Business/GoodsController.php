@@ -184,7 +184,7 @@ class GoodsController extends BaseController
      */
     public function show($id)
     {
-        // $userId = intval(auth()->id());
+        $userId = intval(auth()->id());
         $action = strval(request()->input('action' , ''));
         $referrer = strval(request()->input('referrer' , ''));
         $goods = Goods::where('id' , $id)->firstOrFail();
