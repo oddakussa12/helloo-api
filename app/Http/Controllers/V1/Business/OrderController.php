@@ -841,9 +841,14 @@ class OrderController extends BaseController
                 return $shopG['goodsNumber']*$shopG['discount_price'];
             });
             $promoPrice = collect($shopGs)->sum(function ($shopG) {
+                // if($shopG['discounted_price']<0)
+                // {
+                //     return $shopG['goodsNumber']*$shopG['price'];
+                // }
+                // return $shopG['goodsNumber']*$shopG['discounted_price'];
                 if($shopG['discounted_price']<0)
                 {
-                    return $shopG['goodsNumber']*$shopG['price'];
+                    return $shopG['goodsNumber']*$shopG['discount_price'];
                 }
                 return $shopG['goodsNumber']*$shopG['discounted_price'];
             });
@@ -1186,14 +1191,13 @@ class OrderController extends BaseController
      */
     public function show(Request $request , $id)
     {
-        return "odda";
-        // $order = Order::where('order_id' , $id)->first();
-        // if(empty($order))
-        // {
-        //     abort(404 , 'Sorry, the order does not exist!');
-        // }
-        // $shop = app(UserRepository::class)->findByUserId($order->shop_id)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
-        // $order->shop = new UserCollection($shop);
-        // return new OrderCollection($order);
+        $order = Order::where('order_id' , $id)->first();
+        if(empty($order))
+        {
+            abort(404 , 'Sorry, the order does not exist!');
+        }
+        $shop = app(UserRepository::class)->findByUserId($order->shop_id)->only('user_id' , 'user_name' , 'user_nick_name' , 'user_avatar_link' , 'user_contact' , 'user_address');
+        $order->shop = new UserCollection($shop);
+        return new OrderCollection($order);
     }
 }
