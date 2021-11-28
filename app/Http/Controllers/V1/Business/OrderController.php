@@ -161,7 +161,12 @@ class OrderController extends BaseController
                 return $goods[$shopG['id']]*$shopG['discounted_price'];
             });
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
-                return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                $isSpecial = $this->isSpecial($shopG['id']); //0or 1
+                if($isSpecial == 0){
+                    return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                }else{
+                    return 0;
+                } 
             });
             $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
@@ -231,6 +236,16 @@ class OrderController extends BaseController
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return OrderCollection::collection(collect($returnData));
+    }
+
+    public static function isSpecial($good_id){
+        $good = SpecialGoods::where('goods_id', $good_id)->first();
+
+        if($good != null){
+            return 1;
+        }else{
+            return 0;
+        }
     }
 
     /**
@@ -861,7 +876,13 @@ class OrderController extends BaseController
                 return $shopG['goodsNumber']*$shopG['discounted_price'];
             });
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
-                return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                $isSpecial = $this->isSpecial($shopG['id']); //0 or 1
+                if($isSpecial == 0){
+                    return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                }else{
+                    return 0;
+                } 
+                // return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]==='251'?'BIRR':"USD";
             $data['currency'] = $currency;
