@@ -184,10 +184,12 @@ class GoodsController extends BaseController
      */
     public function show($id)
     {
-        $userId = intval(auth()->id());
+        // $userId = intval(auth()->id());
         $action = strval(request()->input('action' , ''));
         $referrer = strval(request()->input('referrer' , ''));
         $goods = Goods::where('id' , $id)->firstOrFail();
+        $goods->discount_price = $this->discountPrice($goods->id, $goods->price);
+        // return $goods;
         $user = app(UserRepository::class)->findByUserId($goods->user_id);
         $goods->user = new UserCollection($user);
         $like = !empty($userId)&&DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
