@@ -54,6 +54,7 @@ class UserCollection extends Resource
         {
             $resource->forget('user_tag');
         }
+        $resource->put('test' , 'aaa');
         return $resource->toArray();
     }
 }
