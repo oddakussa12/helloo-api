@@ -25,7 +25,7 @@ class User extends Authenticatable implements JWTSubject
 //        'users_email' ,
         'user_ip_address' ,
     ];
-    protected $appends = ['user_avatar_link'];
+    protected $appends = ['user_avatar_link', 'open_time'];
 
     protected $fillable = [
         'user_uuid' ,
