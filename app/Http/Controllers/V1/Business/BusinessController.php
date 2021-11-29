@@ -275,7 +275,10 @@ class BusinessController extends BaseController
 
     public function discoveryIndexUntested(Request $request)
     {
-        return "waiting for new features...";
+        $user = $this->user->findByUserId($id);
+        return $user;
+
+        // return "waiting for new features...";
     }
 
     public function fixShopsLatitudes() {
