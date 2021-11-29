@@ -210,7 +210,7 @@ class BusinessController extends BaseController
                     $deliveryTime = $dt['delivery_time'];
                 }
             }
-            $fptInMin = $deliveryUser->food_preparation_time;
+            $fptInMin = $deliveryUser->food_preparation_time + 10;
             $fptInSec = $fptInMin*60;
             $deliveryUser->deliveryTime = $deliveryTime + $fptInSec;
 
