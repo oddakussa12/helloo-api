@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
+use App\Models\Business\SpecialGoods;
 
 class ShoppingCartController extends BaseController
 {
@@ -41,6 +42,8 @@ class ShoppingCartController extends BaseController
         });
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = intval($goods[$g->id]);
+            $g->discount_price = $g->price;
+            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -64,6 +67,7 @@ class ShoppingCartController extends BaseController
         }
         return AnonymousCollection::collection(collect($shoppingCarts)->values());
     }
+
 
     /**
      * @note 购物车新增
@@ -134,6 +138,8 @@ class ShoppingCartController extends BaseController
         }
         $gs->each(function($g) use ($goods){
             $g->goodsNumber = (int)$goods[$g->id];
+            $g->discount_price = $g->price;
+            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $userIds = $gs->pluck('user_id')->unique()->toArray();
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
@@ -163,6 +169,17 @@ class ShoppingCartController extends BaseController
             $shops[$k] = new UserCollection($shop);
         }
         return AnonymousCollection::collection(collect($shops)->values());
+    }
+
+    public static function discountPrice($good_id, $good_price){
+        $good = SpecialGoods::where('goods_id', $good_id)->first();
+
+        if($good != null){
+            return (int)$good->special_price;
+        }else{
+            return (int)$good_price;
+        }
+
     }
 
     /**

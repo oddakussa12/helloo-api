@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Resources\AnonymousCollection;
 use App\Http\Controllers\V1\BaseController;
 use App\Repositories\Contracts\UserRepository;
+use App\Models\Business\SpecialGoods;
 
 class OrderController extends BaseController
 {
@@ -101,6 +102,8 @@ class OrderController extends BaseController
         });
         $shopGoods->each(function($g) use ($goods){
             $g->goodsNumber = (int)$goods[$g->id];
+            $g->discount_price = $g->price;
+            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $goodsIds = $shopGoods->pluck('id')->toArray();
         $userIds = $shopGoods->pluck('user_id')->unique()->toArray();
@@ -142,17 +145,28 @@ class OrderController extends BaseController
                 ));
             }
             $price = collect($shopGs)->sum(function ($shopG) use ($goods) {
-                return $goods[$shopG['id']]*$shopG['price'];
+                // return $goods[$shopG['id']]*$shopG['price'];
+                return $goods[$shopG['id']]*$shopG['discount_price'];
             });
             $promoPrice = collect($shopGs)->sum(function ($shopG) use ($goods) {
+                // if($shopG['discounted_price']<0)
+                // {
+                //     return $goods[$shopG['id']]*$shopG['price'];
+                // }
+                // return $goods[$shopG['id']]*$shopG['discounted_price'];
                 if($shopG['discounted_price']<0)
                 {
-                    return $goods[$shopG['id']]*$shopG['price'];
+                    return $goods[$shopG['id']]*$shopG['discount_price'];
                 }
                 return $goods[$shopG['id']]*$shopG['discounted_price'];
             });
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
-                return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                $isSpecial = $this->isSpecial($shopG['id']); //0or 1
+                if($isSpecial == 0){
+                    return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                }else{
+                    return 0;
+                } 
             });
             $currency = isset($phones[$u])&&$phones[$u]==='251'?'BIRR':"USD";
             $data = array(
@@ -222,6 +236,16 @@ class OrderController extends BaseController
             $this->dispatch((new Bitrix24Order($orderData , __FUNCTION__))->onQueue('helloo_{bitrix_order}'));
         }
         return OrderCollection::collection(collect($returnData));
+    }
+
+    public static function isSpecial($good_id){
+        $good = SpecialGoods::where('goods_id', $good_id)->first();
+
+        if($good != null){
+            return 1;
+        }else{
+            return 0;
+        }
     }
 
     /**
@@ -824,6 +848,8 @@ class OrderController extends BaseController
         $message = '';
         $shopGoods->each(function($g) use ($filterGoods){
             $g->goodsNumber = (int)$filterGoods[$g->id];
+            $g->discount_price = $g->price;
+            $g->discount_price = $this->discountPrice($g->id, $g->price);
         });
         $phones = DB::table('users_phones')->whereIn('user_id' , $userIds)->get()->pluck('user_phone_country' , 'user_id')->toArray();
         $shopGoods = collect($shopGoods->groupBy('user_id')->toArray());
@@ -834,17 +860,29 @@ class OrderController extends BaseController
         {
             $shopGs = $shopGoods->get($shop['user_id']);
             $price = collect($shopGs)->sum(function ($shopG) {
-                return $shopG['goodsNumber']*$shopG['price'];
+                // return $shopG['goodsNumber']*$shopG['price'];
+                return $shopG['goodsNumber']*$shopG['discount_price'];
             });
             $promoPrice = collect($shopGs)->sum(function ($shopG) {
+                // if($shopG['discounted_price']<0)
+                // {
+                //     return $shopG['goodsNumber']*$shopG['price'];
+                // }
+                // return $shopG['goodsNumber']*$shopG['discounted_price'];
                 if($shopG['discounted_price']<0)
                 {
-                    return $shopG['goodsNumber']*$shopG['price'];
+                    return $shopG['goodsNumber']*$shopG['discount_price'];
                 }
                 return $shopG['goodsNumber']*$shopG['discounted_price'];
             });
             $packagingCost = collect($shopGs)->sum(function ($shopG) {
-                return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                $isSpecial = $this->isSpecial($shopG['id']); //0 or 1
+                if($isSpecial == 0){
+                    return $shopG['goodsNumber']*$shopG['packaging_cost'];
+                }else{
+                    return 0;
+                } 
+                // return $shopG['goodsNumber']*$shopG['packaging_cost'];
             });
             $currency = isset($phones[$shop['user_id']])&&$phones[$shop['user_id']]==='251'?'BIRR':"USD";
             $data['currency'] = $currency;
@@ -876,6 +914,17 @@ class OrderController extends BaseController
         return $this->response->array(
             array('data'=>AnonymousCollection::collection(collect($returnData)) , 'message'=>$message , 'code'=>$status)
         );
+    }
+
+    public static function discountPrice($good_id, $good_price){
+        $good = SpecialGoods::where('goods_id', $good_id)->first();
+
+        if($good != null){
+            return (int)$good->special_price;
+        }else{
+            return (int)$good_price;
+        }
+
     }
 
     /**

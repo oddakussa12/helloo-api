@@ -128,9 +128,9 @@ class GoodsController extends BaseController
     public function discountPrice($good_id){
         $discount_price = SpecialGoods::select('special_price')->where('goods_id',$good_id)->first();
         if($discount_price != null){
-            return $discount_price->special_price;
+            return (int)$discount_price->special_price;
         }else{
-            return null;
+            return 0;
         }
     }
 
@@ -188,6 +188,8 @@ class GoodsController extends BaseController
         $action = strval(request()->input('action' , ''));
         $referrer = strval(request()->input('referrer' , ''));
         $goods = Goods::where('id' , $id)->firstOrFail();
+        $goods->discount_price = $this->discountPrice($goods->id, $goods->price);
+        // return $goods;
         $user = app(UserRepository::class)->findByUserId($goods->user_id);
         $goods->user = new UserCollection($user);
         $like = !empty($userId)&&DB::table('likes_goods')->where('id' , strval(auth()->id())."-".$id)->first();
