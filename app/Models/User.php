@@ -181,11 +181,11 @@ class User extends Authenticatable implements JWTSubject
     //                 ->groupBy('shop_id');
     // }
 
-    // public function getOpenTimeAttribute($value) {
-    //     return $value.'_formatted';
-    // }
+    public function getOpenTimeAttribute($value) {
+        return \Carbon\Carbon::parse($value)->format('H:i A');
+    }
 
-    // public function getCloseTimeAttribute($value) {
-    //     return $value.'_formatted';
-    // }
+    public function getCloseTimeAttribute($value) {
+        return \Carbon\Carbon::parse($value)->format('H:i A');
+    }
 }
