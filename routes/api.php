@@ -257,7 +257,7 @@ $api->group($V1Params , function ($api){
 
         $api->get('business/discovery/index' , 'BusinessController@discoveryIndex')->name('business.discovery.index');
         
-        $api->get('business/discovery/index_untested' , 'BusinessController@discoveryIndexUntested')->name('business.discovery.indexUntested');
+        $api->get('business/discovery/index_untested/{user}' , 'BusinessController@discoveryIndexUntested')->name('business.discovery.indexUntested');
 
         $api->get('business/settings/view' , 'BusinessController@settings')->name('business.settings');
 

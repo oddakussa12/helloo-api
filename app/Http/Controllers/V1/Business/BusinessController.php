@@ -273,7 +273,7 @@ class BusinessController extends BaseController
         return $orders->avg('order_price');
     }
 
-    public function discoveryIndexUntested(Request $request)
+    public function discoveryIndexUntested(Request $request, $id)
     {
         $user = $this->user->findByUserId($id);
         return $user;
