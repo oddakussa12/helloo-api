@@ -20,17 +20,12 @@ class User extends Authenticatable implements JWTSubject
 
     const DELETED_AT = 'user_deleted_at';
 
-    protected $casts = [
-        'open_time' => 'datetime:H:i A',
-        'close_time' => 'datetime:H:i A',
-    ];
-
     protected $guarded = [
 //        'user_name' ,
 //        'users_email' ,
         'user_ip_address' ,
     ];
-    protected $appends = ['user_avatar_link', 'open_time', 'close_time'];
+    protected $appends = ['user_avatar_link']; //, 'open_time', 'close_time'];
 
     protected $fillable = [
         'user_uuid' ,
@@ -97,6 +92,8 @@ class User extends Authenticatable implements JWTSubject
 
     protected $casts = [
         'user_delivery' => 'boolean',
+        'open_time' => 'datetime:H:i A',
+        'close_time' => 'datetime:H:i A',
     ];
 
     public function getUserAvatarLinkAttribute()
@@ -184,11 +181,11 @@ class User extends Authenticatable implements JWTSubject
     //                 ->groupBy('shop_id');
     // }
 
-    public function getOpenTimeAttribute($value) {
-        return $value.'_formatted';
-    }
+    // public function getOpenTimeAttribute($value) {
+    //     return $value.'_formatted';
+    // }
 
-    public function getCloseTimeAttribute($value) {
-        return $value.'_formatted';
-    }
+    // public function getCloseTimeAttribute($value) {
+    //     return $value.'_formatted';
+    // }
 }
