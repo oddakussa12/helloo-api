@@ -275,10 +275,7 @@ class BusinessController extends BaseController
 
     public function discoveryIndexUntested(Request $request, $id)
     {
-        $user = $this->user->findByUserId($id);
-        return $user;
-
-        // return "waiting for new features...";
+        return "waiting for new features...";
     }
 
     public function discoveryIndexOld(Request $request)
