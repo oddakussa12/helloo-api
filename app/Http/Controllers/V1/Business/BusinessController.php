@@ -281,26 +281,6 @@ class BusinessController extends BaseController
         // return "waiting for new features...";
     }
 
-    public function fixShopsLatitudes() {
-        $addresses = DB::table('shops_addresses')->get();
-
-        // DB::connection()->enableQueryLog();
-        $addresses->each(function($addr) {
-            $lat = $addr->latitude;
-            if(str_ends_with($lat, ',')) {
-                echo("update latitude=$lat for id=$addr->shop_id; ");
-                DB::table('shops_addresses')
-                    -> where('shop_id', $addr->shop_id)
-                    -> update(['latitude' => substr($lat, 0, -1)]);
-                    // -> update(['latitude' => $lat.',']);
-            }
-        });
-        // $queries = DB::getQueryLog();
-        // echo(" Log: ");
-        // var_dump($queries);
-        // DB::connection()->disableQueryLog();
-    }
-
     public function discoveryIndexOld(Request $request)
     {
         $deliveryUsers = app(UserRepository::class)
