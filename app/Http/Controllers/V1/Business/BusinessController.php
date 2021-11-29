@@ -187,11 +187,12 @@ class BusinessController extends BaseController
                   * sin( radians(`t_shops_addresses`.`latitude`) 
                 )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude',
+                'shops_addresses.longitude', 'shops_addresses.latitude','food_preparation_time',
                 DB::raw("time_format(open_time, '%r') as open_time"), 
                 DB::raw("time_format(close_time, '%r') as close_time")])
                 // ->withCount('orders')->with('avg_check')
             ->paginate(10);
+            // return $deliveryUsers;
 
         $deliveryUsers->each(function($deliveryUser) use ($location){
             $deliveryUser->userPoint = app(UserRepository::class)->findPointByUserId($deliveryUser->user_id);
