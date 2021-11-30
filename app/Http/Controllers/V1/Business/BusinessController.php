@@ -187,9 +187,10 @@ class BusinessController extends BaseController
                   * sin( radians(`t_shops_addresses`.`latitude`) 
                 )))), 1)")
             ->select(['user_id' , 'user_name' , 'user_nick_name' , 'user_avatar' , 'user_delivery' , 'user_shop' , 'user_bg' , 'user_address' ,
-                'shops_addresses.longitude', 'shops_addresses.latitude','food_preparation_time',
-                DB::raw("time_format(open_time, '%r') as open_time"), 
-                DB::raw("time_format(close_time, '%r') as close_time")])
+                'shops_addresses.longitude', 'shops_addresses.latitude','food_preparation_time', 'open_time', 'close_time'
+                //DB::raw("time_format(open_time, '%r') as open_time"), 
+                //DB::raw("time_format(close_time, '%r') as close_time")
+                ])
                 // ->withCount('orders')->with('avg_check')
             ->paginate(10);
             // return $deliveryUsers;
@@ -245,7 +246,7 @@ class BusinessController extends BaseController
             $orderCount = $orderCount * 9 + 600;
             return $orderCount;
         }elseif($orderCount < 1000){
-            $orderCount = $ordersCount * 8 + 1000;
+            $orderCount = $orderCount * 8 + 1000;
             return $orderCount;
         }elseif($orderCount < 1500){
             $orderCount = $orderCount * 7 + 1400;
@@ -272,29 +273,12 @@ class BusinessController extends BaseController
         return $orders->avg('order_price');
     }
 
-    public function discoveryIndexUntested(Request $request)
+    public function discoveryIndexUntested(Request $request, $id)
     {
-        return "waiting for new features...";
-    }
-
-    public function fixShopsLatitudes() {
-        $addresses = DB::table('shops_addresses')->get();
-
-        // DB::connection()->enableQueryLog();
-        $addresses->each(function($addr) {
-            $lat = $addr->latitude;
-            if(str_ends_with($lat, ',')) {
-                echo("update latitude=$lat for id=$addr->shop_id; ");
-                DB::table('shops_addresses')
-                    -> where('shop_id', $addr->shop_id)
-                    -> update(['latitude' => substr($lat, 0, -1)]);
-                    // -> update(['latitude' => $lat.',']);
-            }
-        });
-        // $queries = DB::getQueryLog();
-        // echo(" Log: ");
-        // var_dump($queries);
-        // DB::connection()->disableQueryLog();
+        $sender = app(UserRepository::class)->findByUserId('1938109523')->toArray();
+        return $sender;
+        
+        // return "waiting for new features...";
     }
 
     public function discoveryIndexOld(Request $request)

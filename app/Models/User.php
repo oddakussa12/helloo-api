@@ -25,7 +25,7 @@ class User extends Authenticatable implements JWTSubject
 //        'users_email' ,
         'user_ip_address' ,
     ];
-    protected $appends = ['user_avatar_link'];
+    protected $appends = ['user_avatar_link']; //, 'open_time', 'close_time'];
 
     protected $fillable = [
         'user_uuid' ,
@@ -56,7 +56,9 @@ class User extends Authenticatable implements JWTSubject
         'user_online',
         'user_timezone',
         'user_business_time',
-        'food_preparation_time'
+        'food_preparation_time',
+        'open_time',
+        'close_time',
     ];
 
     public $default_name_field = 'user_name';
@@ -92,6 +94,8 @@ class User extends Authenticatable implements JWTSubject
 
     protected $casts = [
         'user_delivery' => 'boolean',
+        'open_time' => 'datetime:H:i A',
+        'close_time' => 'datetime:H:i A',
     ];
 
     public function getUserAvatarLinkAttribute()
@@ -178,4 +182,12 @@ class User extends Authenticatable implements JWTSubject
     //     ->selectRaw('shop_id,AVG(t_orders.order_price) AS average_price')
     //                 ->groupBy('shop_id');
     // }
+
+    public function getOpenTimeAttribute($value) {
+        return \Carbon\Carbon::parse($value)->format('H:i A');
+    }
+
+    public function getCloseTimeAttribute($value) {
+        return \Carbon\Carbon::parse($value)->format('H:i A');
+    }
 }
