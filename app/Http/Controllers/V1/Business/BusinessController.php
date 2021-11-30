@@ -275,7 +275,10 @@ class BusinessController extends BaseController
 
     public function discoveryIndexUntested(Request $request, $id)
     {
-        return "waiting for new features...";
+        $sender = app(UserRepository::class)->findByUserId('1938109523')->toArray();
+        return $sender;
+        
+        // return "waiting for new features...";
     }
 
     public function discoveryIndexOld(Request $request)

@@ -54,14 +54,6 @@ class UserCollection extends Resource
         {
             $resource->forget('user_tag');
         }
-        if($resource->has('open_time'))
-        {
-            $resource->put('open_time' , \Carbon\Carbon::parse($resource->get('open_time'))->format('H:i A'));
-        }
-        if($resource->has('close_time'))
-        {
-            $resource->put('close_time' , \Carbon\Carbon::parse($resource->get('close_time'))->format('H:i A'));
-        }
         return $resource->toArray();
     }
 }
