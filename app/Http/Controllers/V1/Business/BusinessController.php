@@ -246,7 +246,7 @@ class BusinessController extends BaseController
             $orderCount = $orderCount * 9 + 600;
             return $orderCount;
         }elseif($orderCount < 1000){
-            $orderCount = $ordersCount * 8 + 1000;
+            $orderCount = $orderCount * 8 + 1000;
             return $orderCount;
         }elseif($orderCount < 1500){
             $orderCount = $orderCount * 7 + 1400;
