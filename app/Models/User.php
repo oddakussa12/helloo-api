@@ -57,6 +57,8 @@ class User extends Authenticatable implements JWTSubject
         'user_timezone',
         'user_business_time',
         'food_preparation_time',
+        'open_time',
+        'close_time',
     ];
 
     public $default_name_field = 'user_name';

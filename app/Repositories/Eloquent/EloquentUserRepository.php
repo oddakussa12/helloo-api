@@ -190,7 +190,7 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
     {
         $key = "helloo:account:service:account:".$userId;
         $user = Redis::hgetall($key);
-        if(true)//blank($user))
+        if(blank($user))
         {
             $user = collect($this->model->find($userId));
             if(!blank($user))
