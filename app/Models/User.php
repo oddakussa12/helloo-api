@@ -200,7 +200,7 @@ class User extends Authenticatable implements JWTSubject
         // echo("open time: $open\n");
         // echo("close time: $close\n");
         // echo("now: $now\n");
-        if($close == $open) return 0;
+        if($close->diffInSeconds($open) <= 10) return 0;
         if($close <= $now || $open >= $now) return -1;
 
         return $close->diffInSeconds($now) / 60;
