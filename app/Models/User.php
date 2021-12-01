@@ -25,7 +25,7 @@ class User extends Authenticatable implements JWTSubject
 //        'users_email' ,
         'user_ip_address' ,
     ];
-    protected $appends = ['user_avatar_link']; //, 'open_time', 'close_time'];
+    protected $appends = ['user_avatar_link', 'open_left_time_minutes']; 
 
     protected $fillable = [
         'user_uuid' ,
@@ -190,4 +190,24 @@ class User extends Authenticatable implements JWTSubject
     public function getCloseTimeAttribute($value) {
         return \Carbon\Carbon::parse($value)->format('H:i A');
     }
+
+
+    public function openLeftMinutes()
+    {
+        $open = \Carbon\Carbon::parse($this->attributes['open_time']);
+        $close = \Carbon\Carbon::parse($this->attributes['close_time']);
+        $now = \Carbon\Carbon::now();
+        // echo("open time: $open\n");
+        // echo("close time: $close\n");
+        // echo("now: $now\n");
+        if($close == $open) return 0;
+        if($close <= $now || $open >= $now) return -1;
+
+        return $close->diffInSeconds($now) / 60;
+    }
+
+    public function getOpenLeftTimeMinutesAttribute() {
+        return $this->openLeftMinutes();
+    }
+
 }
