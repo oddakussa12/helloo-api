@@ -276,7 +276,7 @@ class BusinessController extends BaseController
     public function discoveryIndexUntested(Request $request, $id)
     {
         // $sender = app(UserRepository::class)->findByUserId('1938109523');
-        $shop_id = '1938109523';
+        $shop_id = $id;
         $shop = User::where('user_id',$shop_id)->first();
         return $shop->openLeftMinutes();
         
