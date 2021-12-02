@@ -207,7 +207,7 @@ class User extends Authenticatable implements JWTSubject
         if($close->diffInSeconds($open) <= 10) return 24*60*60;
         if($close <= $now || $open >= $now) return 0;
 
-        return $close->diffInSeconds($now) / 60;
+        return round($close->diffInSeconds($now) / 60);
     }
 
     public function getOpenLeftTimeMinutesAttribute() {

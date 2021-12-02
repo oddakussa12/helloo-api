@@ -197,7 +197,8 @@ class EloquentUserRepository  extends EloquentBaseRepository implements UserRepo
             {
                 $cache = collect($user)->toArray();
                 Redis::hmset($key , $cache);
-                Redis::expire($key , 60*60*24);
+                //Redis::expire($key , 60*60*24); because of left open time calculated in User model we can't use Redis for so long hashing...
+                Redis::expire($key , 60*3); 
             }
         }else{
             $user = collect($user);
