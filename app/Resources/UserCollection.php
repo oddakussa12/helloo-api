@@ -54,6 +54,10 @@ class UserCollection extends Resource
         {
             $resource->forget('user_tag');
         }
+        if($resource->has('open_left_time_minutes'))
+        {
+            $resource->put('open_left_time_minutes' , intval($resource->get('open_left_time_minutes')));
+        }
         return $resource->toArray();
     }
 }
