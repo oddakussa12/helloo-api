@@ -192,16 +192,20 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
-    public function openLeftMinutes()
-    {
-        $open = \Carbon\Carbon::parse($this->attributes['open_time']);
-        $close = \Carbon\Carbon::parse($this->attributes['close_time']);
-        $now = \Carbon\Carbon::now();
-        // echo("open time: $open\n");
-        // echo("close time: $close\n");
-        // echo("now: $now\n");
-        if($close->diffInSeconds($open) <= 10) return 0;
-        if($close <= $now || $open >= $now) return -1;
+    public function openLeftMinutes() {
+        if($this->attributes['open_time'] == null || $this->attributes['close_time'] == null) 
+            return -1;
+    
+        $open = \Carbon\Carbon::parse($this->attributes['open_time'], 'Africa/Addis_Ababa');
+        $close = \Carbon\Carbon::parse($this->attributes['close_time'], 'Africa/Addis_Ababa');
+        $now = \Carbon\Carbon::now('Africa/Addis_Ababa');
+
+        // echo "open time: {$this->attributes['open_time']}, carbon: {$open}\n";
+        // echo "close time: {$this->attributes['close_time']}, carbon {$close}\n";
+        // echo "now: {$now}, carbon: {$now}\n";
+
+        if($close->diffInSeconds($open) <= 10) return 24*60*60;
+        if($close <= $now || $open >= $now) return 0;
 
         return $close->diffInSeconds($now) / 60;
     }
