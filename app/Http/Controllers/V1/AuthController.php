@@ -1182,6 +1182,7 @@ class AuthController extends BaseController
         {
             $user_fields['user_shop']=1;
         }else{
+            $user_fields['user_avatar']=null;
             $user_fields['user_verified']=1;
             $user_fields['user_verified_at']=$now;
         }
