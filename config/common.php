@@ -11,7 +11,7 @@ return [
         'video_domain' => 'https://qnidyooulvideo.mmantou.cn/',
         'subtitle_domain' => 'https://qnidyooulsubtitle.mmantou.cn/',
         'thumbnail_domain' => 'https://qnidyooulimage.mmantou.cn/',
-        'avatar_domain' => 'https://qneventsource.mmantou.cn/',
+        'avatar_domain' => 'https://s3.me-south-1.amazonaws.com/www.beudelivery.com/',
         'cover_domain' => 'https://pv4w34f8r.bkt.clouddn.com/',
 	],
     'app_dir' => env('APP_DIR', 'api.helloo.mantouhealth.com'),
